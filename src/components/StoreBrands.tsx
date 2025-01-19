@@ -1,10 +1,26 @@
 import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Amazon", logo: "/lovable-uploads/da91a565-7449-472f-a6c3-d6ca71354ab2.png" },
-  { name: "Walmart", logo: "/lovable-uploads/3a22d618-c6eb-407b-a8fa-1bb90446c617.png" }, // Updated Walmart logo
-  { name: "Costco", logo: "/lovable-uploads/57fdc254-25ea-4a73-8128-c819f574f1fc.png" },
-  { name: "Elloria", logo: "/lovable-uploads/dd7c3f8c-2402-4319-a219-d3ea48e52847.png" }
+  { 
+    name: "Amazon", 
+    logo: "/lovable-uploads/da91a565-7449-472f-a6c3-d6ca71354ab2.png",
+    link: "https://www.amazon.ca/s?k=Elloria&ref=bl_dp_s_web_0"
+  },
+  { 
+    name: "Walmart", 
+    logo: "/lovable-uploads/3a22d618-c6eb-407b-a8fa-1bb90446c617.png",
+    link: "https://www.walmart.ca/en/c/brand/elloria?facet=fulfillment_method%3APickup"
+  },
+  { 
+    name: "Costco", 
+    logo: "/lovable-uploads/57fdc254-25ea-4a73-8128-c819f574f1fc.png",
+    link: "#"
+  },
+  { 
+    name: "Elloria", 
+    logo: "/lovable-uploads/dd7c3f8c-2402-4319-a219-d3ea48e52847.png",
+    link: "https://elloria.ca/"
+  }
 ];
 
 export const StoreBrands = () => {
@@ -27,8 +43,11 @@ export const StoreBrands = () => {
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
           {brands.map((brand, index) => (
-            <motion.div
+            <motion.a
               key={brand.name}
+              href={brand.link}
+              target="_blank"
+              rel="noopener noreferrer"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -45,7 +64,7 @@ export const StoreBrands = () => {
                 alt={`${brand.name} logo`}
                 className="w-full h-full object-contain"
               />
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       </div>
