@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Mail } from "lucide-react";
 
 export const Newsletter = () => {
   const [email, setEmail] = useState("");
@@ -18,31 +19,32 @@ export const Newsletter = () => {
   };
 
   return (
-    <section className="py-20 bg-secondary/10">
-      <div className="container px-4">
+    <section className="w-full py-24 bg-gradient-to-b from-secondary/10 to-white">
+      <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="max-w-2xl mx-auto text-center"
+          className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Stay Updated
+          <Mail className="w-12 h-12 mx-auto mb-6 text-primary" />
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            Join the Elloria Movement
           </h2>
-          <p className="text-gray-600 mb-8">
-            Subscribe to our newsletter for exclusive offers, tips, and updates.
+          <p className="text-gray-600 text-lg mb-12">
+            Be the first to know about exclusive offers, eco-updates, and new product launches.
           </p>
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
             <Input
               type="email"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1"
+              className="flex-1 h-14 text-lg"
               required
             />
-            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white">
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white h-14 px-8 text-lg">
               Subscribe
             </Button>
           </form>
