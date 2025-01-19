@@ -6,10 +6,16 @@ import { ProductCarousel } from "@/components/ProductCarousel";
 import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
+import { motion } from "framer-motion";
 
 const Index = () => {
   return (
-    <main className="min-h-screen">
+    <motion.main 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="min-h-screen overflow-hidden"
+    >
       <Hero />
       <Features />
       <StoreBrands />
@@ -18,7 +24,7 @@ const Index = () => {
       <Testimonials />
       <BlogPreview />
       <Newsletter />
-    </main>
+    </motion.main>
   );
 };
 
