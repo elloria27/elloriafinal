@@ -36,35 +36,40 @@ export const ProductCarousel = () => {
   };
 
   return (
-    <section className="w-full bg-gradient-to-b from-white to-accent-purple/10">
-      <div className="w-full px-4 py-20">
-        <motion.h2
+    <section className="w-full bg-gradient-to-b from-white via-accent-purple/10 to-white py-32">
+      <div className="w-full px-4">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-3xl md:text-5xl font-bold text-center mb-12"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
         >
-          Our Products
-        </motion.h2>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Our Products
+          </h2>
+          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+            Discover our range of premium products designed for your comfort
+          </p>
+        </motion.div>
         <div className="relative max-w-7xl mx-auto">
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-14 w-14 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white border-2 border-primary/20"
             onClick={prevSlide}
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-8 w-8 text-primary" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-14 w-14 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white border-2 border-primary/20"
             onClick={nextSlide}
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-8 w-8 text-primary" />
           </Button>
-          <div className="overflow-hidden relative min-h-[500px] md:min-h-[600px]">
+          <div className="overflow-hidden relative min-h-[600px] md:min-h-[700px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
@@ -74,18 +79,23 @@ export const ProductCarousel = () => {
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                <div className="flex flex-col md:flex-row items-center gap-12 max-w-6xl mx-auto px-4">
+                <div className="flex flex-col md:flex-row items-center gap-16 max-w-6xl mx-auto px-4">
                   <motion.div 
                     className="w-full md:w-1/2"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <img
-                      src={products[currentIndex].image}
-                      alt={products[currentIndex].name}
-                      className="w-full max-w-[400px] mx-auto hover:scale-105 transition-transform duration-300"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
+                      <motion.img
+                        src={products[currentIndex].image}
+                        alt={products[currentIndex].name}
+                        className="w-full max-w-[500px] mx-auto relative z-10"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
                   </motion.div>
                   <motion.div 
                     className="w-full md:w-1/2 text-center md:text-left"
@@ -93,13 +103,22 @@ export const ProductCarousel = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <h3 className="text-3xl md:text-4xl font-bold mb-6">{products[currentIndex].name}</h3>
-                    <p className="text-gray-600 text-lg mb-8">{products[currentIndex].description}</p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                      <Button className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg">
+                    <h3 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      {products[currentIndex].name}
+                    </h3>
+                    <p className="text-gray-600 text-xl mb-10 leading-relaxed">
+                      {products[currentIndex].description}
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-6 justify-center md:justify-start">
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 text-white px-8 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
                         Shop Now
                       </Button>
-                      <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 px-8 py-6 text-lg">
+                      <Button 
+                        variant="outline" 
+                        className="border-2 border-primary text-primary hover:bg-primary/10 px-8 py-7 text-lg rounded-full transition-all duration-300"
+                      >
                         Learn More
                       </Button>
                     </div>
