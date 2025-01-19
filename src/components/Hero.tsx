@@ -98,7 +98,7 @@ export const Hero = () => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src="/lovable-uploads/da91a565-7449-472f-a6c3-d6ca71354ab2.png" type="video/mp4" />
+              <source src="https://elloria.ca/Video_290mm.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </motion.div>
