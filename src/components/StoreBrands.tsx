@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
 const brands = [
-  { name: "Amazon", logo: "/lovable-uploads/amazon.png" },
-  { name: "Walmart", logo: "/lovable-uploads/walmart.png" },
-  { name: "Costco", logo: "/lovable-uploads/costco.png" },
-  { name: "Elloria", logo: "/lovable-uploads/elloria.png" }
+  { name: "Amazon", logo: "/lovable-uploads/da91a565-7449-472f-a6c3-d6ca71354ab2.png" },
+  { name: "Walmart", logo: "/lovable-uploads/a8273123-9231-4d63-8d6f-1802dbe5df98.png" },
+  { name: "Costco", logo: "/lovable-uploads/57fdc254-25ea-4a73-8128-c819f574f1fc.png" },
+  { name: "Elloria", logo: "/lovable-uploads/dd7c3f8c-2402-4319-a219-d3ea48e52847.png" }
 ];
 
 export const StoreBrands = () => {
