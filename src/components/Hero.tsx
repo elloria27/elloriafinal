@@ -1,8 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Leaf, Heart, Shield, Sparkles } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export const Hero = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.5; // Set playback rate to half speed
+    }
+  }, []);
+
   const floatingIcons = [
     { Icon: Leaf, delay: 0, position: { top: "20%", left: "10%" } },
     { Icon: Heart, delay: 0.2, position: { top: "50%", left: "15%" } },
@@ -92,6 +101,7 @@ export const Hero = () => {
             transition={{ duration: 0.3 }}
           >
             <video 
+              ref={videoRef}
               autoPlay 
               loop 
               muted 
