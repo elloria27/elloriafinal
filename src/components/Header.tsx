@@ -10,10 +10,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const scrollDirection = useScrollDirection();
+  const [currentLanguage, setCurrentLanguage] = useState("EN");
+  const [currentCurrency, setCurrentCurrency] = useState("USD");
 
   return (
     <AnimatePresence>
@@ -72,24 +84,103 @@ export const Header = () => {
 
                 {/* Right Side Icons */}
                 <div className="hidden md:flex items-center space-x-6">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="text-gray-600 hover:text-primary transition-colors"
-                  >
-                    <User className="h-5 w-5" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="text-gray-600 hover:text-primary transition-colors"
-                  >
-                    <Globe className="h-5 w-5" />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    className="text-gray-600 hover:text-primary transition-colors"
-                  >
-                    <DollarSign className="h-5 w-5" />
-                  </motion.button>
+                  {/* Account Icon with HoverCard */}
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        className="text-gray-600 hover:text-primary transition-colors"
+                      >
+                        <User className="h-5 w-5" />
+                      </motion.button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80 p-6">
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-medium">Welcome to Elloria</h4>
+                        <p className="text-sm text-gray-500">
+                          Sign in to access your account or create one to enjoy exclusive benefits and faster checkout.
+                        </p>
+                        <div className="flex gap-3">
+                          <Button className="w-full" variant="default">Sign In</Button>
+                          <Button className="w-full" variant="outline">Register</Button>
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+
+                  {/* Language Selection Popover */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        className="text-gray-600 hover:text-primary transition-colors flex items-center gap-1"
+                      >
+                        <Globe className="h-5 w-5" />
+                        <span className="text-xs font-medium">{currentLanguage}</span>
+                      </motion.button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-40">
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setCurrentLanguage("EN")}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentLanguage === "EN"
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          English
+                        </button>
+                        <button
+                          onClick={() => setCurrentLanguage("FR")}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentLanguage === "FR"
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          Français
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Currency Selection Popover */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        className="text-gray-600 hover:text-primary transition-colors flex items-center gap-1"
+                      >
+                        <DollarSign className="h-5 w-5" />
+                        <span className="text-xs font-medium">{currentCurrency}</span>
+                      </motion.button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-40">
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setCurrentCurrency("USD")}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentCurrency === "USD"
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          USD ($)
+                        </button>
+                        <button
+                          onClick={() => setCurrentCurrency("CAD")}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentCurrency === "CAD"
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          CAD ($)
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* Mobile Menu */}
