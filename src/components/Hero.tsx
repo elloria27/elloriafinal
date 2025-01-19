@@ -86,13 +86,22 @@ export const Hero = () => {
           transition={{ duration: 1 }}
         >
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
-          <motion.img 
-            src="/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png"
-            alt="Elloria Premium Sanitary Pads"
-            className="w-full max-w-[600px] mx-auto relative z-10"
+          <motion.div 
+            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
-          />
+          >
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="w-full h-full object-cover"
+            >
+              <source src="/lovable-uploads/da91a565-7449-472f-a6c3-d6ca71354ab2.png" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </motion.div>
         </motion.div>
       </div>
     </section>
