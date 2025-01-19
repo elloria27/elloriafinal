@@ -25,7 +25,9 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const scrollDirection = useScrollDirection();
   const [currentLanguage, setCurrentLanguage] = useState("EN");
-  const [currentCurrency, setCurrentCurrency] = useState("USD");
+  const [currentCurrency, setCurrentCurrency] = useState("CAD"); // Changed default to CAD
+
+  // ... keep existing code (promotional strip and main header structure)
 
   return (
     <AnimatePresence>
@@ -37,7 +39,6 @@ export const Header = () => {
           transition={{ duration: 0.3 }}
           className="fixed top-0 left-0 right-0 z-50"
         >
-          {/* Promotional Strip */}
           <motion.div
             initial={{ y: -50 }}
             animate={{ y: 0 }}
@@ -50,7 +51,6 @@ export const Header = () => {
             </div>
           </motion.div>
 
-          {/* Main Header */}
           <motion.header 
             initial={{ y: -100 }}
             animate={{ y: 0 }}
@@ -58,7 +58,6 @@ export const Header = () => {
           >
             <div className="container mx-auto">
               <div className="flex items-center justify-between h-20 px-4">
-                {/* Logo */}
                 <motion.a 
                   href="/" 
                   className="text-3xl font-extralight tracking-[0.2em] bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent"
@@ -84,7 +83,6 @@ export const Header = () => {
 
                 {/* Right Side Icons */}
                 <div className="hidden md:flex items-center space-x-6">
-                  {/* Account Icon with HoverCard */}
                   <HoverCard>
                     <HoverCardTrigger asChild>
                       <motion.button
@@ -118,7 +116,6 @@ export const Header = () => {
                     </HoverCardContent>
                   </HoverCard>
 
-                  {/* Language Selection Popover */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <motion.button
@@ -169,16 +166,6 @@ export const Header = () => {
                     <PopoverContent className="w-40">
                       <div className="space-y-2">
                         <button
-                          onClick={() => setCurrentCurrency("USD")}
-                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                            currentCurrency === "USD"
-                              ? "bg-primary/10 text-primary"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          USD ($)
-                        </button>
-                        <button
                           onClick={() => setCurrentCurrency("CAD")}
                           className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                             currentCurrency === "CAD"
@@ -188,12 +175,21 @@ export const Header = () => {
                         >
                           CAD ($)
                         </button>
+                        <button
+                          onClick={() => setCurrentCurrency("USD")}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentCurrency === "USD"
+                              ? "bg-primary/10 text-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          USD ($)
+                        </button>
                       </div>
                     </PopoverContent>
                   </Popover>
                 </div>
 
-                {/* Mobile Menu */}
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button 
