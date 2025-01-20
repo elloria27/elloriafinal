@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Leaf, Heart, Shield, Sparkles } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Leaf, Heart, Shield, Sparkles, Play } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   
   useEffect(() => {
     if (videoRef.current) {
@@ -23,6 +24,17 @@ export const Hero = () => {
     const sustainabilitySection = document.querySelector('#sustainability');
     if (sustainabilitySection) {
       sustainabilitySection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handlePlayVideo = () => {
+    if (videoRef.current) {
+      if (!isPlaying) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
@@ -107,13 +119,12 @@ export const Hero = () => {
         >
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
           <motion.div 
-            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl"
+            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl group"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
             <video 
               ref={videoRef}
-              autoPlay 
               loop 
               muted 
               playsInline
@@ -122,6 +133,22 @@ export const Hero = () => {
               <source src="https://elloria.ca/Video_290mm.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+            
+            {!isPlaying && (
+              <motion.div 
+                className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Button
+                  onClick={handlePlayVideo}
+                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                >
+                  <Play className="w-8 h-8 text-primary ml-1" />
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
         </motion.div>
       </div>
