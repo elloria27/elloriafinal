@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Input } from "@/components/ui/input";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
@@ -20,13 +19,12 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal, activePromoCode, clearCart, applyPromoCode } = useCart();
+  const { items, subtotal, activePromoCode, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [promoCode, setPromoCode] = useState("");
 
   const calculateTaxes = () => {
     if (!region) return { gst: 0, pst: 0, hst: 0 };
@@ -94,14 +92,6 @@ const Checkout = () => {
     setIsSubmitting(false);
   };
 
-  const handlePromoCodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (promoCode.trim()) {
-      applyPromoCode(promoCode.trim());
-      setPromoCode("");
-    }
-  };
-
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -149,19 +139,6 @@ const Checkout = () => {
                   currencySymbol={currencySymbol}
                 />
               )}
-
-              <div className="space-y-2">
-                <h3 className="font-medium">Promo Code</h3>
-                <form onSubmit={handlePromoCodeSubmit} className="flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Enter promo code"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                  />
-                  <Button type="submit" variant="outline">Apply</Button>
-                </form>
-              </div>
 
               <Button 
                 type="submit" 
