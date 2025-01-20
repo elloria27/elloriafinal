@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Leaf, Heart, Shield, Sparkles, Play } from "lucide-react";
+import { Leaf, Heart, Shield, Sparkles, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   
   useEffect(() => {
     if (videoRef.current) {
@@ -35,6 +36,13 @@ export const Hero = () => {
         videoRef.current.pause();
       }
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleToggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
     }
   };
 
@@ -126,7 +134,7 @@ export const Hero = () => {
             <video 
               ref={videoRef}
               loop 
-              muted 
+              muted={isMuted}
               playsInline
               className="w-full h-full object-cover"
             >
@@ -134,21 +142,35 @@ export const Hero = () => {
               Your browser does not support the video tag.
             </video>
             
-            {!isPlaying && (
-              <motion.div 
-                className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="flex gap-4">
                 <Button
                   onClick={handlePlayVideo}
                   className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
                 >
-                  <Play className="w-8 h-8 text-primary ml-1" />
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 text-primary" />
+                  ) : (
+                    <Play className="w-8 h-8 text-primary ml-1" />
+                  )}
                 </Button>
-              </motion.div>
-            )}
+                <Button
+                  onClick={handleToggleMute}
+                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-8 h-8 text-primary" />
+                  ) : (
+                    <Volume2 className="w-8 h-8 text-primary" />
+                  )}
+                </Button>
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       </div>
