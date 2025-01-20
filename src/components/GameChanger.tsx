@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Droplets, Leaf, Heart } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 const features = [
   {
@@ -25,8 +24,10 @@ const features = [
 
 export const GameChanger = () => {
   return (
-    <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
-      <div className="container px-4">
+    <section className="py-24 bg-primary text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgNTYgMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiNGRkYiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiLz48L2c+PC9zdmc+')] opacity-10" />
+      
+      <div className="container px-4 relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -34,44 +35,50 @@ export const GameChanger = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Why Elloria Pads Are a{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-secondary">
               Game-Changer
             </span>
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+          <p className="text-white/80 max-w-2xl mx-auto text-lg">
             Experience the perfect blend of innovation and comfort with features that set us apart
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.5, delay: index * 0.2 }}
+              className="relative group"
             >
-              <Card className="h-full group hover:shadow-lg transition-all duration-300 border-none bg-white/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                    className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300"
-                  >
-                    {feature.icon}
-                  </motion.div>
-                  <h3 className="text-2xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 mb-4">{feature.description}</p>
-                  <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300">
-                    <p className="text-primary/80 text-sm pt-4 border-t">
-                      {feature.detail}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 h-full transform transition-all duration-300 group-hover:translate-y-[-8px] group-hover:bg-white/20">
+                <motion.div
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.8 }}
+                  className="mb-6 text-secondary"
+                >
+                  {feature.icon}
+                </motion.div>
+                
+                <h3 className="text-2xl font-semibold mb-4">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-white/80 mb-4">
+                  {feature.description}
+                </p>
+                
+                <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300">
+                  <p className="text-secondary/90 text-sm pt-4 border-t border-white/20">
+                    {feature.detail}
+                  </p>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>
