@@ -58,15 +58,17 @@ export const GameChanger = () => {
             >
               <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 h-full transform transition-all duration-300 group-hover:translate-y-[-8px] group-hover:bg-white/20">
                 <motion.div 
-                  initial={{ rotate: 0 }}
-                  whileHover={{ rotate: 360, scale: 1.1 }}
-                  transition={{ 
-                    duration: 0.6,
-                    ease: "easeInOut",
-                    type: "spring",
-                    stiffness: 100
+                  initial={{ scale: 1 }}
+                  whileHover={{ 
+                    scale: 1.15,
+                    filter: "drop-shadow(0 0 8px rgba(255, 189, 200, 0.6))"
                   }}
-                  className="mb-6 text-secondary"
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 15
+                  }}
+                  className="mb-6 text-secondary relative"
                 >
                   {feature.icon}
                 </motion.div>
