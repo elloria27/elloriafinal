@@ -9,6 +9,7 @@ import { Newsletter } from "@/components/Newsletter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ElevatingEssentials } from "@/components/ElevatingEssentials";
+import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -23,6 +24,7 @@ const Index = () => {
       >
         <Hero />
         <ElevatingEssentials />
+        <GameChanger />
         <Features />
         <StoreBrands />
         <Sustainability />
