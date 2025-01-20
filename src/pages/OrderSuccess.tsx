@@ -96,9 +96,12 @@ const OrderSuccess = () => {
               padding-bottom: 0.5rem;
               border-bottom: 1px solid #eee;
             }
-            .logo {
-              width: 120px;
-              height: auto;
+            .logo-text {
+              font-size: 24px;
+              font-weight: 200;
+              letter-spacing: 0.2em;
+              color: #333;
+              margin: 0;
             }
             .order-info {
               text-align: right;
@@ -155,11 +158,7 @@ const OrderSuccess = () => {
         <body>
           <div class="invoice-container">
             <div class="header">
-              <img src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png" 
-                   alt="Elloria Logo" 
-                   class="logo"
-                   onload="this.crossOrigin='Anonymous';"
-              />
+              <h1 class="logo-text">ELLORIA</h1>
               <div class="order-info">
                 <h2>Order #${orderDetails.orderId}</h2>
                 <p>Date: ${new Date().toLocaleDateString()}</p>
@@ -246,22 +245,12 @@ const OrderSuccess = () => {
         </body>
         <script>
           window.onload = function() {
-            const img = document.querySelector('img');
-            if (img) {
-              const canvas = document.createElement('canvas');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0);
-              const dataUrl = canvas.toDataURL('image/png');
-              img.src = dataUrl;
-            }
             setTimeout(() => {
               window.print();
               window.onafterprint = () => {
                 window.close();
               };
-            }, 1000);
+            }, 500);
           }
         </script>
       </html>
