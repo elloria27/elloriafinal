@@ -42,7 +42,7 @@ export const ProductCarousel = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-screen bg-gradient-to-b from-white via-accent-purple/5 to-white py-32 overflow-hidden"
+      className="relative min-h-screen bg-white py-32 overflow-hidden"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -72,8 +72,8 @@ export const ProductCarousel = () => {
             transition={{ duration: 0.5, delay: index * 0.2 }}
             className="relative group"
           >
-            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-b from-white via-accent-purple/5 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -81,7 +81,7 @@ export const ProductCarousel = () => {
                 className="relative z-10"
               >
                 <div className="relative mb-8">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 via-accent-peach/5 to-accent-green/5 rounded-full blur-2xl" />
                   <img
                     src={product.image}
                     alt={product.name}
