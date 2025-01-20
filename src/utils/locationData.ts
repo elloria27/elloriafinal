@@ -37,32 +37,32 @@ export const US_TAX_RATES: Record<string, TaxRate> = {
 export const SHIPPING_OPTIONS: Record<string, ShippingOption[]> = {
   CA: [
     {
-      id: "canada-post-regular",
-      name: "Canada Post Regular",
-      price: 9.99,
+      id: "standard",
+      name: "Standard Shipping",
+      price: 5.00,
       currency: "CAD",
       estimatedDays: "3-7 business days"
     },
     {
-      id: "canada-post-express",
-      name: "Canada Post Express",
-      price: 19.99,
+      id: "express",
+      name: "Express Shipping",
+      price: 8.00,
       currency: "CAD",
       estimatedDays: "1-2 business days"
     }
   ],
   US: [
     {
-      id: "usps-ground",
-      name: "USPS Ground",
-      price: 7.99,
+      id: "standard",
+      name: "Standard Shipping",
+      price: 5.00,
       currency: "USD",
       estimatedDays: "5-8 business days"
     },
     {
-      id: "usps-priority",
-      name: "USPS Priority",
-      price: 14.99,
+      id: "express",
+      name: "Express Shipping",
+      price: 8.00,
       currency: "USD",
       estimatedDays: "2-3 business days"
     }

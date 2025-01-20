@@ -11,21 +11,21 @@ const products = [
     name: "Ultra-Thin 290mm",
     description: "Perfect for light to medium flow days. Features our innovative ultra-thin design for maximum comfort.",
     image: "/lovable-uploads/0df96e81-8434-4436-b873-45aa9c6814cf.png",
-    price: 12.99
+    price: 6.99
   },
   {
     id: 2,
     name: "Maxi Pads 350mm",
     description: "Ideal for medium to heavy flow days. Enhanced absorption technology for complete confidence.",
     image: "/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png",
-    price: 14.99
+    price: 7.99
   },
   {
     id: 3,
     name: "Overnight 425mm",
     description: "Maximum protection for peaceful nights. Up to 600ml capacity for ultimate security.",
     image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png",
-    price: 16.99
+    price: 8.99
   }
 ];
 

@@ -106,7 +106,6 @@ const Checkout = () => {
     }
     
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Get form data
     const formData = new FormData(e.currentTarget);
@@ -116,6 +115,8 @@ const Checkout = () => {
       email: formData.get('email') as string,
       phone: phoneNumber,
       address: formData.get('address') as string,
+      country,
+      region
     };
     
     // Store order details for the invoice page
@@ -131,7 +132,6 @@ const Checkout = () => {
     localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
     
     clearCart();
-    toast.success("Order placed successfully!");
     navigate("/order-success");
     setIsSubmitting(false);
   };
@@ -166,28 +166,6 @@ const Checkout = () => {
             className="order-2 md:order-1"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Country Selection First */}
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Select value={country} onValueChange={(value) => {
-                  setCountry(value);
-                  setRegion("");
-                  setSelectedShipping("");
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-lg">
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Personal Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -214,10 +192,25 @@ const Checkout = () => {
                   required 
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" name="address" required />
+                <Label htmlFor="country">Country</Label>
+                <Select value={country} onValueChange={(value) => {
+                  setCountry(value);
+                  setRegion("");
+                  setSelectedShipping("");
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border shadow-lg">
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {country && (
@@ -239,6 +232,11 @@ const Checkout = () => {
                   </Select>
                 </div>
               )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input id="address" name="address" required />
+              </div>
 
               {country && (
                 <div className="space-y-2">
