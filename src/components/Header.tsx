@@ -27,9 +27,7 @@ export const Header = () => {
   const scrollDirection = useScrollDirection();
   const [currentLanguage, setCurrentLanguage] = useState("EN");
   const [currentCurrency, setCurrentCurrency] = useState("CAD");
-  const { items, totalItems, removeItem } = useCart();
-
-  // ... keep existing code (promotional strip and main header structure)
+  const { items, totalItems, removeItem, updateQuantity, clearCart } = useCart();
 
   return (
     <AnimatePresence>
@@ -210,7 +208,7 @@ export const Header = () => {
                         )}
                       </motion.div>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80 p-4">
+                    <PopoverContent className="w-80 p-4 bg-white shadow-lg border border-gray-100">
                       <div className="space-y-4">
                         <h4 className="text-lg font-medium">Shopping Cart</h4>
                         {items.length === 0 ? (
@@ -227,7 +225,27 @@ export const Header = () => {
                                   />
                                   <div className="flex-1">
                                     <h5 className="text-sm font-medium">{item.name}</h5>
-                                    <p className="text-xs text-gray-500">Quantity: {item.quantity}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                        disabled={item.quantity <= 1}
+                                      >
+                                        -
+                                      </Button>
+                                      <span className="text-sm w-8 text-center">{item.quantity}</span>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                        disabled={item.quantity >= 99}
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
                                   </div>
                                   <Button
                                     variant="ghost"
@@ -240,7 +258,18 @@ export const Header = () => {
                                 </div>
                               ))}
                             </div>
-                            <Button className="w-full">Checkout</Button>
+                            <div className="flex gap-2">
+                              <Button className="w-full" onClick={() => console.log('Checkout clicked')}>
+                                Checkout
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="px-3"
+                                onClick={clearCart}
+                              >
+                                Clear
+                              </Button>
+                            </div>
                           </>
                         )}
                       </div>

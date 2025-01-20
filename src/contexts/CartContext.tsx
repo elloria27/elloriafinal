@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export type CartItem = {
@@ -20,8 +20,29 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = 'elloria_cart';
+const CART_EXPIRY_DAYS = 7;
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (savedCart) {
+      const { items, expiryDate } = JSON.parse(savedCart);
+      if (new Date().getTime() < expiryDate) {
+        return items;
+      }
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + CART_EXPIRY_DAYS);
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({
+      items,
+      expiryDate: expiryDate.getTime()
+    }));
+  }, [items]);
 
   const addItem = (newItem: CartItem) => {
     setItems(currentItems => {
@@ -55,10 +76,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeItem = (id: number) => {
     setItems(currentItems => currentItems.filter(item => item.id !== id));
+    toast.success('Item removed from cart');
   };
 
   const clearCart = () => {
     setItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
+    toast.success('Cart cleared');
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
