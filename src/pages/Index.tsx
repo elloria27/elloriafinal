@@ -3,6 +3,7 @@ import { Features } from "@/components/Features";
 import { StoreBrands } from "@/components/StoreBrands";
 import { Sustainability } from "@/components/Sustainability";
 import { ProductCarousel } from "@/components/ProductCarousel";
+import { CompetitorComparison } from "@/components/CompetitorComparison";
 import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
@@ -29,6 +30,7 @@ const Index = () => {
         <StoreBrands />
         <Sustainability />
         <ProductCarousel />
+        <CompetitorComparison />
         <Testimonials />
         <BlogPreview />
         <Newsletter />
