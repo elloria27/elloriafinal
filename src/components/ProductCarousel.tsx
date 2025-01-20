@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 
 const products = [
   {
@@ -29,9 +30,14 @@ export const ProductCarousel = () => {
     target: containerRef,
     offset: ["start end", "end start"]
   });
+  const { addItem } = useCart();
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+
+  const handleBuyNow = (product: typeof products[0]) => {
+    addItem(product);
+  };
 
   return (
     <section 
@@ -93,6 +99,7 @@ export const ProductCarousel = () => {
                 <div className="flex gap-4 justify-center">
                   <Button 
                     className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                    onClick={() => handleBuyNow(product)}
                   >
                     Buy Now
                   </Button>

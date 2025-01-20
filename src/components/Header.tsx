@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, User, Globe, DollarSign } from "lucide-react";
+import { Menu, User, Globe, DollarSign, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
+import { useCart } from "@/contexts/CartContext";
 import {
   Sheet,
   SheetContent,
@@ -25,7 +26,8 @@ export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const scrollDirection = useScrollDirection();
   const [currentLanguage, setCurrentLanguage] = useState("EN");
-  const [currentCurrency, setCurrentCurrency] = useState("CAD"); // Changed default to CAD
+  const [currentCurrency, setCurrentCurrency] = useState("CAD");
+  const { items, totalItems, removeItem } = useCart();
 
   // ... keep existing code (promotional strip and main header structure)
 
@@ -185,6 +187,62 @@ export const Header = () => {
                         >
                           USD ($)
                         </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Shopping Cart */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className="relative cursor-pointer"
+                      >
+                        <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" />
+                        {totalItems > 0 && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
+                          >
+                            {totalItems}
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4">
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-medium">Shopping Cart</h4>
+                        {items.length === 0 ? (
+                          <p className="text-sm text-gray-500">Your cart is empty</p>
+                        ) : (
+                          <>
+                            <div className="space-y-3">
+                              {items.map((item) => (
+                                <div key={item.id} className="flex items-center gap-3">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-16 h-16 object-contain rounded-md"
+                                  />
+                                  <div className="flex-1">
+                                    <h5 className="text-sm font-medium">{item.name}</h5>
+                                    <p className="text-xs text-gray-500">Quantity: {item.quantity}</p>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeItem(item.id)}
+                                    className="text-red-500 hover:text-red-600"
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                            <Button className="w-full">Checkout</Button>
+                          </>
+                        )}
                       </div>
                     </PopoverContent>
                   </Popover>
