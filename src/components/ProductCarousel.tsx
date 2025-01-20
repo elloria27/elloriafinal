@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 const products = [
@@ -25,110 +24,90 @@ const products = [
 ];
 
 export const ProductCarousel = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % products.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
-  };
+  const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   return (
-    <section className="w-full bg-gradient-to-b from-white via-accent-purple/10 to-white py-32">
-      <div className="w-full px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-20"
-        >
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Our Products
-          </h2>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            Discover our range of premium products designed for your comfort
-          </p>
-        </motion.div>
-        <div className="relative max-w-7xl mx-auto">
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-14 w-14 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white border-2 border-primary/20"
-            onClick={prevSlide}
+    <section 
+      ref={containerRef}
+      className="relative min-h-screen bg-gradient-to-b from-white via-accent-purple/5 to-white py-32 overflow-hidden"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="text-center mb-20"
+      >
+        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Our Products
+        </h2>
+        <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+          Discover our range of premium products designed for your comfort
+        </p>
+      </motion.div>
+
+      <motion.div 
+        style={{ y, opacity }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto px-4"
+      >
+        {products.map((product, index) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.2 }}
+            className="relative group"
           >
-            <ChevronLeft className="h-8 w-8 text-primary" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-14 w-14 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white border-2 border-primary/20"
-            onClick={nextSlide}
-          >
-            <ChevronRight className="h-8 w-8 text-primary" />
-          </Button>
-          <div className="overflow-hidden relative min-h-[600px] md:min-h-[700px]">
-            <AnimatePresence mode="wait">
+            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
               <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0 flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10"
               >
-                <div className="flex flex-col md:flex-row items-center gap-16 max-w-6xl mx-auto px-4">
-                  <motion.div 
-                    className="w-full md:w-1/2"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-2xl" />
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-[300px] object-contain relative z-10"
+                  />
+                </div>
+
+                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  {product.name}
+                </h3>
+                <p className="text-gray-600 mb-6 h-24">
+                  {product.description}
+                </p>
+
+                <div className="flex gap-4 justify-center">
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
-                      <motion.img
-                        src={products[currentIndex].image}
-                        alt={products[currentIndex].name}
-                        className="w-full max-w-[500px] mx-auto relative z-10"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    </div>
-                  </motion.div>
-                  <motion.div 
-                    className="w-full md:w-1/2 text-center md:text-left"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    Shop Now
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
                   >
-                    <h3 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {products[currentIndex].name}
-                    </h3>
-                    <p className="text-gray-600 text-xl mb-10 leading-relaxed">
-                      {products[currentIndex].description}
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-6 justify-center md:justify-start">
-                      <Button 
-                        className="bg-primary hover:bg-primary/90 text-white px-8 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                      >
-                        Shop Now
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="border-2 border-primary text-primary hover:bg-primary/10 px-8 py-7 text-lg rounded-full transition-all duration-300"
-                      >
-                        Learn More
-                      </Button>
-                    </div>
-                  </motion.div>
+                    Learn More
+                  </Button>
                 </div>
               </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
     </section>
   );
 };
