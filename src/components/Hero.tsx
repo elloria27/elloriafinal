@@ -86,7 +86,7 @@ export const Hero = () => {
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-white px-8 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Shop Now
+              Buy Now
             </Button>
             <Button 
               size="lg" 

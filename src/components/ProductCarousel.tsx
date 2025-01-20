@@ -94,7 +94,7 @@ export const ProductCarousel = () => {
                   <Button 
                     className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    Shop Now
+                    Buy Now
                   </Button>
                   <Button 
                     variant="outline" 
