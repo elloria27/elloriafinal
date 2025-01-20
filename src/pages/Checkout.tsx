@@ -10,12 +10,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { 
+  CANADIAN_TAX_RATES, 
+  US_TAX_RATES, 
+  SHIPPING_OPTIONS,
+  USD_TO_CAD,
+  type ShippingOption 
+} from "@/utils/locationData";
 
 const COUNTRIES = [
   { code: "CA", name: "Canada" },
@@ -23,85 +31,81 @@ const COUNTRIES = [
 ];
 
 const PROVINCES = [
-  { code: "AB", name: "Alberta" },
-  { code: "BC", name: "British Columbia" },
-  { code: "MB", name: "Manitoba" },
-  { code: "NB", name: "New Brunswick" },
-  { code: "NL", name: "Newfoundland and Labrador" },
-  { code: "NS", name: "Nova Scotia" },
-  { code: "ON", name: "Ontario" },
-  { code: "PE", name: "Prince Edward Island" },
-  { code: "QC", name: "Quebec" },
-  { code: "SK", name: "Saskatchewan" },
+  "Alberta",
+  "British Columbia",
+  "Manitoba",
+  "New Brunswick",
+  "Newfoundland and Labrador",
+  "Nova Scotia",
+  "Ontario",
+  "Prince Edward Island",
+  "Quebec",
+  "Saskatchewan",
 ];
 
 const STATES = [
-  { code: "AL", name: "Alabama" },
-  { code: "AK", name: "Alaska" },
-  { code: "AZ", name: "Arizona" },
-  { code: "AR", name: "Arkansas" },
-  { code: "CA", name: "California" },
-  { code: "CO", name: "Colorado" },
-  { code: "CT", name: "Connecticut" },
-  { code: "DE", name: "Delaware" },
-  { code: "FL", name: "Florida" },
-  { code: "GA", name: "Georgia" },
-  { code: "HI", name: "Hawaii" },
-  { code: "ID", name: "Idaho" },
-  { code: "IL", name: "Illinois" },
-  { code: "IN", name: "Indiana" },
-  { code: "IA", name: "Iowa" },
-  { code: "KS", name: "Kansas" },
-  { code: "KY", name: "Kentucky" },
-  { code: "LA", name: "Louisiana" },
-  { code: "ME", name: "Maine" },
-  { code: "MD", name: "Maryland" },
-  { code: "MA", name: "Massachusetts" },
-  { code: "MI", name: "Michigan" },
-  { code: "MN", name: "Minnesota" },
-  { code: "MS", name: "Mississippi" },
-  { code: "MO", name: "Missouri" },
-  { code: "MT", name: "Montana" },
-  { code: "NE", name: "Nebraska" },
-  { code: "NV", name: "Nevada" },
-  { code: "NH", name: "New Hampshire" },
-  { code: "NJ", name: "New Jersey" },
-  { code: "NM", name: "New Mexico" },
-  { code: "NY", name: "New York" },
-  { code: "NC", name: "North Carolina" },
-  { code: "ND", name: "North Dakota" },
-  { code: "OH", name: "Ohio" },
-  { code: "OK", name: "Oklahoma" },
-  { code: "OR", name: "Oregon" },
-  { code: "PA", name: "Pennsylvania" },
-  { code: "RI", name: "Rhode Island" },
-  { code: "SC", name: "South Carolina" },
-  { code: "SD", name: "South Dakota" },
-  { code: "TN", name: "Tennessee" },
-  { code: "TX", name: "Texas" },
-  { code: "UT", name: "Utah" },
-  { code: "VT", name: "Vermont" },
-  { code: "VA", name: "Virginia" },
-  { code: "WA", name: "Washington" },
-  { code: "WV", name: "West Virginia" },
-  { code: "WI", name: "Wisconsin" },
-  { code: "WY", name: "Wyoming" },
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+  "New Hampshire", "New Jersey", "New Mexico", "New York",
+  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+  "West Virginia", "Wisconsin", "Wyoming"
 ];
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, total, subtotal, activePromoCode, clearCart } = useCart();
+  const { items, subtotal, activePromoCode, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
+  const [selectedShipping, setSelectedShipping] = useState<string>("");
+
+  // Calculate taxes based on region
+  const calculateTaxes = () => {
+    if (!region) return { gst: 0, pst: 0, hst: 0 };
+    
+    const taxRates = country === "CA" 
+      ? CANADIAN_TAX_RATES[region] 
+      : US_TAX_RATES[region] || { pst: 0 };
+    
+    return {
+      gst: taxRates.gst || 0,
+      pst: taxRates.pst || 0,
+      hst: taxRates.hst || 0
+    };
+  };
+
+  // Get current shipping options
+  const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
+  const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
+
+  // Calculate final totals
+  const taxes = calculateTaxes();
+  const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
+  const shippingCost = selectedShippingOption?.price || 0;
+  
+  const taxAmount = subtotalInCurrentCurrency * (
+    (taxes.hst || 0) / 100 +
+    (taxes.gst || 0) / 100 +
+    (taxes.pst || 0) / 100
+  );
+
+  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
+  const currencySymbol = country === "US" ? "$" : "CAD $";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!selectedShipping) {
+      toast.error("Please select a shipping method");
+      return;
+    }
+    
     setIsSubmitting(true);
-    
-    // Simulate order processing
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
     clearCart();
     toast.success("Order placed successfully!");
     navigate("/");
@@ -136,9 +140,6 @@ const Checkout = () => {
             className="order-2 md:order-1"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <h2 className="text-xl font-medium">Shipping Information</h2>
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
@@ -160,67 +161,74 @@ const Checkout = () => {
                   <Input id="address" required />
                 </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Select value={country} onValueChange={(value) => {
+                  setCountry(value);
+                  setRegion("");
+                  setSelectedShipping("");
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {country && (
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Select value={country} onValueChange={(value) => {
-                    setCountry(value);
-                    setRegion(""); // Reset region when country changes
-                  }}>
+                  <Label htmlFor="region">
+                    {country === "CA" ? "Province" : "State"}
+                  </Label>
+                  <Select value={region} onValueChange={setRegion}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
+                      <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {COUNTRIES.map((country) => (
-                        <SelectItem key={country.code} value={country.code}>
-                          {country.name}
+                      {(country === "CA" ? PROVINCES : STATES).map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="region">{country === "CA" ? "Province" : "State"}</Label>
-                    <Select value={region} onValueChange={setRegion}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {country === "CA" 
-                          ? PROVINCES.map((province) => (
-                              <SelectItem key={province.code} value={province.code}>
-                                {province.name}
-                              </SelectItem>
-                            ))
-                          : STATES.map((state) => (
-                              <SelectItem key={state.code} value={state.code}>
-                                {state.name}
-                              </SelectItem>
-                            ))
-                        }
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="postalCode">{country === "CA" ? "Postal Code" : "ZIP Code"}</Label>
-                    <Input 
-                      id="postalCode" 
-                      required 
-                      placeholder={country === "CA" ? "A1A 1A1" : "12345"}
-                    />
-                  </div>
+              )}
+
+              {country && (
+                <div className="space-y-2">
+                  <Label>Shipping Method</Label>
+                  <RadioGroup value={selectedShipping} onValueChange={setSelectedShipping}>
+                    <div className="space-y-2">
+                      {shippingOptions.map((option) => (
+                        <div key={option.id} className="flex items-center space-x-2">
+                          <RadioGroupItem value={option.id} id={option.id} />
+                          <Label htmlFor={option.id} className="flex-1">
+                            <div className="flex justify-between">
+                              <span>{option.name}</span>
+                              <span>{currencySymbol}{option.price.toFixed(2)}</span>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {option.estimatedDays}
+                            </span>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
                 </div>
-              </div>
-              
+              )}
+
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting || !country || !region}
+                disabled={isSubmitting || !country || !region || !selectedShipping}
               >
                 {isSubmitting ? "Processing..." : "Place Order"}
               </Button>
@@ -247,7 +255,13 @@ const Checkout = () => {
                     <div className="flex-1">
                       <h3 className="font-medium">{item.name}</h3>
                       <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                      <p className="text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-primary">
+                        {currencySymbol}
+                        {(country === "US" 
+                          ? (item.price * item.quantity) / USD_TO_CAD 
+                          : item.price * item.quantity
+                        ).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -258,19 +272,52 @@ const Checkout = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{currencySymbol}{subtotalInCurrentCurrency.toFixed(2)}</span>
                 </div>
+
+                {taxes.gst > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>GST ({taxes.gst}%)</span>
+                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.gst / 100).toFixed(2)}</span>
+                  </div>
+                )}
+
+                {taxes.pst > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>
+                      {country === "CA" ? "PST" : "Sales Tax"} ({taxes.pst}%)
+                    </span>
+                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.pst / 100).toFixed(2)}</span>
+                  </div>
+                )}
+
+                {taxes.hst > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>HST ({taxes.hst}%)</span>
+                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.hst / 100).toFixed(2)}</span>
+                  </div>
+                )}
+
+                {selectedShippingOption && (
+                  <div className="flex justify-between text-sm">
+                    <span>Shipping ({selectedShippingOption.name})</span>
+                    <span>{currencySymbol}{selectedShippingOption.price.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 {activePromoCode && (
                   <div className="flex justify-between text-sm text-primary">
                     <span>Discount ({activePromoCode.discount}%)</span>
-                    <span>-${((subtotal * activePromoCode.discount) / 100).toFixed(2)}</span>
+                    <span>
+                      -{currencySymbol}
+                      {((subtotalInCurrentCurrency * activePromoCode.discount) / 100).toFixed(2)}
+                    </span>
                   </div>
                 )}
                 
-                <div className="flex justify-between font-medium">
+                <div className="flex justify-between font-medium pt-2 border-t">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{currencySymbol}{total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
