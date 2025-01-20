@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Input } from "@/components/ui/input";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
@@ -19,12 +20,13 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal, activePromoCode, clearCart } = useCart();
+  const { items, subtotal, activePromoCode, clearCart, applyPromoCode } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [promoCode, setPromoCode] = useState("");
 
   const calculateTaxes = () => {
     if (!region) return { gst: 0, pst: 0, hst: 0 };
@@ -40,11 +42,9 @@ const Checkout = () => {
     };
   };
 
-  // Get current shipping options
   const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
 
-  // Calculate final totals
   const taxes = calculateTaxes();
   const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
   const shippingCost = selectedShippingOption?.price || 0;
@@ -67,7 +67,6 @@ const Checkout = () => {
     
     setIsSubmitting(true);
     
-    // Get form data
     const formData = new FormData(e.currentTarget);
     const customerDetails = {
       firstName: formData.get('firstName') as string,
@@ -79,7 +78,6 @@ const Checkout = () => {
       region
     };
     
-    // Store order details for the invoice page
     const orderDetails = {
       items,
       subtotal: subtotalInCurrentCurrency,
@@ -94,6 +92,14 @@ const Checkout = () => {
     clearCart();
     navigate("/order-success");
     setIsSubmitting(false);
+  };
+
+  const handlePromoCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (promoCode.trim()) {
+      applyPromoCode(promoCode.trim());
+      setPromoCode("");
+    }
   };
 
   if (items.length === 0) {
@@ -143,6 +149,19 @@ const Checkout = () => {
                   currencySymbol={currencySymbol}
                 />
               )}
+
+              <div className="space-y-2">
+                <h3 className="font-medium">Promo Code</h3>
+                <form onSubmit={handlePromoCodeSubmit} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                  />
+                  <Button type="submit" variant="outline">Apply</Button>
+                </form>
+              </div>
 
               <Button 
                 type="submit" 

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 import { Printer, ShoppingBag, UserCircle } from "lucide-react";
+import { Logo } from "@/components/header/Logo";
 
 interface OrderDetails {
   orderId?: string;
@@ -89,6 +90,15 @@ const OrderSuccess = () => {
               padding-bottom: 1rem;
               border-bottom: 2px solid #eee;
             }
+            .logo {
+              font-size: 2rem;
+              font-weight: 200;
+              letter-spacing: 0.2em;
+              background: linear-gradient(to right, #0094F4, #FFBDC8, #0094F4);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              margin-bottom: 1rem;
+            }
             .info-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
@@ -128,7 +138,7 @@ const OrderSuccess = () => {
         <body>
           <div class="invoice-container">
             <div class="header">
-              <h1>Order Invoice</h1>
+              <div class="logo">ELLORIA</div>
               <p>Order #${orderDetails.orderId}</p>
               <p>Date: ${new Date().toLocaleDateString()}</p>
             </div>
