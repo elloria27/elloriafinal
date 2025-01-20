@@ -38,6 +38,26 @@ const metrics = [
   }
 ];
 
+// Helper function to create a 3D bar
+const createBar = (
+  scene: THREE.Scene,
+  position: THREE.Vector3,
+  color: string,
+  height: number
+) => {
+  const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
+  const material = new THREE.MeshPhongMaterial({
+    color: new THREE.Color(color),
+    transparent: true,
+    opacity: 0.8,
+    shininess: 100
+  });
+  const bar = new THREE.Mesh(geometry, material);
+  bar.position.copy(position);
+  scene.add(bar);
+  return bar;
+};
+
 export const CompetitorComparison = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
