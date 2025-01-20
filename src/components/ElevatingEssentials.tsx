@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Shrink, Shield, Drop, Leaf } from "lucide-react";
+import { Shrink, Shield, Droplets, Leaf } from "lucide-react";
 
 const features = [
   {
@@ -13,7 +13,7 @@ const features = [
     description: "Gentle, skin-friendly materials designed for sensitive skin and ultimate comfort"
   },
   {
-    icon: Drop,
+    icon: Droplets,
     title: "High Absorption",
     description: "Superior absorption technology keeps you confident and protected throughout your day"
   },
