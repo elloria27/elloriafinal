@@ -138,7 +138,14 @@ const OrderSuccess = () => {
         <body>
           <div class="invoice-container">
             <div class="header">
-              <div class="logo">ELLORIA</div>
+              <div class="logo" style="text-align: center; margin-bottom: 20px;">
+                <img src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png" 
+                     alt="Elloria Logo" 
+                     style="max-width: 200px; height: auto;"
+                     onload="this.crossOrigin='Anonymous';"
+                />
+              </div>
+              <div class="logo-text">ELLORIA</div>
               <p>Order #${orderDetails.orderId}</p>
               <p>Date: ${new Date().toLocaleDateString()}</p>
             </div>
@@ -221,6 +228,21 @@ const OrderSuccess = () => {
             </div>
           </div>
         </body>
+        <script>
+          // Convert logo to base64 when the page loads
+          window.onload = function() {
+            const img = document.querySelector('img');
+            if (img) {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const dataUrl = canvas.toDataURL('image/png');
+              img.src = dataUrl;
+            }
+          }
+        </script>
       </html>
     `;
 
@@ -229,10 +251,12 @@ const OrderSuccess = () => {
     printWindow.document.close();
 
     printWindow.onload = () => {
-      printWindow.print();
-      printWindow.onafterprint = () => {
-        printWindow.close();
-      };
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = () => {
+          printWindow.close();
+        };
+      }, 1000); // Added delay to ensure image loads
     };
   };
 
