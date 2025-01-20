@@ -152,6 +152,28 @@ const Checkout = () => {
             className="order-2 md:order-1"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Country Selection First */}
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Select value={country} onValueChange={(value) => {
+                  setCountry(value);
+                  setRegion("");
+                  setSelectedShipping("");
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border shadow-lg">
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Personal Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
@@ -182,26 +204,6 @@ const Checkout = () => {
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Input id="address" required />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Select value={country} onValueChange={(value) => {
-                  setCountry(value);
-                  setRegion("");
-                  setSelectedShipping("");
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-lg">
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               {country && (
