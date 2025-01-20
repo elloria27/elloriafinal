@@ -8,7 +8,7 @@ export const Hero = () => {
   
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.playbackRate = 0.5; // Set playback rate to half speed
+      videoRef.current.playbackRate = 0.5;
     }
   }, []);
 
@@ -19,9 +19,18 @@ export const Hero = () => {
     { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
   ];
 
+  const handleLearnMore = () => {
+    const sustainabilitySection = document.querySelector('#sustainability');
+    if (sustainabilitySection) {
+      sustainabilitySection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden">
-      <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12">
+      <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
+      
+      <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
         {floatingIcons.map(({ Icon, delay, position }, index) => (
           <motion.div
             key={index}
@@ -49,10 +58,12 @@ export const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
-              Experience Premium <br />
-              Comfort with <br />
-              Eco-Conscious Care
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
+                Redefining Comfort, <br />
+                Confidence, and <br />
+                Sustainability
+              </span>
             </h1>
           </motion.div>
           
@@ -62,8 +73,7 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl"
           >
-            Discover our revolutionary ultra-thin protection made with sustainable materials, 
-            designed to keep you comfortable while protecting our planet.
+            Experience ultra-thin, eco-friendly feminine care made for modern women.
           </motion.p>
           
           <motion.div
@@ -82,6 +92,7 @@ export const Hero = () => {
               size="lg" 
               variant="outline" 
               className="border-2 border-primary text-primary hover:bg-primary/10 px-8 py-7 text-lg rounded-full transition-all duration-300"
+              onClick={handleLearnMore}
             >
               Learn More
             </Button>
