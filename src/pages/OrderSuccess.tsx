@@ -79,25 +79,28 @@ const OrderSuccess = () => {
               font-family: Arial, sans-serif;
               line-height: 1.6;
               color: #333;
+              margin: 0;
+              padding: 0;
             }
             .invoice-container {
               max-width: 800px;
               margin: 0 auto;
+              padding: 20px;
             }
             .header {
-              text-align: center;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
               margin-bottom: 2rem;
               padding-bottom: 1rem;
               border-bottom: 2px solid #eee;
             }
             .logo {
-              font-size: 2rem;
-              font-weight: 200;
-              letter-spacing: 0.2em;
-              background: linear-gradient(to right, #0094F4, #FFBDC8, #0094F4);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              margin-bottom: 1rem;
+              width: 150px;
+              margin-right: 20px;
+            }
+            .order-info {
+              text-align: right;
             }
             .info-grid {
               display: grid;
@@ -113,6 +116,7 @@ const OrderSuccess = () => {
               width: 100%;
               border-collapse: collapse;
               margin-bottom: 2rem;
+              font-size: 0.9em;
             }
             .items-table th, .items-table td {
               padding: 0.5rem;
@@ -138,16 +142,15 @@ const OrderSuccess = () => {
         <body>
           <div class="invoice-container">
             <div class="header">
-              <div class="logo" style="text-align: center; margin-bottom: 20px;">
-                <img src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png" 
-                     alt="Elloria Logo" 
-                     style="max-width: 200px; height: auto;"
-                     onload="this.crossOrigin='Anonymous';"
-                />
+              <img src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png" 
+                   alt="Elloria Logo" 
+                   class="logo"
+                   onload="this.crossOrigin='Anonymous';"
+              />
+              <div class="order-info">
+                <h2>Order #${orderDetails.orderId}</h2>
+                <p>Date: ${new Date().toLocaleDateString()}</p>
               </div>
-              <div class="logo-text">ELLORIA</div>
-              <p>Order #${orderDetails.orderId}</p>
-              <p>Date: ${new Date().toLocaleDateString()}</p>
             </div>
             
             <div class="info-grid">
@@ -229,7 +232,6 @@ const OrderSuccess = () => {
           </div>
         </body>
         <script>
-          // Convert logo to base64 when the page loads
           window.onload = function() {
             const img = document.querySelector('img');
             if (img) {
@@ -241,6 +243,12 @@ const OrderSuccess = () => {
               const dataUrl = canvas.toDataURL('image/png');
               img.src = dataUrl;
             }
+            setTimeout(() => {
+              window.print();
+              window.onafterprint = () => {
+                window.close();
+              };
+            }, 1000);
           }
         </script>
       </html>
@@ -249,15 +257,6 @@ const OrderSuccess = () => {
     printWindow.document.open();
     printWindow.document.write(printContent);
     printWindow.document.close();
-
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.onafterprint = () => {
-          printWindow.close();
-        };
-      }, 1000); // Added delay to ensure image loads
-    };
   };
 
   return (
