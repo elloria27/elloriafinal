@@ -6,8 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const CartPopover = () => {
+  const navigate = useNavigate();
   const { 
     items, 
     totalItems, 
@@ -190,7 +192,11 @@ export const CartPopover = () => {
                 </div>
               </div>
 
-              <Button className="w-full" onClick={() => console.log('Checkout clicked')}>
+              <Button 
+                className="w-full" 
+                onClick={() => navigate("/checkout")}
+                disabled={items.length === 0}
+              >
                 Proceed to Checkout
               </Button>
             </>
