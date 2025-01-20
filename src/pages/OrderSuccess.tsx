@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 import { Printer, ShoppingBag, UserCircle } from "lucide-react";
 
@@ -43,13 +42,13 @@ const OrderSuccess = () => {
     const storedOrder = localStorage.getItem('lastOrder');
     if (storedOrder) {
       const parsedOrder = JSON.parse(storedOrder);
-      // Use the stored orderId or generate a new one only if it doesn't exist
-      const orderId = parsedOrder.orderId || generateOrderId();
-      setOrderDetails({ ...parsedOrder, orderId });
-      
-      // Save the order with the generated ID back to localStorage
       if (!parsedOrder.orderId) {
-        localStorage.setItem('lastOrder', JSON.stringify({ ...parsedOrder, orderId }));
+        const orderId = generateOrderId();
+        const orderWithId = { ...parsedOrder, orderId };
+        localStorage.setItem('lastOrder', JSON.stringify(orderWithId));
+        setOrderDetails(orderWithId);
+      } else {
+        setOrderDetails(parsedOrder);
       }
     }
   }, []);
@@ -62,58 +61,154 @@ const OrderSuccess = () => {
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const invoiceContent = document.getElementById('invoice-content');
-    if (!invoiceContent) return;
+    if (!printWindow || !orderDetails) return;
 
     const printContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Order Invoice</title>
+          <title>Order Invoice - ${orderDetails.orderId}</title>
           <style>
+            @page {
+              size: A4;
+              margin: 2cm;
+            }
             body {
               font-family: Arial, sans-serif;
-              padding: 20px;
+              line-height: 1.6;
+              color: #333;
+            }
+            .invoice-container {
               max-width: 800px;
               margin: 0 auto;
             }
-            .invoice-header {
+            .header {
               text-align: center;
-              margin-bottom: 30px;
+              margin-bottom: 2rem;
+              padding-bottom: 1rem;
+              border-bottom: 2px solid #eee;
             }
-            .grid {
+            .info-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin-bottom: 20px;
+              gap: 2rem;
+              margin-bottom: 2rem;
             }
-            .separator {
-              border-top: 1px solid #e5e7eb;
-              margin: 20px 0;
+            .info-section h3 {
+              margin-bottom: 0.5rem;
+              color: #666;
             }
-            .items-list {
-              margin: 20px 0;
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 2rem;
             }
-            .item {
-              display: flex;
-              gap: 20px;
-              margin-bottom: 10px;
+            .items-table th, .items-table td {
+              padding: 0.5rem;
+              text-align: left;
+              border-bottom: 1px solid #eee;
             }
             .totals {
-              margin-top: 20px;
+              margin-left: auto;
+              width: 300px;
             }
-            @media print {
-              body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-              }
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 0.5rem 0;
+            }
+            .final-total {
+              font-weight: bold;
+              border-top: 2px solid #eee;
+              padding-top: 1rem;
             }
           </style>
         </head>
         <body>
-          ${invoiceContent.innerHTML}
+          <div class="invoice-container">
+            <div class="header">
+              <h1>Order Invoice</h1>
+              <p>Order #${orderDetails.orderId}</p>
+              <p>Date: ${new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <div class="info-grid">
+              <div class="info-section">
+                <h3>Store Information</h3>
+                <p>${STORE_DETAILS.name}</p>
+                <p>${STORE_DETAILS.address}</p>
+                <p>${STORE_DETAILS.city}</p>
+                <p>${STORE_DETAILS.country}</p>
+                <p>Phone: ${STORE_DETAILS.phone}</p>
+                <p>Email: ${STORE_DETAILS.email}</p>
+                <p>Tax ID: ${STORE_DETAILS.taxId}</p>
+              </div>
+              
+              <div class="info-section">
+                <h3>Customer Information</h3>
+                <p>${orderDetails.customerDetails?.firstName} ${orderDetails.customerDetails?.lastName}</p>
+                <p>${orderDetails.customerDetails?.address}</p>
+                <p>${orderDetails.customerDetails?.region}</p>
+                <p>${orderDetails.customerDetails?.country}</p>
+                <p>Phone: ${orderDetails.customerDetails?.phone}</p>
+                <p>Email: ${orderDetails.customerDetails?.email}</p>
+              </div>
+            </div>
+
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderDetails.items.map(item => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${orderDetails.currency} ${item.price.toFixed(2)}</td>
+                    <td>${orderDetails.currency} ${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="totals">
+              <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${orderDetails.currency} ${orderDetails.subtotal.toFixed(2)}</span>
+              </div>
+              ${orderDetails.taxes.gst > 0 ? `
+                <div class="total-row">
+                  <span>GST (${orderDetails.taxes.gst}%):</span>
+                  <span>${orderDetails.currency} ${(orderDetails.subtotal * orderDetails.taxes.gst / 100).toFixed(2)}</span>
+                </div>
+              ` : ''}
+              ${orderDetails.taxes.pst > 0 ? `
+                <div class="total-row">
+                  <span>PST (${orderDetails.taxes.pst}%):</span>
+                  <span>${orderDetails.currency} ${(orderDetails.subtotal * orderDetails.taxes.pst / 100).toFixed(2)}</span>
+                </div>
+              ` : ''}
+              ${orderDetails.taxes.hst > 0 ? `
+                <div class="total-row">
+                  <span>HST (${orderDetails.taxes.hst}%):</span>
+                  <span>${orderDetails.currency} ${(orderDetails.subtotal * orderDetails.taxes.hst / 100).toFixed(2)}</span>
+                </div>
+              ` : ''}
+              <div class="total-row">
+                <span>Shipping (${orderDetails.shipping.name}):</span>
+                <span>${orderDetails.currency} ${orderDetails.shipping.price.toFixed(2)}</span>
+              </div>
+              <div class="total-row final-total">
+                <span>Total:</span>
+                <span>${orderDetails.currency} ${orderDetails.total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
         </body>
       </html>
     `;
@@ -122,7 +217,6 @@ const OrderSuccess = () => {
     printWindow.document.write(printContent);
     printWindow.document.close();
 
-    // Wait for content to load before printing
     printWindow.onload = () => {
       printWindow.print();
       printWindow.onafterprint = () => {
@@ -131,27 +225,17 @@ const OrderSuccess = () => {
     };
   };
 
-  if (!orderDetails) {
-    return (
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-semibold mb-4">No order found</h1>
-        <Button onClick={() => navigate("/")}>Return to Home</Button>
-      </div>
-    );
-  }
-
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white p-8 rounded-lg shadow-lg"
-        id="invoice-content"
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-4">Order Confirmation</h1>
           <div className="text-lg text-gray-600">
-            <p>Order #{orderDetails.orderId}</p>
+            <p>Order #{orderDetails?.orderId}</p>
             <p className="mt-2">Status: <span className="font-semibold text-orange-500">{orderStatus}</span></p>
           </div>
         </div>
@@ -173,18 +257,18 @@ const OrderSuccess = () => {
           <div>
             <h3 className="font-semibold mb-2">Customer Information</h3>
             <div className="space-y-1 text-sm">
-              <p>{orderDetails.customerDetails?.firstName} {orderDetails.customerDetails?.lastName}</p>
-              <p>{orderDetails.customerDetails?.address}</p>
-              <p>{orderDetails.customerDetails?.region}</p>
-              <p>{orderDetails.customerDetails?.country}</p>
-              <p>Phone: {orderDetails.customerDetails?.phone}</p>
-              <p>Email: {orderDetails.customerDetails?.email}</p>
+              <p>{orderDetails?.customerDetails?.firstName} {orderDetails?.customerDetails?.lastName}</p>
+              <p>{orderDetails?.customerDetails?.address}</p>
+              <p>{orderDetails?.customerDetails?.region}</p>
+              <p>{orderDetails?.customerDetails?.country}</p>
+              <p>Phone: {orderDetails?.customerDetails?.phone}</p>
+              <p>Email: {orderDetails?.customerDetails?.email}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-4 mb-8">
-          {orderDetails.items.map((item, index) => (
+          {orderDetails?.items.map((item, index) => (
             <div key={index} className="flex gap-4">
               <img
                 src={item.image}
@@ -195,7 +279,7 @@ const OrderSuccess = () => {
                 <h3 className="font-medium">{item.name}</h3>
                 <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                 <p className="text-primary">
-                  {orderDetails.currency} {(item.price * item.quantity).toFixed(2)}
+                  {orderDetails?.currency} {(item.price * item.quantity).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -207,38 +291,38 @@ const OrderSuccess = () => {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Subtotal</span>
-            <span>{orderDetails.currency} {orderDetails.subtotal.toFixed(2)}</span>
+            <span>{orderDetails?.currency} {orderDetails?.subtotal.toFixed(2)}</span>
           </div>
 
-          {orderDetails.taxes.gst > 0 && (
+          {orderDetails?.taxes.gst > 0 && (
             <div className="flex justify-between text-sm">
-              <span>GST ({orderDetails.taxes.gst}%)</span>
-              <span>{orderDetails.currency} {(orderDetails.subtotal * orderDetails.taxes.gst / 100).toFixed(2)}</span>
+              <span>GST ({orderDetails?.taxes.gst}%)</span>
+              <span>{orderDetails?.currency} {(orderDetails?.subtotal * orderDetails?.taxes.gst / 100).toFixed(2)}</span>
             </div>
           )}
 
-          {orderDetails.taxes.pst > 0 && (
+          {orderDetails?.taxes.pst > 0 && (
             <div className="flex justify-between text-sm">
-              <span>PST ({orderDetails.taxes.pst}%)</span>
-              <span>{orderDetails.currency} {(orderDetails.subtotal * orderDetails.taxes.pst / 100).toFixed(2)}</span>
+              <span>PST ({orderDetails?.taxes.pst}%)</span>
+              <span>{orderDetails?.currency} {(orderDetails?.subtotal * orderDetails?.taxes.pst / 100).toFixed(2)}</span>
             </div>
           )}
 
-          {orderDetails.taxes.hst > 0 && (
+          {orderDetails?.taxes.hst > 0 && (
             <div className="flex justify-between text-sm">
-              <span>HST ({orderDetails.taxes.hst}%)</span>
-              <span>{orderDetails.currency} {(orderDetails.subtotal * orderDetails.taxes.hst / 100).toFixed(2)}</span>
+              <span>HST ({orderDetails?.taxes.hst}%)</span>
+              <span>{orderDetails?.currency} {(orderDetails?.subtotal * orderDetails?.taxes.hst / 100).toFixed(2)}</span>
             </div>
           )}
 
           <div className="flex justify-between text-sm">
-            <span>Shipping ({orderDetails.shipping.name})</span>
-            <span>{orderDetails.currency} {orderDetails.shipping.price.toFixed(2)}</span>
+            <span>Shipping ({orderDetails?.shipping.name})</span>
+            <span>{orderDetails?.currency} {orderDetails?.shipping.price.toFixed(2)}</span>
           </div>
 
           <div className="flex justify-between font-medium pt-2 border-t">
             <span>Total</span>
-            <span>{orderDetails.currency} {orderDetails.total.toFixed(2)}</span>
+            <span>{orderDetails?.currency} {orderDetails?.total.toFixed(2)}</span>
           </div>
         </div>
       </motion.div>
