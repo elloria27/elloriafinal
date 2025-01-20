@@ -73,69 +73,82 @@ const OrderSuccess = () => {
           <style>
             @page {
               size: A4;
-              margin: 2cm;
+              margin: 1.5cm;
             }
             body {
               font-family: Arial, sans-serif;
-              line-height: 1.6;
+              line-height: 1.4;
               color: #333;
               margin: 0;
               padding: 0;
+              font-size: 12px;
             }
             .invoice-container {
               max-width: 800px;
               margin: 0 auto;
-              padding: 20px;
+              padding: 0;
             }
             .header {
               display: flex;
-              align-items: center;
+              align-items: flex-start;
               justify-content: space-between;
-              margin-bottom: 2rem;
-              padding-bottom: 1rem;
-              border-bottom: 2px solid #eee;
+              margin-bottom: 1.5rem;
+              padding-bottom: 0.5rem;
+              border-bottom: 1px solid #eee;
             }
             .logo {
-              width: 150px;
-              margin-right: 20px;
+              width: 120px;
+              height: auto;
             }
             .order-info {
               text-align: right;
+              font-size: 12px;
+            }
+            .order-info h2 {
+              margin: 0 0 0.5rem 0;
+              font-size: 14px;
             }
             .info-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 2rem;
-              margin-bottom: 2rem;
+              gap: 1.5rem;
+              margin-bottom: 1.5rem;
+              font-size: 12px;
             }
             .info-section h3 {
-              margin-bottom: 0.5rem;
+              margin: 0 0 0.5rem 0;
               color: #666;
+              font-size: 13px;
+            }
+            .info-section p {
+              margin: 0 0 0.2rem 0;
             }
             .items-table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 2rem;
-              font-size: 0.9em;
+              margin-bottom: 1.5rem;
+              font-size: 12px;
             }
             .items-table th, .items-table td {
-              padding: 0.5rem;
+              padding: 0.4rem;
               text-align: left;
               border-bottom: 1px solid #eee;
             }
             .totals {
               margin-left: auto;
-              width: 300px;
+              width: 250px;
+              font-size: 12px;
             }
             .total-row {
               display: flex;
               justify-content: space-between;
-              padding: 0.5rem 0;
+              padding: 0.3rem 0;
             }
             .final-total {
               font-weight: bold;
-              border-top: 2px solid #eee;
-              padding-top: 1rem;
+              border-top: 1px solid #eee;
+              padding-top: 0.5rem;
+              margin-top: 0.5rem;
             }
           </style>
         </head>
