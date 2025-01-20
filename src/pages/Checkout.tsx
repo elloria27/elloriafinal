@@ -16,6 +16,7 @@ import {
 import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { sendOrderEmails } from "@/utils/emailService";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -85,11 +86,31 @@ const Checkout = () => {
       currency: country === "US" ? "USD" : "CAD",
       customerDetails
     };
-    localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
-    
-    clearCart();
-    navigate("/order-success");
-    setIsSubmitting(false);
+
+    try {
+      // Send order confirmation emails
+      await sendOrderEmails({
+        customerEmail: customerDetails.email,
+        customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+        orderId: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        items,
+        total,
+        shippingAddress: {
+          address: customerDetails.address,
+          region: customerDetails.region,
+          country: customerDetails.country
+        }
+      });
+
+      localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
+      clearCart();
+      navigate("/order-success");
+    } catch (error) {
+      console.error('Error processing order:', error);
+      toast.error("There was an error processing your order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (items.length === 0) {
