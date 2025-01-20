@@ -173,9 +173,12 @@ export const CompetitorComparison = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="h-2 bg-gray-200 rounded-full">
-                      <div
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${metric.elloria}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: index * 0.2 }}
                         className="h-2 rounded-full bg-primary"
-                        style={{ width: `${metric.elloria}%` }}
                       />
                     </div>
                     <div className="mt-1 text-sm text-gray-600">
