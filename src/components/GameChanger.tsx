@@ -74,7 +74,7 @@ export const GameChanger = () => {
                 </p>
                 
                 <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300">
-                  <p className="text-secondary/90 text-sm pt-4 border-t border-white/20">
+                  <p className="text-white text-sm pt-4 border-t border-white/20">
                     {feature.detail}
                   </p>
                 </div>
