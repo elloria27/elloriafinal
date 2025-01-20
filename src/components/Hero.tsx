@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, Heart, Shield, Sparkles, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -7,6 +7,7 @@ export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
   
   useEffect(() => {
     if (videoRef.current) {
@@ -130,6 +131,8 @@ export const Hero = () => {
             className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl group"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
           >
             <video 
               ref={videoRef}
@@ -142,35 +145,52 @@ export const Hero = () => {
               Your browser does not support the video tag.
             </video>
             
-            <motion.div 
-              className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="flex gap-4">
-                <Button
-                  onClick={handlePlayVideo}
-                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+            <AnimatePresence>
+              {!isPlaying && (
+                <motion.div 
+                  className="absolute inset-0 flex items-center justify-center bg-black/30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  {isPlaying ? (
-                    <Pause className="w-8 h-8 text-primary" />
-                  ) : (
+                  <Button
+                    onClick={handlePlayVideo}
+                    className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                  >
                     <Play className="w-8 h-8 text-primary ml-1" />
-                  )}
-                </Button>
-                <Button
-                  onClick={handleToggleMute}
-                  className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                  </Button>
+                </motion.div>
+              )}
+
+              {isPlaying && isHovering && (
+                <motion.div 
+                  className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  {isMuted ? (
-                    <VolumeX className="w-8 h-8 text-primary" />
-                  ) : (
-                    <Volume2 className="w-8 h-8 text-primary" />
-                  )}
-                </Button>
-              </div>
-            </motion.div>
+                  <div className="flex justify-center gap-4">
+                    <Button
+                      onClick={handlePlayVideo}
+                      className="w-10 h-10 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                    >
+                      <Pause className="w-5 h-5 text-primary" />
+                    </Button>
+                    <Button
+                      onClick={handleToggleMute}
+                      className="w-10 h-10 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                    >
+                      {isMuted ? (
+                        <VolumeX className="w-5 h-5 text-primary" />
+                      ) : (
+                        <Volume2 className="w-5 h-5 text-primary" />
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       </div>
