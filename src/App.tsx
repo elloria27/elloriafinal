@@ -7,6 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Checkout from "./pages/Checkout";
+import OrderSuccess from "./pages/OrderSuccess";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
           </Routes>
           <Toaster />
           <Sonner />

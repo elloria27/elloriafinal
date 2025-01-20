@@ -17,15 +17,6 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home } from "lucide-react";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
@@ -72,8 +63,8 @@ const Checkout = () => {
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
-  // Calculate taxes based on region
   const calculateTaxes = () => {
     if (!region) return { gst: 0, pst: 0, hst: 0 };
     
@@ -115,46 +106,43 @@ const Checkout = () => {
     
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Store order details for the invoice page
+    const orderDetails = {
+      items,
+      subtotal: subtotalInCurrentCurrency,
+      taxes,
+      shipping: selectedShippingOption,
+      total,
+      currency: country === "US" ? "USD" : "CAD"
+    };
+    localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
+    
     clearCart();
     toast.success("Order placed successfully!");
-    navigate("/");
+    navigate("/order-success");
     setIsSubmitting(false);
   };
 
   if (items.length === 0) {
     return (
-      <>
+      <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-32">
           <div className="text-center">
             <h1 className="text-2xl font-semibold mb-4">Your cart is empty</h1>
             <Button onClick={() => navigate("/")}>Continue Shopping</Button>
           </div>
         </div>
         <Footer />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/" className="flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Home
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Checkout</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
+      <div className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-32">
         <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
         
         <div className="grid md:grid-cols-2 gap-8">
@@ -164,26 +152,37 @@ const Checkout = () => {
             className="order-2 md:order-1"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" required />
-                  </div>
-                </div>
-                
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" required />
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input id="firstName" required />
                 </div>
-                
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" required />
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input id="lastName" required />
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" required />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input id="address" required />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
@@ -195,7 +194,7 @@ const Checkout = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border shadow-lg">
                     {COUNTRIES.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
                         {c.name}
@@ -214,7 +213,7 @@ const Checkout = () => {
                     <SelectTrigger>
                       <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border shadow-lg">
                       {(country === "CA" ? PROVINCES : STATES).map((r) => (
                         <SelectItem key={r} value={r}>
                           {r}
@@ -349,7 +348,7 @@ const Checkout = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 
