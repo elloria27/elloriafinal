@@ -57,9 +57,15 @@ export const GameChanger = () => {
               className="relative group"
             >
               <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 h-full transform transition-all duration-300 group-hover:translate-y-[-8px] group-hover:bg-white/20">
-                <motion.div
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.8 }}
+                <motion.div 
+                  initial={{ rotate: 0 }}
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ 
+                    duration: 0.6,
+                    ease: "easeInOut",
+                    type: "spring",
+                    stiffness: 100
+                  }}
                   className="mb-6 text-secondary"
                 >
                   {feature.icon}
