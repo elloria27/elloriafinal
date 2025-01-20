@@ -3,15 +3,134 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+
+const COUNTRIES = [
+  { code: "CA", name: "Canada" },
+  { code: "US", name: "United States" },
+];
+
+const PROVINCES = [
+  { code: "AB", name: "Alberta" },
+  { code: "BC", name: "British Columbia" },
+  { code: "MB", name: "Manitoba" },
+  { code: "NB", name: "New Brunswick" },
+  { code: "NL", name: "Newfoundland and Labrador" },
+  { code: "NS", name: "Nova Scotia" },
+  { code: "ON", name: "Ontario" },
+  { code: "PE", name: "Prince Edward Island" },
+  { code: "QC", name: "Quebec" },
+  { code: "SK", name: "Saskatchewan" },
+];
+
+const STATES = [
+  { code: "AL", name: "Alabama" },
+  { code: "AK", name: "Alaska" },
+  { code: "AZ", name: "Arizona" },
+  { code: "AR", name: "Arkansas" },
+  { code: "CA", name: "California" },
+  { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" },
+  { code: "DE", name: "Delaware" },
+  { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" },
+  { code: "HI", name: "Hawaii" },
+  { code: "ID", name: "Idaho" },
+  { code: "IL", name: "Illinois" },
+  { code: "IN", name: "Indiana" },
+  { code: "IA", name: "Iowa" },
+  { code: "KS", name: "Kansas" },
+  { code: "KY", name: "Kentucky" },
+  { code: "LA", name: "Louisiana" },
+  { code: "ME", name: "Maine" },
+  { code: "MD", name: "Maryland" },
+  { code: "MA", name: "Massachusetts" },
+  { code: "MI", name: "Michigan" },
+  { code: "MN", name: "Minnesota" },
+  { code: "MS", name: "Mississippi" },
+  { code: "MO", name: "Missouri" },
+  { code: "MT", name: "Montana" },
+  { code: "NE", name: "Nebraska" },
+  { code: "NV", name: "Nevada" },
+  { code: "NH", name: "New Hampshire" },
+  { code: "NJ", name: "New Jersey" },
+  { code: "NM", name: "New Mexico" },
+  { code: "NY", name: "New York" },
+  { code: "NC", name: "North Carolina" },
+  { code: "ND", name: "North Dakota" },
+  { code: "OH", name: "Ohio" },
+  { code: "OK", name: "Oklahoma" },
+  { code: "OR", name: "Oregon" },
+  { code: "PA", name: "Pennsylvania" },
+  { code: "RI", name: "Rhode Island" },
+  { code: "SC", name: "South Carolina" },
+  { code: "SD", name: "SouthI'll update the Checkout page to include the Header and Footer components, and add country selection with dynamic province/state options for Canada and USA.
+
+<lov-code>
+Let's update the Checkout page to include these features:
+
+<lov-write file_path="src/pages/Checkout.tsx">
+import { useCart } from "@/contexts/CartContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+
+const provinces = [
+  "Alberta",
+  "British Columbia",
+  "Manitoba",
+  "New Brunswick",
+  "Newfoundland and Labrador",
+  "Nova Scotia",
+  "Ontario",
+  "Prince Edward Island",
+  "Quebec",
+  "Saskatchewan",
+];
+
+const states = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
+  "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
+  "Wisconsin", "Wyoming"
+];
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, total, subtotal, activePromoCode, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [country, setCountry] = useState("");
+  const [region, setRegion] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,122 +147,172 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold mb-4">Your cart is empty</h1>
-          <Button onClick={() => navigate("/")}>Continue Shopping</Button>
+      <>
+        <Header />
+        <div className="container max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold mb-4">Your cart is empty</h1>
+            <Button onClick={() => navigate("/")}>Continue Shopping</Button>
+          </div>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
-      
-      <div className="grid md:grid-cols-2 gap-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="order-2 md:order-1"
-        >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-medium">Shipping Information</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" required />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" required />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input id="postalCode" required />
-                </div>
-              </div>
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Processing..." : "Place Order"}
-            </Button>
-          </form>
-        </motion.div>
+    <>
+      <Header />
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
         
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="order-1 md:order-2"
-        >
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <h2 className="text-xl font-medium mb-4">Order Summary</h2>
-            
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                    <p className="text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+        <div className="grid md:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="order-2 md:order-1"
+          >
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-xl font-medium">Shipping Information</h2>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input id="firstName" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input id="lastName" required />
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              
-              {activePromoCode && (
-                <div className="flex justify-between text-sm text-primary">
-                  <span>Discount ({activePromoCode.discount}%)</span>
-                  <span>-${((subtotal * activePromoCode.discount) / 100).toFixed(2)}</span>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" required />
                 </div>
-              )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input id="address" required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Select value={country} onValueChange={(value) => {
+                    setCountry(value);
+                    setRegion(""); // Reset region when country changes
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CA">Canada</SelectItem>
+                      <SelectItem value="US">United States</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input id="city" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region">{country === "CA" ? "Province" : "State"}</Label>
+                    <Select value={region} onValueChange={setRegion}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {country === "CA" 
+                          ? provinces.map((province) => (
+                              <SelectItem key={province} value={province}>
+                                {province}
+                              </SelectItem>
+                            ))
+                          : states.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="postalCode">{country === "CA" ? "Postal Code" : "ZIP Code"}</Label>
+                    <Input 
+                      id="postalCode" 
+                      required 
+                      placeholder={country === "CA" ? "A1A 1A1" : "12345"}
+                    />
+                  </div>
+                </div>
+              </div>
               
-              <div className="flex justify-between font-medium">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting || !country || !region}
+              >
+                {isSubmitting ? "Processing..." : "Place Order"}
+              </Button>
+            </form>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="order-1 md:order-2"
+          >
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-medium mb-4">Order Summary</h2>
+              
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-4">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                      <p className="text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+                
+                {activePromoCode && (
+                  <div className="flex justify-between text-sm text-primary">
+                    <span>Discount ({activePromoCode.discount}%)</span>
+                    <span>-${((subtotal * activePromoCode.discount) / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between font-medium">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 
