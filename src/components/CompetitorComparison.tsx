@@ -9,28 +9,32 @@ const metrics = [
     elloria: 95,
     always: 85,
     kotex: 80,
-    color: "#9b87f5"
+    color: "#9b87f5",
+    icon: "💧"
   },
   {
     category: "Eco-friendliness",
     elloria: 90,
     always: 60,
     kotex: 65,
-    color: "#F2FCE2"
+    color: "#F2FCE2",
+    icon: "🌱"
   },
   {
     category: "Comfort and Fit",
     elloria: 98,
     always: 75,
     kotex: 78,
-    color: "#D3E4FD"
+    color: "#D3E4FD",
+    icon: "✨"
   },
   {
     category: "Price Value",
     elloria: 85,
     always: 70,
     kotex: 72,
-    color: "#D6BCFA"
+    color: "#D6BCFA",
+    icon: "💎"
   }
 ];
 
@@ -136,7 +140,7 @@ export const CompetitorComparison = () => {
   }, []);
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white overflow-hidden">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -145,48 +149,82 @@ export const CompetitorComparison = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-primary">
             Why Choose Elloria?
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-8">
-            See how we compare to other leading brands in key areas that matter most to you.
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            Experience the difference with our innovative products that set new industry standards
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div 
             ref={containerRef} 
-            className="w-full h-[400px] rounded-xl shadow-lg bg-white"
+            className="w-full h-[400px] rounded-2xl shadow-xl bg-white/50 backdrop-blur-sm border border-white/20"
           />
           
           <div className="space-y-6">
             {metrics.map((metric, index) => (
               <motion.div
                 key={metric.category}
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white p-6 rounded-lg shadow-sm"
+                className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300"
               >
-                <h3 className="text-lg font-semibold mb-2">{metric.category}</h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="h-2 bg-gray-200 rounded-full">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-2xl">{metric.icon}</span>
+                  <h3 className="text-xl font-semibold text-gray-800">{metric.category}</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-gray-700">Elloria</span>
+                      <span className="text-sm font-medium text-primary">{metric.elloria}%</span>
+                    </div>
+                    <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         whileInView={{ width: `${metric.elloria}%` }}
                         viewport={{ once: true }}
                         transition={{ duration: 1, delay: index * 0.2 }}
-                        className="h-2 rounded-full bg-primary"
+                        className="h-full rounded-full bg-gradient-to-r from-primary to-secondary"
                       />
                     </div>
-                    <div className="mt-1 text-sm text-gray-600">
-                      Elloria: {metric.elloria}%
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-gray-700">Always</span>
+                      <span className="text-sm font-medium text-gray-600">{metric.always}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${metric.always}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: (index * 0.2) + 0.1 }}
+                        className="h-full rounded-full bg-gray-400"
+                      />
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    vs {metric.always}% (Always)
+                  
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-gray-700">Kotex</span>
+                      <span className="text-sm font-medium text-gray-600">{metric.kotex}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${metric.kotex}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: (index * 0.2) + 0.2 }}
+                        className="h-full rounded-full bg-gray-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -199,11 +237,11 @@ export const CompetitorComparison = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="text-center mt-16"
         >
           <Button 
             size="lg"
-            className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           >
             Learn Why Women Choose Elloria
           </Button>
@@ -211,22 +249,4 @@ export const CompetitorComparison = () => {
       </div>
     </section>
   );
-};
-
-// Helper function to create 3D bars
-const createBar = (
-  scene: THREE.Scene,
-  position: THREE.Vector3,
-  color: string,
-  height: number
-) => {
-  const geometry = new THREE.BoxGeometry(0.3, height, 0.3);
-  const material = new THREE.MeshPhongMaterial({
-    color: new THREE.Color(color),
-    transparent: true,
-    opacity: 0.8,
-  });
-  const bar = new THREE.Mesh(geometry, material);
-  bar.position.copy(position);
-  scene.add(bar);
 };
