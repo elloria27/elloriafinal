@@ -10,19 +10,22 @@ const products = [
     id: 1,
     name: "Ultra-Thin 290mm",
     description: "Perfect for light to medium flow days. Features our innovative ultra-thin design for maximum comfort.",
-    image: "/lovable-uploads/0df96e81-8434-4436-b873-45aa9c6814cf.png"
+    image: "/lovable-uploads/0df96e81-8434-4436-b873-45aa9c6814cf.png",
+    price: 12.99
   },
   {
     id: 2,
     name: "Maxi Pads 350mm",
     description: "Ideal for medium to heavy flow days. Enhanced absorption technology for complete confidence.",
-    image: "/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png"
+    image: "/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png",
+    price: 14.99
   },
   {
     id: 3,
     name: "Overnight 425mm",
     description: "Maximum protection for peaceful nights. Up to 600ml capacity for ultimate security.",
-    image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png"
+    image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png",
+    price: 16.99
   }
 ];
 
@@ -53,6 +56,13 @@ export const ProductCarousel = () => {
       ...product,
       quantity: quantities[product.id]
     });
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
   };
 
   return (
@@ -105,9 +115,14 @@ export const ProductCarousel = () => {
                   />
                 </div>
 
-                <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {product.name}
                 </h3>
+                
+                <div className="text-xl font-semibold text-primary mb-4">
+                  {formatPrice(product.price)}
+                </div>
+
                 <p className="text-gray-600 mb-6 h-24">
                   {product.description}
                 </p>
@@ -130,7 +145,7 @@ export const ProductCarousel = () => {
                       className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                       onClick={() => handleBuyNow(product)}
                     >
-                      Buy Now
+                      Add to Cart
                     </Button>
                     <Button 
                       variant="outline" 

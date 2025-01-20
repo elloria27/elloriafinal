@@ -7,7 +7,19 @@ export type CartItem = {
   description: string;
   image: string;
   quantity: number;
+  price: number;
 };
+
+type PromoCode = {
+  code: string;
+  discount: number; // percentage discount
+};
+
+// Sample promo codes (in a real app, these would come from a backend)
+const VALID_PROMO_CODES: PromoCode[] = [
+  { code: 'WELCOME10', discount: 10 },
+  { code: 'SAVE20', discount: 20 },
+];
 
 type CartContextType = {
   items: CartItem[];
@@ -16,6 +28,11 @@ type CartContextType = {
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
+  subtotal: number;
+  applyPromoCode: (code: string) => void;
+  removePromoCode: () => void;
+  activePromoCode: PromoCode | null;
+  total: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -34,6 +51,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return [];
   });
+
+  const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(null);
 
   useEffect(() => {
     const expiryDate = new Date();
@@ -65,10 +84,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = (id: number, quantity: number) => {
+    if (quantity < 1) return;
     setItems(currentItems =>
       currentItems.map(item =>
         item.id === id
-          ? { ...item, quantity: Math.max(1, quantity) }
+          ? { ...item, quantity: Math.max(1, Math.min(99, quantity)) }
           : item
       )
     );
@@ -81,10 +101,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     setItems([]);
+    setActivePromoCode(null);
     localStorage.removeItem(CART_STORAGE_KEY);
     toast.success('Cart cleared');
   };
 
+  const applyPromoCode = (code: string) => {
+    const promoCode = VALID_PROMO_CODES.find(
+      promo => promo.code.toLowerCase() === code.toLowerCase()
+    );
+
+    if (promoCode) {
+      setActivePromoCode(promoCode);
+      toast.success('Promo code applied successfully!');
+    } else {
+      toast.error('Invalid promo code');
+    }
+  };
+
+  const removePromoCode = () => {
+    setActivePromoCode(null);
+    toast.success('Promo code removed');
+  };
+
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discountAmount = activePromoCode ? (subtotal * activePromoCode.discount) / 100 : 0;
+  const total = subtotal - discountAmount;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -94,7 +136,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeItem, 
       updateQuantity,
       clearCart, 
-      totalItems 
+      totalItems,
+      subtotal,
+      total,
+      applyPromoCode,
+      removePromoCode,
+      activePromoCode
     }}>
       {children}
     </CartContext.Provider>
