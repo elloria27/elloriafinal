@@ -8,6 +8,7 @@ import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { ElevatingEssentials } from "@/components/ElevatingEssentials";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -21,6 +22,7 @@ const Index = () => {
         className="min-h-screen overflow-hidden pt-16"
       >
         <Hero />
+        <ElevatingEssentials />
         <Features />
         <StoreBrands />
         <Sustainability />
