@@ -58,7 +58,7 @@ export const ProductCarousel = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-screen bg-transparent py-32 overflow-visible"
+      className="relative min-h-screen bg-white/80 backdrop-blur-sm py-32 overflow-visible"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -88,7 +88,7 @@ export const ProductCarousel = () => {
             transition={{ duration: 0.5, delay: index * 0.2 }}
             className="relative group"
           >
-            <div className="relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="relative rounded-3xl overflow-hidden bg-white/90 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-accent-purple/5 to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
               <motion.div
