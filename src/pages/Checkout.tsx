@@ -76,53 +76,16 @@ const STATES = [
   { code: "PA", name: "Pennsylvania" },
   { code: "RI", name: "Rhode Island" },
   { code: "SC", name: "South Carolina" },
-  { code: "SD", name: "SouthI'll update the Checkout page to include the Header and Footer components, and add country selection with dynamic province/state options for Canada and USA.
-
-<lov-code>
-Let's update the Checkout page to include these features:
-
-<lov-write file_path="src/pages/Checkout.tsx">
-import { useCart } from "@/contexts/CartContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-
-const provinces = [
-  "Alberta",
-  "British Columbia",
-  "Manitoba",
-  "New Brunswick",
-  "Newfoundland and Labrador",
-  "Nova Scotia",
-  "Ontario",
-  "Prince Edward Island",
-  "Quebec",
-  "Saskatchewan",
-];
-
-const states = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
-  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
-  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
-  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
-  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-  "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
-  "Wisconsin", "Wyoming"
+  { code: "SD", name: "South Dakota" },
+  { code: "TN", name: "Tennessee" },
+  { code: "TX", name: "Texas" },
+  { code: "UT", name: "Utah" },
+  { code: "VT", name: "Vermont" },
+  { code: "VA", name: "Virginia" },
+  { code: "WA", name: "Washington" },
+  { code: "WV", name: "West Virginia" },
+  { code: "WI", name: "Wisconsin" },
+  { code: "WY", name: "Wyoming" },
 ];
 
 const Checkout = () => {
@@ -207,8 +170,11 @@ const Checkout = () => {
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CA">Canada</SelectItem>
-                      <SelectItem value="US">United States</SelectItem>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -226,14 +192,14 @@ const Checkout = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {country === "CA" 
-                          ? provinces.map((province) => (
-                              <SelectItem key={province} value={province}>
-                                {province}
+                          ? PROVINCES.map((province) => (
+                              <SelectItem key={province.code} value={province.code}>
+                                {province.name}
                               </SelectItem>
                             ))
-                          : states.map((state) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
+                          : STATES.map((state) => (
+                              <SelectItem key={state.code} value={state.code}>
+                                {state.name}
                               </SelectItem>
                             ))
                         }
