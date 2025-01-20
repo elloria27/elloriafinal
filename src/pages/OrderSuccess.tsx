@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
+import { Printer, ShoppingBag, UserCircle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface OrderDetails {
   items: any[];
@@ -12,7 +14,24 @@ interface OrderDetails {
   shipping: { name: string; price: number; };
   total: number;
   currency: string;
+  customerDetails?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+  };
 }
+
+const STORE_DETAILS = {
+  name: "Elloria Store",
+  address: "123 Fashion Avenue",
+  city: "New York, NY 10001",
+  country: "United States",
+  phone: "+1 (555) 123-4567",
+  email: "support@elloria.com",
+  taxId: "TAX-123456789"
+};
 
 const OrderSuccess = () => {
   const navigate = useNavigate();
@@ -24,6 +43,10 @@ const OrderSuccess = () => {
       setOrderDetails(JSON.parse(storedOrder));
     }
   }, []);
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (!orderDetails) {
     return (
@@ -57,6 +80,33 @@ const OrderSuccess = () => {
           </div>
 
           <div className="border-t border-gray-200 pt-8">
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              {/* Store Information */}
+              <div>
+                <h3 className="font-semibold mb-2">Store Information</h3>
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium">{STORE_DETAILS.name}</p>
+                  <p>{STORE_DETAILS.address}</p>
+                  <p>{STORE_DETAILS.city}</p>
+                  <p>{STORE_DETAILS.country}</p>
+                  <p>Phone: {STORE_DETAILS.phone}</p>
+                  <p>Email: {STORE_DETAILS.email}</p>
+                  <p>Tax ID: {STORE_DETAILS.taxId}</p>
+                </div>
+              </div>
+
+              {/* Customer Information */}
+              <div>
+                <h3 className="font-semibold mb-2">Billing Information</h3>
+                <div className="space-y-1 text-sm">
+                  <p>{orderDetails.customerDetails?.firstName} {orderDetails.customerDetails?.lastName}</p>
+                  <p>{orderDetails.customerDetails?.address}</p>
+                  <p>Phone: {orderDetails.customerDetails?.phone}</p>
+                  <p>Email: {orderDetails.customerDetails?.email}</p>
+                </div>
+              </div>
+            </div>
+
             <h2 className="text-xl font-semibold mb-6">Order Details</h2>
             
             <div className="space-y-4">
@@ -123,8 +173,21 @@ const OrderSuccess = () => {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-center">
-            <Button onClick={() => navigate("/")}>Continue Shopping</Button>
+          <Separator className="my-8" />
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button onClick={handlePrint} variant="outline" className="gap-2">
+              <Printer className="w-4 h-4" />
+              Print Invoice
+            </Button>
+            <Button onClick={() => navigate("/login")} variant="default" className="gap-2">
+              <UserCircle className="w-4 h-4" />
+              Sign In
+            </Button>
+            <Button onClick={() => navigate("/")} variant="secondary" className="gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              Continue Shopping
+            </Button>
           </div>
         </motion.div>
       </div>

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import {
   Select,
   SelectContent,
@@ -107,6 +108,16 @@ const Checkout = () => {
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     
+    // Get form data
+    const formData = new FormData(e.currentTarget);
+    const customerDetails = {
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      phone: phoneNumber,
+      address: formData.get('address') as string,
+    };
+    
     // Store order details for the invoice page
     const orderDetails = {
       items,
@@ -114,7 +125,8 @@ const Checkout = () => {
       taxes,
       shipping: selectedShippingOption,
       total,
-      currency: country === "US" ? "USD" : "CAD"
+      currency: country === "US" ? "USD" : "CAD",
+      customerDetails
     };
     localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
     
@@ -144,6 +156,8 @@ const Checkout = () => {
       <Header />
       <div className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-32">
         <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
+        
+        <LoginPrompt />
         
         <div className="grid md:grid-cols-2 gap-8">
           <motion.div
@@ -177,17 +191,17 @@ const Checkout = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" required />
+                  <Input id="firstName" name="firstName" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" required />
+                  <Input id="lastName" name="lastName" required />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" required />
+                <Input id="email" name="email" type="email" required />
               </div>
 
               <div className="space-y-2">
@@ -203,7 +217,7 @@ const Checkout = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input id="address" required />
+                <Input id="address" name="address" required />
               </div>
 
               {country && (
