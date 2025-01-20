@@ -1,17 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,39 +12,10 @@ import {
   US_TAX_RATES, 
   SHIPPING_OPTIONS,
   USD_TO_CAD,
-  type ShippingOption 
 } from "@/utils/locationData";
-
-const COUNTRIES = [
-  { code: "CA", name: "Canada" },
-  { code: "US", name: "United States" },
-];
-
-const PROVINCES = [
-  "Alberta",
-  "British Columbia",
-  "Manitoba",
-  "New Brunswick",
-  "Newfoundland and Labrador",
-  "Nova Scotia",
-  "Ontario",
-  "Prince Edward Island",
-  "Quebec",
-  "Saskatchewan",
-];
-
-const STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
-  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
-  "New Hampshire", "New Jersey", "New Mexico", "New York",
-  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
-  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
-  "West Virginia", "Wisconsin", "Wyoming"
-];
+import { CustomerForm } from "@/components/checkout/CustomerForm";
+import { ShippingOptions } from "@/components/checkout/ShippingOptions";
+import { OrderSummary } from "@/components/checkout/OrderSummary";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -166,100 +126,22 @@ const Checkout = () => {
             className="order-2 md:order-1"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" name="firstName" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" name="lastName" required />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
-              </div>
+              <CustomerForm
+                country={country}
+                setCountry={setCountry}
+                region={region}
+                setRegion={setRegion}
+                phoneNumber={phoneNumber}
+                setPhoneNumber={setPhoneNumber}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  id="phone" 
-                  type="tel" 
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  required 
+              {country && (
+                <ShippingOptions
+                  shippingOptions={shippingOptions}
+                  selectedShipping={selectedShipping}
+                  setSelectedShipping={setSelectedShipping}
+                  currencySymbol={currencySymbol}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Select value={country} onValueChange={(value) => {
-                  setCountry(value);
-                  setRegion("");
-                  setSelectedShipping("");
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-lg">
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {country && (
-                <div className="space-y-2">
-                  <Label htmlFor="region">
-                    {country === "CA" ? "Province" : "State"}
-                  </Label>
-                  <Select value={region} onValueChange={setRegion}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-lg">
-                      {(country === "CA" ? PROVINCES : STATES).map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" name="address" required />
-              </div>
-
-              {country && (
-                <div className="space-y-2">
-                  <Label>Shipping Method</Label>
-                  <RadioGroup value={selectedShipping} onValueChange={setSelectedShipping}>
-                    <div className="space-y-2">
-                      {shippingOptions.map((option) => (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.id} id={option.id} />
-                          <Label htmlFor={option.id} className="flex-1">
-                            <div className="flex justify-between">
-                              <span>{option.name}</span>
-                              <span>{currencySymbol}{option.price.toFixed(2)}</span>
-                            </div>
-                            <span className="text-sm text-gray-500">
-                              {option.estimatedDays}
-                            </span>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </RadioGroup>
-                </div>
               )}
 
               <Button 
@@ -278,86 +160,15 @@ const Checkout = () => {
             transition={{ delay: 0.2 }}
             className="order-1 md:order-2"
           >
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h2 className="text-xl font-medium mb-4">Order Summary</h2>
-              
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                      <p className="text-primary">
-                        {currencySymbol}
-                        {(country === "US" 
-                          ? (item.price * item.quantity) / USD_TO_CAD 
-                          : item.price * item.quantity
-                        ).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-                  <span>{currencySymbol}{subtotalInCurrentCurrency.toFixed(2)}</span>
-                </div>
-
-                {taxes.gst > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>GST ({taxes.gst}%)</span>
-                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.gst / 100).toFixed(2)}</span>
-                  </div>
-                )}
-
-                {taxes.pst > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>
-                      {country === "CA" ? "PST" : "Sales Tax"} ({taxes.pst}%)
-                    </span>
-                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.pst / 100).toFixed(2)}</span>
-                  </div>
-                )}
-
-                {taxes.hst > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>HST ({taxes.hst}%)</span>
-                    <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.hst / 100).toFixed(2)}</span>
-                  </div>
-                )}
-
-                {selectedShippingOption && (
-                  <div className="flex justify-between text-sm">
-                    <span>Shipping ({selectedShippingOption.name})</span>
-                    <span>{currencySymbol}{selectedShippingOption.price.toFixed(2)}</span>
-                  </div>
-                )}
-                
-                {activePromoCode && (
-                  <div className="flex justify-between text-sm text-primary">
-                    <span>Discount ({activePromoCode.discount}%)</span>
-                    <span>
-                      -{currencySymbol}
-                      {((subtotalInCurrentCurrency * activePromoCode.discount) / 100).toFixed(2)}
-                    </span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between font-medium pt-2 border-t">
-                  <span>Total</span>
-                  <span>{currencySymbol}{total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+            <OrderSummary
+              items={items}
+              subtotalInCurrentCurrency={subtotalInCurrentCurrency}
+              currencySymbol={currencySymbol}
+              taxes={taxes}
+              selectedShippingOption={selectedShippingOption}
+              total={total}
+              activePromoCode={activePromoCode}
+            />
           </motion.div>
         </div>
       </div>
