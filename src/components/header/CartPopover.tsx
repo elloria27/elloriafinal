@@ -31,9 +31,14 @@ export const CartPopover = () => {
   };
 
   const formatPrice = (price: number) => {
+    if (typeof price !== 'number' || isNaN(price)) {
+      return '$0.00';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(price);
   };
 
@@ -104,7 +109,7 @@ export const CartPopover = () => {
                           variant="outline"
                           size="sm"
                           className="h-7 w-7 p-0"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                           disabled={item.quantity <= 1}
                         >
                           <Minus className="h-3 w-3" />
@@ -114,7 +119,7 @@ export const CartPopover = () => {
                           variant="outline"
                           size="sm"
                           className="h-7 w-7 p-0"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, Math.min(99, item.quantity + 1))}
                           disabled={item.quantity >= 99}
                         >
                           <Plus className="h-3 w-3" />
@@ -168,7 +173,7 @@ export const CartPopover = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal</span>
-                    <span>{formatPrice(subtotal)}</span>
+                    <span>{formatPrice(subtotal || 0)}</span>
                   </div>
                   {activePromoCode && (
                     <div className="flex justify-between text-sm">
@@ -180,7 +185,7 @@ export const CartPopover = () => {
                   )}
                   <div className="flex justify-between font-medium">
                     <span>Total</span>
-                    <span>{formatPrice(total)}</span>
+                    <span>{formatPrice(total || 0)}</span>
                   </div>
                 </div>
               </div>

@@ -12,10 +12,9 @@ export type CartItem = {
 
 type PromoCode = {
   code: string;
-  discount: number; // percentage discount
+  discount: number;
 };
 
-// Sample promo codes (in a real app, these would come from a backend)
 const VALID_PROMO_CODES: PromoCode[] = [
   { code: 'WELCOME10', discount: 10 },
   { code: 'SAVE20', discount: 20 },
@@ -44,9 +43,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem(CART_STORAGE_KEY);
     if (savedCart) {
-      const { items, expiryDate } = JSON.parse(savedCart);
-      if (new Date().getTime() < expiryDate) {
-        return items;
+      try {
+        const { items, expiryDate } = JSON.parse(savedCart);
+        if (new Date().getTime() < expiryDate) {
+          return items;
+        }
+      } catch (error) {
+        console.error('Error parsing cart data:', error);
       }
     }
     return [];
@@ -64,18 +67,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [items]);
 
   const addItem = (newItem: CartItem) => {
+    if (!newItem.price || isNaN(newItem.price)) {
+      console.error('Invalid price for item:', newItem);
+      return;
+    }
+
     setItems(currentItems => {
       const existingItem = currentItems.find(item => item.id === newItem.id);
       
       if (existingItem) {
         return currentItems.map(item =>
           item.id === newItem.id
-            ? { ...item, quantity: item.quantity + newItem.quantity }
+            ? { ...item, quantity: Math.min(99, item.quantity + newItem.quantity) }
             : item
         );
       }
       
-      return [...currentItems, newItem];
+      return [...currentItems, { ...newItem, quantity: Math.min(99, newItem.quantity) }];
     });
 
     toast.success('Item added to cart', {
@@ -84,11 +92,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = (id: number, quantity: number) => {
-    if (quantity < 1) return;
+    if (quantity < 1 || quantity > 99) return;
+    
     setItems(currentItems =>
       currentItems.map(item =>
         item.id === id
-          ? { ...item, quantity: Math.max(1, Math.min(99, quantity)) }
+          ? { ...item, quantity }
           : item
       )
     );
@@ -124,9 +133,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success('Promo code removed');
   };
 
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discountAmount = activePromoCode ? (subtotal * activePromoCode.discount) / 100 : 0;
-  const total = subtotal - discountAmount;
+  const subtotal = items.reduce((sum, item) => {
+    const itemTotal = item.price * item.quantity;
+    return isNaN(itemTotal) ? sum : sum + itemTotal;
+  }, 0);
+
+  const total = activePromoCode
+    ? subtotal * (1 - activePromoCode.discount / 100)
+    : subtotal;
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
