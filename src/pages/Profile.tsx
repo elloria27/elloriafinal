@@ -273,7 +273,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 pt-28"> {/* Increased padding-top to prevent header overlap */}
+      <div className="flex-1 pt-32"> {/* Increased padding-top for more space */}
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
             <AccountSidebar />
