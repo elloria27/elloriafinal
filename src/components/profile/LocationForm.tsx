@@ -30,6 +30,7 @@ interface LocationFormProps {
   setCountry: (value: string) => void;
   region: string;
   setRegion: (value: string) => void;
+  onFormChange?: (field: string, value: string) => void;
 }
 
 export const LocationForm = ({
@@ -37,17 +38,28 @@ export const LocationForm = ({
   setCountry,
   region,
   setRegion,
+  onFormChange
 }: LocationFormProps) => {
-  const handleCountryChange = (value: string) => {
-    setCountry(value);
-    setRegion(''); // Reset region when country changes
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`Handling input change for ${field}:`, value);
+    
+    if (onFormChange) {
+      onFormChange(field, value);
+    }
   };
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
-        <Select value={country} onValueChange={handleCountryChange}>
+        <Select 
+          value={country} 
+          onValueChange={(value) => {
+            setCountry(value);
+            setRegion('');
+            handleInputChange('country', value);
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
@@ -61,23 +73,31 @@ export const LocationForm = ({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="region">
-          {country === "CA" ? "Province" : "State"}
-        </Label>
-        <Select value={region} onValueChange={setRegion}>
-          <SelectTrigger>
-            <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
-          </SelectTrigger>
-          <SelectContent>
-            {(country === "CA" ? PROVINCES : STATES).map((r) => (
-              <SelectItem key={r} value={r}>
-                {r}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {country && (
+        <div className="space-y-2">
+          <Label htmlFor="region">
+            {country === "CA" ? "Province" : "State"}
+          </Label>
+          <Select 
+            value={region} 
+            onValueChange={(value) => {
+              setRegion(value);
+              handleInputChange('region', value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {(country === "CA" ? PROVINCES : STATES).map((r) => (
+                <SelectItem key={r} value={r}>
+                  {r}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

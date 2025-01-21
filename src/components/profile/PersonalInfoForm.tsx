@@ -12,6 +12,7 @@ interface PersonalInfoFormProps {
   address: string;
   setAddress: (value: string) => void;
   loading: boolean;
+  onFormChange?: (field: string, value: string) => void;
 }
 
 export const PersonalInfoForm = ({
@@ -24,8 +25,17 @@ export const PersonalInfoForm = ({
   setPhoneNumber,
   address,
   setAddress,
-  loading
+  loading,
+  onFormChange
 }: PersonalInfoFormProps) => {
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`Handling input change for ${field}:`, value);
+    
+    if (onFormChange) {
+      onFormChange(field, value);
+    }
+  };
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -34,7 +44,12 @@ export const PersonalInfoForm = ({
           id="firstName"
           type="text"
           value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
+          onChange={(e) => {
+            setFirstName(e.target.value);
+            const newFirstName = e.target.value;
+            const newFullName = `${newFirstName} ${lastName}`.trim();
+            handleInputChange('full_name', newFullName);
+          }}
           disabled={loading}
         />
       </div>
@@ -45,7 +60,12 @@ export const PersonalInfoForm = ({
           id="lastName"
           type="text"
           value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
+          onChange={(e) => {
+            setLastName(e.target.value);
+            const newLastName = e.target.value;
+            const newFullName = `${firstName} ${newLastName}`.trim();
+            handleInputChange('full_name', newFullName);
+          }}
           disabled={loading}
         />
       </div>
@@ -67,7 +87,10 @@ export const PersonalInfoForm = ({
           id="phoneNumber"
           type="tel"
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
+          onChange={(e) => {
+            setPhoneNumber(e.target.value);
+            handleInputChange('phone_number', e.target.value);
+          }}
           disabled={loading}
         />
       </div>
@@ -78,7 +101,10 @@ export const PersonalInfoForm = ({
           id="address"
           type="text"
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => {
+            setAddress(e.target.value);
+            handleInputChange('address', e.target.value);
+          }}
           disabled={loading}
         />
       </div>
