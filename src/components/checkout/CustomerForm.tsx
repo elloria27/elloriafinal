@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CustomerFormProps {
   country: string;
@@ -63,9 +64,25 @@ export const CustomerForm = ({
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = async (field: string, value: string) => {
     if (onFormChange) {
       onFormChange(field, value);
+    }
+
+    // Update profile in Supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          [field]: value,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error('Error updating profile:', error);
+      }
     }
   };
 
