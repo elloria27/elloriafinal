@@ -8,6 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {
@@ -40,12 +41,18 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
   const location = useLocation();
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {onClose && (
         <div className="p-4 md:hidden flex justify-end">
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
             <X className="h-6 w-6" />
-          </button>
+            <span className="sr-only">Close menu</span>
+          </Button>
         </div>
       )}
       <SidebarGroup>
@@ -73,6 +80,6 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-    </>
+    </div>
   );
 }

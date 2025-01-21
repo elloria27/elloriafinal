@@ -3,9 +3,19 @@ import { Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarInset,
+  Sheet,
+  SheetContent,
+  SheetTrigger 
+} from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Activity from "./profile/Activity";
 import Invoices from "./profile/Invoices";
 import Settings from "./profile/Settings";
@@ -21,7 +31,7 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -127,20 +137,35 @@ export default function Profile() {
       <div className="flex-1 pt-32">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
-            <Sidebar className="border-r border-gray-200">
-              <SidebarContent>
-                <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
-              </SidebarContent>
-            </Sidebar>
-            <SidebarInset>
-              <div className="md:hidden p-4">
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 rounded-md bg-primary text-white"
-                >
-                  {isMobileMenuOpen ? 'Close Menu' : 'Open Menu'}
-                </button>
-              </div>
+            {/* Desktop Sidebar */}
+            <div className="hidden md:block">
+              <Sidebar className="border-r border-gray-200">
+                <SidebarContent>
+                  <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
+                </SidebarContent>
+              </Sidebar>
+            </div>
+
+            {/* Mobile Sidebar */}
+            <div className="md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="fixed top-24 left-4 z-50"
+                  >
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Toggle Menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[80%] p-0">
+                  <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            <SidebarInset className="w-full">
               <div className="p-4">
                 <Routes>
                   <Route index element={
