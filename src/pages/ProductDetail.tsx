@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { products } from "@/components/ProductCarousel";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Share2, ShoppingCart, ChevronRight, Star } from "lucide-react";
+import { Share2, ShoppingCart, ChevronRight, Star, Heart } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -23,16 +23,21 @@ const ProductDetail = () => {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
 
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
           <h1 className="text-2xl font-bold mb-4">Product not found</h1>
           <Link to="/" className="text-primary hover:underline">
             Return to home
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -46,7 +51,6 @@ const ProductDetail = () => {
       });
     } catch (error) {
       console.error("Error sharing:", error);
-      // Fallback to copying to clipboard
       navigator.clipboard.writeText(window.location.href);
       toast.success("Link copied to clipboard!");
     }
@@ -57,6 +61,7 @@ const ProductDetail = () => {
       ...product,
       quantity,
     });
+    toast.success("Added to cart!");
   };
 
   const productImages = [
@@ -66,60 +71,81 @@ const ProductDetail = () => {
   ];
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-b from-accent-purple/5 to-accent-peach/5">
       <Header />
-      <main className="min-h-screen pt-16">
-        {/* Breadcrumb */}
+      <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <nav className="flex items-center text-sm text-gray-500">
-            <Link to="/" className="hover:text-primary">
+          <motion.nav 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center text-sm text-gray-500"
+          >
+            <Link to="/" className="hover:text-primary transition-colors">
               Home
             </Link>
             <ChevronRight className="h-4 w-4 mx-2" />
-            <Link to="/" className="hover:text-primary">
+            <Link to="/" className="hover:text-primary transition-colors">
               Products
             </Link>
             <ChevronRight className="h-4 w-4 mx-2" />
             <span className="text-gray-900">{product.name}</span>
-          </nav>
+          </motion.nav>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Product Images */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
               className="space-y-4"
             >
-              <Carousel className="w-full max-w-xl mx-auto">
-                <CarouselContent>
-                  {productImages.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
-                        <img
-                          src={image}
-                          alt={`${product.name} view ${index + 1}`}
-                          className="absolute inset-0 w-full h-full object-contain"
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+              <div className="relative">
+                <motion.div
+                  initial={{ scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/10 rounded-3xl p-8"
+                >
+                  <Carousel className="w-full max-w-xl mx-auto">
+                    <CarouselContent>
+                      {productImages.map((image, index) => (
+                        <CarouselItem key={index}>
+                          <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="relative aspect-square rounded-xl overflow-hidden bg-white"
+                          >
+                            <img
+                              src={image}
+                              alt={`${product.name} view ${index + 1}`}
+                              className="absolute inset-0 w-full h-full object-contain transform hover:scale-105 transition-transform duration-300"
+                            />
+                          </motion.div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="bg-white/80 backdrop-blur-sm" />
+                    <CarouselNext className="bg-white/80 backdrop-blur-sm" />
+                  </Carousel>
+                </motion.div>
+              </div>
 
-              <div className="flex gap-4 overflow-x-auto pb-4">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex gap-4 overflow-x-auto pb-4"
+              >
                 {productImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 ${
+                    className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 ${
                       selectedImage === index
-                        ? "ring-2 ring-primary"
-                        : "ring-1 ring-gray-200"
+                        ? "ring-2 ring-primary scale-95"
+                        : "ring-1 ring-gray-200 hover:ring-primary/50"
                     }`}
                   >
                     <img
@@ -129,19 +155,24 @@ const ProductDetail = () => {
                     />
                   </button>
                 ))}
-              </div>
+              </motion.div>
             </motion.div>
 
-            {/* Product Info */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="space-y-6"
             >
-              <div>
-                <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
-                <div className="flex items-center gap-2 mb-4">
+              <div className="space-y-4">
+                <motion.h1 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                >
+                  {product.name}
+                </motion.h1>
+                <div className="flex items-center gap-2">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -154,28 +185,56 @@ const ProductDetail = () => {
                     (128 customer reviews)
                   </span>
                 </div>
-                <p className="text-2xl font-bold text-primary">
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-3xl font-bold text-primary"
+                >
                   ${product.price.toFixed(2)}
-                </p>
+                </motion.p>
               </div>
 
-              <p className="text-gray-600 leading-relaxed">
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-gray-600 leading-relaxed text-lg"
+              >
                 {product.description}
-              </p>
+              </motion.p>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Key Features</h3>
-                <ul className="space-y-2">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="space-y-4"
+              >
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Key Features
+                </h3>
+                <ul className="space-y-3">
                   {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <span>{feature}</span>
-                    </li>
+                    <motion.li 
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + index * 0.1 }}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary" />
+                      <span className="text-gray-700">{feature}</span>
+                    </motion.li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
 
-              <div className="space-y-4 pt-6">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="space-y-6 pt-6"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-32">
                     <Input
@@ -191,7 +250,7 @@ const ProductDetail = () => {
                   </div>
                   <Button
                     size="lg"
-                    className="flex-1 bg-primary hover:bg-primary/90"
+                    className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="mr-2 h-5 w-5" />
@@ -205,43 +264,69 @@ const ProductDetail = () => {
                   >
                     <Share2 className="h-5 w-5" />
                   </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setIsLiked(!isLiked)}
+                    className={`px-6 ${isLiked ? 'text-red-500' : ''}`}
+                  >
+                    <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                  </Button>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Specifications */}
-              <div className="border-t pt-6 mt-8">
-                <h3 className="text-lg font-semibold mb-4">Specifications</h3>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.9 }}
+                className="border-t pt-6 mt-8"
+              >
+                <h3 className="text-xl font-semibold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Specifications
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="space-y-1">
+                  {Object.entries(product.specifications).map(([key, value], index) => (
+                    <motion.div 
+                      key={key}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1 + index * 0.1 }}
+                      className="space-y-1"
+                    >
                       <dt className="text-sm text-gray-500 capitalize">
                         {key.replace(/([A-Z])/g, " $1").trim()}
                       </dt>
-                      <dd className="font-medium">{value}</dd>
-                    </div>
+                      <dd className="font-medium text-gray-900">{value}</dd>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
 
-          {/* Related Products */}
-          <div className="mt-24">
-            <h2 className="text-3xl font-bold mb-8">You might also like</h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+            className="mt-24"
+          >
+            <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              You might also like
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {products
                 .filter((p) => p.id !== product.id)
-                .map((relatedProduct) => (
+                .map((relatedProduct, index) => (
                   <motion.div
                     key={relatedProduct.id}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.4 + index * 0.2 }}
                     className="group relative"
                   >
                     <Link
                       to={`/product/${relatedProduct.id}`}
-                      className="block relative aspect-square rounded-xl overflow-hidden bg-gray-100 mb-4"
+                      className="block relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/10 p-4 mb-4"
                     >
                       <img
                         src={relatedProduct.image}
@@ -252,7 +337,7 @@ const ProductDetail = () => {
                     <h3 className="text-lg font-semibold mb-2">
                       <Link
                         to={`/product/${relatedProduct.id}`}
-                        className="hover:text-primary"
+                        className="hover:text-primary transition-colors"
                       >
                         {relatedProduct.name}
                       </Link>
@@ -263,11 +348,11 @@ const ProductDetail = () => {
                   </motion.div>
                 ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 };
 
