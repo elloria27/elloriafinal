@@ -44,6 +44,7 @@ const STATES = [
 
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -67,6 +68,8 @@ export default function Profile() {
         toast.error("Please log in to view your profile");
         return;
       }
+
+      setUserEmail(user.email);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -186,7 +189,7 @@ export default function Profile() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              value={profile.email || ''}
+              value={userEmail || ''}
               disabled
               className="bg-gray-50"
             />
@@ -274,7 +277,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 pt-24"> {/* Increased padding-top to prevent header overlap */}
+      <div className="flex-1 pt-24">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
             <AccountSidebar />
