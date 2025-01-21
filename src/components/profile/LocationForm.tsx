@@ -63,7 +63,7 @@ export const LocationForm = ({
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white border shadow-lg">
             {COUNTRIES.map((c) => (
               <SelectItem key={c.code} value={c.code}>
                 {c.name}
@@ -88,7 +88,7 @@ export const LocationForm = ({
             <SelectTrigger>
               <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border shadow-lg">
               {(country === "CA" ? PROVINCES : STATES).map((r) => (
                 <SelectItem key={r} value={r}>
                   {r}
