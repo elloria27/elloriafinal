@@ -38,8 +38,9 @@ export const CartPopover = () => {
   };
 
   const handleCheckout = () => {
-    setIsOpen(false); // Close the popover
-    navigate("/checkout"); // Navigate to checkout page
+    console.log("Navigating to checkout page");
+    setIsOpen(false);
+    navigate("/checkout");
   };
 
   const formatPrice = (price: number) => {
