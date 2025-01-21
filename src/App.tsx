@@ -7,6 +7,7 @@ import Checkout from "@/pages/Checkout";
 import OrderSuccess from "@/pages/OrderSuccess";
 import ProductDetail from "@/pages/ProductDetail";
 import About from "@/pages/About";
+import Shop from "@/pages/Shop";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -26,6 +27,7 @@ function App() {
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/about" element={<About />} />
+          <Route path="/shop" element={<Shop />} />
         </Routes>
         <Toaster />
       </CartProvider>
