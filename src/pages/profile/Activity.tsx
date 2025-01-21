@@ -1,8 +1,4 @@
 import { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { AccountSidebar } from "@/components/account/AccountSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -66,45 +62,34 @@ export default function Activity() {
   }, []);
 
   return (
-    <>
-      <Header />
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gray-50 pt-24">
-          <AccountSidebar />
-          <main className="flex-1 p-8">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-6">Recent Activity</h1>
-              <div className="bg-white rounded-lg shadow-sm divide-y">
-                {loading ? (
-                  <div className="p-6">Loading...</div>
-                ) : activities.length === 0 ? (
-                  <div className="p-6 text-gray-500">No recent activity.</div>
-                ) : (
-                  activities.map((activity, index) => (
-                    <div key={index} className="p-6 hover:bg-gray-50">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">
-                            {activity.type === 'review' ? (
-                              `Wrote a review (${(activity.data as Review).rating} stars)`
-                            ) : (
-                              `Placed order #${(activity.data as Order).order_number}`
-                            )}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {format(new Date(activity.date), 'PPP')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold mb-6">Recent Activity</h1>
+      <div className="bg-white rounded-lg shadow-sm divide-y">
+        {loading ? (
+          <div className="p-6">Loading...</div>
+        ) : activities.length === 0 ? (
+          <div className="p-6 text-gray-500">No recent activity.</div>
+        ) : (
+          activities.map((activity, index) => (
+            <div key={index} className="p-6 hover:bg-gray-50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">
+                    {activity.type === 'review' ? (
+                      `Wrote a review (${(activity.data as Review).rating} stars)`
+                    ) : (
+                      `Placed order #${(activity.data as Order).order_number}`
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(activity.date), 'PPP')}
+                  </p>
+                </div>
               </div>
             </div>
-          </main>
-        </div>
-      </SidebarProvider>
-      <Footer />
-    </>
+          ))
+        )}
+      </div>
+    </div>
   );
 }

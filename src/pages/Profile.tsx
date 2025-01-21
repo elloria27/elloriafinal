@@ -16,7 +16,6 @@ type Profile = Tables<"profiles">;
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     async function loadProfile() {
@@ -49,36 +48,36 @@ export default function Profile() {
   // Main profile content component
   const MainProfile = () => {
     if (loading) {
-      return <div className="p-6">Loading...</div>;
+      return <div className="p-8">Loading...</div>;
     }
 
     if (!profile) {
-      return <div className="p-6">No profile found.</div>;
+      return <div className="p-8">No profile found.</div>;
     }
 
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-6">Profile</h1>
-        <div className="space-y-4">
+      <div className="p-8">
+        <h1 className="text-2xl font-semibold mb-8">Profile</h1>
+        <div className="space-y-6">
           <div>
-            <label className="font-medium">Full Name</label>
-            <p>{profile.full_name}</p>
+            <h2 className="text-lg font-medium mb-2">Full Name</h2>
+            <p className="text-gray-700">{profile.full_name}</p>
           </div>
           <div>
-            <label className="font-medium">Phone</label>
-            <p>{profile.phone_number || 'Not set'}</p>
+            <h2 className="text-lg font-medium mb-2">Phone</h2>
+            <p className="text-gray-700">{profile.phone_number || 'Not set'}</p>
           </div>
           <div>
-            <label className="font-medium">Address</label>
-            <p>{profile.address || 'Not set'}</p>
+            <h2 className="text-lg font-medium mb-2">Address</h2>
+            <p className="text-gray-700">{profile.address || 'Not set'}</p>
           </div>
           <div>
-            <label className="font-medium">Region</label>
-            <p>{profile.region || 'Not set'}</p>
+            <h2 className="text-lg font-medium mb-2">Region</h2>
+            <p className="text-gray-700">{profile.region || 'Not set'}</p>
           </div>
           <div>
-            <label className="font-medium">Country</label>
-            <p>{profile.country || 'Not set'}</p>
+            <h2 className="text-lg font-medium mb-2">Country</h2>
+            <p className="text-gray-700">{profile.country || 'Not set'}</p>
           </div>
         </div>
       </div>
@@ -86,23 +85,25 @@ export default function Profile() {
   };
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <SidebarProvider defaultOpen>
-        <div className="min-h-screen flex w-full bg-gray-50 pt-24">
-          <AccountSidebar />
-          <main className="flex-1">
-            <Routes>
-              <Route index element={<MainProfile />} />
-              <Route path="invoices" element={<Invoices />} />
-              <Route path="activity" element={<Activity />} />
-              <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
-              <Route path="*" element={<Navigate to="/profile" replace />} />
-            </Routes>
-          </main>
-        </div>
-      </SidebarProvider>
+      <div className="flex-1 pt-20">
+        <SidebarProvider defaultOpen>
+          <div className="flex w-full bg-gray-50">
+            <AccountSidebar />
+            <main className="flex-1">
+              <Routes>
+                <Route index element={<MainProfile />} />
+                <Route path="invoices" element={<Invoices />} />
+                <Route path="activity" element={<Activity />} />
+                <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
+                <Route path="*" element={<Navigate to="/profile" replace />} />
+              </Routes>
+            </main>
+          </div>
+        </SidebarProvider>
+      </div>
       <Footer />
-    </>
+    </div>
   );
 }

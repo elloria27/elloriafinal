@@ -1,8 +1,4 @@
 import { useState, useEffect } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { AccountSidebar } from "@/components/account/AccountSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -39,15 +35,11 @@ export default function Invoices() {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching orders:', error);
-          toast.error("Failed to load orders");
-          throw error;
-        }
-        
+        if (error) throw error;
         setOrders(data || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
+        toast.error("Failed to load orders");
       } finally {
         setLoading(false);
       }
@@ -79,12 +71,7 @@ export default function Invoices() {
       
       // Add shipping address
       const shippingAddress = order.shipping_address as unknown as ShippingAddress | null;
-      if (shippingAddress && 
-          typeof shippingAddress === 'object' && 
-          'address' in shippingAddress &&
-          'region' in shippingAddress &&
-          'country' in shippingAddress &&
-          'phone' in shippingAddress) {
+      if (shippingAddress) {
         doc.text('Shipping Address:', 20, 80);
         doc.text(`${shippingAddress.address}`, 20, 90);
         doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
@@ -94,7 +81,7 @@ export default function Invoices() {
       // Add items
       doc.text('Items:', 20, 130);
       let yPos = 140;
-      order.items?.forEach((item: any, index: number) => {
+      order.items?.forEach((item: any) => {
         doc.text(`${item.name} x ${item.quantity}`, 20, yPos);
         yPos += 10;
       });
@@ -112,66 +99,55 @@ export default function Invoices() {
   };
 
   return (
-    <>
-      <Header />
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gray-50 pt-24">
-          <AccountSidebar />
-          <main className="flex-1 p-8">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-6">Orders & Invoices</h1>
-              <div className="bg-white rounded-lg shadow-sm divide-y">
-                {loading ? (
-                  <div className="p-6 text-center">Loading your orders...</div>
-                ) : orders.length === 0 ? (
-                  <div className="p-6 text-center text-gray-500">No orders found.</div>
-                ) : (
-                  orders.map((order) => (
-                    <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-gray-900">Order #{order.order_number}</h3>
-                          <p className="text-sm text-gray-500">
-                            {format(new Date(order.created_at), 'PPP')}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Status: <span className="capitalize">{order.status}</span>
-                          </p>
-                          <div className="mt-2">
-                            <h4 className="text-sm font-medium text-gray-900">Items:</h4>
-                            <ul className="mt-1 space-y-1">
-                              {order.items?.map((item: any, index: number) => (
-                                <li key={index} className="text-sm text-gray-600">
-                                  {item.name} x {item.quantity}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-2">
-                          <p className="font-medium text-gray-900">
-                            {formatCurrency(Number(order.total_amount))}
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2"
-                            onClick={() => downloadInvoice(order)}
-                          >
-                            <Download className="h-4 w-4" />
-                            Download Invoice
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold mb-6">Orders & Invoices</h1>
+      <div className="bg-white rounded-lg shadow-sm divide-y">
+        {loading ? (
+          <div className="p-6 text-center">Loading your orders...</div>
+        ) : orders.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">No orders found.</div>
+        ) : (
+          orders.map((order) => (
+            <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="font-medium text-gray-900">Order #{order.order_number}</h3>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(order.created_at), 'PPP')}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Status: <span className="capitalize">{order.status}</span>
+                  </p>
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium text-gray-900">Items:</h4>
+                    <ul className="mt-1 space-y-1">
+                      {order.items?.map((item: any, index: number) => (
+                        <li key={index} className="text-sm text-gray-600">
+                          {item.name} x {item.quantity}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="text-right space-y-2">
+                  <p className="font-medium text-gray-900">
+                    {formatCurrency(Number(order.total_amount))}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => downloadInvoice(order)}
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Invoice
+                  </Button>
+                </div>
               </div>
             </div>
-          </main>
-        </div>
-      </SidebarProvider>
-      <Footer />
-    </>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
