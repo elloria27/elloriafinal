@@ -1,11 +1,85 @@
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const UserMenu = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check active session and subscribe to auth changes
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
+  };
+
+  if (loading) {
+    return null;
+  }
+
+  if (user) {
+    return (
+      <HoverCard>
+        <HoverCardTrigger asChild>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            className="text-gray-600 hover:text-primary transition-colors"
+          >
+            <User className="h-5 w-5" />
+          </motion.button>
+        </HoverCardTrigger>
+        <HoverCardContent className="w-80 p-6">
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium">Welcome back!</h4>
+            <p className="text-sm text-gray-500">
+              {user.email}
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => navigate("/profile")}
+              >
+                Profile
+              </Button>
+              <Button 
+                className="w-full flex items-center gap-2" 
+                variant="destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </HoverCardContent>
+      </HoverCard>
+    );
+  }
 
   return (
     <HoverCard>

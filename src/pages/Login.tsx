@@ -4,22 +4,38 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, UserPlus } from "lucide-react";
+import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login attempt
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast.success("Logged in successfully!");
+      navigate("/");
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error("Login error:", authError);
+      toast.error(authError.message);
+    } finally {
       setIsLoading(false);
-      toast.error("Login functionality not implemented yet");
-    }, 1000);
+    }
   };
 
   return (
@@ -57,6 +73,8 @@ const Login = () => {
                   required
                   className="pl-10"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -72,6 +90,8 @@ const Login = () => {
                   required
                   className="pl-10"
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
