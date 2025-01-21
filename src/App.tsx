@@ -8,11 +8,13 @@ import OrderSuccess from "@/pages/OrderSuccess";
 import ProductDetail from "@/pages/ProductDetail";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./App.css";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <CartProvider>
         <Routes>
           <Route path="/" element={<Index />} />
