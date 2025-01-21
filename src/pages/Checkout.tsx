@@ -55,13 +55,20 @@ const Checkout = () => {
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    console.log('Fetching profile for user:', userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return;
+    }
+
+    if (data) {
+      console.log('Profile fetched successfully:', data);
       setProfile(data);
       if (data.country) setCountry(data.country);
       if (data.region) setRegion(data.region);
@@ -72,6 +79,7 @@ const Checkout = () => {
   const updateProfile = async (field: string, value: string) => {
     if (!user) return;
 
+    console.log('Updating profile field:', field, 'with value:', value);
     const updates = {
       id: user.id,
       [field]: value,
@@ -85,6 +93,8 @@ const Checkout = () => {
     if (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
+    } else {
+      console.log('Profile updated successfully');
     }
   };
 
@@ -120,6 +130,8 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('Starting order submission process');
+
     if (!selectedShipping) {
       toast.error("Please select a shipping method");
       return;
@@ -139,17 +151,11 @@ const Checkout = () => {
         region
       };
 
-      // If user is logged in, update their profile
-      if (user) {
-        const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
-        await updateProfile('full_name', fullName);
-        await updateProfile('phone_number', customerDetails.phone);
-        await updateProfile('address', customerDetails.address);
-        await updateProfile('country', customerDetails.country);
-        await updateProfile('region', customerDetails.region);
-      }
+      console.log('Customer details:', customerDetails);
 
+      // Generate order number first
       const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+      console.log('Generated order number:', orderNumber);
       
       const orderDetails = {
         items,
@@ -158,12 +164,26 @@ const Checkout = () => {
         shipping: selectedShippingOption,
         total,
         currency: country === "US" ? "USD" : "CAD",
-        customerDetails
+        customerDetails,
+        orderId: orderNumber
       };
+
+      console.log('Order details:', orderDetails);
+
+      // If user is logged in, update their profile
+      if (user) {
+        console.log('Updating user profile');
+        const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
+        await updateProfile('full_name', fullName);
+        await updateProfile('phone_number', customerDetails.phone);
+        await updateProfile('address', customerDetails.address);
+        await updateProfile('country', customerDetails.country);
+        await updateProfile('region', customerDetails.region);
+      }
 
       // Save order to Supabase if user is logged in
       if (user) {
-        console.log('Saving order to Supabase:', orderDetails);
+        console.log('Saving order to Supabase');
         const { error: orderError } = await supabase
           .from('orders')
           .insert({
@@ -194,7 +214,7 @@ const Checkout = () => {
 
       // Send order confirmation email
       console.log('Sending order confirmation email');
-      await sendOrderEmails({
+      const emailResult = await sendOrderEmails({
         customerEmail: customerDetails.email,
         customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
         orderId: orderNumber,
@@ -207,13 +227,20 @@ const Checkout = () => {
         }
       });
 
+      console.log('Email result:', emailResult);
+
+      if (emailResult.error) {
+        console.error('Error sending email:', emailResult.error);
+        throw new Error('Failed to send order confirmation email');
+      }
+
       console.log('Order processed successfully');
       localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
       clearCart();
       navigate("/order-success");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing order:', error);
-      toast.error("There was an error processing your order. Please try again.");
+      toast.error(error.message || "There was an error processing your order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

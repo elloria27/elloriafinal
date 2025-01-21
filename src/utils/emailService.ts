@@ -33,6 +33,6 @@ export const sendOrderEmails = async (details: EmailDetails) => {
     return data;
   } catch (error) {
     console.error('Error in sendOrderEmails:', error);
-    throw error;
+    return { error };
   }
 };
