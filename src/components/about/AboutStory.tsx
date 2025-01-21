@@ -10,12 +10,12 @@ export const AboutStory = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto text-center mb-24"
+          className="max-w-6xl mx-auto text-center mb-24"
         >
           <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
           <p className="text-gray-600 mb-12">Milestones that shaped who we are today</p>
           <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-            <div className="aspect-w-16 aspect-h-9">
+            <div className="aspect-video h-[600px]">
               <iframe
                 src="https://www.youtube.com/embed/f3EpenCD1wU"
                 title="Elloria Story"
