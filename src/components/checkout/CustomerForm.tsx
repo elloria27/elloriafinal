@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CustomerFormProps {
   country: string;
@@ -17,6 +18,7 @@ interface CustomerFormProps {
     address?: string | null;
     country?: string | null;
     region?: string | null;
+    email?: string | null;
   } | null;
   onFormChange?: (field: string, value: string) => void;
 }
@@ -57,32 +59,52 @@ export const CustomerForm = ({
 }: CustomerFormProps) => {
   // Pre-fill form with profile data when available
   useEffect(() => {
+    console.log("Profile data received:", profile);
     if (profile) {
-      if (profile.country) setCountry(profile.country);
-      if (profile.region) setRegion(profile.region);
-      if (profile.phone_number) setPhoneNumber(profile.phone_number);
+      if (profile.country) {
+        console.log("Setting country:", profile.country);
+        setCountry(profile.country);
+      }
+      if (profile.region) {
+        console.log("Setting region:", profile.region);
+        setRegion(profile.region);
+      }
+      if (profile.phone_number) {
+        console.log("Setting phone number:", profile.phone_number);
+        setPhoneNumber(profile.phone_number);
+      }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
 
   const handleInputChange = async (field: string, value: string) => {
+    console.log(`Updating ${field} with value:`, value);
+    
     if (onFormChange) {
       onFormChange(field, value);
     }
 
-    // Update profile in Supabase
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          [field]: value,
-          updated_at: new Date().toISOString(),
-        });
+    try {
+      // Update profile in Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            [field]: value,
+            updated_at: new Date().toISOString(),
+          });
 
-      if (error) {
-        console.error('Error updating profile:', error);
+        if (error) {
+          console.error('Error updating profile:', error);
+          toast.error('Failed to update profile');
+        } else {
+          console.log(`Successfully updated ${field} in profile`);
+        }
       }
+    } catch (error) {
+      console.error('Error in handleInputChange:', error);
+      toast.error('Failed to update profile');
     }
   };
 
@@ -98,7 +120,11 @@ export const CustomerForm = ({
             id="firstName" 
             name="firstName" 
             defaultValue={firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            onChange={(e) => {
+              const newFirstName = e.target.value;
+              const newFullName = `${newFirstName} ${lastName}`.trim();
+              handleInputChange('full_name', newFullName);
+            }}
             required 
           />
         </div>
@@ -108,7 +134,11 @@ export const CustomerForm = ({
             id="lastName" 
             name="lastName" 
             defaultValue={lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            onChange={(e) => {
+              const newLastName = e.target.value;
+              const newFullName = `${firstName} ${newLastName}`.trim();
+              handleInputChange('full_name', newFullName);
+            }}
             required 
           />
         </div>
@@ -116,7 +146,14 @@ export const CustomerForm = ({
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <Input 
+          id="email" 
+          name="email" 
+          type="email" 
+          defaultValue={profile?.email || ''}
+          onChange={(e) => handleInputChange('email', e.target.value)}
+          required 
+        />
       </div>
 
       <div className="space-y-2">

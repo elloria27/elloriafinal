@@ -41,7 +41,7 @@ export function AccountSidebar() {
     <Sidebar className="h-auto min-h-screen">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="mt-[15%]">Account</SidebarGroupLabel>
+          <SidebarGroupLabel className="mt-[30%]">Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
