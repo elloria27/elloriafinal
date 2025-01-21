@@ -14,17 +14,13 @@ export const AboutStory = () => {
         >
           <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
           <p className="text-gray-600 mb-12">Milestones that shaped who we are today</p>
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-            <div className="aspect-video h-[600px]">
-              <iframe
-                src="https://www.youtube.com/embed/f3EpenCD1wU"
-                title="Elloria Story"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
-          </div>
+          <iframe
+            src="https://www.youtube.com/embed/f3EpenCD1wU"
+            title="Elloria Story"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-[600px] rounded-3xl shadow-2xl"
+          />
         </motion.div>
         <AboutTimeline />
       </div>
