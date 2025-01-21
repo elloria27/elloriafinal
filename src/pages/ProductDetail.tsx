@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { products } from "@/components/ProductCarousel";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { Share2, ShoppingCart, ChevronRight, Star, Heart, Check, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
+import { FloatingCartAnimation } from "@/components/animations/FloatingCartAnimation";
+import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -18,13 +19,15 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
+  const [showCartAnimation, setShowCartAnimation] = useState(false);
+  const [animationStartPosition, setAnimationStartPosition] = useState({ x: 0, y: 0 });
+  const addToCartButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Example media array - in a real app, this would come from your product data
   const productMedia = [
     {
       type: "video" as const,
-      url: "https://example.com/product-video.mp4", // Replace with actual video URL
-      thumbnail: product?.image, // Use product image as video thumbnail for now
+      url: "https://example.com/product-video.mp4",
+      thumbnail: product?.image,
     },
     {
       type: "image" as const,
@@ -32,9 +35,47 @@ const ProductDetail = () => {
     },
     {
       type: "image" as const,
-      url: "https://example.com/product-image-2.jpg", // Replace with actual image URL
+      url: "https://example.com/product-image-2.jpg",
     },
   ];
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: product?.name || "",
+        text: product?.description || "",
+        url: window.location.href,
+      });
+    } catch (error) {
+      console.error("Error sharing:", error);
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Success",
+        description: "Link copied to clipboard!",
+      });
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    // Get button position for animation start point
+    const buttonRect = addToCartButtonRef.current?.getBoundingClientRect();
+    if (buttonRect) {
+      setAnimationStartPosition({
+        x: buttonRect.left,
+        y: buttonRect.top,
+      });
+    }
+
+    setShowCartAnimation(true);
+
+    // Add item to cart after animation
+    addItem({
+      ...product,
+      quantity,
+    });
+  };
 
   if (!product) {
     return (
@@ -51,32 +92,16 @@ const ProductDetail = () => {
     );
   }
 
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: product.name,
-        text: product.description,
-        url: window.location.href,
-      });
-    } catch (error) {
-      console.error("Error sharing:", error);
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Success",
-        description: "Link copied to clipboard!",
-      });
-    }
-  };
-
-  const handleAddToCart = () => {
-    addItem({
-      ...product,
-      quantity,
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      {showCartAnimation && (
+        <FloatingCartAnimation
+          productImage={product.image}
+          startPosition={animationStartPosition}
+          onComplete={() => setShowCartAnimation(false)}
+        />
+      )}
+      
       <Header />
       
       {/* Hero Section */}
@@ -173,6 +198,7 @@ const ProductDetail = () => {
                   />
                 </div>
                 <Button
+                  ref={addToCartButtonRef}
                   size="lg"
                   onClick={handleAddToCart}
                   className="flex-1 bg-primary hover:bg-primary/90 text-white"

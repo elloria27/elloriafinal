@@ -44,6 +44,57 @@ export const CartPopover = () => {
     }).format(price);
   };
 
+  const renderCartItem = (item: CartItem) => (
+    <motion.div
+      key={item.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg"
+    >
+      <img
+        src={item.image}
+        alt={item.name}
+        className="w-16 h-16 object-contain rounded-md bg-white"
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <h5 className="font-medium text-sm truncate">{item.name}</h5>
+          <button
+            onClick={() => removeItem(item.id)}
+            className="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-primary font-medium mt-1">
+          {formatPrice(item.price)}
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+            disabled={item.quantity <= 1}
+          >
+            <Minus className="h-3 w-3" />
+          </Button>
+          <span className="text-sm w-8 text-center">{item.quantity}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => updateQuantity(item.id, Math.min(99, item.quantity + 1))}
+            disabled={item.quantity >= 99}
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -79,58 +130,17 @@ export const CartPopover = () => {
             )}
           </div>
 
-          {items.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500">Your cart is empty</p>
+        {items.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-gray-500">Your cart is empty</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 max-h-[300px] overflow-y-auto">
+              <AnimatePresence>
+                {items.map(renderCartItem)}
+              </AnimatePresence>
             </div>
-          ) : (
-            <>
-              <div className="space-y-4 max-h-[300px] overflow-y-auto">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-contain rounded-md bg-white"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h5 className="font-medium text-sm truncate">{item.name}</h5>
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <p className="text-primary font-medium mt-1">
-                        {formatPrice(item.price)}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 w-7 p-0"
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                          disabled={item.quantity <= 1}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="text-sm w-8 text-center">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 w-7 p-0"
-                          onClick={() => updateQuantity(item.id, Math.min(99, item.quantity + 1))}
-                          disabled={item.quantity >= 99}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
 
               <Separator />
 
@@ -199,9 +209,8 @@ export const CartPopover = () => {
               >
                 Proceed to Checkout
               </Button>
-            </>
-          )}
-        </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );
