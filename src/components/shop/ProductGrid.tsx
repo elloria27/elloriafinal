@@ -4,28 +4,17 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { products } from "@/components/ProductCarousel";
 
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-}
-
-interface ProductGridProps {
-  products: Product[];
-}
-
-export const ProductGrid = ({ products }: ProductGridProps) => {
+export const ProductGrid = () => {
   const { addItem } = useCart();
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: typeof products[0]) => {
     addItem({
       ...product,
       quantity: 1,
     });
-    toast.success("Added to cart successfully!");
+    toast.success(`Added ${product.name} to cart`);
   };
 
   return (
