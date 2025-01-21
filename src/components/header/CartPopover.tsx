@@ -40,7 +40,7 @@ export const CartPopover = () => {
   const handleCheckout = () => {
     console.log("Navigating to checkout page");
     setIsOpen(false);
-    navigate("/checkout");
+    navigate("/checkout", { replace: true });
   };
 
   const formatPrice = (price: number) => {
