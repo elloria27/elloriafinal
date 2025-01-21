@@ -14,6 +14,12 @@ interface ProductGalleryProps {
   productName: string;
 }
 
+const getYouTubeVideoId = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+};
+
 export const ProductGallery = ({ media, productName }: ProductGalleryProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -30,40 +36,41 @@ export const ProductGallery = ({ media, productName }: ProductGalleryProps) => {
 
   const handlePlayVideo = () => {
     setIsPlaying(true);
-    const videoElement = document.getElementById("product-video") as HTMLVideoElement;
-    if (videoElement) {
-      videoElement.play();
-    }
   };
 
   const currentMedia = media[currentIndex];
-  const hasVideo = media.some(item => item.type === "video");
 
   return (
     <div className="relative aspect-[16/9] max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
       {currentMedia.type === "video" ? (
         <div className="relative w-full h-full">
-          <video
-            id="product-video"
-            src={currentMedia.url}
-            poster={currentMedia.thumbnail}
-            className="w-full h-full object-cover"
-            controls={isPlaying}
-            onEnded={() => setIsPlaying(false)}
-          />
-          {!isPlaying && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center bg-black/30"
-            >
-              <Button
-                onClick={handlePlayVideo}
-                className="w-16 h-16 rounded-full bg-white hover:bg-white/90 text-primary"
+          {isPlaying ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${getYouTubeVideoId(currentMedia.url)}?autoplay=1`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          ) : (
+            <>
+              <img
+                src={currentMedia.thumbnail}
+                alt={`${productName} video thumbnail`}
+                className="w-full h-full object-cover"
+              />
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 flex items-center justify-center bg-black/30"
               >
-                <Play className="w-8 h-8" />
-              </Button>
-            </motion.div>
+                <Button
+                  onClick={handlePlayVideo}
+                  className="w-16 h-16 rounded-full bg-white hover:bg-white/90 text-primary"
+                >
+                  <Play className="w-8 h-8" />
+                </Button>
+              </motion.div>
+            </>
           )}
         </div>
       ) : (
