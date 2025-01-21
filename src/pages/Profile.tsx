@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Activity from "./profile/Activity";
@@ -127,10 +127,12 @@ export default function Profile() {
       <div className="flex-1 pt-32">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
-            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
-              <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
-            </div>
-            <main className="flex-1 min-w-0">
+            <Sidebar className="border-r border-gray-200">
+              <SidebarContent>
+                <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
+              </SidebarContent>
+            </Sidebar>
+            <SidebarInset>
               <div className="md:hidden p-4">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -139,52 +141,54 @@ export default function Profile() {
                   {isMobileMenuOpen ? 'Close Menu' : 'Open Menu'}
                 </button>
               </div>
-              <Routes>
-                <Route index element={
-                  <MainProfileContent
-                    profile={profile}
-                    loading={loading}
-                    firstName={firstName}
-                    setFirstName={(value) => {
-                      setFirstName(value);
-                      setHasChanges(true);
-                    }}
-                    lastName={lastName}
-                    setLastName={(value) => {
-                      setLastName(value);
-                      setHasChanges(true);
-                    }}
-                    userEmail={userEmail}
-                    phoneNumber={phoneNumber}
-                    setPhoneNumber={(value) => {
-                      setPhoneNumber(value);
-                      setHasChanges(true);
-                    }}
-                    address={address}
-                    setAddress={(value) => {
-                      setAddress(value);
-                      setHasChanges(true);
-                    }}
-                    country={country}
-                    setCountry={(value) => {
-                      setCountry(value);
-                      setHasChanges(true);
-                    }}
-                    region={region}
-                    setRegion={(value) => {
-                      setRegion(value);
-                      setHasChanges(true);
-                    }}
-                    hasChanges={hasChanges}
-                    isSaving={isSaving}
-                    handleSave={handleSave}
-                  />
-                } />
-                <Route path="invoices" element={<Invoices />} />
-                <Route path="activity" element={<Activity />} />
-                <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
-              </Routes>
-            </main>
+              <div className="p-4">
+                <Routes>
+                  <Route index element={
+                    <MainProfileContent
+                      profile={profile}
+                      loading={loading}
+                      firstName={firstName}
+                      setFirstName={(value) => {
+                        setFirstName(value);
+                        setHasChanges(true);
+                      }}
+                      lastName={lastName}
+                      setLastName={(value) => {
+                        setLastName(value);
+                        setHasChanges(true);
+                      }}
+                      userEmail={userEmail}
+                      phoneNumber={phoneNumber}
+                      setPhoneNumber={(value) => {
+                        setPhoneNumber(value);
+                        setHasChanges(true);
+                      }}
+                      address={address}
+                      setAddress={(value) => {
+                        setAddress(value);
+                        setHasChanges(true);
+                      }}
+                      country={country}
+                      setCountry={(value) => {
+                        setCountry(value);
+                        setHasChanges(true);
+                      }}
+                      region={region}
+                      setRegion={(value) => {
+                        setRegion(value);
+                        setHasChanges(true);
+                      }}
+                      hasChanges={hasChanges}
+                      isSaving={isSaving}
+                      handleSave={handleSave}
+                    />
+                  } />
+                  <Route path="invoices" element={<Invoices />} />
+                  <Route path="activity" element={<Activity />} />
+                  <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
+                </Routes>
+              </div>
+            </SidebarInset>
           </div>
         </SidebarProvider>
       </div>
