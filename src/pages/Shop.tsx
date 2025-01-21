@@ -5,7 +5,6 @@ import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
 import { useState } from "react";
 import { products } from "@/components/ProductCarousel";
-import { motion } from "framer-motion";
 
 export type SortOption = "featured" | "price-low" | "price-high" | "newest";
 export type FilterOption = "all" | "ultra-thin" | "maxi" | "overnight";
@@ -14,6 +13,24 @@ export default function Shop() {
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
   
+  const filteredProducts = products.filter(product => {
+    if (filterBy === "all") return true;
+    return product.specifications.features.toLowerCase().includes(filterBy);
+  });
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price;
+      case "price-high":
+        return b.price - a.price;
+      case "newest":
+        return -1; // Assuming newest first for demo
+      default:
+        return 0;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -26,7 +43,7 @@ export default function Shop() {
           onSortChange={setSortBy}
           onFilterChange={setFilterBy}
         />
-        <ProductGrid />
+        <ProductGrid products={sortedProducts} />
       </main>
       
       <Footer />
