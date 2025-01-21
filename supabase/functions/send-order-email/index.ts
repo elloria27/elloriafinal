@@ -118,7 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
       <p>Best regards,<br>The Elloria Team</p>
     `;
 
-    // Send email with Resend
+    // Send email with Resend using the default testing domain
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -126,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Elloria <orders@elloria.ca>',
+        from: 'Elloria <onboarding@resend.dev>', // Using Resend's testing domain
         to: [orderDetails.customerEmail],
         subject: `Order Confirmation #${orderDetails.orderId}`,
         html: emailHtml,
