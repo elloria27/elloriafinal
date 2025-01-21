@@ -10,6 +10,8 @@ import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import jsPDF from 'jspdf';
+import { Download } from 'lucide-react';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -50,7 +52,12 @@ export default function Profile() {
       if (data) {
         setFullName(data.full_name);
         setEmail(user.email);
-        // Set other fields if they exist in your profiles table
+        setPhone(data.phone || "");
+        setAddress(data.address || "");
+        setCountry(data.country || "");
+        setRegion(data.region || "");
+        setLanguage(data.language || "en");
+        setCurrency(data.currency || "USD");
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -72,6 +79,12 @@ export default function Profile() {
       const updates = {
         id: user.id,
         full_name: fullName,
+        phone: phone,
+        address: address,
+        country: country,
+        region: region,
+        language: language,
+        currency: currency,
         updated_at: new Date().toISOString(),
       };
 
@@ -92,6 +105,34 @@ export default function Profile() {
     }
   }
 
+  const downloadProfilePDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text('Profile Information', 20, 20);
+      
+      // Add profile details
+      doc.setFontSize(12);
+      doc.text(`Full Name: ${fullName || 'Not provided'}`, 20, 40);
+      doc.text(`Email: ${email || 'Not provided'}`, 20, 50);
+      doc.text(`Phone: ${phone || 'Not provided'}`, 20, 60);
+      doc.text(`Address: ${address || 'Not provided'}`, 20, 70);
+      doc.text(`Country: ${country || 'Not provided'}`, 20, 80);
+      doc.text(`Region: ${region || 'Not provided'}`, 20, 90);
+      doc.text(`Language: ${language || 'Not provided'}`, 20, 100);
+      doc.text(`Currency: ${currency || 'Not provided'}`, 20, 110);
+      
+      // Save the PDF
+      doc.save('profile-information.pdf');
+      toast.success('Profile downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to download profile');
+    }
+  };
+
   return (
     <>
       <Header />
@@ -101,7 +142,17 @@ export default function Profile() {
           <main className="flex-1 p-8">
             <div className="max-w-4xl mx-auto space-y-8">
               <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-                <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
+                <div className="flex justify-between items-center">
+                  <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
+                  <Button
+                    onClick={downloadProfilePDF}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Profile
+                  </Button>
+                </div>
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
