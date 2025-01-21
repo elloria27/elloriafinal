@@ -16,29 +16,55 @@ export const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      console.log("Attempting admin login...");
+      
+      // First, try to sign in
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .single();
-
-        if (profileError || !profile || profile.role !== "admin") {
-          throw new Error("Unauthorized access");
-        }
-
-        toast.success("Welcome back, admin!");
-        navigate("/admin");
+      if (authError) {
+        console.error("Authentication error:", authError);
+        throw authError;
       }
+
+      if (!authData.user) {
+        console.error("No user data returned");
+        throw new Error("Authentication failed");
+      }
+
+      console.log("User authenticated, checking admin role...");
+
+      // Check if user has admin role
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      console.log("Profile data:", profile);
+      
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw profileError;
+      }
+
+      if (!profile || profile.role !== 'admin') {
+        console.error("User is not an admin:", profile);
+        // Sign out the user since they're not an admin
+        await supabase.auth.signOut();
+        throw new Error("Unauthorized access");
+      }
+
+      console.log("Admin access confirmed, redirecting...");
+      toast.success("Welcome back, admin!");
+      navigate("/admin");
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed");
+      // Sign out the user if anything goes wrong
+      await supabase.auth.signOut();
     } finally {
       setLoading(false);
     }
