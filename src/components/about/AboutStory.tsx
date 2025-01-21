@@ -3,23 +3,27 @@ import { AboutTimeline } from "./AboutTimeline";
 
 export const AboutStory = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-24 bg-white">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto text-center mb-16"
+          className="max-w-4xl mx-auto text-center mb-24"
         >
-          <div className="aspect-w-16 aspect-h-9 mb-12">
-            <iframe
-              src="https://www.youtube.com/embed/f3EpenCD1wU"
-              title="Elloria Story"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="rounded-2xl shadow-xl w-full h-full"
-            />
+          <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
+          <p className="text-gray-600 mb-12">Milestones that shaped who we are today</p>
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+            <div className="aspect-w-16 aspect-h-9">
+              <iframe
+                src="https://www.youtube.com/embed/f3EpenCD1wU"
+                title="Elloria Story"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
           </div>
         </motion.div>
         <AboutTimeline />
