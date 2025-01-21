@@ -1,4 +1,4 @@
-import { User, FileText, Clock, Settings } from "lucide-react";
+import { User, FileText, Clock, Settings, X } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -34,12 +34,23 @@ const menuItems = [
   },
 ];
 
-export function AccountSidebar() {
+interface AccountSidebarProps {
+  onClose?: () => void;
+}
+
+export function AccountSidebar({ onClose }: AccountSidebarProps) {
   const location = useLocation();
 
   return (
     <Sidebar className="h-auto min-h-screen bg-white border-r border-gray-100">
       <SidebarContent>
+        {onClose && (
+          <div className="p-4 md:hidden flex justify-end">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        )}
         <SidebarGroup>
           <SidebarGroupLabel className="mt-6">Account</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -54,6 +65,7 @@ export function AccountSidebar() {
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent-purple/50"
                       }`}
+                      onClick={onClose}
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>

@@ -20,6 +20,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -126,8 +127,18 @@ export default function Profile() {
       <div className="flex-1 pt-32">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
-            <AccountSidebar />
-            <main className="flex-1">
+            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
+              <AccountSidebar onClose={() => setIsMobileMenuOpen(false)} />
+            </div>
+            <main className="flex-1 min-w-0">
+              <div className="md:hidden p-4">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="p-2 rounded-md bg-primary text-white"
+                >
+                  {isMobileMenuOpen ? 'Close Menu' : 'Open Menu'}
+                </button>
+              </div>
               <Routes>
                 <Route index element={
                   <MainProfileContent
