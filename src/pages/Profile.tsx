@@ -10,7 +10,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
 import { LocationForm } from "@/components/profile/LocationForm";
-import { PreferencesForm } from "@/components/profile/PreferencesForm";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -22,8 +21,6 @@ export default function Profile() {
   const [address, setAddress] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [region, setRegion] = useState<string>("");
-  const [language, setLanguage] = useState<string>("en");
-  const [currency, setCurrency] = useState<string>("USD");
 
   useEffect(() => {
     getProfile();
@@ -58,8 +55,6 @@ export default function Profile() {
         setAddress(data.address || "");
         setCountry(data.country || "");
         setRegion(data.region || "");
-        setLanguage(data.language || "en");
-        setCurrency(data.currency || "USD");
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -85,8 +80,6 @@ export default function Profile() {
         address: address,
         country: country,
         region: region,
-        language: language,
-        currency: currency,
         updated_at: new Date().toISOString(),
       };
 
@@ -124,8 +117,6 @@ export default function Profile() {
                   address={address}
                   country={country}
                   region={region}
-                  language={language}
-                  currency={currency}
                 />
                 
                 <PersonalInfoForm
@@ -146,13 +137,6 @@ export default function Profile() {
                   setCountry={setCountry}
                   region={region}
                   setRegion={setRegion}
-                />
-
-                <PreferencesForm
-                  language={language}
-                  setLanguage={setLanguage}
-                  currency={currency}
-                  setCurrency={setCurrency}
                 />
 
                 <div className="pt-6 border-t">

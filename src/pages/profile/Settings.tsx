@@ -5,42 +5,53 @@ import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PreferencesForm } from "@/components/profile/PreferencesForm";
 
 export default function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState("en");
+  const [currency, setCurrency] = useState("USD");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
-    async function loadSettings() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email_notifications, marketing_emails')
-          .eq('id', user.id)
-          .single();
-
-        if (profile) {
-          setEmailNotifications(profile.email_notifications || false);
-          setMarketingEmails(profile.marketing_emails || false);
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-        toast.error('Failed to load settings');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadSettings();
   }, []);
 
-  const updateSetting = async (setting: 'email_notifications' | 'marketing_emails', value: boolean) => {
+  async function loadSettings() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email_notifications, marketing_emails, language, currency')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setEmailNotifications(profile.email_notifications || false);
+        setMarketingEmails(profile.marketing_emails || false);
+        setLanguage(profile.language || "en");
+        setCurrency(profile.currency || "USD");
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast.error('Failed to load settings');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const updateSetting = async (setting: 'email_notifications' | 'marketing_emails' | 'language' | 'currency', value: any) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -62,6 +73,32 @@ export default function Settings() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success('Password updated successfully');
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error('Failed to update password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -69,9 +106,25 @@ export default function Settings() {
         <div className="min-h-screen flex w-full bg-gray-50 pt-24">
           <AccountSidebar />
           <main className="flex-1 p-8">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-6">Account Settings</h1>
+            <div className="max-w-4xl mx-auto space-y-8">
               <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+                <h2 className="text-xl font-semibold">Preferences</h2>
+                <PreferencesForm
+                  language={language}
+                  setLanguage={(value) => {
+                    setLanguage(value);
+                    updateSetting('language', value);
+                  }}
+                  currency={currency}
+                  setCurrency={(value) => {
+                    setCurrency(value);
+                    updateSetting('currency', value);
+                  }}
+                />
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+                <h2 className="text-xl font-semibold">Notifications</h2>
                 {loading ? (
                   <div>Loading...</div>
                 ) : (
@@ -110,6 +163,36 @@ export default function Settings() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+                <h2 className="text-xl font-semibold">Change Password</h2>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    onClick={handlePasswordChange}
+                    disabled={changingPassword || !newPassword || !confirmPassword}
+                  >
+                    {changingPassword ? 'Updating...' : 'Update Password'}
+                  </Button>
+                </div>
               </div>
             </div>
           </main>
