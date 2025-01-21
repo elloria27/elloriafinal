@@ -111,7 +111,7 @@ export const ProductGallery = ({ media, productName }: ProductGalleryProps) => {
                   <img 
                     src={currentMedia.url} 
                     alt={`${productName} - Image ${currentIndex + 1}`}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover" // Changed from object-contain to object-cover
                   />
                   <Button
                     variant="ghost"
