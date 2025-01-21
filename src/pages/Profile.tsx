@@ -96,7 +96,8 @@ export default function Profile() {
     <>
       <Header />
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gray-50 pt-20">
+        {/* Added mt-20 to create space below the fixed header */}
+        <div className="min-h-screen flex w-full bg-gray-50 mt-20">
           <AccountSidebar />
           <main className="flex-1 p-8">
             <div className="max-w-4xl mx-auto space-y-8">
