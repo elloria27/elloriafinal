@@ -2,40 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import jsPDF from 'jspdf';
-import { Download } from 'lucide-react';
-
-const COUNTRIES = [
-  { code: "CA", name: "Canada" },
-  { code: "US", name: "United States" },
-];
-
-const PROVINCES = [
-  "Alberta", "British Columbia", "Manitoba", "New Brunswick",
-  "Newfoundland and Labrador", "Nova Scotia", "Ontario",
-  "Prince Edward Island", "Quebec", "Saskatchewan",
-];
-
-const STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
-  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
-  "New Hampshire", "New Jersey", "New Mexico", "New York",
-  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
-  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
-  "West Virginia", "Wisconsin", "Wyoming"
-];
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
+import { LocationForm } from "@/components/profile/LocationForm";
+import { PreferencesForm } from "@/components/profile/PreferencesForm";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -132,31 +107,6 @@ export default function Profile() {
     }
   }
 
-  const downloadProfilePDF = () => {
-    try {
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.text('Profile Information', 20, 20);
-      
-      doc.setFontSize(12);
-      doc.text(`Full Name: ${firstName} ${lastName}`, 20, 40);
-      doc.text(`Email: ${email || 'Not provided'}`, 20, 50);
-      doc.text(`Phone Number: ${phoneNumber || 'Not provided'}`, 20, 60);
-      doc.text(`Address: ${address || 'Not provided'}`, 20, 70);
-      doc.text(`Country: ${country || 'Not provided'}`, 20, 80);
-      doc.text(`Region: ${region || 'Not provided'}`, 20, 90);
-      doc.text(`Language: ${language || 'Not provided'}`, 20, 100);
-      doc.text(`Currency: ${currency || 'Not provided'}`, 20, 110);
-      
-      doc.save('profile-information.pdf');
-      toast.success('Profile downloaded successfully');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Failed to download profile');
-    }
-  };
-
   return (
     <>
       <Header />
@@ -166,136 +116,44 @@ export default function Profile() {
           <main className="flex-1 p-8">
             <div className="max-w-4xl mx-auto space-y-8">
               <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-                <div className="flex justify-between items-center">
-                  <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
-                  <Button
-                    onClick={downloadProfilePDF}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Profile
-                  </Button>
-                </div>
+                <ProfileHeader
+                  firstName={firstName}
+                  lastName={lastName}
+                  email={email}
+                  phoneNumber={phoneNumber}
+                  address={address}
+                  country={country}
+                  region={region}
+                  language={language}
+                  currency={currency}
+                />
                 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
+                <PersonalInfoForm
+                  firstName={firstName}
+                  setFirstName={setFirstName}
+                  lastName={lastName}
+                  setLastName={setLastName}
+                  email={email}
+                  phoneNumber={phoneNumber}
+                  setPhoneNumber={setPhoneNumber}
+                  address={address}
+                  setAddress={setAddress}
+                  loading={loading}
+                />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
+                <LocationForm
+                  country={country}
+                  setCountry={setCountry}
+                  region={region}
+                  setRegion={setRegion}
+                />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email || ''}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      type="text"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Select value={country} onValueChange={setCountry}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COUNTRIES.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="region">
-                      {country === "CA" ? "Province" : "State"}
-                    </Label>
-                    <Select value={region} onValueChange={setRegion}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(country === "CA" ? PROVINCES : STATES).map((r) => (
-                          <SelectItem key={r} value={r}>
-                            {r}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <Select value={language} onValueChange={setLanguage}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
-                    <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="CAD">CAD ($)</SelectItem>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                <PreferencesForm
+                  language={language}
+                  setLanguage={setLanguage}
+                  currency={currency}
+                  setCurrency={setCurrency}
+                />
 
                 <div className="pt-6 border-t">
                   <Button
