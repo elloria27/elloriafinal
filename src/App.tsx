@@ -8,6 +8,9 @@ import OrderSuccess from "@/pages/OrderSuccess";
 import ProductDetail from "@/pages/ProductDetail";
 import About from "@/pages/About";
 import Shop from "@/pages/Shop";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminLogin from "@/pages/admin/AdminLogin";
+import Dashboard from "@/pages/admin/Dashboard";
 import { Toaster } from "@/components/ui/toaster";
 import { CartProvider } from "@/contexts/CartContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -28,6 +31,13 @@ function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/shop" element={<Shop />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            {/* Other admin routes will be added here */}
+          </Route>
         </Routes>
         <Toaster />
       </CartProvider>
