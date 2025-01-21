@@ -26,16 +26,28 @@ const ProductDetail = () => {
   const productMedia = [
     {
       type: "video" as const,
-      url: "https://example.com/product-video.mp4",
-      thumbnail: product?.image,
+      url: "https://youtu.be/f3EpenCD1wU",
+      thumbnail: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png",
     },
     {
       type: "image" as const,
-      url: product?.image || "",
+      url: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png",
     },
     {
       type: "image" as const,
-      url: "https://example.com/product-image-2.jpg",
+      url: "/lovable-uploads/bf47f5ff-e31b-4bdc-8ed0-5c0fc3d5f0d1.png",
+    },
+    {
+      type: "image" as const,
+      url: "/lovable-uploads/aef79d44-8c62-442e-b797-bf0446d818a8.png",
+    },
+    {
+      type: "image" as const,
+      url: "/lovable-uploads/a7e9335a-6251-4ad6-9140-b04479d11e77.png",
+    },
+    {
+      type: "image" as const,
+      url: "/lovable-uploads/c7fccc71-03c6-4d3d-8e7d-c7c710b91732.png",
     },
   ];
 
