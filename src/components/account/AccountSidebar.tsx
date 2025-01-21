@@ -41,7 +41,7 @@ export function AccountSidebar() {
     <Sidebar className="h-auto min-h-screen bg-white border-r border-gray-100">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="mt-[30%]">Account</SidebarGroupLabel>
+          <SidebarGroupLabel className="mt-6">Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -50,8 +50,7 @@ export function AccountSidebar() {
                     <Link
                       to={item.path}
                       className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        (location.pathname === item.path || 
-                         (item.path === "/profile" && location.pathname === "/profile/"))
+                        location.pathname === item.path
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent-purple/50"
                       }`}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
@@ -57,27 +57,35 @@ export default function Profile() {
 
     return (
       <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-8">Profile</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-semibold">Profile Settings</h1>
+        </div>
         <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-medium mb-2">Full Name</h2>
-            <p className="text-gray-700">{profile.full_name}</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-medium mb-2">Phone</h2>
-            <p className="text-gray-700">{profile.phone_number || 'Not set'}</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-medium mb-2">Address</h2>
-            <p className="text-gray-700">{profile.address || 'Not set'}</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-medium mb-2">Region</h2>
-            <p className="text-gray-700">{profile.region || 'Not set'}</p>
-          </div>
-          <div>
-            <h2 className="text-lg font-medium mb-2">Country</h2>
-            <p className="text-gray-700">{profile.country || 'Not set'}</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-sm font-medium mb-2">First Name</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.full_name?.split(' ')[0] || 'Not set'}</p>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium mb-2">Last Name</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.full_name?.split(' ')[1] || 'Not set'}</p>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium mb-2">Phone</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.phone_number || 'Not set'}</p>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium mb-2">Address</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.address || 'Not set'}</p>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium mb-2">Country</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.country || 'Not set'}</p>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium mb-2">Region</h2>
+              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.region || 'Not set'}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -97,7 +105,6 @@ export default function Profile() {
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="activity" element={<Activity />} />
                 <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
-                <Route path="*" element={<Navigate to="/profile" replace />} />
               </Routes>
             </main>
           </div>
