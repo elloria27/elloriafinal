@@ -159,6 +159,36 @@ const Checkout = () => {
     };
 
     try {
+      // Save order to Supabase if user is logged in
+      if (user) {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id: user.id,
+            order_number: Math.random().toString(36).substr(2, 9).toUpperCase(),
+            total_amount: total,
+            status: 'pending',
+            items: items,
+            shipping_address: {
+              address: customerDetails.address,
+              country: customerDetails.country,
+              region: customerDetails.region,
+              phone: customerDetails.phone
+            },
+            billing_address: {
+              address: customerDetails.address,
+              country: customerDetails.country,
+              region: customerDetails.region,
+              phone: customerDetails.phone
+            }
+          });
+
+        if (orderError) {
+          console.error('Error saving order:', orderError);
+          throw new Error('Failed to save order');
+        }
+      }
+
       await sendOrderEmails({
         customerEmail: customerDetails.email,
         customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
