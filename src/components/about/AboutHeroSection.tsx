@@ -5,7 +5,7 @@ export const AboutHeroSection = () => {
     <section className="relative h-[90vh] overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/30 to-accent-peach/30" />
       <div 
-        className="absolute inset-0 bg-[url('/lovable-uploads/a7e9335a-6251-4ad6-9140-b04479d11e77.png')] bg-cover bg-center"
+        className="absolute inset-0 bg-[url('/lovable-uploads/ba8d9a77-42de-4ec9-8666-53e795a2673c.png')] bg-cover bg-center"
         style={{ backgroundAttachment: 'fixed' }}
       />
       <div className="absolute inset-0 bg-black/20" />
