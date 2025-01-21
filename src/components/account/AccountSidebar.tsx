@@ -1,5 +1,5 @@
-import { User, FileText, Clock, Settings, X } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { User, FileText, Clock, Settings, X, LogOut } from "lucide-react";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -9,6 +9,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const menuItems = [
   {
@@ -39,6 +41,21 @@ interface AccountSidebarProps {
 
 export function AccountSidebar({ onClose }: AccountSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -55,31 +72,45 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
           </Button>
         </div>
       )}
-      <SidebarGroup>
-        <SidebarGroupLabel className="mt-6">Account</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {menuItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                      location.pathname === item.path
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent-purple/50"
-                    }`}
-                    onClick={onClose}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      <div className="flex-1">
+        <SidebarGroup>
+          <SidebarGroupLabel className="mt-6">Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                        location.pathname === item.path
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent-purple/50"
+                      }`}
+                      onClick={onClose}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </div>
+      
+      {/* Logout Button */}
+      <div className="p-4 mt-auto border-t">
+        <Button 
+          variant="destructive" 
+          className="w-full flex items-center justify-center gap-2"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
+      </div>
     </div>
   );
 }
