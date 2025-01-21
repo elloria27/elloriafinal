@@ -1,5 +1,5 @@
 import { ShoppingCart, X, Minus, Plus, Tag } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -130,17 +130,17 @@ export const CartPopover = () => {
             )}
           </div>
 
-        {items.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-gray-500">Your cart is empty</p>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-4 max-h-[300px] overflow-y-auto">
-              <AnimatePresence>
-                {items.map(renderCartItem)}
-              </AnimatePresence>
+          {items.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-gray-500">Your cart is empty</p>
             </div>
+          ) : (
+            <>
+              <div className="space-y-4 max-h-[300px] overflow-y-auto">
+                <AnimatePresence>
+                  {items.map(renderCartItem)}
+                </AnimatePresence>
+              </div>
 
               <Separator />
 
@@ -209,8 +209,9 @@ export const CartPopover = () => {
               >
                 Proceed to Checkout
               </Button>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );
