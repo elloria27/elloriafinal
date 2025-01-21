@@ -7,11 +7,13 @@ import {
   SidebarProvider, 
   Sidebar, 
   SidebarContent, 
-  SidebarInset,
+  SidebarInset 
+} from "@/components/ui/sidebar";
+import {
   Sheet,
   SheetContent,
-  SheetTrigger 
-} from "@/components/ui/sidebar";
+  SheetTrigger
+} from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Menu } from "lucide-react";
