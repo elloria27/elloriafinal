@@ -10,73 +10,103 @@ import Activity from "./profile/Activity";
 import Invoices from "./profile/Invoices";
 import Settings from "./profile/Settings";
 import { Tables } from "@/integrations/supabase/types";
-import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Profile = Tables<"profiles">;
+
+const COUNTRIES = [
+  { code: "CA", name: "Canada" },
+  { code: "US", name: "United States" },
+];
+
+const PROVINCES = [
+  "Alberta", "British Columbia", "Manitoba", "New Brunswick",
+  "Newfoundland and Labrador", "Nova Scotia", "Ontario",
+  "Prince Edward Island", "Quebec", "Saskatchewan",
+];
+
+const STATES = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+  "New Hampshire", "New Jersey", "New Mexico", "New York",
+  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+  "West Virginia", "Wisconsin", "Wyoming"
+];
 
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  // Form state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<Profile>>({});
 
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error("Please log in to view your profile");
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) throw error;
-        setProfile(data);
-        if (data.country) setCountry(data.country);
-        if (data.region) setRegion(data.region);
-        if (data.phone_number) setPhoneNumber(data.phone_number);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast.error("Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadProfile();
   }, []);
 
-  const handleFormChange = async (field: string, value: string) => {
-    console.log('Form change:', field, value);
-    setHasChanges(true);
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  async function loadProfile() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please log in to view your profile");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      
+      setProfile(data);
+      if (data.full_name) {
+        const [first, ...rest] = data.full_name.split(' ');
+        setFirstName(first || '');
+        setLastName(rest.join(' ') || '');
+      }
+      setPhoneNumber(data.phone_number || '');
+      setAddress(data.address || '');
+      setCountry(data.country || '');
+      setRegion(data.region || '');
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile?.id) return;
     
     setIsSaving(true);
     try {
       const updates = {
-        ...formData,
+        full_name: `${firstName} ${lastName}`.trim(),
+        phone_number: phoneNumber,
+        address,
         country,
         region,
-        phone_number: phoneNumber,
         updated_at: new Date().toISOString(),
       };
-
-      console.log('Saving updates:', updates);
 
       const { error } = await supabase
         .from('profiles')
@@ -87,7 +117,6 @@ export default function Profile() {
       
       setProfile(prev => prev ? { ...prev, ...updates } : null);
       setHasChanges(false);
-      setFormData({});
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -95,6 +124,10 @@ export default function Profile() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleChange = () => {
+    setHasChanges(true);
   };
 
   // Main profile content component
@@ -108,7 +141,7 @@ export default function Profile() {
     }
 
     return (
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-8 max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold">Profile Settings</h1>
           {hasChanges && (
@@ -122,17 +155,117 @@ export default function Profile() {
             </Button>
           )}
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <CustomerForm
-            country={country}
-            setCountry={setCountry}
-            region={region}
-            setRegion={setRegion}
-            phoneNumber={phoneNumber}
-            setPhoneNumber={setPhoneNumber}
-            profile={profile}
-            onFormChange={handleFormChange}
-          />
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  handleChange();
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  handleChange();
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              value={profile.email || ''}
+              disabled
+              className="bg-gray-50"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              value={phoneNumber}
+              onChange={(e) => {
+                setPhoneNumber(e.target.value);
+                handleChange();
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                handleChange();
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Select 
+                value={country} 
+                onValueChange={(value) => {
+                  setCountry(value);
+                  setRegion("");
+                  handleChange();
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {country && (
+              <div className="space-y-2">
+                <Label htmlFor="region">
+                  {country === "CA" ? "Province" : "State"}
+                </Label>
+                <Select 
+                  value={region} 
+                  onValueChange={(value) => {
+                    setRegion(value);
+                    handleChange();
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(country === "CA" ? PROVINCES : STATES).map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -141,7 +274,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 pt-20">
+      <div className="flex-1 pt-24"> {/* Increased padding-top to prevent header overlap */}
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
             <AccountSidebar />
