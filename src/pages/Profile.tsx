@@ -21,6 +21,8 @@ export default function Profile() {
   const [address, setAddress] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [region, setRegion] = useState<string>("");
+  const [language, setLanguage] = useState<string>("en");
+  const [currency, setCurrency] = useState<string>("USD");
 
   useEffect(() => {
     getProfile();
@@ -55,6 +57,8 @@ export default function Profile() {
         setAddress(data.address || "");
         setCountry(data.country || "");
         setRegion(data.region || "");
+        setLanguage(data.language || "en");
+        setCurrency(data.currency || "USD");
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -117,6 +121,8 @@ export default function Profile() {
                   address={address}
                   country={country}
                   region={region}
+                  language={language}
+                  currency={currency}
                 />
                 
                 <PersonalInfoForm
