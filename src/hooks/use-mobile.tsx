@@ -15,3 +15,8 @@ export function useMediaQuery(query: string): boolean {
 
   return matches;
 }
+
+// Alias for common mobile check
+export function useIsMobile(): boolean {
+  return useMediaQuery('(max-width: 768px)');
+}
