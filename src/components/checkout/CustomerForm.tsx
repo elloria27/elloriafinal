@@ -84,23 +84,35 @@ export const CustomerForm = ({
     }
 
     try {
-      // Update profile in Supabase
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            [field]: value,
-            updated_at: new Date().toISOString(),
-          });
+      // Get current user session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError);
+        throw new Error('Authentication error');
+      }
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          toast.error('Failed to update profile');
-        } else {
-          console.log(`Successfully updated ${field} in profile`);
-        }
+      if (!session?.user?.id) {
+        console.log('No authenticated user found, skipping profile update');
+        return;
+      }
+
+      console.log('Updating profile for user:', session.user.id);
+
+      // Update profile in Supabase
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          [field]: value,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
+        toast.error('Failed to update profile');
+      } else {
+        console.log(`Successfully updated ${field} in profile`);
       }
     } catch (error) {
       console.error('Error in handleInputChange:', error);
