@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, ChevronRight, Star, Heart, Check, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
 
 const ProductDetail = () => {
@@ -17,6 +18,23 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
+
+  // Example media array - in a real app, this would come from your product data
+  const productMedia = [
+    {
+      type: "video" as const,
+      url: "https://example.com/product-video.mp4", // Replace with actual video URL
+      thumbnail: product?.image, // Use product image as video thumbnail for now
+    },
+    {
+      type: "image" as const,
+      url: product?.image || "",
+    },
+    {
+      type: "image" as const,
+      url: "https://example.com/product-image-2.jpg", // Replace with actual image URL
+    },
+  ];
 
   if (!product) {
     return (
@@ -80,14 +98,8 @@ const ProductDetail = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative aspect-[16/9] max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl"
           >
-            <img 
-              src={product.image} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <ProductGallery media={productMedia} productName={product.name} />
           </motion.div>
         </div>
       </section>
