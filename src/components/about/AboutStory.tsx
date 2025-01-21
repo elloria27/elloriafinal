@@ -12,12 +12,15 @@ export const AboutStory = () => {
           transition={{ duration: 0.6 }}
           className="max-w-3xl mx-auto text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-6">Our Story</h2>
-          <p className="text-xl text-gray-600">
-            Founded with a vision to revolutionize feminine care through sustainable 
-            innovation, Elloria began its journey to create products that care for 
-            both women and our planet.
-          </p>
+          <div className="aspect-w-16 aspect-h-9 mb-12">
+            <iframe
+              src="https://www.youtube.com/embed/f3EpenCD1wU"
+              title="Elloria Story"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="rounded-2xl shadow-xl w-full h-full"
+            />
+          </div>
         </motion.div>
         <AboutTimeline />
       </div>

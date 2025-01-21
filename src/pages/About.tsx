@@ -47,7 +47,7 @@ export default function About() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/20"
+                className="border-white text-white hover:bg-white/20 bg-white/10"
               >
                 Sign Up for Updates <ArrowRight className="ml-2 w-4 h-4" />
               </Button>

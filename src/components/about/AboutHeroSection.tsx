@@ -22,8 +22,7 @@ export const AboutHeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Empowering Women. <br />
-            Protecting the Planet.
+            Our Story
           </motion.h1>
           <motion.p
             className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto"
@@ -31,8 +30,8 @@ export const AboutHeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Discover how Elloria is redefining feminine care with sustainability, 
-            innovation, and care.
+            Founded with a vision to revolutionize feminine care through sustainable innovation, 
+            Elloria began its journey to create products that care for both women and our planet.
           </motion.p>
         </motion.div>
       </div>
