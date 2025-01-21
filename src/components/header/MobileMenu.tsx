@@ -25,7 +25,7 @@ export const MobileMenu = () => {
           </SheetTitle>
         </SheetHeader>
         <div className="flex flex-col space-y-6 mt-12">
-          {["Products", "Features", "Sustainability", "Blog", "Account", "Language", "Currency"].map((item) => (
+          {["Products", "Features", "Sustainability", "About Us", "Blog", "Account", "Language", "Currency"].map((item) => (
             <motion.a
               key={item}
               href={`#${item.toLowerCase().replace(" ", "-")}`}
