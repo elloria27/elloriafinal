@@ -229,9 +229,10 @@ export const ProductCarousel = () => {
                       
                       <Link 
                         to={`/product/${product.id}`}
-                        className="inline-flex items-center justify-center border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
+                        className="inline-flex items-center justify-center bg-white hover:bg-primary/5 text-primary border-2 border-primary hover:border-primary/80 px-6 py-2 text-lg rounded-full transition-all duration-300 group"
                       >
                         Learn More
+                        <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                       </Link>
                     </div>
                   </div>
