@@ -1,6 +1,5 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect } from "react";
 
 interface PersonalInfoFormProps {
   firstName: string;
@@ -31,7 +30,6 @@ export const PersonalInfoForm = ({
 }: PersonalInfoFormProps) => {
   const handleInputChange = (field: string, value: string) => {
     console.log(`Handling input change for ${field}:`, value);
-    
     if (onFormChange) {
       onFormChange(field, value);
     }
@@ -46,8 +44,8 @@ export const PersonalInfoForm = ({
           type="text"
           value={firstName}
           onChange={(e) => {
-            setFirstName(e.target.value);
             const newFirstName = e.target.value;
+            setFirstName(newFirstName);
             const newFullName = `${newFirstName} ${lastName}`.trim();
             handleInputChange('full_name', newFullName);
           }}
@@ -62,8 +60,8 @@ export const PersonalInfoForm = ({
           type="text"
           value={lastName}
           onChange={(e) => {
-            setLastName(e.target.value);
             const newLastName = e.target.value;
+            setLastName(newLastName);
             const newFullName = `${firstName} ${newLastName}`.trim();
             handleInputChange('full_name', newFullName);
           }}
@@ -89,8 +87,9 @@ export const PersonalInfoForm = ({
           type="tel"
           value={phoneNumber}
           onChange={(e) => {
-            setPhoneNumber(e.target.value);
-            handleInputChange('phone_number', e.target.value);
+            const value = e.target.value;
+            setPhoneNumber(value);
+            handleInputChange('phone_number', value);
           }}
           disabled={loading}
         />
@@ -103,8 +102,9 @@ export const PersonalInfoForm = ({
           type="text"
           value={address}
           onChange={(e) => {
-            setAddress(e.target.value);
-            handleInputChange('address', e.target.value);
+            const value = e.target.value;
+            setAddress(value);
+            handleInputChange('address', value);
           }}
           disabled={loading}
         />

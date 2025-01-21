@@ -42,7 +42,6 @@ export const LocationForm = ({
 }: LocationFormProps) => {
   const handleInputChange = (field: string, value: string) => {
     console.log(`Handling input change for ${field}:`, value);
-    
     if (onFormChange) {
       onFormChange(field, value);
     }
