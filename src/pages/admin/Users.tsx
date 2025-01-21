@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import { Search, Phone, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
@@ -33,7 +33,9 @@ export const Users = () => {
 
   const filteredUsers = users?.filter(user =>
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    user.phone_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.country?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.region?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -47,7 +49,7 @@ export const Users = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search users..."
+            placeholder="Search by name, phone, or location..."
             className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
