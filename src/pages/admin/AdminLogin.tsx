@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const AdminLogin = () => {
-  const [email, setEmail] = useState("sales@elloria.ca");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export const AdminLogin = () => {
 
       if (authError) {
         console.error("Authentication error:", authError);
-        throw authError;
+        throw new Error("Invalid credentials");
       }
 
       if (!authData.user) {
@@ -47,14 +47,14 @@ export const AdminLogin = () => {
       
       if (profileError) {
         console.error("Profile fetch error:", profileError);
-        throw profileError;
+        throw new Error("Error fetching user profile");
       }
 
       if (!profile || profile.role !== 'admin') {
         console.error("User is not an admin:", profile);
         // Sign out the user since they're not an admin
         await supabase.auth.signOut();
-        throw new Error("Unauthorized access");
+        throw new Error("Unauthorized access - Admin privileges required");
       }
 
       console.log("Admin access confirmed, redirecting...");
@@ -86,6 +86,7 @@ export const AdminLogin = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-1"
+              placeholder="admin@example.com"
             />
           </div>
           <div>
@@ -99,6 +100,7 @@ export const AdminLogin = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="mt-1"
+              placeholder="••••••••"
             />
           </div>
           <Button

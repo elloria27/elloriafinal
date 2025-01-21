@@ -45,10 +45,10 @@ export const AdminLayout = () => {
 
       if (!profile || profile.role !== 'admin') {
         console.error("User is not an admin:", profile);
-        toast.error("Unauthorized access");
+        toast.error("Unauthorized access - Admin privileges required");
         // Sign out the user since they're not an admin
         await supabase.auth.signOut();
-        navigate("/");
+        navigate("/admin/login");
         return;
       }
 
