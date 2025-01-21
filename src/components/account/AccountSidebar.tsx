@@ -38,7 +38,7 @@ export function AccountSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar className="h-auto min-h-screen">
+    <Sidebar className="h-auto min-h-screen bg-white border-r border-gray-100">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="mt-[30%]">Account</SidebarGroupLabel>

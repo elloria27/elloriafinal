@@ -21,7 +21,8 @@ export const CartPopover = () => {
     total,
     applyPromoCode,
     removePromoCode,
-    activePromoCode
+    activePromoCode,
+    isCartAnimating
   } = useCart();
 
   const [promoCode, setPromoCode] = useState("");
@@ -101,6 +102,11 @@ export const CartPopover = () => {
       <PopoverTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.05 }}
+          animate={isCartAnimating ? {
+            scale: [1, 1.2, 1],
+            rotate: [0, 10, -10, 10, -10, 0],
+            transition: { duration: 0.5 }
+          } : {}}
           className="relative cursor-pointer"
         >
           <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" />

@@ -34,6 +34,7 @@ type CartContextType = {
   removePromoCode: () => void;
   activePromoCode: PromoCode | null;
   total: number;
+  isCartAnimating: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -60,6 +61,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(null);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -91,6 +93,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       return [...currentItems, { ...newItem, quantity: Math.min(99, newItem.quantity) }];
     });
+
+    // Trigger cart animation
+    setIsCartAnimating(true);
+    setTimeout(() => setIsCartAnimating(false), 500);
 
     toast.success('Item added to cart', {
       description: `${newItem.quantity}x ${newItem.name} has been added to your cart`,
@@ -161,7 +167,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     total,
     applyPromoCode,
     removePromoCode,
-    activePromoCode
+    activePromoCode,
+    isCartAnimating
   };
 
   return (
