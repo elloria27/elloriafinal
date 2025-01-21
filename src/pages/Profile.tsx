@@ -139,19 +139,7 @@ export default function Profile() {
 
     return (
       <div className="p-8 max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold">Profile Settings</h1>
-          {hasChanges && (
-            <Button 
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-          )}
-        </div>
+        <h1 className="text-2xl font-semibold mb-8">Profile Settings</h1>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border space-y-6">
           <PersonalInfoForm
@@ -192,6 +180,17 @@ export default function Profile() {
               setHasChanges(true);
             }}
           />
+
+          <div className="pt-6 border-t">
+            <Button 
+              onClick={handleSave}
+              disabled={!hasChanges || isSaving}
+              className="w-full"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? "Saving Changes..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </div>
     );
