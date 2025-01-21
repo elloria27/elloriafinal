@@ -11,6 +11,8 @@ import Invoices from "./profile/Invoices";
 import Settings from "./profile/Settings";
 import { Tables } from "@/integrations/supabase/types";
 import { CustomerForm } from "@/components/checkout/CustomerForm";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
 
 type Profile = Tables<"profiles">;
 
@@ -20,6 +22,8 @@ export default function Profile() {
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     async function loadProfile() {
@@ -53,21 +57,35 @@ export default function Profile() {
   }, []);
 
   const handleFormChange = async (field: string, value: string) => {
+    setHasChanges(true);
+  };
+
+  const handleSave = async () => {
     if (!profile) return;
     
+    setIsSaving(true);
     try {
+      const updates = {
+        country,
+        region,
+        phone_number: phoneNumber,
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({ [field]: value })
+        .update(updates)
         .eq('id', profile.id);
 
       if (error) throw error;
       
-      setProfile(prev => prev ? { ...prev, [field]: value } : null);
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      setHasChanges(false);
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -82,20 +100,32 @@ export default function Profile() {
     }
 
     return (
-      <div className="p-8">
+      <div className="p-8 max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold">Profile Settings</h1>
+          {hasChanges && (
+            <Button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          )}
         </div>
-        <CustomerForm
-          country={country}
-          setCountry={setCountry}
-          region={region}
-          setRegion={setRegion}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          profile={profile}
-          onFormChange={handleFormChange}
-        />
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <CustomerForm
+            country={country}
+            setCountry={setCountry}
+            region={region}
+            setRegion={setRegion}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            profile={profile}
+            onFormChange={handleFormChange}
+          />
+        </div>
       </div>
     );
   };
