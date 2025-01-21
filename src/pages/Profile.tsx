@@ -10,12 +10,16 @@ import Activity from "./profile/Activity";
 import Invoices from "./profile/Invoices";
 import Settings from "./profile/Settings";
 import { Tables } from "@/integrations/supabase/types";
+import { CustomerForm } from "@/components/checkout/CustomerForm";
 
 type Profile = Tables<"profiles">;
 
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [country, setCountry] = useState("");
+  const [region, setRegion] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     async function loadProfile() {
@@ -34,6 +38,9 @@ export default function Profile() {
 
         if (error) throw error;
         setProfile(data);
+        if (data.country) setCountry(data.country);
+        if (data.region) setRegion(data.region);
+        if (data.phone_number) setPhoneNumber(data.phone_number);
       } catch (error) {
         console.error('Error loading profile:', error);
         toast.error("Failed to load profile");
@@ -44,6 +51,25 @@ export default function Profile() {
 
     loadProfile();
   }, []);
+
+  const handleFormChange = async (field: string, value: string) => {
+    if (!profile) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [field]: value })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+      
+      setProfile(prev => prev ? { ...prev, [field]: value } : null);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Failed to update profile");
+    }
+  };
 
   // Main profile content component
   const MainProfile = () => {
@@ -60,34 +86,16 @@ export default function Profile() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold">Profile Settings</h1>
         </div>
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h2 className="text-sm font-medium mb-2">First Name</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.full_name?.split(' ')[0] || 'Not set'}</p>
-            </div>
-            <div>
-              <h2 className="text-sm font-medium mb-2">Last Name</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.full_name?.split(' ')[1] || 'Not set'}</p>
-            </div>
-            <div>
-              <h2 className="text-sm font-medium mb-2">Phone</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.phone_number || 'Not set'}</p>
-            </div>
-            <div>
-              <h2 className="text-sm font-medium mb-2">Address</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.address || 'Not set'}</p>
-            </div>
-            <div>
-              <h2 className="text-sm font-medium mb-2">Country</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.country || 'Not set'}</p>
-            </div>
-            <div>
-              <h2 className="text-sm font-medium mb-2">Region</h2>
-              <p className="text-gray-700 p-2 bg-gray-50 rounded-md">{profile.region || 'Not set'}</p>
-            </div>
-          </div>
-        </div>
+        <CustomerForm
+          country={country}
+          setCountry={setCountry}
+          region={region}
+          setRegion={setRegion}
+          phoneNumber={phoneNumber}
+          setPhoneNumber={setPhoneNumber}
+          profile={profile}
+          onFormChange={handleFormChange}
+        />
       </div>
     );
   };
