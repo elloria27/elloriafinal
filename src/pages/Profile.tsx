@@ -13,10 +13,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import jsPDF from 'jspdf';
 import { Download } from 'lucide-react';
 
+const COUNTRIES = [
+  { code: "CA", name: "Canada" },
+  { code: "US", name: "United States" },
+];
+
+const PROVINCES = [
+  "Alberta", "British Columbia", "Manitoba", "New Brunswick",
+  "Newfoundland and Labrador", "Nova Scotia", "Ontario",
+  "Prince Edward Island", "Quebec", "Saskatchewan",
+];
+
+const STATES = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+  "New Hampshire", "New Jersey", "New Mexico", "New York",
+  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+  "West Virginia", "Wisconsin", "Wyoming"
+];
+
 export default function Profile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [fullName, setFullName] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [address, setAddress] = useState<string>("");
@@ -50,7 +75,9 @@ export default function Profile() {
       }
 
       if (data) {
-        setFullName(data.full_name);
+        const [first, ...rest] = (data.full_name || '').split(' ');
+        setFirstName(first || '');
+        setLastName(rest.join(' ') || '');
         setEmail(user.email);
         setPhoneNumber(data.phone_number || "");
         setAddress(data.address || "");
@@ -78,7 +105,7 @@ export default function Profile() {
 
       const updates = {
         id: user.id,
-        full_name: fullName,
+        full_name: `${firstName} ${lastName}`.trim(),
         phone_number: phoneNumber,
         address: address,
         country: country,
@@ -109,13 +136,11 @@ export default function Profile() {
     try {
       const doc = new jsPDF();
       
-      // Add title
       doc.setFontSize(20);
       doc.text('Profile Information', 20, 20);
       
-      // Add profile details
       doc.setFontSize(12);
-      doc.text(`Full Name: ${fullName || 'Not provided'}`, 20, 40);
+      doc.text(`Full Name: ${firstName} ${lastName}`, 20, 40);
       doc.text(`Email: ${email || 'Not provided'}`, 20, 50);
       doc.text(`Phone Number: ${phoneNumber || 'Not provided'}`, 20, 60);
       doc.text(`Address: ${address || 'Not provided'}`, 20, 70);
@@ -124,7 +149,6 @@ export default function Profile() {
       doc.text(`Language: ${language || 'Not provided'}`, 20, 100);
       doc.text(`Currency: ${currency || 'Not provided'}`, 20, 110);
       
-      // Save the PDF
       doc.save('profile-information.pdf');
       toast.success('Profile downloaded successfully');
     } catch (error) {
@@ -156,12 +180,23 @@ export default function Profile() {
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="firstName">First Name</Label>
                     <Input
-                      id="fullName"
+                      id="firstName"
                       type="text"
-                      value={fullName || ''}
-                      onChange={(e) => setFullName(e.target.value)}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                       disabled={loading}
                     />
                   </div>
@@ -206,32 +241,29 @@ export default function Profile() {
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CA">Canada</SelectItem>
-                        <SelectItem value="US">United States</SelectItem>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="region">Region</Label>
+                    <Label htmlFor="region">
+                      {country === "CA" ? "Province" : "State"}
+                    </Label>
                     <Select value={region} onValueChange={setRegion}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select region" />
+                        <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
                       </SelectTrigger>
                       <SelectContent>
-                        {country === "CA" ? (
-                          <>
-                            <SelectItem value="ON">Ontario</SelectItem>
-                            <SelectItem value="BC">British Columbia</SelectItem>
-                            <SelectItem value="QC">Quebec</SelectItem>
-                          </>
-                        ) : (
-                          <>
-                            <SelectItem value="CA">California</SelectItem>
-                            <SelectItem value="NY">New York</SelectItem>
-                            <SelectItem value="TX">Texas</SelectItem>
-                          </>
-                        )}
+                        {(country === "CA" ? PROVINCES : STATES).map((r) => (
+                          <SelectItem key={r} value={r}>
+                            {r}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
