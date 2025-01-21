@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCart } from "@/contexts/CartContext";
+import type { CartItem } from "@/contexts/CartContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { CartItem } from "@/contexts/CartContext";
 
 export const CartPopover = () => {
   const navigate = useNavigate();
