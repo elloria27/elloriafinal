@@ -13,6 +13,13 @@ import jsPDF from "jspdf";
 
 type Order = Tables<"orders">;
 
+interface ShippingAddress {
+  address: string;
+  region: string;
+  country: string;
+  phone: string;
+}
+
 export default function Invoices() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,11 +78,12 @@ export default function Invoices() {
       doc.text(`Status: ${order.status}`, 20, 60);
       
       // Add shipping address
-      if (order.shipping_address) {
+      const shippingAddress = order.shipping_address as ShippingAddress;
+      if (shippingAddress) {
         doc.text('Shipping Address:', 20, 80);
-        doc.text(`${order.shipping_address.address}`, 20, 90);
-        doc.text(`${order.shipping_address.region}, ${order.shipping_address.country}`, 20, 100);
-        doc.text(`Phone: ${order.shipping_address.phone}`, 20, 110);
+        doc.text(`${shippingAddress.address}`, 20, 90);
+        doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
+        doc.text(`Phone: ${shippingAddress.phone}`, 20, 110);
       }
       
       // Add items
