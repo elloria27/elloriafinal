@@ -24,6 +24,7 @@ export default function Profile() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState<Partial<Profile>>({});
 
   useEffect(() => {
     async function loadProfile() {
@@ -57,7 +58,9 @@ export default function Profile() {
   }, []);
 
   const handleFormChange = async (field: string, value: string) => {
+    console.log('Form change:', field, value);
     setHasChanges(true);
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -66,10 +69,14 @@ export default function Profile() {
     setIsSaving(true);
     try {
       const updates = {
+        ...formData,
         country,
         region,
         phone_number: phoneNumber,
+        updated_at: new Date().toISOString(),
       };
+
+      console.log('Saving updates:', updates);
 
       const { error } = await supabase
         .from('profiles')
@@ -80,6 +87,7 @@ export default function Profile() {
       
       setProfile(prev => prev ? { ...prev, ...updates } : null);
       setHasChanges(false);
+      setFormData({});
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error('Error updating profile:', error);

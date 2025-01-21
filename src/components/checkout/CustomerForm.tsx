@@ -76,52 +76,16 @@ export const CustomerForm = ({
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
 
-  const handleInputChange = async (field: string, value: string) => {
-    console.log(`Updating ${field} with value:`, value);
+  // Split full name into first and last name
+  const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
+
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`Handling input change for ${field}:`, value);
     
     if (onFormChange) {
       onFormChange(field, value);
     }
-
-    try {
-      // Get current user session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Error getting session:', sessionError);
-        throw new Error('Authentication error');
-      }
-
-      if (!session?.user?.id) {
-        console.log('No authenticated user found, skipping profile update');
-        return;
-      }
-
-      console.log('Updating profile for user:', session.user.id);
-
-      // Update profile in Supabase
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          [field]: value,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', session.user.id);
-
-      if (updateError) {
-        console.error('Error updating profile:', updateError);
-        toast.error('Failed to update profile');
-      } else {
-        console.log(`Successfully updated ${field} in profile`);
-      }
-    } catch (error) {
-      console.error('Error in handleInputChange:', error);
-      toast.error('Failed to update profile');
-    }
   };
-
-  // Split full name into first and last name
-  const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
 
   return (
     <div className="space-y-6">
