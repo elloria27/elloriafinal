@@ -10,49 +10,18 @@ import { toast } from "sonner";
 export const UserMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          setUser(session.user);
-          
-          // Fetch profile data
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profileError) throw profileError;
-          setProfile(profileData);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserAndProfile();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Check active session and subscribe to auth changes
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        setProfile(data);
-      } else {
-        setProfile(null);
-      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -88,7 +57,7 @@ export const UserMenu = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-medium">Welcome back!</h4>
             <p className="text-sm text-gray-500">
-              {profile?.full_name || user.email}
+              {user.email}
             </p>
             <div className="flex gap-3">
               <Button 
@@ -98,15 +67,6 @@ export const UserMenu = () => {
               >
                 Profile
               </Button>
-              {profile?.role === 'admin' && (
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => navigate("/admin")}
-                >
-                  Admin Panel
-                </Button>
-              )}
               <Button 
                 className="w-full flex items-center gap-2" 
                 variant="destructive"
