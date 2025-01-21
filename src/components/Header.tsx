@@ -26,7 +26,9 @@ export const Header = () => {
             <CartPopover />
           </div>
 
-          <MobileMenu />
+          <div className="md:hidden">
+            <MobileMenu />
+          </div>
         </div>
       </div>
     </motion.header>
