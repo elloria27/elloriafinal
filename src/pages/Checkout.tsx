@@ -19,8 +19,12 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { sendOrderEmails } from "@/utils/emailService";
 
 const Checkout = () => {
+  console.log("Rendering Checkout component"); // Debug log
+  
   const navigate = useNavigate();
   const { items, subtotal, activePromoCode, clearCart } = useCart();
+  console.log("Cart items:", items); // Debug log
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
@@ -65,6 +69,7 @@ const Checkout = () => {
     }
     
     setIsSubmitting(true);
+    console.log("Submitting order..."); // Debug log
     
     const formData = new FormData(e.currentTarget);
     const customerDetails = {
