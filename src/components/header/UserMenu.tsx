@@ -6,15 +6,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useMediaQuery } from "@/hooks/use-mobile";
 
 export const UserMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
-    // Check active session and subscribe to auth changes
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -38,6 +39,17 @@ export const UserMenu = () => {
     }
   };
 
+  const handleClick = () => {
+    if (isMobile) {
+      if (user) {
+        navigate("/profile");
+      } else {
+        navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`);
+      }
+      return;
+    }
+  };
+
   if (loading) {
     return null;
   }
@@ -49,35 +61,38 @@ export const UserMenu = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             className="text-gray-600 hover:text-primary transition-colors"
+            onClick={handleClick}
           >
             <User className="h-5 w-5" />
           </motion.button>
         </HoverCardTrigger>
-        <HoverCardContent className="w-80 p-6">
-          <div className="space-y-4">
-            <h4 className="text-lg font-medium">Welcome back!</h4>
-            <p className="text-sm text-gray-500">
-              {user.email}
-            </p>
-            <div className="flex gap-3">
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate("/profile")}
-              >
-                Profile
-              </Button>
-              <Button 
-                className="w-full flex items-center gap-2" 
-                variant="destructive"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
+        {!isMobile && (
+          <HoverCardContent className="w-80 p-6">
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium">Welcome back!</h4>
+              <p className="text-sm text-gray-500">
+                {user.email}
+              </p>
+              <div className="flex gap-3">
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => navigate("/profile")}
+                >
+                  Profile
+                </Button>
+                <Button 
+                  className="w-full flex items-center gap-2" 
+                  variant="destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
             </div>
-          </div>
-        </HoverCardContent>
+          </HoverCardContent>
+        )}
       </HoverCard>
     );
   }
@@ -88,35 +103,37 @@ export const UserMenu = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           className="text-gray-600 hover:text-primary transition-colors"
-          onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`)}
+          onClick={handleClick}
         >
           <User className="h-5 w-5" />
         </motion.button>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80 p-6 bg-white shadow-lg border border-gray-100">
-        <div className="space-y-4">
-          <h4 className="text-lg font-medium text-gray-900">Welcome to Elloria</h4>
-          <p className="text-sm text-gray-500">
-            Sign in to access your account or create one to enjoy exclusive benefits and faster checkout.
-          </p>
-          <div className="flex gap-3">
-            <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-white" 
-              variant="default"
-              onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`)}
-            >
-              Sign In
-            </Button>
-            <Button 
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900" 
-              variant="outline"
-              onClick={() => navigate("/register")}
-            >
-              Register
-            </Button>
+      {!isMobile && (
+        <HoverCardContent className="w-80 p-6 bg-white shadow-lg border border-gray-100">
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium text-gray-900">Welcome to Elloria</h4>
+            <p className="text-sm text-gray-500">
+              Sign in to access your account or create one to enjoy exclusive benefits and faster checkout.
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                className="w-full bg-primary hover:bg-primary/90 text-white" 
+                variant="default"
+                onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`)}
+              >
+                Sign In
+              </Button>
+              <Button 
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900" 
+                variant="outline"
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </Button>
+            </div>
           </div>
-        </div>
-      </HoverCardContent>
+        </HoverCardContent>
+      )}
     </HoverCard>
   );
 };

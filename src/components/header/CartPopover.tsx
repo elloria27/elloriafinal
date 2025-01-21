@@ -8,9 +8,11 @@ import { useCart } from "@/contexts/CartContext";
 import type { CartItem } from "@/contexts/CartContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@/hooks/use-mobile";
 
 export const CartPopover = () => {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const { 
     items, 
     totalItems, 
@@ -121,9 +123,13 @@ export const CartPopover = () => {
           )}
         </motion.div>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-4 bg-white shadow-lg border border-gray-100">
+      <PopoverContent 
+        className={`bg-white shadow-lg border border-gray-100 ${
+          isMobile ? 'w-[calc(100vw-32px)] max-h-[80vh] overflow-y-auto' : 'w-96'
+        }`}
+      >
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between sticky top-0 bg-white z-10 py-2">
             <h4 className="text-lg font-medium">Shopping Cart</h4>
             {items.length > 0 && (
               <Button
@@ -143,7 +149,7 @@ export const CartPopover = () => {
             </div>
           ) : (
             <>
-              <div className="space-y-4 max-h-[300px] overflow-y-auto">
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto">
                 <AnimatePresence>
                   {items.map(renderCartItem)}
                 </AnimatePresence>
