@@ -96,7 +96,7 @@ export default function Profile() {
     <>
       <Header />
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gray-50">
+        <div className="min-h-screen flex w-full bg-gray-50 pt-20">
           <AccountSidebar />
           <main className="flex-1 p-8">
             <div className="max-w-4xl mx-auto space-y-8">

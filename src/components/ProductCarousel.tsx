@@ -1,9 +1,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { ShoppingCart } from "lucide-react";
 
 const products = [
   {
@@ -39,6 +39,7 @@ export const ProductCarousel = () => {
   const [quantities, setQuantities] = useState<{ [key: number]: number }>(
     Object.fromEntries(products.map(p => [p.id, 1]))
   );
+  const [animatingProduct, setAnimatingProduct] = useState<number | null>(null);
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
@@ -51,11 +52,19 @@ export const ProductCarousel = () => {
     }));
   };
 
-  const handleBuyNow = (product: typeof products[0]) => {
+  const handleAddToCart = async (product: typeof products[0]) => {
+    setAnimatingProduct(product.id);
+    
+    // Add item to cart
     addItem({
       ...product,
       quantity: quantities[product.id]
     });
+
+    // Reset animation after delay
+    setTimeout(() => {
+      setAnimatingProduct(null);
+    }, 1000);
   };
 
   const formatPrice = (price: number) => {
@@ -68,7 +77,7 @@ export const ProductCarousel = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-screen bg-white/80 backdrop-blur-sm py-32 overflow-visible"
+      className="relative min-h-screen bg-white py-32 overflow-visible"
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -98,7 +107,7 @@ export const ProductCarousel = () => {
             transition={{ duration: 0.5, delay: index * 0.2 }}
             className="relative group"
           >
-            <div className="relative rounded-3xl overflow-hidden bg-white/90 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-sm hover:shadow-lg transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-accent-purple/5 to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
               <motion.div
@@ -108,11 +117,32 @@ export const ProductCarousel = () => {
               >
                 <div className="relative mb-8">
                   <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 via-accent-peach/5 to-accent-green/5 rounded-full blur-2xl" />
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-[300px] object-contain relative z-10"
-                  />
+                  <motion.div className="relative">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-[300px] object-contain relative z-10"
+                    />
+                    {animatingProduct === product.id && (
+                      <motion.div
+                        initial={{ scale: 1, x: 0, y: 0, opacity: 1 }}
+                        animate={{
+                          scale: 0.5,
+                          x: window.innerWidth / 2,
+                          y: -window.innerHeight / 2,
+                          opacity: 0
+                        }}
+                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                        className="absolute top-0 left-0 w-full h-full"
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-[300px] object-contain"
+                        />
+                      </motion.div>
+                    )}
+                  </motion.div>
                 </div>
 
                 <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -143,8 +173,10 @@ export const ProductCarousel = () => {
                   <div className="flex gap-4 justify-center">
                     <Button 
                       className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => handleBuyNow(product)}
+                      onClick={() => handleAddToCart(product)}
+                      disabled={animatingProduct === product.id}
                     >
+                      <ShoppingCart className="mr-2 h-5 w-5" />
                       Add to Cart
                     </Button>
                     <Button 

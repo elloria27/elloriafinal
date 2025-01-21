@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
-import { AnnouncementBar } from "./header/AnnouncementBar";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { UserMenu } from "./header/UserMenu";
@@ -22,18 +21,16 @@ export const Header = () => {
           transition={{ duration: 0.3 }}
           className="fixed top-0 left-0 right-0 z-50"
         >
-          <AnnouncementBar />
           <motion.header 
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            className="bg-white/70 backdrop-blur-xl border-b border-gray-100/20"
+            className="bg-white shadow-sm border-b border-gray-100"
           >
             <div className="container mx-auto">
               <div className="flex items-center justify-between h-20 px-4">
                 <Logo />
                 <Navigation />
                 
-                {/* Right Side Icons */}
                 <div className="hidden md:flex items-center space-x-6">
                   <UserMenu />
                   <LanguageSelector />
