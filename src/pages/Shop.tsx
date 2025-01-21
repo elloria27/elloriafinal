@@ -15,7 +15,13 @@ export default function Shop() {
   
   const filteredProducts = products.filter(product => {
     if (filterBy === "all") return true;
-    return product.specifications.features.toLowerCase().includes(filterBy);
+    // Check both features array and specifications.features
+    return (
+      product.features.some(feature => 
+        feature.toLowerCase().includes(filterBy)
+      ) ||
+      product.specifications.features.toLowerCase().includes(filterBy)
+    );
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -25,7 +31,7 @@ export default function Shop() {
       case "price-high":
         return b.price - a.price;
       case "newest":
-        return -1; // Assuming newest first for demo
+        return new Date(b.id).getTime() - new Date(a.id).getTime();
       default:
         return 0;
     }
