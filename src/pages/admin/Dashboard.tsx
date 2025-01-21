@@ -1,54 +1,94 @@
-import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Users, ShoppingBag, FileText, DollarSign } from "lucide-react";
 
-const Dashboard = () => {
-  const { data: stats } = useQuery({
-    queryKey: ["admin-stats"],
-    queryFn: async () => {
-      const [users, products, orders, posts] = await Promise.all([
+export const Dashboard = () => {
+  const [stats, setStats] = useState({
+    users: 0,
+    products: 0,
+    orders: 0,
+    posts: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [
+        { count: usersCount },
+        { count: productsCount },
+        { count: ordersCount },
+        { count: postsCount },
+      ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact" }),
         supabase.from("products").select("*", { count: "exact" }),
         supabase.from("orders").select("*", { count: "exact" }),
         supabase.from("posts").select("*", { count: "exact" }),
       ]);
 
-      return {
-        users: users.count || 0,
-        products: products.count || 0,
-        orders: orders.count || 0,
-        posts: posts.count || 0,
-      };
-    },
-  });
+      setStats({
+        users: usersCount || 0,
+        products: productsCount || 0,
+        orders: ordersCount || 0,
+        posts: postsCount || 0,
+      });
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <h1 className="text-3xl font-bold">Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="p-6">
-          <h3 className="font-medium text-gray-500">Total Users</h3>
-          <p className="text-3xl font-bold mt-2">{stats?.users || 0}</p>
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Users</p>
+              <h3 className="text-2xl font-bold">{stats.users}</h3>
+            </div>
+          </div>
         </Card>
-        
+
         <Card className="p-6">
-          <h3 className="font-medium text-gray-500">Total Products</h3>
-          <p className="text-3xl font-bold mt-2">{stats?.products || 0}</p>
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <ShoppingBag className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Products</p>
+              <h3 className="text-2xl font-bold">{stats.products}</h3>
+            </div>
+          </div>
         </Card>
-        
+
         <Card className="p-6">
-          <h3 className="font-medium text-gray-500">Total Orders</h3>
-          <p className="text-3xl font-bold mt-2">{stats?.orders || 0}</p>
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <DollarSign className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Orders</p>
+              <h3 className="text-2xl font-bold">{stats.orders}</h3>
+            </div>
+          </div>
         </Card>
-        
+
         <Card className="p-6">
-          <h3 className="font-medium text-gray-500">Total Posts</h3>
-          <p className="text-3xl font-bold mt-2">{stats?.posts || 0}</p>
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <FileText className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Blog Posts</p>
+              <h3 className="text-2xl font-bold">{stats.posts}</h3>
+            </div>
+          </div>
         </Card>
       </div>
     </div>
   );
 };
-
-export default Dashboard;
