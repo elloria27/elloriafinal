@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +11,24 @@ import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Get the redirect path from the URL search params
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get("redirectTo") || "/profile";
+
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log("User already logged in, redirecting to:", redirectTo);
+        navigate(redirectTo);
+      }
+    });
+  }, [navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,8 +42,9 @@ const Login = () => {
 
       if (error) throw error;
 
+      console.log("Login successful, redirecting to:", redirectTo);
       toast.success("Logged in successfully!");
-      navigate("/");
+      navigate(redirectTo);
     } catch (error) {
       const authError = error as AuthError;
       console.error("Login error:", authError);

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LogIn, User } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export const LoginPrompt = () => {
@@ -10,6 +10,7 @@ export const LoginPrompt = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Get initial session
@@ -112,7 +113,11 @@ export const LoginPrompt = () => {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="default" className="gap-2" onClick={() => navigate("/login")}>
+          <Button 
+            variant="default" 
+            className="gap-2" 
+            onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`)}
+          >
             <LogIn className="w-4 h-4" />
             Sign In
           </Button>
