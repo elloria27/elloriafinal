@@ -31,6 +31,7 @@ export default function Settings() {
         }
       } catch (error) {
         console.error('Error loading settings:', error);
+        toast.error('Failed to load settings');
       } finally {
         setLoading(false);
       }
@@ -42,7 +43,10 @@ export default function Settings() {
   const updateSetting = async (setting: 'email_notifications' | 'marketing_emails', value: boolean) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error('You must be logged in to update settings');
+        return;
+      }
 
       const { error } = await supabase
         .from('profiles')

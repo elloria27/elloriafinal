@@ -58,8 +58,10 @@ export type Database = {
           address: string | null
           country: string | null
           created_at: string
+          email_notifications: boolean | null
           full_name: string | null
           id: string
+          marketing_emails: boolean | null
           phone_number: string | null
           region: string | null
           updated_at: string
@@ -68,8 +70,10 @@ export type Database = {
           address?: string | null
           country?: string | null
           created_at?: string
+          email_notifications?: boolean | null
           full_name?: string | null
           id: string
+          marketing_emails?: boolean | null
           phone_number?: string | null
           region?: string | null
           updated_at?: string
@@ -78,8 +82,10 @@ export type Database = {
           address?: string | null
           country?: string | null
           created_at?: string
+          email_notifications?: boolean | null
           full_name?: string | null
           id?: string
+          marketing_emails?: boolean | null
           phone_number?: string | null
           region?: string | null
           updated_at?: string
