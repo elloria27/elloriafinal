@@ -4,6 +4,9 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Profile from "@/pages/Profile";
+import Invoices from "@/pages/profile/Invoices";
+import Activity from "@/pages/profile/Activity";
+import Settings from "@/pages/profile/Settings";
 import Checkout from "@/pages/Checkout";
 import OrderSuccess from "@/pages/OrderSuccess";
 import { CartProvider } from "@/contexts/CartContext";
@@ -18,7 +21,10 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/profile/*" element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/invoices" element={<Invoices />} />
+          <Route path="/profile/activity" element={<Activity />} />
+          <Route path="/profile/settings" element={<Settings />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />
         </Routes>
