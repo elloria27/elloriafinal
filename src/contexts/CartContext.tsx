@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -39,8 +41,10 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY = 'elloria_cart';
 const CART_EXPIRY_DAYS = 7;
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    
     const savedCart = localStorage.getItem(CART_STORAGE_KEY);
     if (savedCart) {
       try {
@@ -58,6 +62,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + CART_EXPIRY_DAYS);
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({
@@ -144,20 +150,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const value = {
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    subtotal,
+    total,
+    applyPromoCode,
+    removePromoCode,
+    activePromoCode
+  };
+
   return (
-    <CartContext.Provider value={{ 
-      items, 
-      addItem, 
-      removeItem, 
-      updateQuantity,
-      clearCart, 
-      totalItems,
-      subtotal,
-      total,
-      applyPromoCode,
-      removePromoCode,
-      activePromoCode
-    }}>
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );
