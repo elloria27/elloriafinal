@@ -5,6 +5,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export const products = [
   {
@@ -97,43 +98,35 @@ export const ProductCarousel = () => {
 
   const handleAddToCart = async (product: typeof products[0]) => {
     setAnimatingProduct(product.id);
-    
-    // Add item to cart
     addItem({
       ...product,
       quantity: quantities[product.id]
     });
-
-    // Reset animation after delay
-    setTimeout(() => {
-      setAnimatingProduct(null);
-    }, 1000);
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
+    toast.success("Added to cart successfully!");
+    setTimeout(() => setAnimatingProduct(null), 1000);
   };
 
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-screen bg-white py-32 overflow-visible"
+      className="relative min-h-screen py-32 overflow-visible bg-gradient-to-b from-accent-purple/5 via-white to-accent-peach/5"
     >
+      <div className="absolute inset-0 bg-[url('/path/to/pattern.svg')] opacity-5" />
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="text-center mb-20"
+        className="text-center mb-20 px-4"
       >
-        <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Our Products
+        <h2 className="text-4xl md:text-6xl font-bold mb-6">
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Discover Our Collection
+          </span>
         </h2>
-        <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-          Discover our range of premium products designed for your comfort
+        <p className="text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed">
+          Experience comfort and confidence with our premium range of products
         </p>
       </motion.div>
 
@@ -148,23 +141,28 @@ export const ProductCarousel = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.2 }}
-            className="relative group"
+            className="group relative"
           >
-            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-accent-purple/5 to-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-sm hover:shadow-xl transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-b from-accent-purple/10 via-accent-peach/5 to-accent-green/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
                 className="relative z-10"
               >
-                <div className="relative mb-8">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 via-accent-peach/5 to-accent-green/5 rounded-full blur-2xl" />
-                  <motion.div className="relative">
+                <div className="relative mb-8 aspect-square">
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/10 rounded-full blur-2xl" />
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative"
+                  >
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-[300px] object-contain relative z-10"
+                      className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
                     />
                     {animatingProduct === product.id && (
                       <motion.div
@@ -181,55 +179,63 @@ export const ProductCarousel = () => {
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-full h-[300px] object-contain"
+                          className="w-full h-full object-contain"
                         />
                       </motion.div>
                     )}
                   </motion.div>
                 </div>
 
-                <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {product.name}
-                </h3>
-                
-                <div className="text-xl font-semibold text-primary mb-4">
-                  {formatPrice(product.price)}
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="space-y-4"
+                >
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    {product.name}
+                  </h3>
+                  
+                  <p className="text-xl font-semibold text-primary">
+                    ${product.price.toFixed(2)}
+                  </p>
 
-                <p className="text-gray-600 mb-6 h-24">
-                  {product.description}
-                </p>
+                  <p className="text-gray-600 line-clamp-3">
+                    {product.description}
+                  </p>
 
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-center gap-4">
-                    <label className="text-sm text-gray-600">Quantity:</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={quantities[product.id]}
-                      onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                      className="w-20 text-center"
-                    />
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center justify-center gap-4">
+                      <label className="text-sm text-gray-600">Quantity:</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={quantities[product.id]}
+                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                        className="w-20 text-center"
+                      />
+                    </div>
+
+                    <div className="flex gap-4 justify-center">
+                      <Button 
+                        onClick={() => handleAddToCart(product)}
+                        disabled={animatingProduct === product.id}
+                        className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        <ShoppingCart className="mr-2 h-5 w-5" />
+                        Add to Cart
+                      </Button>
+                      
+                      <Link 
+                        to={`/product/${product.id}`}
+                        className="inline-flex items-center justify-center border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
+                      >
+                        Learn More
+                      </Link>
+                    </div>
                   </div>
-
-                  <div className="flex gap-4 justify-center">
-                    <Button 
-                      className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={animatingProduct === product.id}
-                    >
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Add to Cart
-                    </Button>
-                    <Link 
-                      to={`/product/${product.id}`}
-                      className="inline-flex items-center justify-center border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
-                    >
-                      Learn More
-                    </Link>
-                  </div>
-                </div>
+                </motion.div>
               </motion.div>
             </div>
           </motion.div>
