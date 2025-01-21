@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
 
 interface CustomerFormProps {
   country: string;
@@ -9,6 +10,14 @@ interface CustomerFormProps {
   setRegion: (value: string) => void;
   phoneNumber: string;
   setPhoneNumber: (value: string) => void;
+  profile?: {
+    full_name?: string | null;
+    phone_number?: string | null;
+    address?: string | null;
+    country?: string | null;
+    region?: string | null;
+  } | null;
+  onFormChange?: (field: string, value: string) => void;
 }
 
 const COUNTRIES = [
@@ -42,17 +51,49 @@ export const CustomerForm = ({
   setRegion,
   phoneNumber,
   setPhoneNumber,
+  profile,
+  onFormChange
 }: CustomerFormProps) => {
+  // Pre-fill form with profile data when available
+  useEffect(() => {
+    if (profile) {
+      if (profile.country) setCountry(profile.country);
+      if (profile.region) setRegion(profile.region);
+      if (profile.phone_number) setPhoneNumber(profile.phone_number);
+    }
+  }, [profile, setCountry, setRegion, setPhoneNumber]);
+
+  const handleInputChange = (field: string, value: string) => {
+    if (onFormChange) {
+      onFormChange(field, value);
+    }
+  };
+
+  // Split full name into first and last name
+  const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
-          <Input id="firstName" name="firstName" required />
+          <Input 
+            id="firstName" 
+            name="firstName" 
+            defaultValue={firstName}
+            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            required 
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name</Label>
-          <Input id="lastName" name="lastName" required />
+          <Input 
+            id="lastName" 
+            name="lastName" 
+            defaultValue={lastName}
+            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            required 
+          />
         </div>
       </div>
       
@@ -67,17 +108,24 @@ export const CustomerForm = ({
           id="phone" 
           type="tel" 
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
+          onChange={(e) => {
+            setPhoneNumber(e.target.value);
+            handleInputChange('phone_number', e.target.value);
+          }}
           required 
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
-        <Select value={country} onValueChange={(value) => {
-          setCountry(value);
-          setRegion("");
-        }}>
+        <Select 
+          value={country} 
+          onValueChange={(value) => {
+            setCountry(value);
+            setRegion("");
+            handleInputChange('country', value);
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
@@ -96,7 +144,13 @@ export const CustomerForm = ({
           <Label htmlFor="region">
             {country === "CA" ? "Province" : "State"}
           </Label>
-          <Select value={region} onValueChange={setRegion}>
+          <Select 
+            value={region} 
+            onValueChange={(value) => {
+              setRegion(value);
+              handleInputChange('region', value);
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
             </SelectTrigger>
@@ -113,7 +167,13 @@ export const CustomerForm = ({
       
       <div className="space-y-2">
         <Label htmlFor="address">Address</Label>
-        <Input id="address" name="address" required />
+        <Input 
+          id="address" 
+          name="address" 
+          defaultValue={profile?.address || ''}
+          onChange={(e) => handleInputChange('address', e.target.value)}
+          required 
+        />
       </div>
     </div>
   );

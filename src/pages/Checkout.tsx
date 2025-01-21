@@ -2,11 +2,12 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
@@ -19,17 +20,73 @@ import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { sendOrderEmails } from "@/utils/emailService";
 
 const Checkout = () => {
-  console.log("Rendering Checkout component"); // Debug log
-  
   const navigate = useNavigate();
   const { items, subtotal, activePromoCode, clearCart } = useCart();
-  console.log("Cart items:", items); // Debug log
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
   const [selectedShipping, setSelectedShipping] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        fetchProfile(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (!error && data) {
+      setProfile(data);
+      if (data.country) setCountry(data.country);
+      if (data.region) setRegion(data.region);
+      if (data.phone_number) setPhoneNumber(data.phone_number);
+    }
+  };
+
+  const updateProfile = async (field: string, value: string) => {
+    if (!user) return;
+
+    const updates = {
+      id: user.id,
+      [field]: value,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(updates);
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    }
+  };
 
   const calculateTaxes = () => {
     if (!region) return { gst: 0, pst: 0, hst: 0 };
@@ -69,7 +126,6 @@ const Checkout = () => {
     }
     
     setIsSubmitting(true);
-    console.log("Submitting order..."); // Debug log
     
     const formData = new FormData(e.currentTarget);
     const customerDetails = {
@@ -81,6 +137,16 @@ const Checkout = () => {
       country,
       region
     };
+
+    // If user is logged in, update their profile
+    if (user) {
+      const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
+      await updateProfile('full_name', fullName);
+      await updateProfile('phone_number', customerDetails.phone);
+      await updateProfile('address', customerDetails.address);
+      await updateProfile('country', customerDetails.country);
+      await updateProfile('region', customerDetails.region);
+    }
     
     const orderDetails = {
       items,
@@ -154,14 +220,16 @@ const Checkout = () => {
                 setRegion={setRegion}
                 phoneNumber={phoneNumber}
                 setPhoneNumber={setPhoneNumber}
+                profile={profile}
+                onFormChange={updateProfile}
               />
 
               {country && (
                 <ShippingOptions
-                  shippingOptions={shippingOptions}
+                  shippingOptions={SHIPPING_OPTIONS[country] || []}
                   selectedShipping={selectedShipping}
                   setSelectedShipping={setSelectedShipping}
-                  currencySymbol={currencySymbol}
+                  currencySymbol={country === "US" ? "$" : "CAD $"}
                 />
               )}
 
