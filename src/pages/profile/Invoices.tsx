@@ -78,8 +78,13 @@ export default function Invoices() {
       doc.text(`Status: ${order.status}`, 20, 60);
       
       // Add shipping address
-      const shippingAddress = order.shipping_address as ShippingAddress;
-      if (shippingAddress) {
+      const shippingAddress = order.shipping_address as unknown as ShippingAddress | null;
+      if (shippingAddress && 
+          typeof shippingAddress === 'object' && 
+          'address' in shippingAddress &&
+          'region' in shippingAddress &&
+          'country' in shippingAddress &&
+          'phone' in shippingAddress) {
         doc.text('Shipping Address:', 20, 80);
         doc.text(`${shippingAddress.address}`, 20, 90);
         doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
