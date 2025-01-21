@@ -2,9 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LogIn, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const LoginPrompt = () => {
   const [isGuest, setIsGuest] = useState(false);
+  const navigate = useNavigate();
 
   if (isGuest) {
     return (
@@ -44,7 +46,7 @@ export const LoginPrompt = () => {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="default" className="gap-2">
+          <Button variant="default" className="gap-2" onClick={() => navigate("/login")}>
             <LogIn className="w-4 h-4" />
             Sign In
           </Button>

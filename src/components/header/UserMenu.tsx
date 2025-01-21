@@ -2,14 +2,18 @@ import { User } from "lucide-react";
 import { motion } from "framer-motion";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export const UserMenu = () => {
+  const navigate = useNavigate();
+
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
         <motion.button
           whileHover={{ scale: 1.05 }}
           className="text-gray-600 hover:text-primary transition-colors"
+          onClick={() => navigate("/login")}
         >
           <User className="h-5 w-5" />
         </motion.button>
@@ -24,12 +28,14 @@ export const UserMenu = () => {
             <Button 
               className="w-full bg-primary hover:bg-primary/90 text-white" 
               variant="default"
+              onClick={() => navigate("/login")}
             >
               Sign In
             </Button>
             <Button 
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900" 
               variant="outline"
+              onClick={() => navigate("/register")}
             >
               Register
             </Button>
