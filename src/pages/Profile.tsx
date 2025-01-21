@@ -12,35 +12,10 @@ import Settings from "./profile/Settings";
 import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
+import { LocationForm } from "@/components/profile/LocationForm";
 
 type Profile = Tables<"profiles">;
-
-const COUNTRIES = [
-  { code: "CA", name: "Canada" },
-  { code: "US", name: "United States" },
-];
-
-const PROVINCES = [
-  "Alberta", "British Columbia", "Manitoba", "New Brunswick",
-  "Newfoundland and Labrador", "Nova Scotia", "Ontario",
-  "Prince Edward Island", "Quebec", "Saskatchewan",
-];
-
-const STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
-  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
-  "New Hampshire", "New Jersey", "New Mexico", "New York",
-  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
-  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
-  "West Virginia", "Wisconsin", "Wyoming"
-];
 
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -179,115 +154,44 @@ export default function Profile() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => {
-                  setFirstName(e.target.value);
-                  setHasChanges(true);
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => {
-                  setLastName(e.target.value);
-                  setHasChanges(true);
-                }}
-              />
-            </div>
-          </div>
+          <PersonalInfoForm
+            firstName={firstName}
+            setFirstName={(value) => {
+              setFirstName(value);
+              setHasChanges(true);
+            }}
+            lastName={lastName}
+            setLastName={(value) => {
+              setLastName(value);
+              setHasChanges(true);
+            }}
+            email={userEmail}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={(value) => {
+              setPhoneNumber(value);
+              setHasChanges(true);
+            }}
+            address={address}
+            setAddress={(value) => {
+              setAddress(value);
+              setHasChanges(true);
+            }}
+            loading={loading}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              value={userEmail || ''}
-              disabled
-              className="bg-gray-50"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              value={phoneNumber}
-              onChange={(e) => {
-                setPhoneNumber(e.target.value);
-                setHasChanges(true);
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={address}
-              onChange={(e) => {
-                setAddress(e.target.value);
-                setHasChanges(true);
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Select 
-                value={country} 
-                onValueChange={(value) => {
-                  setCountry(value);
-                  setRegion("");
-                  setHasChanges(true);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {country && (
-              <div className="space-y-2">
-                <Label htmlFor="region">
-                  {country === "CA" ? "Province" : "State"}
-                </Label>
-                <Select 
-                  value={region} 
-                  onValueChange={(value) => {
-                    setRegion(value);
-                    setHasChanges(true);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Select ${country === "CA" ? "province" : "state"}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(country === "CA" ? PROVINCES : STATES).map((r) => (
-                      <SelectItem key={r} value={r}>
-                        {r}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          <LocationForm
+            country={country}
+            setCountry={(value) => {
+              setCountry(value);
+              setRegion("");
+              setHasChanges(true);
+            }}
+            region={region}
+            setRegion={(value) => {
+              setRegion(value);
+              setHasChanges(true);
+            }}
+          />
         </div>
       </div>
     );
@@ -296,7 +200,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 pt-32"> {/* Increased padding-top for more space */}
+      <div className="flex-1 pt-32">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
             <AccountSidebar />
