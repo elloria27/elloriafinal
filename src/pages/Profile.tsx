@@ -63,34 +63,53 @@ export default function Profile() {
 
   async function loadProfile() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      setLoading(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        toast.error("Failed to load user data");
+        return;
+      }
+
       if (!user) {
         toast.error("Please log in to view your profile");
         return;
       }
 
+      console.log('Fetching profile for user:', user.id);
       setUserEmail(user.email);
 
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      
-      setProfile(data);
-      if (data.full_name) {
-        const [first, ...rest] = data.full_name.split(' ');
-        setFirstName(first || '');
-        setLastName(rest.join(' ') || '');
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast.error("Failed to load profile data");
+        return;
       }
-      setPhoneNumber(data.phone_number || '');
-      setAddress(data.address || '');
-      setCountry(data.country || '');
-      setRegion(data.region || '');
+      
+      if (data) {
+        console.log('Profile data loaded:', data);
+        setProfile(data);
+        if (data.full_name) {
+          const [first, ...rest] = data.full_name.split(' ');
+          setFirstName(first || '');
+          setLastName(rest.join(' ') || '');
+        }
+        setPhoneNumber(data.phone_number || '');
+        setAddress(data.address || '');
+        setCountry(data.country || '');
+        setRegion(data.region || '');
+      } else {
+        console.log('No profile found for user');
+        toast.error("Profile not found");
+      }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error in loadProfile:', error);
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
@@ -98,7 +117,10 @@ export default function Profile() {
   }
 
   const handleSave = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      toast.error("No profile ID found");
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -111,6 +133,7 @@ export default function Profile() {
         updated_at: new Date().toISOString(),
       };
 
+      console.log('Updating profile with:', updates);
       const { error } = await supabase
         .from('profiles')
         .update(updates)
