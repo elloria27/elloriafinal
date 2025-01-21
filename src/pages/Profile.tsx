@@ -10,10 +10,7 @@ import Activity from "./profile/Activity";
 import Invoices from "./profile/Invoices";
 import Settings from "./profile/Settings";
 import { Tables } from "@/integrations/supabase/types";
-import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
-import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
-import { LocationForm } from "@/components/profile/LocationForm";
+import { MainProfileContent } from "@/components/profile/MainProfileContent";
 
 type Profile = Tables<"profiles">;
 
@@ -52,7 +49,6 @@ export default function Profile() {
         return;
       }
 
-      console.log('Fetching profile for user:', user.id);
       setUserEmail(user.email);
 
       const { data, error } = await supabase
@@ -68,7 +64,6 @@ export default function Profile() {
       }
       
       if (data) {
-        console.log('Profile data loaded:', data);
         setProfile(data);
         if (data.full_name) {
           const [first, ...rest] = data.full_name.split(' ');
@@ -80,7 +75,6 @@ export default function Profile() {
         setCountry(data.country || '');
         setRegion(data.region || '');
       } else {
-        console.log('No profile found for user');
         toast.error("Profile not found");
       }
     } catch (error) {
@@ -108,7 +102,6 @@ export default function Profile() {
         updated_at: new Date().toISOString(),
       };
 
-      console.log('Updating profile with:', updates);
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -127,75 +120,6 @@ export default function Profile() {
     }
   };
 
-  // Main profile content component
-  const MainProfile = () => {
-    if (loading) {
-      return <div className="p-8">Loading...</div>;
-    }
-
-    if (!profile) {
-      return <div className="p-8">No profile found.</div>;
-    }
-
-    return (
-      <div className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold mb-8">Profile Settings</h1>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border space-y-6">
-          <PersonalInfoForm
-            firstName={firstName}
-            setFirstName={(value) => {
-              setFirstName(value);
-              setHasChanges(true);
-            }}
-            lastName={lastName}
-            setLastName={(value) => {
-              setLastName(value);
-              setHasChanges(true);
-            }}
-            email={userEmail}
-            phoneNumber={phoneNumber}
-            setPhoneNumber={(value) => {
-              setPhoneNumber(value);
-              setHasChanges(true);
-            }}
-            address={address}
-            setAddress={(value) => {
-              setAddress(value);
-              setHasChanges(true);
-            }}
-            loading={loading}
-          />
-
-          <LocationForm
-            country={country}
-            setCountry={(value) => {
-              setCountry(value);
-              setRegion("");
-              setHasChanges(true);
-            }}
-            region={region}
-            setRegion={(value) => {
-              setRegion(value);
-              setHasChanges(true);
-            }}
-          />
-
-          <div className="pt-6 border-t">
-            <Button 
-              onClick={handleSave}
-              disabled={!hasChanges || isSaving}
-              className="w-full"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? "Saving Changes..." : "Save Changes"}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -205,7 +129,46 @@ export default function Profile() {
             <AccountSidebar />
             <main className="flex-1">
               <Routes>
-                <Route index element={<MainProfile />} />
+                <Route index element={
+                  <MainProfileContent
+                    profile={profile}
+                    loading={loading}
+                    firstName={firstName}
+                    setFirstName={(value) => {
+                      setFirstName(value);
+                      setHasChanges(true);
+                    }}
+                    lastName={lastName}
+                    setLastName={(value) => {
+                      setLastName(value);
+                      setHasChanges(true);
+                    }}
+                    userEmail={userEmail}
+                    phoneNumber={phoneNumber}
+                    setPhoneNumber={(value) => {
+                      setPhoneNumber(value);
+                      setHasChanges(true);
+                    }}
+                    address={address}
+                    setAddress={(value) => {
+                      setAddress(value);
+                      setHasChanges(true);
+                    }}
+                    country={country}
+                    setCountry={(value) => {
+                      setCountry(value);
+                      setHasChanges(true);
+                    }}
+                    region={region}
+                    setRegion={(value) => {
+                      setRegion(value);
+                      setHasChanges(true);
+                    }}
+                    hasChanges={hasChanges}
+                    isSaving={isSaving}
+                    handleSave={handleSave}
+                  />
+                } />
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="activity" element={<Activity />} />
                 <Route path="settings" element={<Settings profile={profile} loading={loading} />} />
