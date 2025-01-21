@@ -10,10 +10,10 @@ import { toast } from "sonner";
 export const Store = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, error } = useQuery({
     queryKey: ['admin-products'],
     queryFn: async () => {
-      console.log("Fetching products...");
+      console.log("Fetching products from Supabase...");
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -25,7 +25,7 @@ export const Store = () => {
         throw error;
       }
 
-      console.log("Products fetched:", data);
+      console.log("Products fetched successfully:", data);
       return data;
     }
   });
@@ -34,6 +34,15 @@ export const Store = () => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (error) {
+    console.error("Error in products query:", error);
+    return (
+      <div className="p-4 text-center text-red-500">
+        Failed to load products. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-[1400px] mx-auto">

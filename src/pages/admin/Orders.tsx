@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge";
 export const Orders = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders, isLoading, error } = useQuery({
     queryKey: ['admin-orders'],
     queryFn: async () => {
-      console.log("Fetching orders...");
+      console.log("Fetching orders from Supabase...");
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -31,7 +31,7 @@ export const Orders = () => {
         throw error;
       }
 
-      console.log("Orders fetched:", data);
+      console.log("Orders fetched successfully:", data);
       return data;
     }
   });
@@ -55,6 +55,15 @@ export const Orders = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (error) {
+    console.error("Error in orders query:", error);
+    return (
+      <div className="p-4 text-center text-red-500">
+        Failed to load orders. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-[1400px] mx-auto">

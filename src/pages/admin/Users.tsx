@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Phone, MapPin, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,10 +10,10 @@ import { Badge } from "@/components/ui/badge";
 export const Users = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, error } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      console.log("Fetching users...");
+      console.log("Fetching users from Supabase...");
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -26,7 +25,7 @@ export const Users = () => {
         throw error;
       }
 
-      console.log("Users fetched:", data);
+      console.log("Users fetched successfully:", data);
       return data;
     }
   });
@@ -37,6 +36,15 @@ export const Users = () => {
     user.country?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.region?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (error) {
+    console.error("Error in users query:", error);
+    return (
+      <div className="p-4 text-center text-red-500">
+        Failed to load users. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-[1400px] mx-auto">
