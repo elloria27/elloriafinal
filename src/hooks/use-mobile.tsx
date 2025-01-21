@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
@@ -9,14 +9,12 @@ export function useMediaQuery(query: string): boolean {
       setMatches(media.matches);
     }
     const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
   }, [matches, query]);
 
   return matches;
 }
 
-// Alias for common mobile check
-export function useIsMobile(): boolean {
-  return useMediaQuery('(max-width: 768px)');
-}
+// Alias for backward compatibility
+export const useIsMobile = () => useMediaQuery("(max-width: 768px)");

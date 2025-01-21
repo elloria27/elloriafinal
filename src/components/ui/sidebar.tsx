@@ -1,8 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
-
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useMediaQuery } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -43,7 +42,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
     },
     ref
   ) => {
-    const isMobile = useIsMobile()
+    const isMobile = useMediaQuery("(max-width: 768px)")
 
     if (isMobile) {
       return (
@@ -120,6 +119,78 @@ const SidebarFooter = React.forwardRef<
 ))
 SidebarFooter.displayName = "SidebarFooter"
 
+const SidebarGroup = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("space-y-4", className)}
+    {...props}
+  />
+))
+SidebarGroup.displayName = "SidebarGroup"
+
+const SidebarGroupLabel = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SidebarGroupLabel.displayName = "SidebarGroupLabel"
+
+const SidebarGroupContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("space-y-1", className)}
+    {...props}
+  />
+))
+SidebarGroupContent.displayName = "SidebarGroupContent"
+
+const SidebarMenu = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("space-y-1", className)}
+    {...props}
+  />
+))
+SidebarMenu.displayName = "SidebarMenu"
+
+const SidebarMenuItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("", className)}
+    {...props}
+  />
+))
+SidebarMenuItem.displayName = "SidebarMenuItem"
+
+const SidebarMenuButton = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("", className)}
+    {...props}
+  />
+))
+SidebarMenuButton.displayName = "SidebarMenuButton"
+
 const SidebarToggle = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -140,11 +211,44 @@ const SidebarToggle = React.forwardRef<
 ))
 SidebarToggle.displayName = "SidebarToggle"
 
+const SidebarInset = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex-1", className)}
+    {...props}
+  />
+))
+SidebarInset.displayName = "SidebarInset"
+
+const SidebarProvider: React.FC<{ 
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}> = ({ defaultOpen = false, children }) => {
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  
+  return (
+    <div className="flex">
+      {children}
+    </div>
+  );
+};
+
 export {
   Sidebar,
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
   SidebarToggle,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+  SidebarProvider,
   type SidebarProps,
 }
