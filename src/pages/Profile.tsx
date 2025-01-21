@@ -129,10 +129,6 @@ export default function Profile() {
     }
   };
 
-  const handleChange = () => {
-    setHasChanges(true);
-  };
-
   // Main profile content component
   const MainProfile = () => {
     if (loading) {
@@ -168,7 +164,7 @@ export default function Profile() {
                 value={firstName}
                 onChange={(e) => {
                   setFirstName(e.target.value);
-                  handleChange();
+                  setHasChanges(true);
                 }}
               />
             </div>
@@ -179,7 +175,7 @@ export default function Profile() {
                 value={lastName}
                 onChange={(e) => {
                   setLastName(e.target.value);
-                  handleChange();
+                  setHasChanges(true);
                 }}
               />
             </div>
@@ -202,7 +198,7 @@ export default function Profile() {
               value={phoneNumber}
               onChange={(e) => {
                 setPhoneNumber(e.target.value);
-                handleChange();
+                setHasChanges(true);
               }}
             />
           </div>
@@ -214,7 +210,7 @@ export default function Profile() {
               value={address}
               onChange={(e) => {
                 setAddress(e.target.value);
-                handleChange();
+                setHasChanges(true);
               }}
             />
           </div>
@@ -227,7 +223,7 @@ export default function Profile() {
                 onValueChange={(value) => {
                   setCountry(value);
                   setRegion("");
-                  handleChange();
+                  setHasChanges(true);
                 }}
               >
                 <SelectTrigger>
@@ -252,7 +248,7 @@ export default function Profile() {
                   value={region} 
                   onValueChange={(value) => {
                     setRegion(value);
-                    handleChange();
+                    setHasChanges(true);
                   }}
                 >
                   <SelectTrigger>
@@ -277,7 +273,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 pt-24">
+      <div className="flex-1 pt-28"> {/* Increased padding-top to prevent header overlap */}
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
             <AccountSidebar />
