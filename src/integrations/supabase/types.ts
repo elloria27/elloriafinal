@@ -9,32 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      orders: {
+        Row: {
+          billing_address: Json | null
+          created_at: string
+          id: string
+          items: Json[] | null
+          order_number: string
+          shipping_address: Json | null
+          status: string
+          total_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          billing_address?: Json | null
+          created_at?: string
+          id?: string
+          items?: Json[] | null
+          order_number: string
+          shipping_address?: Json | null
+          status: string
+          total_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          billing_address?: Json | null
+          created_at?: string
+          id?: string
+          items?: Json[] | null
+          order_number?: string
+          shipping_address?: Json | null
+          status?: string
+          total_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string
           full_name: string | null
           id: string
           updated_at: string
-          username: string | null
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           updated_at?: string
-          username?: string | null
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           updated_at?: string
-          username?: string | null
         }
         Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

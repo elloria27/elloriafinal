@@ -3,16 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AccountSidebar } from "@/components/account/AccountSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [country, setCountry] = useState<string>("");
+  const [region, setRegion] = useState<string>("");
+  const [language, setLanguage] = useState("en");
+  const [currency, setCurrency] = useState("USD");
 
   useEffect(() => {
     getProfile();
@@ -30,7 +39,7 @@ export default function Profile() {
 
       let { data, error } = await supabase
         .from('profiles')
-        .select('username, full_name, avatar_url')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -39,9 +48,9 @@ export default function Profile() {
       }
 
       if (data) {
-        setUsername(data.username);
         setFullName(data.full_name);
-        setAvatarUrl(data.avatar_url);
+        setEmail(user.email);
+        // Set other fields if they exist in your profiles table
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -62,9 +71,7 @@ export default function Profile() {
 
       const updates = {
         id: user.id,
-        username,
         full_name: fullName,
-        avatar_url: avatarUrl,
         updated_at: new Date().toISOString(),
       };
 
@@ -88,64 +95,139 @@ export default function Profile() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 py-32">
-        <div className="max-w-2xl mx-auto p-4">
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-            <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <Input
-                  type="text"
-                  value={username || ''}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full"
-                  disabled={loading}
-                />
-              </div>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-gray-50">
+          <AccountSidebar />
+          <main className="flex-1 p-8">
+            <div className="max-w-4xl mx-auto space-y-8">
+              <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+                <h1 className="text-2xl font-semibold text-gray-900">Profile Settings</h1>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName || ''}
+                      onChange={(e) => setFullName(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <Input
-                  type="text"
-                  value={fullName || ''}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full"
-                  disabled={loading}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email || ''}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Avatar URL
-                </label>
-                <Input
-                  type="url"
-                  value={avatarUrl || ''}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  className="w-full"
-                  disabled={loading}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
 
-              <div className="pt-4">
-                <Button
-                  onClick={updateProfile}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? 'Saving...' : 'Update Profile'}
-                </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Select value={country} onValueChange={setCountry}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CA">Canada</SelectItem>
+                        <SelectItem value="US">United States</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="region">Region</Label>
+                    <Select value={region} onValueChange={setRegion}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select region" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {country === "CA" ? (
+                          <>
+                            <SelectItem value="ON">Ontario</SelectItem>
+                            <SelectItem value="BC">British Columbia</SelectItem>
+                            <SelectItem value="QC">Quebec</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="CA">California</SelectItem>
+                            <SelectItem value="NY">New York</SelectItem>
+                            <SelectItem value="TX">Texas</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="es">Español</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="CAD">CAD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t">
+                  <Button
+                    onClick={updateProfile}
+                    disabled={loading}
+                    className="w-full md:w-auto"
+                  >
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          </main>
         </div>
-      </main>
+      </SidebarProvider>
       <Footer />
     </>
   );
