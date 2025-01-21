@@ -9,18 +9,16 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { FloatingCartAnimation } from "@/components/animations/FloatingCartAnimation";
+import { CartProvider } from "@/contexts/CartContext";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
 
-const ProductDetail = () => {
+const ProductDetailContent = () => {
   const { id } = useParams();
   const product = products.find((p) => p.id === Number(id));
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
-  const [showCartAnimation, setShowCartAnimation] = useState(false);
-  const [animationStartPosition, setAnimationStartPosition] = useState({ x: 0, y: 0 });
   const addToCartButtonRef = useRef<HTMLButtonElement>(null);
 
   const productMedia = [
@@ -70,19 +68,6 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-
-    // Get button position for animation start point
-    const buttonRect = addToCartButtonRef.current?.getBoundingClientRect();
-    if (buttonRect) {
-      setAnimationStartPosition({
-        x: buttonRect.left,
-        y: buttonRect.top,
-      });
-    }
-
-    setShowCartAnimation(true);
-
-    // Add item to cart after animation
     addItem({
       ...product,
       quantity,
@@ -106,16 +91,6 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {showCartAnimation && (
-        <FloatingCartAnimation
-          productImage={product.image}
-          startPosition={animationStartPosition}
-          onComplete={() => setShowCartAnimation(false)}
-        />
-      )}
-      
-      <Header />
-      
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
@@ -287,6 +262,14 @@ const ProductDetail = () => {
 
       <Footer />
     </div>
+  );
+};
+
+const ProductDetail = () => {
+  return (
+    <CartProvider>
+      <ProductDetailContent />
+    </CartProvider>
   );
 };
 
