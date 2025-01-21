@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,7 +18,6 @@ interface CustomerFormProps {
     address?: string | null;
     country?: string | null;
     region?: string | null;
-    email?: string | null;
   } | null;
   onFormChange?: (field: string, value: string) => void;
 }
@@ -57,6 +56,8 @@ export const CustomerForm = ({
   profile,
   onFormChange
 }: CustomerFormProps) => {
+  const [userEmail, setUserEmail] = useState<string>("");
+
   // Pre-fill form with profile data when available
   useEffect(() => {
     console.log("Profile data received:", profile);
@@ -75,6 +76,18 @@ export const CustomerForm = ({
       }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
+
+  // Get user email from auth session
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        console.log("Setting user email:", session.user.email);
+        setUserEmail(session.user.email);
+      }
+    };
+    getSession();
+  }, []);
 
   // Split full name into first and last name
   const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
@@ -126,7 +139,7 @@ export const CustomerForm = ({
           id="email" 
           name="email" 
           type="email" 
-          defaultValue={profile?.email || ''}
+          value={userEmail}
           onChange={(e) => handleInputChange('email', e.target.value)}
           required 
         />
