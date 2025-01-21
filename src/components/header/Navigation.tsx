@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export const Navigation = () => {
   const navItems = [
-    { name: "Products", path: "#products" },
+    { name: "Shop", path: "/shop" },
     { name: "Features", path: "#features" },
     { name: "Sustainability", path: "#sustainability" },
     { name: "About Us", path: "/about" },

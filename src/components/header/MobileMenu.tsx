@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 export const MobileMenu = () => {
   const menuItems = [
-    { name: "Products", path: "#products" },
+    { name: "Shop", path: "/shop" },
     { name: "Features", path: "#features" },
     { name: "Sustainability", path: "#sustainability" },
     { name: "About Us", path: "/about" },
