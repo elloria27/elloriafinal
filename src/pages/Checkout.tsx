@@ -88,7 +88,6 @@ const Checkout = () => {
     };
 
     try {
-      // Send order confirmation emails
       await sendOrderEmails({
         customerEmail: customerDetails.email,
         customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
@@ -115,23 +114,23 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-white">
         <Header />
-        <div className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-32">
+        <main className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-20">
           <div className="text-center">
             <h1 className="text-2xl font-semibold mb-4">Your cart is empty</h1>
             <Button onClick={() => navigate("/")}>Continue Shopping</Button>
           </div>
-        </div>
+        </main>
         <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
-      <div className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-32">
+      <main className="flex-grow container max-w-4xl mx-auto px-4 py-8 mt-20">
         <h1 className="text-2xl font-semibold mb-8">Checkout</h1>
         
         <LoginPrompt />
@@ -188,7 +187,7 @@ const Checkout = () => {
             />
           </motion.div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );
