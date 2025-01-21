@@ -222,14 +222,12 @@ export const ProductCarousel = () => {
                       <ShoppingCart className="mr-2 h-5 w-5" />
                       Add to Cart
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
-                      as={Link}
+                    <Link 
                       to={`/product/${product.id}`}
+                      className="inline-flex items-center justify-center border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
                     >
                       Learn More
-                    </Button>
+                    </Link>
                   </div>
                 </div>
               </motion.div>
