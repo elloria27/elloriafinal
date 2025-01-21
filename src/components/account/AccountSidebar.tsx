@@ -50,7 +50,8 @@ export function AccountSidebar() {
                     <Link
                       to={item.path}
                       className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        location.pathname === item.path
+                        (location.pathname === item.path || 
+                         (item.path === "/profile" && location.pathname === "/profile/"))
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent-purple/50"
                       }`}
