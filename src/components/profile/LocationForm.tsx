@@ -38,11 +38,16 @@ export const LocationForm = ({
   region,
   setRegion,
 }: LocationFormProps) => {
+  const handleCountryChange = (value: string) => {
+    setCountry(value);
+    setRegion(''); // Reset region when country changes
+  };
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
-        <Select value={country} onValueChange={setCountry}>
+        <Select value={country} onValueChange={handleCountryChange}>
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
           </SelectTrigger>

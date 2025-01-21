@@ -26,6 +26,14 @@ export const PersonalInfoForm = ({
   setAddress,
   loading
 }: PersonalInfoFormProps) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (value: string) => void
+  ) => {
+    const value = e.target.value;
+    setter(value);
+  };
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="space-y-2">
@@ -34,7 +42,7 @@ export const PersonalInfoForm = ({
           id="firstName"
           type="text"
           value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
+          onChange={(e) => handleInputChange(e, setFirstName)}
           disabled={loading}
         />
       </div>
@@ -45,7 +53,7 @@ export const PersonalInfoForm = ({
           id="lastName"
           type="text"
           value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
+          onChange={(e) => handleInputChange(e, setLastName)}
           disabled={loading}
         />
       </div>
@@ -67,7 +75,7 @@ export const PersonalInfoForm = ({
           id="phoneNumber"
           type="tel"
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
+          onChange={(e) => handleInputChange(e, setPhoneNumber)}
           disabled={loading}
         />
       </div>
@@ -78,7 +86,7 @@ export const PersonalInfoForm = ({
           id="address"
           type="text"
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => handleInputChange(e, setAddress)}
           disabled={loading}
         />
       </div>
