@@ -22,12 +22,7 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />}>
-            <Route index element={<Profile />} />
-            <Route path="invoices" element={<Profile />} />
-            <Route path="activity" element={<Profile />} />
-            <Route path="settings" element={<Profile />} />
-          </Route>
+          <Route path="/profile/*" element={<Profile />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/product/:id" element={<ProductDetail />} />

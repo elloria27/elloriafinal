@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
@@ -16,7 +16,6 @@ type Profile = Tables<"profiles">;
 export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     async function loadProfile() {
@@ -93,10 +92,10 @@ export default function Profile() {
           <AccountSidebar />
           <main className="flex-1">
             <Routes>
-              <Route index element={<MainProfile />} />
-              <Route path="invoices" element={<Invoices />} />
-              <Route path="activity" element={<Activity />} />
-              <Route path="settings" element={<Settings />} />
+              <Route path="/" element={<MainProfile />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/activity" element={<Activity />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/profile" replace />} />
             </Routes>
           </main>
