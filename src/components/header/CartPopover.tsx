@@ -28,12 +28,18 @@ export const CartPopover = () => {
   } = useCart();
 
   const [promoCode, setPromoCode] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleApplyPromoCode = () => {
     if (promoCode.trim()) {
       applyPromoCode(promoCode.trim());
       setPromoCode("");
     }
+  };
+
+  const handleCheckout = () => {
+    setIsOpen(false); // Close the popover
+    navigate("/checkout"); // Navigate to checkout page
   };
 
   const formatPrice = (price: number) => {
@@ -100,7 +106,7 @@ export const CartPopover = () => {
   );
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <motion.div
           whileHover={{ scale: 1.05 }}
@@ -217,7 +223,7 @@ export const CartPopover = () => {
 
               <Button 
                 className="w-full" 
-                onClick={() => navigate("/checkout")}
+                onClick={handleCheckout}
                 disabled={items.length === 0}
               >
                 Proceed to Checkout
