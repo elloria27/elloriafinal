@@ -18,12 +18,12 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [fullName, setFullName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [phone, setPhone] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [address, setAddress] = useState<string>("");
   const [country, setCountry] = useState<string>("");
   const [region, setRegion] = useState<string>("");
-  const [language, setLanguage] = useState("en");
-  const [currency, setCurrency] = useState("USD");
+  const [language, setLanguage] = useState<string>("en");
+  const [currency, setCurrency] = useState<string>("USD");
 
   useEffect(() => {
     getProfile();
@@ -52,7 +52,7 @@ export default function Profile() {
       if (data) {
         setFullName(data.full_name);
         setEmail(user.email);
-        setPhone(data.phone || "");
+        setPhoneNumber(data.phone_number || "");
         setAddress(data.address || "");
         setCountry(data.country || "");
         setRegion(data.region || "");
@@ -79,7 +79,7 @@ export default function Profile() {
       const updates = {
         id: user.id,
         full_name: fullName,
-        phone: phone,
+        phone_number: phoneNumber,
         address: address,
         country: country,
         region: region,
@@ -117,7 +117,7 @@ export default function Profile() {
       doc.setFontSize(12);
       doc.text(`Full Name: ${fullName || 'Not provided'}`, 20, 40);
       doc.text(`Email: ${email || 'Not provided'}`, 20, 50);
-      doc.text(`Phone: ${phone || 'Not provided'}`, 20, 60);
+      doc.text(`Phone Number: ${phoneNumber || 'Not provided'}`, 20, 60);
       doc.text(`Address: ${address || 'Not provided'}`, 20, 70);
       doc.text(`Country: ${country || 'Not provided'}`, 20, 80);
       doc.text(`Region: ${region || 'Not provided'}`, 20, 90);
@@ -178,12 +178,12 @@ export default function Profile() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
-                      id="phone"
+                      id="phoneNumber"
                       type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                       disabled={loading}
                     />
                   </div>
