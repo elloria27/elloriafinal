@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export const AdminLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("sales@elloria.ca");
+  const [password, setPassword] = useState("admin");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,8 +18,7 @@ export const AdminLogin = () => {
     try {
       console.log("Attempting admin login...");
       
-      // First, try to sign in
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -29,30 +28,28 @@ export const AdminLogin = () => {
         throw new Error("Invalid credentials");
       }
 
-      if (!authData.user) {
+      if (!user) {
         console.error("No user data returned");
         throw new Error("Authentication failed");
       }
 
       console.log("User authenticated, checking admin role...");
 
-      // Check if user has admin role
+      // Check if user has admin role - use single request
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", authData.user.id)
+        .eq("id", user.id)
         .single();
 
-      console.log("Profile data:", profile);
-      
       if (profileError) {
         console.error("Profile fetch error:", profileError);
+        await supabase.auth.signOut();
         throw new Error("Error fetching user profile");
       }
 
       if (!profile || profile.role !== 'admin') {
         console.error("User is not an admin:", profile);
-        // Sign out the user since they're not an admin
         await supabase.auth.signOut();
         throw new Error("Unauthorized access - Admin privileges required");
       }
@@ -86,7 +83,6 @@ export const AdminLogin = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-1"
-              placeholder="admin@example.com"
             />
           </div>
           <div>
@@ -100,7 +96,6 @@ export const AdminLogin = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="mt-1"
-              placeholder="••••••••"
             />
           </div>
           <Button

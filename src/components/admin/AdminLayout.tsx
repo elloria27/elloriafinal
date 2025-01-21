@@ -29,7 +29,7 @@ export const AdminLayout = () => {
 
       console.log("Session found, checking admin role...");
 
-      // Check if user has admin role
+      // Single request to check admin role
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
@@ -39,6 +39,7 @@ export const AdminLayout = () => {
       if (profileError) {
         console.error("Profile fetch error:", profileError);
         toast.error("Error fetching user profile");
+        await supabase.auth.signOut();
         navigate("/admin/login");
         return;
       }
@@ -46,7 +47,6 @@ export const AdminLayout = () => {
       if (!profile || profile.role !== 'admin') {
         console.error("User is not an admin:", profile);
         toast.error("Unauthorized access - Admin privileges required");
-        // Sign out the user since they're not an admin
         await supabase.auth.signOut();
         navigate("/admin/login");
         return;
