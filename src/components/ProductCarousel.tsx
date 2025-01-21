@@ -109,9 +109,9 @@ export const ProductCarousel = () => {
   return (
     <section 
       ref={containerRef}
-      className="relative min-h-screen py-32 overflow-visible bg-gradient-to-b from-accent-purple/5 via-white to-accent-peach/5"
+      className="relative min-h-screen py-32 bg-gradient-to-b from-accent-purple/5 via-white to-accent-peach/5"
     >
-      <div className="absolute inset-0 bg-[url('/path/to/pattern.svg')] opacity-5" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-accent-purple/10 via-transparent to-transparent opacity-30" />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -122,11 +122,11 @@ export const ProductCarousel = () => {
       >
         <h2 className="text-4xl md:text-6xl font-bold mb-6">
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Discover Our Collection
+            Our Products
           </span>
         </h2>
         <p className="text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed">
-          Experience comfort and confidence with our premium range of products
+          Designed with comfort and confidence in mind
         </p>
       </motion.div>
 
@@ -143,16 +143,16 @@ export const ProductCarousel = () => {
             transition={{ duration: 0.5, delay: index * 0.2 }}
             className="group relative"
           >
-            <div className="relative rounded-3xl overflow-hidden bg-white p-8 shadow-sm hover:shadow-xl transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-b from-accent-purple/10 via-accent-peach/5 to-accent-green/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative rounded-[2rem] overflow-hidden bg-white p-8 shadow-lg hover:shadow-xl transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <motion.div
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.3 }}
                 className="relative z-10"
               >
                 <div className="relative mb-8 aspect-square">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/10 rounded-full blur-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
                   <motion.div 
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -190,21 +190,23 @@ export const ProductCarousel = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    {product.name}
-                  </h3>
-                  
-                  <p className="text-xl font-semibold text-primary">
-                    ${product.price.toFixed(2)}
-                  </p>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      {product.name}
+                    </h3>
+                    
+                    <p className="text-xl font-semibold text-primary">
+                      ${product.price.toFixed(2)}
+                    </p>
+                  </div>
 
-                  <p className="text-gray-600 line-clamp-3">
+                  <p className="text-gray-600 line-clamp-3 text-sm">
                     {product.description}
                   </p>
 
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-6 pt-4">
                     <div className="flex items-center justify-center gap-4">
                       <label className="text-sm text-gray-600">Quantity:</label>
                       <Input
@@ -213,15 +215,15 @@ export const ProductCarousel = () => {
                         max="99"
                         value={quantities[product.id]}
                         onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        className="w-20 text-center"
+                        className="w-20 text-center rounded-xl border-accent-purple/20"
                       />
                     </div>
 
-                    <div className="flex gap-4 justify-center">
+                    <div className="flex flex-col gap-3">
                       <Button 
                         onClick={() => handleAddToCart(product)}
                         disabled={animatingProduct === product.id}
-                        className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                       >
                         <ShoppingCart className="mr-2 h-5 w-5" />
                         Add to Cart
@@ -229,7 +231,7 @@ export const ProductCarousel = () => {
                       
                       <Link 
                         to={`/product/${product.id}`}
-                        className="inline-flex items-center justify-center bg-white hover:bg-primary/5 text-primary border-2 border-primary hover:border-primary/80 px-6 py-2 text-lg rounded-full transition-all duration-300 group"
+                        className="inline-flex items-center justify-center w-full bg-white hover:bg-primary/5 text-primary border-2 border-primary/20 hover:border-primary/40 py-2 text-lg rounded-xl transition-all duration-300 group"
                       >
                         Learn More
                         <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
