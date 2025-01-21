@@ -127,45 +127,48 @@ const Checkout = () => {
     
     setIsSubmitting(true);
     
-    const formData = new FormData(e.currentTarget);
-    const customerDetails = {
-      firstName: formData.get('firstName') as string,
-      lastName: formData.get('lastName') as string,
-      email: formData.get('email') as string,
-      phone: phoneNumber,
-      address: formData.get('address') as string,
-      country,
-      region
-    };
-
-    // If user is logged in, update their profile
-    if (user) {
-      const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
-      await updateProfile('full_name', fullName);
-      await updateProfile('phone_number', customerDetails.phone);
-      await updateProfile('address', customerDetails.address);
-      await updateProfile('country', customerDetails.country);
-      await updateProfile('region', customerDetails.region);
-    }
-    
-    const orderDetails = {
-      items,
-      subtotal: subtotalInCurrentCurrency,
-      taxes,
-      shipping: selectedShippingOption,
-      total,
-      currency: country === "US" ? "USD" : "CAD",
-      customerDetails
-    };
-
     try {
+      const formData = new FormData(e.currentTarget);
+      const customerDetails = {
+        firstName: formData.get('firstName') as string,
+        lastName: formData.get('lastName') as string,
+        email: formData.get('email') as string,
+        phone: phoneNumber,
+        address: formData.get('address') as string,
+        country,
+        region
+      };
+
+      // If user is logged in, update their profile
+      if (user) {
+        const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
+        await updateProfile('full_name', fullName);
+        await updateProfile('phone_number', customerDetails.phone);
+        await updateProfile('address', customerDetails.address);
+        await updateProfile('country', customerDetails.country);
+        await updateProfile('region', customerDetails.region);
+      }
+
+      const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+      
+      const orderDetails = {
+        items,
+        subtotal: subtotalInCurrentCurrency,
+        taxes,
+        shipping: selectedShippingOption,
+        total,
+        currency: country === "US" ? "USD" : "CAD",
+        customerDetails
+      };
+
       // Save order to Supabase if user is logged in
       if (user) {
+        console.log('Saving order to Supabase:', orderDetails);
         const { error: orderError } = await supabase
           .from('orders')
           .insert({
             user_id: user.id,
-            order_number: Math.random().toString(36).substr(2, 9).toUpperCase(),
+            order_number: orderNumber,
             total_amount: total,
             status: 'pending',
             items: items,
@@ -189,10 +192,12 @@ const Checkout = () => {
         }
       }
 
+      // Send order confirmation email
+      console.log('Sending order confirmation email');
       await sendOrderEmails({
         customerEmail: customerDetails.email,
         customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-        orderId: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        orderId: orderNumber,
         items,
         total,
         shippingAddress: {
@@ -202,6 +207,7 @@ const Checkout = () => {
         }
       });
 
+      console.log('Order processed successfully');
       localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
       clearCart();
       navigate("/order-success");
