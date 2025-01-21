@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 export const AboutHero = () => {
   return (
-    <section className="pt-24 pb-16 bg-gradient-to-r from-accent-peach/20 to-accent-purple/20">
+    <section className="py-20">
       <div className="container px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -12,12 +12,12 @@ export const AboutHero = () => {
             transition={{ duration: 0.8 }}
             className="space-y-6"
           >
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-              Empowering Women Through
+            <h2 className="text-4xl font-bold leading-tight">
+              Our Mission for
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent block">
-                Innovative Care
+                Better Care
               </span>
-            </h1>
+            </h2>
             <p className="text-xl text-gray-600">
               We're revolutionizing feminine care with sustainable, comfortable, and reliable products 
               that put your comfort and confidence first.
