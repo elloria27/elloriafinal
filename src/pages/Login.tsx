@@ -21,7 +21,6 @@ const Login = () => {
   const redirectTo = searchParams.get("redirectTo") || "/profile";
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -39,21 +38,15 @@ const Login = () => {
     
     try {
       console.log("Attempting login with email:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
       });
 
-      if (error) {
-        console.error("Login error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data.user) {
-        console.log("Login successful, redirecting to:", redirectTo);
-        toast.success("Logged in successfully!");
-        navigate(redirectTo);
-      }
+      toast.success("Logged in successfully!");
+      navigate(redirectTo);
     } catch (error) {
       const authError = error as AuthError;
       console.error("Login error:", authError);
