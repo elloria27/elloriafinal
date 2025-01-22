@@ -69,7 +69,6 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
 
             <div className="flex gap-2">
               <Button
-                type="button"
                 onClick={() => handleAddToCart(product)}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white"
               >
@@ -77,7 +76,6 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
                 Add to Cart
               </Button>
               <Button
-                type="button"
                 variant="outline"
                 asChild
                 className="flex-1 border-primary/20 hover:border-primary/40 text-primary"

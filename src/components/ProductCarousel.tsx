@@ -89,6 +89,7 @@ export const ProductCarousel = () => {
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   const handleQuantityChange = (productId: string, value: string) => {
+    console.log("Quantity changed:", productId, value);
     const quantity = parseInt(value) || 1;
     setQuantities(prev => ({
       ...prev,
@@ -229,7 +230,6 @@ export const ProductCarousel = () => {
 
                     <div className="flex flex-col gap-3">
                       <Button 
-                        type="button"
                         onClick={() => handleAddToCart(product)}
                         disabled={animatingProduct === product.id}
                         className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
@@ -239,7 +239,6 @@ export const ProductCarousel = () => {
                       </Button>
                       
                       <Button
-                        type="button"
                         variant="outline"
                         asChild
                         className="w-full bg-white hover:bg-primary/5 text-primary border-2 border-primary/20 hover:border-primary/40 py-2 text-lg rounded-xl transition-all duration-300 group"
