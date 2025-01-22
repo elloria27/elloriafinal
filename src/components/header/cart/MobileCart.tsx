@@ -40,6 +40,18 @@ export const MobileCart = () => {
     }, 300);
   };
 
+  const handleRemoveItem = (e: React.MouseEvent, itemId: number) => {
+    e.stopPropagation(); // Stop event propagation
+    console.log("Removing item:", itemId);
+    removeItem(itemId);
+  };
+
+  const handleClearCart = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Stop event propagation
+    console.log("Clearing cart");
+    clearCart();
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -64,7 +76,7 @@ export const MobileCart = () => {
         <div className="flex items-start justify-between">
           <h5 className="font-medium text-base truncate flex-1">{item.name}</h5>
           <button
-            onClick={() => removeItem(item.id)}
+            onClick={(e) => handleRemoveItem(e, item.id)}
             className="text-gray-400 hover:text-red-500 transition-colors p-2"
           >
             <Trash2 className="h-5 w-5" />
@@ -78,7 +90,10 @@ export const MobileCart = () => {
             variant="outline"
             size="sm"
             className="h-10 w-10 rounded-full"
-            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateQuantity(item.id, Math.max(1, item.quantity - 1));
+            }}
             disabled={item.quantity <= 1}
           >
             <Minus className="h-4 w-4" />
@@ -88,7 +103,10 @@ export const MobileCart = () => {
             variant="outline"
             size="sm"
             className="h-10 w-10 rounded-full"
-            onClick={() => updateQuantity(item.id, Math.min(99, item.quantity + 1))}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateQuantity(item.id, Math.min(99, item.quantity + 1));
+            }}
             disabled={item.quantity >= 99}
           >
             <Plus className="h-4 w-4" />
@@ -118,7 +136,7 @@ export const MobileCart = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearCart}
+                onClick={handleClearCart}
                 className="text-gray-500 hover:text-red-500"
               >
                 <Trash2 className="h-5 w-5" />
