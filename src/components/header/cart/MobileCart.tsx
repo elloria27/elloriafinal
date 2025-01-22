@@ -42,8 +42,7 @@ export const MobileCart = () => {
     return () => window.removeEventListener('toggleCart', handleToggleCart);
   }, []);
 
-  const handleCheckout = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCheckout = () => {
     console.log("Initiating checkout process");
     setIsOpen(false);
     setTimeout(() => {
@@ -57,8 +56,7 @@ export const MobileCart = () => {
     toast.success("Item removed from cart");
   };
 
-  const handleClearCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClearCart = () => {
     console.log("Clearing entire cart");
     clearCart();
     toast.success("Cart cleared");
@@ -85,19 +83,14 @@ export const MobileCart = () => {
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-2">
-              <SheetClose asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-0 hover:bg-transparent"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }}
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                </Button>
-              </SheetClose>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-0 hover:bg-transparent"
+                onClick={() => setIsOpen(false)}
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </Button>
               Shopping Cart
             </SheetTitle>
             {items.length > 0 && (
