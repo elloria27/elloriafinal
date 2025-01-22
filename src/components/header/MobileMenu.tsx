@@ -11,7 +11,7 @@ export const MobileMenu = () => {
   const menuItems = [
     { name: "Shop", path: "/shop" },
     { name: "Features", path: "#features" },
-    { name: "Sustainability", path: "#sustainability" },
+    { name: "Sustainability", path: "/sustainability" },
     { name: "About Us", path: "/about" },
     { name: "Blog", path: "#blog" }
   ];
