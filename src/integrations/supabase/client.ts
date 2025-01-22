@@ -9,8 +9,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: localStorage,
+    storage: window.localStorage,
     storageKey: 'supabase.auth.token',
-    debug: true // This will help us see auth-related logs in the console
+    debug: true
   }
 });
