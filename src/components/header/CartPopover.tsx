@@ -1,4 +1,4 @@
-import { ShoppingCart, X, Minus, Plus, Tag } from "lucide-react";
+import { ShoppingCart, X, Minus, Plus, Tag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,12 +40,22 @@ export const CartPopover = () => {
   const handleCheckout = () => {
     console.log("Checkout clicked, current device:", isMobile ? "mobile" : "desktop");
     setIsOpen(false);
+    
     // Add a small delay for mobile to ensure the sheet closes properly
-    const delay = isMobile ? 300 : 0;
     setTimeout(() => {
       console.log("Navigating to checkout...");
-      navigate("/checkout");
-    }, delay);
+      navigate("/checkout", { replace: true });
+    }, isMobile ? 300 : 0);
+  };
+
+  const handleRemoveItem = (itemId: number) => {
+    console.log("Removing item:", itemId);
+    removeItem(itemId);
+  };
+
+  const handleClearCart = () => {
+    console.log("Clearing cart");
+    clearCart();
   };
 
   const formatPrice = (price: number) => {
@@ -66,7 +76,7 @@ export const CartPopover = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-start gap-3 bg-gray-50 p-3 rounded-lg"
+      className={`flex items-start gap-3 ${isMobile ? 'bg-white' : 'bg-gray-50'} p-3 rounded-lg relative`}
     >
       <img
         src={item.image}
@@ -77,10 +87,11 @@ export const CartPopover = () => {
         <div className="flex items-start justify-between gap-2">
           <h5 className="font-medium text-sm truncate">{item.name}</h5>
           <button
-            onClick={() => removeItem(item.id)}
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            onClick={() => handleRemoveItem(item.id)}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2"
+            aria-label="Remove item"
           >
-            <X className="h-4 w-4" />
+            {isMobile ? <Trash2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
           </button>
         </div>
         <p className="text-primary font-medium mt-1">
@@ -90,7 +101,7 @@ export const CartPopover = () => {
           <Button
             variant="outline"
             size="sm"
-            className="h-7 w-7 p-0"
+            className="h-8 w-8 p-0"
             onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
             disabled={item.quantity <= 1}
           >
@@ -100,7 +111,7 @@ export const CartPopover = () => {
           <Button
             variant="outline"
             size="sm"
-            className="h-7 w-7 p-0"
+            className="h-8 w-8 p-0"
             onClick={() => updateQuantity(item.id, Math.min(99, item.quantity + 1))}
             disabled={item.quantity >= 99}
           >
@@ -137,7 +148,7 @@ export const CartPopover = () => {
       </PopoverTrigger>
       <PopoverContent 
         className={`bg-white shadow-lg border border-gray-100 ${
-          isMobile ? 'w-[calc(100vw-32px)] max-h-[80vh] overflow-y-auto' : 'w-96'
+          isMobile ? 'w-[calc(100vw-32px)] max-h-[90vh] overflow-y-auto' : 'w-96'
         }`}
         onInteractOutside={(e) => {
           if (isMobile) {
@@ -146,16 +157,17 @@ export const CartPopover = () => {
         }}
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-between sticky top-0 bg-white z-10 py-2">
+          <div className="flex items-center justify-between sticky top-0 bg-white z-10 py-2 border-b">
             <h4 className="text-lg font-medium">Shopping Cart</h4>
             {items.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearCart}
+                onClick={handleClearCart}
                 className="text-gray-500 hover:text-red-500"
               >
-                Clear Cart
+                <Trash2 className="h-4 w-4 mr-2" />
+                {!isMobile && "Clear Cart"}
               </Button>
             )}
           </div>
@@ -166,7 +178,7 @@ export const CartPopover = () => {
             </div>
           ) : (
             <>
-              <div className="space-y-4 max-h-[40vh] overflow-y-auto">
+              <div className={`space-y-4 ${isMobile ? 'max-h-[50vh]' : 'max-h-[40vh]'} overflow-y-auto px-1`}>
                 <AnimatePresence>
                   {items.map(renderCartItem)}
                 </AnimatePresence>
@@ -233,7 +245,7 @@ export const CartPopover = () => {
               </div>
 
               <Button 
-                className="w-full" 
+                className="w-full"
                 onClick={handleCheckout}
                 disabled={items.length === 0}
               >
