@@ -13,7 +13,7 @@ import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, 
 
 const ProductDetailContent = () => {
   const { id } = useParams();
-  const product = products.find((p) => p.id === Number(id));
+  const product = products.find((p) => p.id === id);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
@@ -91,8 +91,7 @@ const ProductDetailContent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Header />
-      <main className="pt-32"> {/* Added padding-top to account for fixed header */}
-        {/* Hero Section */}
+      <main className="pt-32">
         <section className="pb-16 px-4">
           <div className="max-w-7xl mx-auto">
             <motion.div 
@@ -117,7 +116,6 @@ const ProductDetailContent = () => {
           </div>
         </section>
 
-        {/* Features Grid */}
         <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
             <motion.h2 
@@ -153,7 +151,6 @@ const ProductDetailContent = () => {
           </div>
         </section>
 
-        {/* Purchase Section */}
         <section className="py-24 px-4 bg-gradient-to-br from-accent-purple/20 to-accent-peach/20">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
@@ -231,7 +228,6 @@ const ProductDetailContent = () => {
           </div>
         </section>
 
-        {/* Specifications */}
         <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
             <motion.h2 
