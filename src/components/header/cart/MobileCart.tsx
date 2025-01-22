@@ -2,7 +2,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Sheet,
@@ -31,16 +31,15 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  // Simplified toggle handler
-  const handleToggleCart = useCallback(() => {
-    console.log('Toggle cart event received in MobileCart');
-    setIsOpen(prev => !prev);
-  }, []);
-
   useEffect(() => {
-    window.addEventListener('toggleCart', handleToggleCart);
-    return () => window.removeEventListener('toggleCart', handleToggleCart);
-  }, [handleToggleCart]);
+    const handleToggle = () => {
+      console.log('Toggle cart event received');
+      setIsOpen(true);
+    };
+
+    window.addEventListener('toggleCart', handleToggle);
+    return () => window.removeEventListener('toggleCart', handleToggle);
+  }, []);
 
   const handleCheckout = () => {
     console.log("Initiating checkout process");
@@ -77,12 +76,6 @@ export const MobileCart = () => {
     }).format(price);
   };
 
-  // Simplified close handler
-  const handleClose = () => {
-    console.log('Closing cart');
-    setIsOpen(false);
-  };
-
   return (
     <Sheet 
       open={isOpen} 
@@ -99,7 +92,7 @@ export const MobileCart = () => {
                 variant="ghost" 
                 size="sm"
                 className="p-0 hover:bg-transparent"
-                onClick={handleClose}
+                onClick={() => setIsOpen(false)}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
