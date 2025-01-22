@@ -26,6 +26,7 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
     };
     
     addItem(cartItem);
+    toast.success(`Added ${product.name} to cart`);
   };
 
   return (
@@ -68,15 +69,17 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
 
             <div className="flex gap-2">
               <Button
+                type="button"
                 onClick={() => handleAddToCart(product)}
-                className="flex-1 bg-primary hover:bg-primary/90"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white"
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Add to Cart
               </Button>
               <Button
-                asChild
+                type="button"
                 variant="outline"
+                asChild
                 className="flex-1 border-primary/20 hover:border-primary/40 text-primary"
               >
                 <Link to={`/product/${product.id}`}>

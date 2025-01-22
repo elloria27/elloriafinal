@@ -99,10 +99,17 @@ export const ProductCarousel = () => {
   const handleAddToCart = async (product: typeof products[0]) => {
     console.log("Adding to cart:", product);
     setAnimatingProduct(product.id);
-    addItem({
-      ...product,
+    
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      image: product.image,
+      price: product.price,
       quantity: quantities[product.id]
-    });
+    };
+    
+    addItem(cartItem);
     toast.success("Added to cart successfully!");
     setTimeout(() => setAnimatingProduct(null), 1000);
   };
@@ -222,6 +229,7 @@ export const ProductCarousel = () => {
 
                     <div className="flex flex-col gap-3">
                       <Button 
+                        type="button"
                         onClick={() => handleAddToCart(product)}
                         disabled={animatingProduct === product.id}
                         className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
@@ -230,13 +238,17 @@ export const ProductCarousel = () => {
                         Add to Cart
                       </Button>
                       
-                      <Link 
-                        to={`/product/${product.id}`}
-                        className="inline-flex items-center justify-center w-full bg-white hover:bg-primary/5 text-primary border-2 border-primary/20 hover:border-primary/40 py-2 text-lg rounded-xl transition-all duration-300 group"
+                      <Button
+                        type="button"
+                        variant="outline"
+                        asChild
+                        className="w-full bg-white hover:bg-primary/5 text-primary border-2 border-primary/20 hover:border-primary/40 py-2 text-lg rounded-xl transition-all duration-300 group"
                       >
-                        Learn More
-                        <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                      </Link>
+                        <Link to={`/product/${product.id}`}>
+                          Learn More
+                          <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 </motion.div>
