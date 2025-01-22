@@ -12,7 +12,7 @@ export type CartItem = {
   price: number;
 };
 
-type PromoCode = {
+export type PromoCode = {
   code: string;
   discount: number;
 };
