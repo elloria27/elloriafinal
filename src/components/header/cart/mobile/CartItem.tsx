@@ -1,7 +1,7 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CartItem as CartItemType } from "@/contexts/CartContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface CartItemProps {
   item: CartItemType;
@@ -32,23 +32,23 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-start gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm"
+      className="flex items-start gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm"
     >
-      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-50">
+      <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-50">
         <img
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain p-2"
         />
       </div>
       
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-medium text-gray-900 truncate pr-8">
+            <h3 className="font-medium text-gray-900 leading-tight">
               {item.name}
             </h3>
-            <p className="text-primary font-semibold">
+            <p className="text-primary font-semibold mt-1">
               {formatPrice(item.price)}
             </p>
           </div>
@@ -62,7 +62,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           </Button>
         </div>
         
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex items-center gap-3 pt-3">
           <Button
             variant="outline"
             size="sm"

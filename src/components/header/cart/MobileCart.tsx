@@ -88,45 +88,62 @@ export const MobileCart = () => {
     >
       <SheetContent 
         side="bottom" 
-        className="h-[85vh] p-0 flex flex-col rounded-t-3xl"
+        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl"
       >
-        <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
+        <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-4">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-semibold flex items-center gap-2">
+            <SheetTitle className="text-xl font-medium flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="p-0 hover:bg-transparent"
+                className="p-0 hover:bg-transparent -ml-2"
                 onClick={handleClose}
               >
-                <ArrowLeft className="h-6 w-6" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
-              Shopping Cart
+              Your Cart
             </SheetTitle>
             {items.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClearCart}
-                className="text-gray-500 hover:text-red-500"
+                className="text-gray-500 hover:text-red-500 transition-colors"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <motion.div 
+          className="flex-1 overflow-y-auto px-4 py-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
           {items.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500">
-              <ShoppingBag className="h-12 w-12 mb-4 stroke-[1.5]" />
-              <p className="text-lg font-medium mb-2">Your cart is empty</p>
-              <p className="text-sm text-gray-400">
-                Add items to your cart to start shopping
+            <motion.div 
+              className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ShoppingBag className="h-16 w-16 mb-4 stroke-[1.5] text-gray-400" />
+              <p className="text-lg font-medium mb-2 text-gray-700">Your cart is empty</p>
+              <p className="text-sm text-gray-500 mb-6">
+                Looks like you haven't added any items yet
               </p>
-            </div>
+              <Button 
+                variant="outline" 
+                onClick={handleClose}
+                className="rounded-full px-6"
+              >
+                Continue Shopping
+              </Button>
+            </motion.div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <AnimatePresence mode="popLayout">
                 {items.map((item) => (
                   <CartItem
@@ -140,10 +157,15 @@ export const MobileCart = () => {
               </AnimatePresence>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {items.length > 0 && (
-          <div className="border-t bg-white px-4 py-4 space-y-4">
+          <motion.div 
+            className="border-t bg-white px-4 py-4 space-y-4"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <CartSummary
               subtotal={subtotal}
               total={total}
@@ -156,12 +178,12 @@ export const MobileCart = () => {
             />
 
             <Button 
-              className="w-full h-12 text-base rounded-xl"
+              className="w-full h-12 text-base rounded-full font-medium"
               onClick={handleCheckout}
             >
               Proceed to Checkout
             </Button>
-          </div>
+          </motion.div>
         )}
       </SheetContent>
     </Sheet>
