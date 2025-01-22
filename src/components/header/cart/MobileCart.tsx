@@ -31,17 +31,15 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
+  // Simplified toggle handler
   const handleToggleCart = useCallback(() => {
     console.log('Toggle cart event received in MobileCart');
     setIsOpen(prev => !prev);
   }, []);
 
   useEffect(() => {
-    const handleToggleEvent = () => handleToggleCart();
-    window.addEventListener('toggleCart', handleToggleEvent);
-    return () => {
-      window.removeEventListener('toggleCart', handleToggleEvent);
-    };
+    window.addEventListener('toggleCart', handleToggleCart);
+    return () => window.removeEventListener('toggleCart', handleToggleCart);
   }, [handleToggleCart]);
 
   const handleCheckout = () => {
@@ -79,20 +77,16 @@ export const MobileCart = () => {
     }).format(price);
   };
 
-  const handleClose = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  // Simplified close handler
+  const handleClose = () => {
     console.log('Closing cart');
     setIsOpen(false);
-  }, []);
+  };
 
   return (
     <Sheet 
       open={isOpen} 
       onOpenChange={setIsOpen}
-      modal={true}
     >
       <SheetContent 
         side="bottom" 
@@ -103,11 +97,9 @@ export const MobileCart = () => {
             <SheetTitle className="text-xl font-semibold flex items-center gap-2">
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size="sm"
                 className="p-0 hover:bg-transparent"
                 onClick={handleClose}
-                onTouchEnd={handleClose}
-                style={{ touchAction: 'manipulation' }}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
