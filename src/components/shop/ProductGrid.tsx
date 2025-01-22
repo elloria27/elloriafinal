@@ -14,7 +14,7 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
   const { addItem } = useCart();
   console.log("ProductGrid rendered with products:", products);
 
-  const handleAddToCart = (product: typeof products[0]) => {
+  const handleAddToCart = async (product: typeof products[0]) => {
     console.log("Adding to cart from ProductGrid:", product);
     try {
       const cartItem = {
