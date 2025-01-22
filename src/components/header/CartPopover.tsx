@@ -12,8 +12,8 @@ export const CartPopover = () => {
 
   const handleCartClick = () => {
     if (isMobile) {
-      console.log("Mobile cart click - dispatching toggle event");
-      window.dispatchEvent(new CustomEvent('toggleCart'));
+      console.log("Mobile cart click - dispatching open event");
+      window.dispatchEvent(new CustomEvent('openCart'));
     }
   };
 

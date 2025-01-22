@@ -31,19 +31,25 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
+  // Simplified event handling - only for opening
   useEffect(() => {
-    const handleToggle = () => {
-      console.log('Toggle cart event received');
+    const handleOpen = () => {
+      console.log('Open cart event received');
       setIsOpen(true);
     };
 
-    window.addEventListener('toggleCart', handleToggle);
-    return () => window.removeEventListener('toggleCart', handleToggle);
+    window.addEventListener('openCart', handleOpen);
+    return () => window.removeEventListener('openCart', handleOpen);
   }, []);
+
+  const handleClose = () => {
+    console.log('Closing cart');
+    setIsOpen(false);
+  };
 
   const handleCheckout = () => {
     console.log("Initiating checkout process");
-    setIsOpen(false);
+    handleClose();
     setTimeout(() => {
       navigate("/checkout", { replace: true });
     }, 300);
@@ -92,7 +98,7 @@ export const MobileCart = () => {
                 variant="ghost" 
                 size="sm"
                 className="p-0 hover:bg-transparent"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
