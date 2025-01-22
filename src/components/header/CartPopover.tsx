@@ -61,7 +61,7 @@ export const CartPopover = () => {
         </Popover>
       )}
       
-      {isMobile && <MobileCart />}
+      <MobileCart />
     </div>
   );
 };

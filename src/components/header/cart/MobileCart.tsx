@@ -1,4 +1,4 @@
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -31,7 +31,6 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  // Simplified event handling - only for opening
   useEffect(() => {
     const handleOpen = () => {
       console.log('Open cart event received');
@@ -89,7 +88,7 @@ export const MobileCart = () => {
     >
       <SheetContent 
         side="bottom" 
-        className="h-[85vh] p-0 flex flex-col"
+        className="h-[85vh] p-0 flex flex-col rounded-t-3xl"
       >
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
@@ -119,26 +118,24 @@ export const MobileCart = () => {
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
           {items.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Your cart is empty</p>
+            <div className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500">
+              <ShoppingBag className="h-12 w-12 mb-4 stroke-[1.5]" />
+              <p className="text-lg font-medium mb-2">Your cart is empty</p>
+              <p className="text-sm text-gray-400">
+                Add items to your cart to start shopping
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {items.map((item) => (
-                  <motion.div
+                  <CartItem
                     key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <CartItem
-                      item={item}
-                      onRemove={handleRemoveItem}
-                      onUpdateQuantity={updateQuantity}
-                      formatPrice={formatPrice}
-                    />
-                  </motion.div>
+                    item={item}
+                    onRemove={handleRemoveItem}
+                    onUpdateQuantity={updateQuantity}
+                    formatPrice={formatPrice}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -146,7 +143,7 @@ export const MobileCart = () => {
         </div>
 
         {items.length > 0 && (
-          <div className="border-t bg-white px-4 py-4 space-y-3">
+          <div className="border-t bg-white px-4 py-4 space-y-4">
             <CartSummary
               subtotal={subtotal}
               total={total}
@@ -159,7 +156,7 @@ export const MobileCart = () => {
             />
 
             <Button 
-              className="w-full h-11 text-base"
+              className="w-full h-12 text-base rounded-xl"
               onClick={handleCheckout}
             >
               Proceed to Checkout
