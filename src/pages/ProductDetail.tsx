@@ -9,7 +9,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { CartProvider } from "@/contexts/CartContext";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
 
 const ProductDetailContent = () => {
@@ -268,11 +267,7 @@ const ProductDetailContent = () => {
 };
 
 const ProductDetail = () => {
-  return (
-    <CartProvider>
-      <ProductDetailContent />
-    </CartProvider>
-  );
+  return <ProductDetailContent />;
 };
 
 export default ProductDetail;

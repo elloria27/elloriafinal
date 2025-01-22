@@ -5,7 +5,6 @@ import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
 import { useState } from "react";
 import { products } from "@/components/ProductCarousel";
-import { CartProvider } from "@/contexts/CartContext";
 
 export type SortOption = "featured" | "price-low" | "price-high" | "newest";
 export type FilterOption = "all" | "ultra-thin" | "maxi" | "overnight";
@@ -38,23 +37,21 @@ export default function Shop() {
   });
 
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-white">
-        <Header />
-        <ShopHero />
-        
-        <main className="container mx-auto px-4 py-12">
-          <ShopFilters 
-            sortBy={sortBy}
-            filterBy={filterBy}
-            onSortChange={setSortBy}
-            onFilterChange={setFilterBy}
-          />
-          <ProductGrid products={sortedProducts} />
-        </main>
-        
-        <Footer />
-      </div>
-    </CartProvider>
+    <div className="min-h-screen bg-white">
+      <Header />
+      <ShopHero />
+      
+      <main className="container mx-auto px-4 py-12">
+        <ShopFilters 
+          sortBy={sortBy}
+          filterBy={filterBy}
+          onSortChange={setSortBy}
+          onFilterChange={setFilterBy}
+        />
+        <ProductGrid products={sortedProducts} />
+      </main>
+      
+      <Footer />
+    </div>
   );
 }
