@@ -38,8 +38,14 @@ export const CartPopover = () => {
   };
 
   const handleCheckout = () => {
+    console.log("Checkout clicked, current device:", isMobile ? "mobile" : "desktop");
     setIsOpen(false);
-    navigate("/checkout");
+    // Add a small delay for mobile to ensure the sheet closes properly
+    const delay = isMobile ? 300 : 0;
+    setTimeout(() => {
+      console.log("Navigating to checkout...");
+      navigate("/checkout");
+    }, delay);
   };
 
   const formatPrice = (price: number) => {
@@ -133,6 +139,11 @@ export const CartPopover = () => {
         className={`bg-white shadow-lg border border-gray-100 ${
           isMobile ? 'w-[calc(100vw-32px)] max-h-[80vh] overflow-y-auto' : 'w-96'
         }`}
+        onInteractOutside={(e) => {
+          if (isMobile) {
+            e.preventDefault(); // Prevent closing on mobile when clicking outside
+          }
+        }}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between sticky top-0 bg-white z-10 py-2">
