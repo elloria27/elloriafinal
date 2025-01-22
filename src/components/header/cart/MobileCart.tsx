@@ -81,7 +81,7 @@ export const MobileCart = () => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="bottom" className="h-[90vh] p-0">
+      <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-2">
@@ -113,57 +113,55 @@ export const MobileCart = () => {
           </div>
         </SheetHeader>
 
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            {items.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Your cart is empty</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <AnimatePresence>
-                  {items.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                    >
-                      <CartItem
-                        item={item}
-                        onRemove={handleRemoveItem}
-                        onUpdateQuantity={updateQuantity}
-                        formatPrice={formatPrice}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
-          </div>
-
-          {items.length > 0 && (
-            <div className="border-t bg-white px-4 py-4 space-y-4">
-              <CartSummary
-                subtotal={subtotal}
-                total={total}
-                promoCode={promoCode}
-                activePromoCode={activePromoCode}
-                onPromoCodeChange={setPromoCode}
-                onApplyPromoCode={handleApplyPromoCode}
-                onRemovePromoCode={removePromoCode}
-                formatPrice={formatPrice}
-              />
-
-              <Button 
-                className="w-full h-12 text-base"
-                onClick={handleCheckout}
-              >
-                Proceed to Checkout
-              </Button>
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {items.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Your cart is empty</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <AnimatePresence>
+                {items.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                  >
+                    <CartItem
+                      item={item}
+                      onRemove={handleRemoveItem}
+                      onUpdateQuantity={updateQuantity}
+                      formatPrice={formatPrice}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </div>
+
+        {items.length > 0 && (
+          <div className="border-t bg-white px-4 py-4 space-y-3">
+            <CartSummary
+              subtotal={subtotal}
+              total={total}
+              promoCode={promoCode}
+              activePromoCode={activePromoCode}
+              onPromoCodeChange={setPromoCode}
+              onApplyPromoCode={handleApplyPromoCode}
+              onRemovePromoCode={removePromoCode}
+              formatPrice={formatPrice}
+            />
+
+            <Button 
+              className="w-full h-11 text-base"
+              onClick={handleCheckout}
+            >
+              Proceed to Checkout
+            </Button>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

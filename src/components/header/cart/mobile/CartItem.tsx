@@ -24,52 +24,53 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
   };
   
   return (
-    <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-gray-100">
+    <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-gray-100">
       <img
         src={item.image}
         alt={item.name}
-        className="w-20 h-20 object-contain rounded-md bg-white"
+        className="w-16 h-16 object-contain rounded-md bg-white"
       />
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between">
-          <h5 className="font-medium text-base truncate flex-1">{item.name}</h5>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h5 className="font-medium text-sm truncate">{item.name}</h5>
+            <p className="text-primary font-medium text-base">
+              {formatPrice(item.price)}
+            </p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleRemove}
-            className="text-gray-400 hover:text-red-500 p-2 h-auto"
+            className="text-gray-400 hover:text-red-500 p-1 h-auto"
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
         
-        <p className="text-primary font-medium text-lg mt-1">
-          {formatPrice(item.price)}
-        </p>
-        
-        <div className="flex items-center gap-3 mt-3">
+        <div className="flex items-center gap-2 mt-2">
           <Button
             variant="outline"
             size="sm"
-            className="h-10 w-10 rounded-full"
+            className="h-8 w-8 rounded-full p-0"
             onClick={(e) => handleQuantityChange(e, Math.max(1, item.quantity - 1))}
             disabled={item.quantity <= 1}
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-3 w-3" />
           </Button>
           
-          <span className="text-base w-8 text-center font-medium">
+          <span className="text-sm w-6 text-center font-medium">
             {item.quantity}
           </span>
           
           <Button
             variant="outline"
             size="sm"
-            className="h-10 w-10 rounded-full"
+            className="h-8 w-8 rounded-full p-0"
             onClick={(e) => handleQuantityChange(e, Math.min(99, item.quantity + 1))}
             disabled={item.quantity >= 99}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3 w-3" />
           </Button>
         </div>
       </div>
