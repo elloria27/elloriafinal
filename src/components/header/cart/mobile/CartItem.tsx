@@ -4,8 +4,8 @@ import { CartItem as CartItemType } from "@/contexts/CartContext";
 
 interface CartItemProps {
   item: CartItemType;
-  onRemove: (id: number) => void;
-  onUpdateQuantity: (id: number, quantity: number) => void;
+  onRemove: (id: string) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
   formatPrice: (price: number) => string;
 }
 

@@ -51,7 +51,7 @@ export const MobileCart = () => {
     }, 300);
   };
 
-  const handleRemoveItem = (itemId: number) => {
+  const handleRemoveItem = (itemId: string) => {
     console.log("Removing item:", itemId);
     removeItem(itemId);
     toast.success("Item removed from cart");
