@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export const products = [
   {
-    id: 1,
+    id: "ultra-thin-290",
     name: "Ultra-Thin 290mm",
     description: "Perfect for light to medium flow days. Features our innovative ultra-thin design for maximum comfort.",
     image: "/lovable-uploads/0df96e81-8434-4436-b873-45aa9c6814cf.png",
@@ -30,7 +30,7 @@ export const products = [
     }
   },
   {
-    id: 2,
+    id: "maxi-pads-350",
     name: "Maxi Pads 350mm",
     description: "Ideal for medium to heavy flow days. Enhanced absorption technology for complete confidence.",
     image: "/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png",
@@ -51,7 +51,7 @@ export const products = [
     }
   },
   {
-    id: 3,
+    id: "overnight-425",
     name: "Overnight 425mm",
     description: "Maximum protection for peaceful nights. Up to 600ml capacity for ultimate security.",
     image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png",
@@ -80,15 +80,15 @@ export const ProductCarousel = () => {
     offset: ["start end", "end start"]
   });
   const { addItem } = useCart();
-  const [quantities, setQuantities] = useState<{ [key: number]: number }>(
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>(
     Object.fromEntries(products.map(p => [p.id, 1]))
   );
-  const [animatingProduct, setAnimatingProduct] = useState<number | null>(null);
+  const [animatingProduct, setAnimatingProduct] = useState<string | null>(null);
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
-  const handleQuantityChange = (productId: number, value: string) => {
+  const handleQuantityChange = (productId: string, value: string) => {
     const quantity = parseInt(value) || 1;
     setQuantities(prev => ({
       ...prev,
@@ -97,6 +97,7 @@ export const ProductCarousel = () => {
   };
 
   const handleAddToCart = async (product: typeof products[0]) => {
+    console.log("Adding to cart:", product);
     setAnimatingProduct(product.id);
     addItem({
       ...product,
