@@ -37,9 +37,10 @@ export const MobileCart = () => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('toggleCart', handleToggleCart);
+    const handleToggleEvent = () => handleToggleCart();
+    window.addEventListener('toggleCart', handleToggleEvent);
     return () => {
-      window.removeEventListener('toggleCart', handleToggleCart);
+      window.removeEventListener('toggleCart', handleToggleEvent);
     };
   }, [handleToggleCart]);
 
@@ -78,7 +79,11 @@ export const MobileCart = () => {
     }).format(price);
   };
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('Closing cart');
     setIsOpen(false);
   }, []);
@@ -102,6 +107,7 @@ export const MobileCart = () => {
                 className="p-0 hover:bg-transparent"
                 onClick={handleClose}
                 onTouchEnd={handleClose}
+                style={{ touchAction: 'manipulation' }}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
