@@ -22,12 +22,15 @@ const Login = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         console.log("User already logged in, redirecting to:", redirectTo);
         navigate(redirectTo);
       }
-    });
+    };
+    
+    checkSession();
   }, [navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -35,20 +38,26 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("Attempting login with email:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
 
-      console.log("Login successful, redirecting to:", redirectTo);
-      toast.success("Logged in successfully!");
-      navigate(redirectTo);
+      if (data.user) {
+        console.log("Login successful, redirecting to:", redirectTo);
+        toast.success("Logged in successfully!");
+        navigate(redirectTo);
+      }
     } catch (error) {
       const authError = error as AuthError;
       console.error("Login error:", authError);
-      toast.error(authError.message);
+      toast.error(authError.message || "Failed to sign in");
     } finally {
       setIsLoading(false);
     }
