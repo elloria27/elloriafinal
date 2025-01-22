@@ -12,71 +12,53 @@ export const CartPopover = () => {
 
   const handleCartClick = (e: React.MouseEvent) => {
     if (isMobile) {
-      // For mobile: prevent default and dispatch custom event
       e.preventDefault();
       e.stopPropagation();
       console.log("Mobile cart click - dispatching toggle event");
       const event = new CustomEvent('toggleCart');
       window.dispatchEvent(event);
-    } else {
-      // For desktop: let the Popover handle it naturally
-      console.log("Desktop cart click - letting Popover handle it");
     }
   };
+
+  const CartIcon = () => (
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      animate={isCartAnimating ? {
+        scale: [1, 1.2, 1],
+        rotate: [0, 10, -10, 10, -10, 0],
+        transition: { duration: 0.5 }
+      } : {}}
+      className="relative cursor-pointer"
+    >
+      <ShoppingCart 
+        className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" 
+      />
+      {totalItems > 0 && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
+        >
+          {totalItems}
+        </motion.div>
+      )}
+    </motion.div>
+  );
 
   return (
     <div className="relative">
       {isMobile ? (
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          animate={isCartAnimating ? {
-            scale: [1, 1.2, 1],
-            rotate: [0, 10, -10, 10, -10, 0],
-            transition: { duration: 0.5 }
-          } : {}}
-          className="relative cursor-pointer"
-          onClick={handleCartClick}
-        >
-          <ShoppingCart 
-            className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" 
-          />
-          {totalItems > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
-            >
-              {totalItems}
-            </motion.div>
-          )}
-        </motion.div>
+        <div onClick={handleCartClick}>
+          <CartIcon />
+        </div>
       ) : (
         <Popover>
           <PopoverTrigger asChild>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              animate={isCartAnimating ? {
-                scale: [1, 1.2, 1],
-                rotate: [0, 10, -10, 10, -10, 0],
-                transition: { duration: 0.5 }
-              } : {}}
-              className="relative cursor-pointer"
-            >
-              <ShoppingCart 
-                className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" 
-              />
-              {totalItems > 0 && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
-                >
-                  {totalItems}
-                </motion.div>
-              )}
-            </motion.div>
+            <button className="cursor-pointer">
+              <CartIcon />
+            </button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="end">
+          <PopoverContent className="w-96 p-0" align="end" sideOffset={8}>
             <DesktopCart />
           </PopoverContent>
         </Popover>
