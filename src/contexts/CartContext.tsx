@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export type CartItem = {
-  id: string;  // Changed from number to string
+  id: string;  // Explicitly defined as string
   name: string;
   description: string;
   image: string;
@@ -75,6 +75,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const addItem = (newItem: CartItem) => {
+    console.log('Adding item to cart:', newItem);
     if (!newItem.price || isNaN(newItem.price)) {
       console.error('Invalid price for item:', newItem);
       return;
@@ -94,7 +95,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...currentItems, { ...newItem, quantity: Math.min(99, newItem.quantity) }];
     });
 
-    // Trigger cart animation
     setIsCartAnimating(true);
     setTimeout(() => setIsCartAnimating(false), 500);
 
@@ -104,6 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = (id: string, quantity: number) => {
+    console.log('Updating quantity:', { id, quantity });
     if (quantity < 1 || quantity > 99) return;
     
     setItems(currentItems =>
@@ -116,6 +117,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeItem = (id: string) => {
+    console.log('Removing item:', id);
     setItems(currentItems => currentItems.filter(item => item.id !== id));
     toast.success('Item removed from cart');
   };

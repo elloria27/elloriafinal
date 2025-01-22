@@ -16,11 +16,16 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
 
   const handleAddToCart = (product: typeof products[0]) => {
     console.log("Adding to cart from ProductGrid:", product);
-    addItem({
-      ...product,
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      image: product.image,
+      price: product.price,
       quantity: 1,
-    });
-    toast.success(`Added ${product.name} to cart`);
+    };
+    
+    addItem(cartItem);
   };
 
   return (
