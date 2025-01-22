@@ -14,8 +14,11 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
   const { addItem } = useCart();
   console.log("ProductGrid rendered with products:", products);
 
-  const handleAddToCart = async (product: typeof products[0]) => {
+  const handleAddToCart = async (e: React.MouseEvent, product: typeof products[0]) => {
+    e.preventDefault(); // Prevent event bubbling
+    e.stopPropagation(); // Stop event propagation
     console.log("Adding to cart from ProductGrid:", product);
+    
     try {
       const cartItem = {
         id: product.id,
@@ -47,22 +50,26 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
           <div className="relative rounded-2xl overflow-hidden bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             
-            <Link to={`/product/${product.id}`} className="block relative">
+            <div className="relative z-10">
               <div className="relative mb-6 aspect-square">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
-                <motion.img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                />
+                <Link to={`/product/${product.id}`}>
+                  <motion.img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Link>
               </div>
 
               <div className="space-y-2 mb-4">
-                <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {product.name}
-                </h3>
+                <Link to={`/product/${product.id}`}>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    {product.name}
+                  </h3>
+                </Link>
                 <p className="text-lg font-semibold text-primary">
                   ${product.price.toFixed(2)}
                 </p>
@@ -70,11 +77,11 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
                   {product.description}
                 </p>
               </div>
-            </Link>
+            </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 relative z-20">
               <Button
-                onClick={() => handleAddToCart(product)}
+                onClick={(e) => handleAddToCart(e, product)}
                 className="flex-1 bg-primary hover:bg-primary/90 text-white"
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
@@ -84,6 +91,7 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
                 variant="outline"
                 asChild
                 className="flex-1 border-primary/20 hover:border-primary/40 text-primary"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Link to={`/product/${product.id}`}>
                   View Details
