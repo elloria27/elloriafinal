@@ -78,10 +78,10 @@ export const MobileCart = () => {
     }).format(price);
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     console.log('Closing cart');
     setIsOpen(false);
-  };
+  }, []);
 
   return (
     <Sheet 
@@ -92,8 +92,6 @@ export const MobileCart = () => {
       <SheetContent 
         side="bottom" 
         className="h-[85vh] p-0 flex flex-col"
-        onPointerDownOutside={handleClose}
-        onEscapeKeyDown={handleClose}
       >
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
@@ -103,6 +101,7 @@ export const MobileCart = () => {
                 size="sm" 
                 className="p-0 hover:bg-transparent"
                 onClick={handleClose}
+                onTouchEnd={handleClose}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
