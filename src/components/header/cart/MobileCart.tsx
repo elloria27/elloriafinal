@@ -9,7 +9,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { CartItem } from "./mobile/CartItem";
 import { CartSummary } from "./mobile/CartSummary";
@@ -77,6 +76,11 @@ export const MobileCart = () => {
     }).format(price);
   };
 
+  const handleClose = () => {
+    console.log('Closing cart');
+    setIsOpen(false);
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
@@ -87,7 +91,7 @@ export const MobileCart = () => {
                 variant="ghost" 
                 size="sm" 
                 className="p-0 hover:bg-transparent"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
               >
                 <ArrowLeft className="h-6 w-6" />
               </Button>
