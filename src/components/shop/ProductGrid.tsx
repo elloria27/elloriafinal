@@ -16,17 +16,22 @@ export const ProductGrid = ({ products }: ProductGridProps) => {
 
   const handleAddToCart = (product: typeof products[0]) => {
     console.log("Adding to cart from ProductGrid:", product);
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      image: product.image,
-      price: product.price,
-      quantity: 1,
-    };
-    
-    addItem(cartItem);
-    toast.success(`Added ${product.name} to cart`);
+    try {
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+        quantity: 1,
+      };
+      
+      addItem(cartItem);
+      toast.success(`Added ${product.name} to cart`);
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+      toast.error("Failed to add item to cart");
+    }
   };
 
   return (
