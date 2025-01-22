@@ -11,13 +11,15 @@ export const CartPopover = () => {
 
   const handleCartClick = (e: React.MouseEvent) => {
     if (isMobile) {
+      // For mobile: prevent default and dispatch custom event
       e.preventDefault();
       e.stopPropagation();
-      console.log("Cart icon clicked - dispatching mobile event");
+      console.log("Mobile cart click - dispatching toggle event");
       const event = new CustomEvent('toggleCart');
       window.dispatchEvent(event);
     } else {
-      console.log("Cart icon clicked - desktop popover will handle it");
+      // For desktop: let the Popover handle it naturally
+      console.log("Desktop cart click - letting Popover handle it");
     }
   };
 
