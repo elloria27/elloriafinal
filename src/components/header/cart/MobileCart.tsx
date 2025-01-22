@@ -33,7 +33,7 @@ export const MobileCart = () => {
 
   const handleToggleCart = useCallback(() => {
     console.log('Toggle cart event received in MobileCart');
-    setIsOpen(true);
+    setIsOpen(prev => !prev);
   }, []);
 
   useEffect(() => {
@@ -84,8 +84,17 @@ export const MobileCart = () => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
+    <Sheet 
+      open={isOpen} 
+      onOpenChange={setIsOpen}
+      modal={true}
+    >
+      <SheetContent 
+        side="bottom" 
+        className="h-[85vh] p-0 flex flex-col"
+        onPointerDownOutside={handleClose}
+        onEscapeKeyDown={handleClose}
+      >
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-2">
