@@ -31,6 +31,7 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
+  // Single event listener for cart toggle
   useEffect(() => {
     const handleToggleCart = () => {
       console.log('Toggle cart event received');
@@ -38,7 +39,9 @@ export const MobileCart = () => {
     };
 
     window.addEventListener('toggleCart', handleToggleCart);
-    return () => window.removeEventListener('toggleCart', handleToggleCart);
+    return () => {
+      window.removeEventListener('toggleCart', handleToggleCart);
+    };
   }, []);
 
   const handleCheckout = () => {

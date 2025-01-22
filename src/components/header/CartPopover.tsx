@@ -9,6 +9,13 @@ export const CartPopover = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { totalItems, isCartAnimating } = useCart();
 
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Cart icon clicked");
+    const event = new CustomEvent('toggleCart');
+    window.dispatchEvent(event);
+  };
+
   return (
     <div className="relative">
       <motion.div
@@ -19,14 +26,10 @@ export const CartPopover = () => {
           transition: { duration: 0.5 }
         } : {}}
         className="relative cursor-pointer"
+        onClick={handleCartClick}
       >
         <ShoppingCart 
           className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" 
-          onClick={(e) => {
-            e.stopPropagation();
-            const event = new CustomEvent('toggleCart');
-            window.dispatchEvent(event);
-          }}
         />
         {totalItems > 0 && (
           <motion.div
