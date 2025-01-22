@@ -12,6 +12,17 @@ interface CartItemProps {
 export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: CartItemProps) => {
   console.log("Rendering cart item:", item.id);
   
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Remove button clicked for item:", item.id);
+    onRemove(item.id);
+  };
+
+  const handleQuantityChange = (e: React.MouseEvent, newQuantity: number) => {
+    e.stopPropagation();
+    onUpdateQuantity(item.id, newQuantity);
+  };
+  
   return (
     <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-gray-100">
       <img
@@ -25,10 +36,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              console.log("Remove button clicked for item:", item.id);
-              onRemove(item.id);
-            }}
+            onClick={handleRemove}
             className="text-gray-400 hover:text-red-500 p-2 h-auto"
           >
             <Trash2 className="h-5 w-5" />
@@ -44,7 +52,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
             variant="outline"
             size="sm"
             className="h-10 w-10 rounded-full"
-            onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+            onClick={(e) => handleQuantityChange(e, Math.max(1, item.quantity - 1))}
             disabled={item.quantity <= 1}
           >
             <Minus className="h-4 w-4" />
@@ -58,7 +66,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
             variant="outline"
             size="sm"
             className="h-10 w-10 rounded-full"
-            onClick={() => onUpdateQuantity(item.id, Math.min(99, item.quantity + 1))}
+            onClick={(e) => handleQuantityChange(e, Math.min(99, item.quantity + 1))}
             disabled={item.quantity >= 99}
           >
             <Plus className="h-4 w-4" />

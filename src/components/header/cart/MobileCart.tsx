@@ -2,14 +2,13 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
 import { CartItem } from "./mobile/CartItem";
@@ -33,7 +32,18 @@ export const MobileCart = () => {
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleCheckout = () => {
+  useEffect(() => {
+    const handleToggleCart = () => {
+      console.log('Toggle cart event received');
+      setIsOpen(prev => !prev);
+    };
+
+    window.addEventListener('toggleCart', handleToggleCart);
+    return () => window.removeEventListener('toggleCart', handleToggleCart);
+  }, []);
+
+  const handleCheckout = (e: React.MouseEvent) => {
+    e.stopPropagation();
     console.log("Initiating checkout process");
     setIsOpen(false);
     setTimeout(() => {
@@ -47,7 +57,8 @@ export const MobileCart = () => {
     toast.success("Item removed from cart");
   };
 
-  const handleClearCart = () => {
+  const handleClearCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     console.log("Clearing entire cart");
     clearCart();
     toast.success("Cart cleared");
@@ -70,16 +81,20 @@ export const MobileCart = () => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <span className="sr-only">Open cart</span>
-      </SheetTrigger>
-      
       <SheetContent side="bottom" className="h-[90vh] p-0">
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-xl font-semibold flex items-center gap-2">
               <SheetClose asChild>
-                <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-0 hover:bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                  }}
+                >
                   <ArrowLeft className="h-6 w-6" />
                 </Button>
               </SheetClose>

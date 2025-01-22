@@ -20,7 +20,14 @@ export const CartPopover = () => {
         } : {}}
         className="relative cursor-pointer"
       >
-        <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" />
+        <ShoppingCart 
+          className="h-5 w-5 text-gray-600 hover:text-primary transition-colors" 
+          onClick={(e) => {
+            e.stopPropagation();
+            const event = new CustomEvent('toggleCart');
+            window.dispatchEvent(event);
+          }}
+        />
         {totalItems > 0 && (
           <motion.div
             initial={{ scale: 0 }}
