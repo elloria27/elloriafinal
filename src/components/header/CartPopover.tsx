@@ -10,11 +10,15 @@ export const CartPopover = () => {
   const { totalItems, isCartAnimating } = useCart();
 
   const handleCartClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("Cart icon clicked - dispatching single event");
-    const event = new CustomEvent('toggleCart');
-    window.dispatchEvent(event);
+    if (isMobile) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Cart icon clicked - dispatching mobile event");
+      const event = new CustomEvent('toggleCart');
+      window.dispatchEvent(event);
+    } else {
+      console.log("Cart icon clicked - desktop popover will handle it");
+    }
   };
 
   return (
