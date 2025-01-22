@@ -9,8 +9,10 @@ export const CartPopover = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { totalItems, isCartAnimating } = useCart();
 
-  const handleCartClick = () => {
-    console.log("Cart icon clicked");
+  const handleCartClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Cart icon clicked - dispatching single event");
     const event = new CustomEvent('toggleCart');
     window.dispatchEvent(event);
   };
