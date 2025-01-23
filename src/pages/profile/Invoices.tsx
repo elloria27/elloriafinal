@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Tables, Json } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
@@ -72,10 +72,10 @@ export default function Invoices() {
       // Add order details
       doc.setFontSize(12);
       doc.text(`Order Number: ${order.order_number}`, 20, 40);
-      doc.text(`Date: ${format(new Date(order.created_at), 'PPP')}`, 20, 50);
+      doc.text(`Date: ${format(new Date(order.created_at || ''), 'PPP')}`, 20, 50);
       
       // Add shipping address
-      const shippingAddress = order.shipping_address as ShippingAddress;
+      const shippingAddress = order.shipping_address as unknown as ShippingAddress;
       doc.text('Shipping Address:', 20, 80);
       doc.text(`${shippingAddress.address}`, 20, 90);
       doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
@@ -84,7 +84,7 @@ export default function Invoices() {
       // Add items
       doc.text('Items:', 20, 130);
       let yPos = 140;
-      const items = order.items as OrderItem[];
+      const items = order.items as unknown as OrderItem[];
       items.forEach(item => {
         doc.text(`${item.name} x ${item.quantity}`, 20, yPos);
         doc.text(`${formatCurrency(item.price * item.quantity)}`, 140, yPos);
@@ -119,7 +119,7 @@ export default function Invoices() {
                 <div className="space-y-1">
                   <h3 className="font-medium text-gray-900">Order #{order.order_number}</h3>
                   <p className="text-sm text-gray-500">
-                    {format(new Date(order.created_at), 'PPP')}
+                    {format(new Date(order.created_at || ''), 'PPP')}
                   </p>
                   <p className="text-sm text-gray-500">
                     Status: <span className="capitalize">{order.status}</span>
@@ -127,7 +127,7 @@ export default function Invoices() {
                   <div className="mt-2">
                     <h4 className="text-sm font-medium text-gray-900">Items:</h4>
                     <ul className="mt-1 space-y-1">
-                      {(order.items as OrderItem[]).map((item, index) => (
+                      {(order.items as unknown as OrderItem[]).map((item, index) => (
                         <li key={index} className="text-sm text-gray-600">
                           {item.name} x {item.quantity}
                         </li>
