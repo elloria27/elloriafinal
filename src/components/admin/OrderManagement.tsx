@@ -17,7 +17,12 @@ export const OrderManagement = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        return;
+      }
+      
       console.log('Current session:', session);
       if (session) {
         console.log('User ID:', session.user.id);
@@ -29,6 +34,18 @@ export const OrderManagement = () => {
           .single();
         
         console.log('Role data:', roleData, 'Role error:', roleError);
+        
+        if (roleError) {
+          console.error('Error checking role:', roleError);
+          toast.error("Error checking admin status");
+          return;
+        }
+
+        if (roleData?.role !== 'admin') {
+          console.error('User is not an admin');
+          toast.error("Unauthorized - Admin access required");
+          return;
+        }
       }
     };
 
@@ -42,11 +59,17 @@ export const OrderManagement = () => {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Session when fetching orders:', session);
 
+      if (!session) {
+        console.error('No active session');
+        toast.error("Please log in to view orders");
+        return;
+      }
+
       const { data, error } = await supabase
         .from('orders')
         .select(`
           *,
-          profile:profiles!orders_user_id_fkey (
+          profiles:profiles!orders_user_id_fkey (
             full_name,
             email
           )
@@ -76,7 +99,10 @@ export const OrderManagement = () => {
         .update({ status: newStatus })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating status:', error);
+        throw error;
+      }
 
       toast.success("Order status updated successfully");
       fetchOrders();
@@ -94,6 +120,7 @@ export const OrderManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Order Management</h2>
+        <Button onClick={fetchOrders}>Refresh Orders</Button>
       </div>
 
       <Table>
@@ -110,7 +137,7 @@ export const OrderManagement = () => {
           {orders.map((order) => (
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
-              <TableCell>{order.profile?.full_name || 'N/A'}</TableCell>
+              <TableCell>{order.profiles?.full_name || 'N/A'}</TableCell>
               <TableCell>${order.total_amount.toFixed(2)}</TableCell>
               <TableCell>{order.status}</TableCell>
               <TableCell>
