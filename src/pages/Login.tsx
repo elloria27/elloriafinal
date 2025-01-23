@@ -35,25 +35,24 @@ const Login = () => {
 
           if (roleError) {
             console.error("Error fetching role:", roleError);
-            toast.error("Error checking permissions", {
-              description: "Please try again or contact support if the issue persists."
-            });
             return;
           }
 
-          console.log("User role:", roleData?.role);
-          const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+          if (!roleData) {
+            console.log("No role found for user");
+            return;
+          }
+
+          console.log("User role:", roleData.role);
+          const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
           
-          toast.success("Logged in successfully!", {
-            description: "Welcome back to Elloria"
+          toast.success("Welcome back!", {
+            description: "You've been successfully logged in"
           });
           
           navigate(redirectPath);
         } catch (error) {
           console.error("Error in role check:", error);
-          toast.error("Error verifying permissions", {
-            description: "Please try again later"
-          });
         }
       }
     };
@@ -91,11 +90,19 @@ const Login = () => {
         throw roleError;
       }
 
-      console.log("User role:", roleData?.role);
-      const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+      if (!roleData) {
+        console.log("No role found for user");
+        toast.error("Account setup incomplete", {
+          description: "Please contact support to complete your account setup"
+        });
+        return;
+      }
+
+      console.log("User role:", roleData.role);
+      const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
-      toast.success("Logged in successfully!", {
-        description: "Welcome back to Elloria"
+      toast.success("Welcome back!", {
+        description: "You've been successfully logged in"
       });
       
       navigate(redirectPath);
