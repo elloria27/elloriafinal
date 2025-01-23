@@ -87,16 +87,13 @@ export const OrderManagement = () => {
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          id,
-          order_number,
-          total_amount,
-          status,
-          user_id,
-          profiles:user_id(
+          *,
+          profiles (
             full_name,
             email
           )
-        `);
+        `)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching orders:', error);
