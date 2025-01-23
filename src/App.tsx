@@ -14,6 +14,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import Checkout from "@/pages/Checkout";
 import OrderSuccess from "@/pages/OrderSuccess";
 import Sustainability from "@/pages/Sustainability";
+import Admin from "@/pages/Admin";
 
 import "./App.css";
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/sustainability" element={<Sustainability />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
         <Footer />
         <Toaster />
