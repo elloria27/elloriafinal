@@ -18,7 +18,7 @@ const Login = () => {
 
   // Get the redirect path from the URL search params
   const searchParams = new URLSearchParams(location.search);
-  const defaultRedirect = searchParams.get("redirectTo") || "/profile";
+  const redirectTo = searchParams.get("redirectTo");
 
   useEffect(() => {
     const checkSession = async () => {
@@ -31,14 +31,18 @@ const Login = () => {
           .eq('user_id', session.user.id)
           .single();
 
-        const redirectPath = roleData?.role === 'admin' ? '/admin' : defaultRedirect;
-        console.log("User already logged in, redirecting to:", redirectPath);
-        navigate(redirectPath);
+        if (roleData?.role === 'admin') {
+          console.log("Admin user logged in, redirecting to admin panel");
+          navigate('/admin');
+        } else {
+          console.log("Regular user logged in, redirecting to profile");
+          navigate(redirectTo || '/profile');
+        }
       }
     };
     
     checkSession();
-  }, [navigate, defaultRedirect]);
+  }, [navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,7 +64,7 @@ const Login = () => {
         .eq('user_id', session.user.id)
         .single();
 
-      const redirectPath = roleData?.role === 'admin' ? '/admin' : defaultRedirect;
+      const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
       toast.success("Logged in successfully!");
       navigate(redirectPath);

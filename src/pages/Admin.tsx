@@ -18,34 +18,44 @@ export default function Admin() {
 
   const checkAdminRole = async () => {
     try {
+      console.log('Checking admin role...');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        console.log('No session found, redirecting to login');
         toast.error("Please login first");
-        navigate("/login");
+        navigate("/login?redirectTo=/admin");
         return;
       }
 
+      console.log('Session found, checking user role');
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
         .single();
 
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error('Error fetching role:', roleError);
+        throw roleError;
+      }
 
+      console.log('User role:', roleData?.role);
       if (roleData?.role !== 'admin') {
+        console.log('User is not admin, redirecting to home');
         toast.error("Unauthorized access");
         navigate("/");
         return;
       }
 
+      console.log('User is admin, setting state');
       setIsAdmin(true);
-      setLoading(false);
     } catch (error) {
       console.error('Error checking admin role:', error);
       toast.error("Error checking permissions");
       navigate("/");
+    } finally {
+      setLoading(false);
     }
   };
 
