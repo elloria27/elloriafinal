@@ -22,6 +22,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
   const handleQuantityChange = (e: React.MouseEvent, newQuantity: number) => {
     e.stopPropagation();
     if (newQuantity >= 1 && newQuantity <= 99) {
+      console.log("Updating quantity for item:", item.id, "to:", newQuantity);
       onUpdateQuantity(item.id, newQuantity);
     }
   };

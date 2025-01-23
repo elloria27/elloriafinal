@@ -33,7 +33,7 @@ export const MobileCart = () => {
 
   useEffect(() => {
     const handleOpen = () => {
-      console.log('Open cart event received');
+      console.log('Opening mobile cart');
       setIsOpen(true);
     };
 
@@ -42,12 +42,12 @@ export const MobileCart = () => {
   }, []);
 
   const handleClose = () => {
-    console.log('Closing cart');
+    console.log('Closing mobile cart');
     setIsOpen(false);
   };
 
   const handleCheckout = () => {
-    console.log("Initiating checkout process");
+    console.log("Starting checkout process");
     handleClose();
     setTimeout(() => {
       navigate("/checkout", { replace: true });
@@ -55,7 +55,7 @@ export const MobileCart = () => {
   };
 
   const handleRemoveItem = (itemId: string) => {
-    console.log("Removing item:", itemId);
+    console.log("Removing item from cart:", itemId);
     removeItem(itemId);
     toast.success("Item removed from cart");
   };
@@ -88,7 +88,7 @@ export const MobileCart = () => {
     >
       <SheetContent 
         side="bottom" 
-        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl"
+        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-white"
       >
         <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-4">
           <div className="flex items-center justify-between">
@@ -122,29 +122,29 @@ export const MobileCart = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
         >
-          {items.length === 0 ? (
-            <motion.div 
-              className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ShoppingBag className="h-16 w-16 mb-4 stroke-[1.5] text-gray-400" />
-              <p className="text-lg font-medium mb-2 text-gray-700">Your cart is empty</p>
-              <p className="text-sm text-gray-500 mb-6">
-                Looks like you haven't added any items yet
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={handleClose}
-                className="rounded-full px-6"
+          <AnimatePresence mode="popLayout">
+            {items.length === 0 ? (
+              <motion.div 
+                className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
               >
-                Continue Shopping
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="space-y-4">
-              <AnimatePresence mode="popLayout">
+                <ShoppingBag className="h-16 w-16 mb-4 stroke-[1.5] text-gray-400" />
+                <p className="text-lg font-medium mb-2 text-gray-700">Your cart is empty</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Looks like you haven't added any items yet
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={handleClose}
+                  className="rounded-full px-6"
+                >
+                  Continue Shopping
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="space-y-4">
                 {items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -154,9 +154,9 @@ export const MobileCart = () => {
                     formatPrice={formatPrice}
                   />
                 ))}
-              </AnimatePresence>
-            </div>
-          )}
+              </div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {items.length > 0 && (
@@ -178,7 +178,7 @@ export const MobileCart = () => {
             />
 
             <Button 
-              className="w-full h-12 text-base rounded-full font-medium"
+              className="w-full h-12 text-base rounded-full font-medium bg-primary hover:bg-primary/90"
               onClick={handleCheckout}
             >
               Proceed to Checkout
