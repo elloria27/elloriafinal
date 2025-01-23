@@ -13,50 +13,55 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAdminRole();
-  }, []);
+    const checkAdminAccess = async () => {
+      try {
+        console.log('Checking admin access...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          throw sessionError;
+        }
 
-  const checkAdminRole = async () => {
-    try {
-      console.log('Checking admin role...');
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('No session found, redirecting to login');
-        navigate("/login?redirectTo=/admin");
-        return;
-      }
+        if (!session) {
+          console.log('No session found, redirecting to login');
+          navigate("/login?redirectTo=/admin");
+          return;
+        }
 
-      console.log('Session found, checking user role');
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
+        console.log('Session found, checking user role for:', session.user.id);
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
 
-      if (roleError) {
-        console.error('Error fetching role:', roleError);
-        throw roleError;
-      }
+        if (roleError) {
+          console.error('Error fetching role:', roleError);
+          throw roleError;
+        }
 
-      console.log('User role:', roleData?.role);
-      if (roleData?.role !== 'admin') {
-        console.log('User is not admin, redirecting to home');
-        toast.error("Unauthorized access");
+        console.log('User role:', roleData?.role);
+        if (roleData?.role !== 'admin') {
+          console.log('User is not admin, redirecting to home');
+          toast.error("Unauthorized access");
+          navigate("/");
+          return;
+        }
+
+        console.log('User is admin, setting state');
+        setIsAdmin(true);
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        toast.error("Error checking permissions");
         navigate("/");
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      console.log('User is admin, setting state');
-      setIsAdmin(true);
-    } catch (error) {
-      console.error('Error checking admin role:', error);
-      toast.error("Error checking permissions");
-      navigate("/");
-    } finally {
-      setLoading(false);
-    }
-  };
+    checkAdminAccess();
+  }, [navigate]);
 
   if (loading) {
     return (
