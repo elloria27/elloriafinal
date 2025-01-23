@@ -106,7 +106,9 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data as Order[]);
+      // Explicitly type the data as Order[] to ensure type safety
+      const typedData = (data || []) as Order[];
+      setOrders(typedData);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
