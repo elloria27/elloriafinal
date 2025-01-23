@@ -21,7 +21,7 @@ interface Order {
   shipping_address: any;
   items: any;
   created_at: string;
-  profiles?: {
+  profiles: {
     full_name: string | null;
     email: string | null;
   } | null;
@@ -92,7 +92,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles!user_id (
+          profiles:user_id (
             full_name,
             email
           )
