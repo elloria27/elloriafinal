@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { OrderManagement } from "@/components/admin/OrderManagement";
+import { ProductManagement } from "@/components/admin/ProductManagement";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -60,21 +64,26 @@ export default function Admin() {
   return (
     <div className="container mx-auto px-4 py-32">
       <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Admin dashboard content will go here */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Users Management</h2>
-          <p className="text-gray-600">Manage user accounts and roles</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Orders</h2>
-          <p className="text-gray-600">View and manage orders</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Products</h2>
-          <p className="text-gray-600">Manage product inventory</p>
-        </div>
-      </div>
+      
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <OrderManagement />
+        </TabsContent>
+
+        <TabsContent value="products">
+          <ProductManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
