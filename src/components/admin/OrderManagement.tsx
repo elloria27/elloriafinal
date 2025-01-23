@@ -105,14 +105,8 @@ export const OrderManagement = () => {
         throw error;
       }
 
-      if (!data) {
-        console.log('No orders found');
-        setOrders([]);
-        return;
-      }
-
       console.log('Orders fetched successfully:', data);
-      setOrders(data as Order[]);
+      setOrders(data || []);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
