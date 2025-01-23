@@ -88,7 +88,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles!user_id(
+          profiles:user_id(
             full_name,
             email
           )
@@ -101,18 +101,7 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      
-      // Ensure the data matches our Order interface
-      const formattedOrders: Order[] = (data || []).map(order => ({
-        id: order.id,
-        order_number: order.order_number,
-        total_amount: order.total_amount,
-        status: order.status,
-        user_id: order.user_id,
-        profiles: order.profiles
-      }));
-
-      setOrders(formattedOrders);
+      setOrders(data || []);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
