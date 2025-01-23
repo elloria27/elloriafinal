@@ -30,29 +30,30 @@ const Admin = () => {
         }
 
         console.log('Session found, checking user role for:', session.user.id);
+        // First, check if the user_roles record exists
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
-          .select('role')
+          .select('*')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (roleError) {
           console.error('Error fetching role:', roleError);
           throw roleError;
         }
 
-        console.log('User role:', roleData?.role);
-        if (roleData?.role !== 'admin') {
-          console.log('User is not admin, redirecting to home');
+        // If no role record exists or role is not admin, deny access
+        if (!roleData || roleData.role !== 'admin') {
+          console.log('User is not admin, redirecting to home. Role data:', roleData);
           toast.error("Unauthorized access");
           navigate("/");
           return;
         }
 
-        console.log('User is admin, setting state');
+        console.log('User confirmed as admin, setting state');
         setIsAdmin(true);
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        console.error('Error in admin access check:', error);
         toast.error("Error checking permissions");
         navigate("/");
       } finally {
