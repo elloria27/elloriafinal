@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 interface Order {
   id: string;
@@ -17,10 +18,10 @@ interface Order {
   total_amount: number;
   status: string;
   user_id: string;
-  billing_address: any;
-  shipping_address: any;
-  items: any;
-  created_at: string;
+  billing_address: Json;
+  shipping_address: Json;
+  items: Json;
+  created_at: string | null;
   profiles: {
     full_name: string | null;
     email: string | null;
@@ -105,7 +106,7 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data || []);
+      setOrders(data as Order[]);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
