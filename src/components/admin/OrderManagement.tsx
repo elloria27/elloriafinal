@@ -17,6 +17,10 @@ interface Order {
   total_amount: number;
   status: string;
   user_id: string;
+  billing_address: any;
+  shipping_address: any;
+  items: any;
+  created_at: string;
   profiles?: {
     full_name: string | null;
     email: string | null;
@@ -88,7 +92,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles:user_id(
+          profiles (
             full_name,
             email
           )
