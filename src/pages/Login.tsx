@@ -22,20 +22,30 @@ const Login = () => {
 
   useEffect(() => {
     const checkSession = async () => {
+      console.log("Checking session...");
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session) {
+        console.log("Session found, checking user role");
         // Check if user is admin
-        const { data: roleData } = await supabase
+        const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', session.user.id)
           .single();
 
+        if (roleError) {
+          console.error("Error fetching role:", roleError);
+          toast.error("Error checking permissions");
+          return;
+        }
+
+        console.log("User role:", roleData?.role);
         if (roleData?.role === 'admin') {
-          console.log("Admin user logged in, redirecting to admin panel");
+          console.log("Admin user, redirecting to admin panel");
           navigate('/admin');
         } else {
-          console.log("Regular user logged in, redirecting to profile");
+          console.log("Regular user, redirecting to profile");
           navigate(redirectTo || '/profile');
         }
       }
@@ -57,13 +67,20 @@ const Login = () => {
 
       if (error) throw error;
 
+      console.log("Login successful, checking user role");
       // Check user role after successful login
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
         .single();
 
+      if (roleError) {
+        console.error("Error fetching role:", roleError);
+        throw roleError;
+      }
+
+      console.log("User role:", roleData?.role);
       const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
       toast.success("Logged in successfully!");
