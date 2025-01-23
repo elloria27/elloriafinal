@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserManagement } from "@/components/admin/UserManagement";
-import { OrderManagement } from "@/components/admin/OrderManagement";
 import { ProductManagement } from "@/components/admin/ProductManagement";
+import { OrderManagement } from "@/components/admin/OrderManagement";
+import { UserManagement } from "@/components/admin/UserManagement";
 
-export default function Admin() {
+const Admin = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,6 @@ export default function Admin() {
       
       if (!session) {
         console.log('No session found, redirecting to login');
-        toast.error("Please login first");
         navigate("/login?redirectTo=/admin");
         return;
       }
@@ -61,8 +60,8 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -72,28 +71,30 @@ export default function Admin() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-32">
-      <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
       
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs defaultValue="products" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users">
-          <UserManagement />
+        <TabsContent value="products">
+          <ProductManagement />
         </TabsContent>
 
         <TabsContent value="orders">
           <OrderManagement />
         </TabsContent>
 
-        <TabsContent value="products">
-          <ProductManagement />
+        <TabsContent value="users">
+          <UserManagement />
         </TabsContent>
       </Tabs>
     </div>
   );
-}
+};
+
+export default Admin;
