@@ -33,9 +33,9 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-start gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm"
+      className="flex items-start gap-4 bg-white p-4 rounded-2xl border border-gray-100/50 shadow-sm"
     >
-      <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-50">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50">
         <img
           src={item.image}
           alt={item.name}
@@ -46,10 +46,10 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-medium text-gray-900 leading-tight">
+            <h3 className="font-medium text-gray-900 leading-tight text-sm">
               {item.name}
             </h3>
-            <p className="text-primary font-semibold mt-1">
+            <p className="text-primary font-semibold mt-1 text-base">
               {formatPrice(item.price)}
             </p>
           </div>
@@ -63,11 +63,11 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           </Button>
         </div>
         
-        <div className="flex items-center gap-3 pt-3">
+        <div className="flex items-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 rounded-lg p-0"
+            className="h-7 w-7 rounded-lg p-0"
             onClick={(e) => handleQuantityChange(e, item.quantity - 1)}
             disabled={item.quantity <= 1}
           >
@@ -81,7 +81,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 rounded-lg p-0"
+            className="h-7 w-7 rounded-lg p-0"
             onClick={(e) => handleQuantityChange(e, item.quantity + 1)}
             disabled={item.quantity >= 99}
           >
