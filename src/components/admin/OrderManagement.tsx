@@ -22,7 +22,7 @@ interface Order {
   shipping_address: Json;
   items: Json;
   created_at: string | null;
-  profiles: {
+  profiles?: {
     full_name: string | null;
     email: string | null;
   } | null;
@@ -105,10 +105,14 @@ export const OrderManagement = () => {
         throw error;
       }
 
+      if (!data) {
+        console.log('No orders found');
+        setOrders([]);
+        return;
+      }
+
       console.log('Orders fetched successfully:', data);
-      // Explicitly type the data as Order[] to ensure type safety
-      const typedData = (data || []) as Order[];
-      setOrders(typedData);
+      setOrders(data);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
