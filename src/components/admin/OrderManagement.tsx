@@ -16,28 +16,50 @@ export const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      if (session) {
+        console.log('User ID:', session.user.id);
+        // Check if user is admin
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        console.log('Role data:', roleData, 'Role error:', roleError);
+      }
+    };
+
+    checkSession();
     fetchOrders();
   }, []);
 
   const fetchOrders = async () => {
     try {
-      console.log('Fetching orders...');
-      // Modified query to correctly join with profiles
+      console.log('Starting to fetch orders...');
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session when fetching orders:', session);
+
       const { data, error } = await supabase
         .from('orders')
         .select(`
           *,
-          profile:user_id (
+          profile:profiles!orders_user_id_fkey (
             full_name,
             email
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error details:', error);
+        throw error;
+      }
 
-      console.log('Orders fetched:', data);
-      setOrders(data);
+      console.log('Orders fetched successfully:', data);
+      setOrders(data || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error("Failed to fetch orders");
