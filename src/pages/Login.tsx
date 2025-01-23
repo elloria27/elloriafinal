@@ -18,19 +18,27 @@ const Login = () => {
 
   // Get the redirect path from the URL search params
   const searchParams = new URLSearchParams(location.search);
-  const redirectTo = searchParams.get("redirectTo") || "/profile";
+  const defaultRedirect = searchParams.get("redirectTo") || "/profile";
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        console.log("User already logged in, redirecting to:", redirectTo);
-        navigate(redirectTo);
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+
+        const redirectPath = roleData?.role === 'admin' ? '/admin' : defaultRedirect;
+        console.log("User already logged in, redirecting to:", redirectPath);
+        navigate(redirectPath);
       }
     };
     
     checkSession();
-  }, [navigate, redirectTo]);
+  }, [navigate, defaultRedirect]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,15 +46,24 @@ const Login = () => {
     
     try {
       console.log("Attempting login with email:", email);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: { session }, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password.trim(),
       });
 
       if (error) throw error;
 
+      // Check user role after successful login
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      const redirectPath = roleData?.role === 'admin' ? '/admin' : defaultRedirect;
+      
       toast.success("Logged in successfully!");
-      navigate(redirectTo);
+      navigate(redirectPath);
     } catch (error) {
       const authError = error as AuthError;
       console.error("Login error:", authError);
