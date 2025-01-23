@@ -16,6 +16,12 @@ interface ShippingAddress {
   phone: string;
 }
 
+interface OrderItem {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 export default function Invoices() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,27 +73,27 @@ export default function Invoices() {
       doc.setFontSize(12);
       doc.text(`Order Number: ${order.order_number}`, 20, 40);
       doc.text(`Date: ${format(new Date(order.created_at), 'PPP')}`, 20, 50);
-      doc.text(`Status: ${order.status}`, 20, 60);
       
       // Add shipping address
-      const shippingAddress = order.shipping_address as unknown as ShippingAddress | null;
-      if (shippingAddress) {
-        doc.text('Shipping Address:', 20, 80);
-        doc.text(`${shippingAddress.address}`, 20, 90);
-        doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
-        doc.text(`Phone: ${shippingAddress.phone}`, 20, 110);
-      }
+      const shippingAddress = order.shipping_address as ShippingAddress;
+      doc.text('Shipping Address:', 20, 80);
+      doc.text(`${shippingAddress.address}`, 20, 90);
+      doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
+      doc.text(`Phone: ${shippingAddress.phone}`, 20, 110);
       
       // Add items
       doc.text('Items:', 20, 130);
       let yPos = 140;
-      order.items?.forEach((item: any) => {
+      const items = order.items as OrderItem[];
+      items.forEach(item => {
         doc.text(`${item.name} x ${item.quantity}`, 20, yPos);
+        doc.text(`${formatCurrency(item.price * item.quantity)}`, 140, yPos);
         yPos += 10;
       });
       
       // Add total
-      doc.text(`Total Amount: ${formatCurrency(Number(order.total_amount))}`, 20, yPos + 20);
+      yPos += 10;
+      doc.text(`Total Amount: ${formatCurrency(Number(order.total_amount))}`, 20, yPos);
       
       // Save the PDF
       doc.save(`invoice-${order.order_number}.pdf`);
@@ -121,7 +127,7 @@ export default function Invoices() {
                   <div className="mt-2">
                     <h4 className="text-sm font-medium text-gray-900">Items:</h4>
                     <ul className="mt-1 space-y-1">
-                      {order.items?.map((item: any, index: number) => (
+                      {(order.items as OrderItem[]).map((item, index) => (
                         <li key={index} className="text-sm text-gray-600">
                           {item.name} x {item.quantity}
                         </li>
