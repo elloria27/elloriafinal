@@ -16,6 +16,7 @@ interface Order {
   order_number: string;
   total_amount: number;
   status: string;
+  user_id: string;
   profiles?: {
     full_name: string | null;
     email: string | null;
@@ -54,7 +55,7 @@ export const OrderManagement = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .maybeSingle();
+        .single();
 
       console.log('Role check result:', roleData, roleError);
 
@@ -86,8 +87,12 @@ export const OrderManagement = () => {
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          *,
-          profiles:user_id (
+          id,
+          order_number,
+          total_amount,
+          status,
+          user_id,
+          profiles (
             full_name,
             email
           )
@@ -100,7 +105,18 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data as Order[] || []);
+      
+      // Ensure the data matches our Order interface
+      const formattedOrders: Order[] = (data || []).map(order => ({
+        id: order.id,
+        order_number: order.order_number,
+        total_amount: order.total_amount,
+        status: order.status,
+        user_id: order.user_id,
+        profiles: order.profiles
+      }));
+
+      setOrders(formattedOrders);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
