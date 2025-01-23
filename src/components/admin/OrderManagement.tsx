@@ -84,7 +84,6 @@ export const OrderManagement = () => {
       console.log('Fetching orders...');
       setLoading(true);
 
-      // Modified query to join with profiles through user_id
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -93,12 +92,11 @@ export const OrderManagement = () => {
           total_amount,
           status,
           user_id,
-          profiles!inner (
+          profiles:user_id(
             full_name,
             email
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
 
       if (error) {
         console.error('Error fetching orders:', error);
