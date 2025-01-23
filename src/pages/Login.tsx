@@ -27,26 +27,31 @@ const Login = () => {
       
       if (session) {
         console.log("Session found, checking user role");
-        // Check if user is admin
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
+        try {
+          // Check if user is admin
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (roleError) {
-          console.error("Error fetching role:", roleError);
-          toast.error("Error checking permissions");
-          return;
-        }
+          if (roleError) {
+            console.error("Error fetching role:", roleError);
+            toast.error("Error checking permissions");
+            return;
+          }
 
-        console.log("User role:", roleData?.role);
-        if (roleData?.role === 'admin') {
-          console.log("Admin user, redirecting to admin panel");
-          navigate('/admin');
-        } else {
-          console.log("Regular user, redirecting to profile");
-          navigate(redirectTo || '/profile');
+          console.log("User role:", roleData?.role);
+          if (roleData?.role === 'admin') {
+            console.log("Admin user, redirecting to admin panel");
+            navigate('/admin');
+          } else {
+            console.log("Regular user, redirecting to profile");
+            navigate(redirectTo || '/profile');
+          }
+        } catch (error) {
+          console.error("Error in role check:", error);
+          toast.error("Error verifying permissions");
         }
       }
     };
@@ -66,6 +71,11 @@ const Login = () => {
       });
 
       if (error) throw error;
+
+      if (!session) {
+        console.error("No session after successful login");
+        throw new Error("Login successful but no session created");
+      }
 
       console.log("Login successful, checking user role");
       // Check user role after successful login
