@@ -19,7 +19,7 @@ interface Order {
   profiles?: {
     full_name: string | null;
     email: string | null;
-  };
+  } | null;
 }
 
 export const OrderManagement = () => {
@@ -87,7 +87,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles:profiles!orders_user_id_fkey (
+          profiles:user_id (
             full_name,
             email
           )
@@ -100,7 +100,7 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data || []);
+      setOrders(data as Order[] || []);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
