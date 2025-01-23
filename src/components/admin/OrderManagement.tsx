@@ -25,7 +25,7 @@ interface Order {
   profiles?: {
     full_name: string | null;
     email: string | null;
-  } | null;
+  } | null | undefined;
 }
 
 export const OrderManagement = () => {
@@ -106,7 +106,11 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data || []);
+      const typedOrders: Order[] = (data || []).map(order => ({
+        ...order,
+        profiles: order.profiles || null
+      }));
+      setOrders(typedOrders);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
