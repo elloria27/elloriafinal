@@ -1,17 +1,13 @@
-import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CartItem } from "./mobile/CartItem";
 import { CartSummary } from "./mobile/CartSummary";
+import { CartHeader } from "./mobile/CartHeader";
+import { EmptyCart } from "./mobile/EmptyCart";
 import { toast } from "sonner";
 
 export const MobileCart = () => {
@@ -90,31 +86,11 @@ export const MobileCart = () => {
         side="bottom" 
         className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-white"
       >
-        <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-4">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-medium flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="p-0 hover:bg-transparent -ml-2"
-                onClick={handleClose}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              Your Cart
-            </SheetTitle>
-            {items.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearCart}
-                className="text-gray-500 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </SheetHeader>
+        <CartHeader 
+          onClose={handleClose}
+          onClear={handleClearCart}
+          hasItems={items.length > 0}
+        />
 
         <motion.div 
           className="flex-1 overflow-y-auto px-4 py-4"
@@ -124,25 +100,7 @@ export const MobileCart = () => {
         >
           <AnimatePresence mode="popLayout">
             {items.length === 0 ? (
-              <motion.div 
-                className="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ShoppingBag className="h-16 w-16 mb-4 stroke-[1.5] text-gray-400" />
-                <p className="text-lg font-medium mb-2 text-gray-700">Your cart is empty</p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Looks like you haven't added any items yet
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={handleClose}
-                  className="rounded-full px-6"
-                >
-                  Continue Shopping
-                </Button>
-              </motion.div>
+              <EmptyCart onClose={handleClose} />
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
