@@ -9,7 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          billing_address: Json
+          created_at: string | null
+          id: string
+          items: Json
+          order_number: string
+          shipping_address: Json
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          billing_address: Json
+          created_at?: string | null
+          id?: string
+          items: Json
+          order_number: string
+          shipping_address: Json
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          billing_address?: Json
+          created_at?: string | null
+          id?: string
+          items?: Json
+          order_number?: string
+          shipping_address?: Json
+          status?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          country: string | null
+          currency: string | null
+          email_notifications: boolean | null
+          full_name: string | null
+          id: string
+          language: string | null
+          marketing_emails: boolean | null
+          phone_number: string | null
+          region: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          country?: string | null
+          currency?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
+          id: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          phone_number?: string | null
+          region?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          country?: string | null
+          currency?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          phone_number?: string | null
+          region?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
