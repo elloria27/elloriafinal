@@ -16,7 +16,6 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Get the redirect path from the URL search params
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get("redirectTo");
 
@@ -28,30 +27,33 @@ const Login = () => {
       if (session) {
         console.log("Session found, checking user role");
         try {
-          // Check if user is admin
           const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (roleError) {
             console.error("Error fetching role:", roleError);
-            toast.error("Error checking permissions");
+            toast.error("Error checking permissions", {
+              description: "Please try again or contact support if the issue persists."
+            });
             return;
           }
 
           console.log("User role:", roleData?.role);
-          if (roleData?.role === 'admin') {
-            console.log("Admin user, redirecting to admin panel");
-            navigate('/admin');
-          } else {
-            console.log("Regular user, redirecting to profile");
-            navigate(redirectTo || '/profile');
-          }
+          const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+          
+          toast.success("Logged in successfully!", {
+            description: "Welcome back to Elloria"
+          });
+          
+          navigate(redirectPath);
         } catch (error) {
           console.error("Error in role check:", error);
-          toast.error("Error verifying permissions");
+          toast.error("Error verifying permissions", {
+            description: "Please try again later"
+          });
         }
       }
     };
@@ -78,12 +80,11 @@ const Login = () => {
       }
 
       console.log("Login successful, checking user role");
-      // Check user role after successful login
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (roleError) {
         console.error("Error fetching role:", roleError);
@@ -93,12 +94,29 @@ const Login = () => {
       console.log("User role:", roleData?.role);
       const redirectPath = roleData?.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
-      toast.success("Logged in successfully!");
+      toast.success("Logged in successfully!", {
+        description: "Welcome back to Elloria"
+      });
+      
       navigate(redirectPath);
     } catch (error) {
       const authError = error as AuthError;
       console.error("Login error:", authError);
-      toast.error(authError.message || "Failed to sign in");
+      
+      let errorMessage = "Failed to sign in";
+      let description = "Please check your credentials and try again";
+      
+      if (authError.message.includes("Invalid login credentials")) {
+        errorMessage = "Invalid credentials";
+        description = "The email or password you entered is incorrect";
+      } else if (authError.message.includes("Email not confirmed")) {
+        errorMessage = "Email not verified";
+        description = "Please check your email to verify your account";
+      }
+      
+      toast.error(errorMessage, {
+        description: description
+      });
     } finally {
       setIsLoading(false);
     }
