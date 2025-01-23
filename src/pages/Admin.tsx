@@ -15,8 +15,9 @@ const Admin = () => {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        console.log('Checking admin access...');
+        // Step 1: Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('Checking session status:', session ? 'Session exists' : 'No session');
         
         if (sessionError) {
           console.error('Session error:', sessionError);
@@ -24,37 +25,40 @@ const Admin = () => {
         }
 
         if (!session) {
-          console.log('No session found, redirecting to login');
+          console.log('No active session, redirecting to login');
           navigate("/login?redirectTo=/admin");
           return;
         }
 
-        console.log('Session found, checking user role for:', session.user.id);
-        // First, check if the user_roles record exists
+        // Step 2: Get user role directly with a single query
+        console.log('Checking admin role for user:', session.user.id);
         const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
+          .rpc('is_admin', {
+            user_id: session.user.id
+          });
 
         if (roleError) {
-          console.error('Error fetching role:', roleError);
+          console.error('Error checking admin role:', roleError);
           throw roleError;
         }
 
-        // If no role record exists or role is not admin, deny access
-        if (!roleData || roleData.role !== 'admin') {
-          console.log('User is not admin, redirecting to home. Role data:', roleData);
-          toast.error("Unauthorized access");
+        console.log('Admin check result:', roleData);
+
+        if (!roleData) {
+          console.log('User is not an admin, access denied');
+          toast.error("Unauthorized access - Admin privileges required");
           navigate("/");
           return;
         }
 
-        console.log('User confirmed as admin, setting state');
+        // User is confirmed as admin
+        console.log('Admin access confirmed, granting access');
         setIsAdmin(true);
+        toast.success("Welcome to Admin Panel");
+
       } catch (error) {
-        console.error('Error in admin access check:', error);
-        toast.error("Error checking permissions");
+        console.error('Admin access check failed:', error);
+        toast.error("Error verifying admin access");
         navigate("/");
       } finally {
         setLoading(false);
