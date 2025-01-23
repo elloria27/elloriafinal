@@ -22,11 +22,12 @@ export const OrderManagement = () => {
   const fetchOrders = async () => {
     try {
       console.log('Fetching orders...');
+      // Modified query to correctly join with profiles
       const { data, error } = await supabase
         .from('orders')
         .select(`
           *,
-          profiles:user_id (
+          profile:user_id (
             full_name,
             email
           )
@@ -87,7 +88,7 @@ export const OrderManagement = () => {
           {orders.map((order) => (
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
-              <TableCell>{order.profiles?.full_name || 'N/A'}</TableCell>
+              <TableCell>{order.profile?.full_name || 'N/A'}</TableCell>
               <TableCell>${order.total_amount.toFixed(2)}</TableCell>
               <TableCell>{order.status}</TableCell>
               <TableCell>
