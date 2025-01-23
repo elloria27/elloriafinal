@@ -88,7 +88,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles (
+          profiles!user_id(
             full_name,
             email
           )
