@@ -1,5 +1,4 @@
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
 import { AboutMission } from "@/components/about/AboutMission";
@@ -55,8 +54,6 @@ export default function About() {
           </motion.div>
         </div>
       </section>
-      
-      <Footer />
     </div>
   );
 }

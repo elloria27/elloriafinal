@@ -1,5 +1,4 @@
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
@@ -50,8 +49,6 @@ export default function Shop() {
         />
         <ProductGrid initialProducts={sortedProducts} />
       </main>
-      
-      <Footer />
     </div>
   );
 }

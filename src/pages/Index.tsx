@@ -8,7 +8,6 @@ import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { ElevatingEssentials } from "@/components/ElevatingEssentials";
 import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
@@ -35,7 +34,6 @@ const Index = () => {
         <BlogPreview />
         <Newsletter />
       </motion.main>
-      <Footer />
     </>
   );
 };
