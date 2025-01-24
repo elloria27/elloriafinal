@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, Save } from "lucide-react";
@@ -16,11 +16,35 @@ interface PageBuilderProps {
 }
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
-  const [blocks, setBlocks] = useState<ContentBlock[]>(initialBlocks);
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
   const [showComponentPicker, setShowComponentPicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  console.log('PageBuilder mounted with blocks:', blocks);
+  useEffect(() => {
+    const fetchPageBlocks = async () => {
+      try {
+        console.log('Fetching blocks for page:', pageId);
+        const { data: blocksData, error } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageId)
+          .order('order_index');
+
+        if (error) throw error;
+
+        console.log('Fetched blocks:', blocksData);
+        setBlocks(blocksData || []);
+      } catch (error) {
+        console.error('Error fetching blocks:', error);
+        toast.error("Failed to load page content");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPageBlocks();
+  }, [pageId]);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -111,7 +135,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         order_index: block.order_index
       }));
 
-      // Update the page with the new content_blocks array
       const { error } = await supabase
         .from('pages')
         .update({
@@ -127,6 +150,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       toast.error("Failed to save layout");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">
