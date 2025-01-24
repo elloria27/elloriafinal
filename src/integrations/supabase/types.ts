@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      content_blocks: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          order_index: number
+          page_id: string | null
+          type: Database["public"]["Enums"]["content_block_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          order_index: number
+          page_id?: string | null
+          type: Database["public"]["Enums"]["content_block_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          order_index?: number
+          page_id?: string | null
+          type?: Database["public"]["Enums"]["content_block_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_blocks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           billing_address: Json
@@ -59,9 +97,11 @@ export type Database = {
       pages: {
         Row: {
           content: Json
+          content_blocks: Json[] | null
           created_at: string | null
           id: string
           is_published: boolean | null
+          page_template: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
@@ -70,9 +110,11 @@ export type Database = {
         }
         Insert: {
           content?: Json
+          content_blocks?: Json[] | null
           created_at?: string | null
           id?: string
           is_published?: boolean | null
+          page_template?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug: string
@@ -81,9 +123,11 @@ export type Database = {
         }
         Update: {
           content?: Json
+          content_blocks?: Json[] | null
           created_at?: string | null
           id?: string
           is_published?: boolean | null
+          page_template?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug?: string
@@ -233,9 +277,11 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           content: Json
+          content_blocks: Json[] | null
           created_at: string | null
           id: string
           is_published: boolean | null
+          page_template: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
@@ -251,6 +297,19 @@ export type Database = {
       }
     }
     Enums: {
+      content_block_type:
+        | "heading"
+        | "text"
+        | "image"
+        | "video"
+        | "button"
+        | "hero"
+        | "features"
+        | "testimonials"
+        | "newsletter"
+        | "product_gallery"
+        | "blog_preview"
+        | "store_brands"
       user_role: "admin" | "client"
     }
     CompositeTypes: {

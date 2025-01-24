@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Edit2, Plus, Trash2 } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
+import { PageBuilder } from "./page-builder/PageBuilder";
 
 interface Page {
   id: string;
@@ -41,6 +42,7 @@ export const PageManagement = () => {
   const [selectedPage, setSelectedPage] = useState<Page | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+  const [selectedPageForEdit, setSelectedPageForEdit] = useState<Page | null>(null);
 
   useEffect(() => {
     console.log('PageManagement component mounted');
@@ -198,6 +200,32 @@ export const PageManagement = () => {
       toast.error("Failed to delete page");
     }
   };
+
+  const handleEditContent = (page: Page) => {
+    setSelectedPageForEdit(page);
+  };
+
+  if (selectedPageForEdit) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">
+            Editing: {selectedPageForEdit.title}
+          </h2>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedPageForEdit(null)}
+          >
+            Back to Pages
+          </Button>
+        </div>
+        <PageBuilder
+          pageId={selectedPageForEdit.id}
+          initialBlocks={selectedPageForEdit.content_blocks || []}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return <div>Loading pages...</div>;
