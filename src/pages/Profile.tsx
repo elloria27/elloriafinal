@@ -3,25 +3,30 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import MainProfile from "./profile/MainProfile";
+import Invoices from "./profile/Invoices";
+import Activity from "./profile/Activity";
+import Settings from "./profile/Settings";
 
 const Profile = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log("Checking authentication status...");
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
+          console.log("No active session found");
           toast.error("Please sign in to view your profile");
-          navigate("/login");
-          return;
+          return <Navigate to="/login" />;
         }
+        console.log("Active session found for user:", session.user.id);
         setLoading(false);
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -31,7 +36,7 @@ const Profile = () => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   if (loading) {
     return (
@@ -65,7 +70,12 @@ const Profile = () => {
             </div>
           )}
           <div className="flex-1">
-            <Outlet />
+            <Routes>
+              <Route index element={<MainProfile />} />
+              <Route path="invoices" element={<Invoices />} />
+              <Route path="activity" element={<Activity />} />
+              <Route path="settings" element={<Settings />} />
+            </Routes>
           </div>
         </div>
       </div>

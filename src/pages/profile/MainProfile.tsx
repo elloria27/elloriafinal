@@ -25,6 +25,7 @@ export default function MainProfile() {
 
   const fetchProfile = async () => {
     try {
+      console.log("Fetching profile data...");
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.log("No authenticated user found");
@@ -37,7 +38,7 @@ export default function MainProfile() {
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
@@ -83,6 +84,7 @@ export default function MainProfile() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
+      console.log("Saving profile changes...");
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         toast.error("No authenticated user found");
@@ -99,6 +101,7 @@ export default function MainProfile() {
         updated_at: new Date().toISOString(),
       };
 
+      console.log("Updating profile with:", updates);
       const { error } = await supabase
         .from("profiles")
         .update(updates)

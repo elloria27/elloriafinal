@@ -45,6 +45,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 
   const handleSignOut = async () => {
     try {
+      console.log("Signing out user...");
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
       navigate("/");
@@ -100,7 +101,6 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
         </SidebarGroup>
       </div>
       
-      {/* Logout Button */}
       <div className="p-4 mt-auto border-t">
         <Button 
           variant="destructive" 
