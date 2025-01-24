@@ -223,6 +223,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_fetch_all_pages: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          content: Json
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          slug: string
+          title: string
+          updated_at: string | null
+        }[]
+      }
       is_admin: {
         Args: {
           user_id: string

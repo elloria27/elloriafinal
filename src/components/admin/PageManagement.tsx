@@ -84,8 +84,8 @@ export const PageManagement = () => {
         return;
       }
 
-      // Використовуємо serviceRole для адміністраторів
-      const { data, error } = await supabase.rpc('admin_fetch_all_pages');
+      // Використовуємо функцію admin_fetch_all_pages для адміністраторів
+      const { data, error } = await supabase.rpc('admin_fetch_all_pages') as { data: Page[] | null, error: Error | null };
 
       if (error) {
         console.error('Error fetching pages:', error);
