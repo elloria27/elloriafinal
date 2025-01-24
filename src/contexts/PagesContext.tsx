@@ -5,6 +5,8 @@ type Page = {
   slug: string;
   title: string;
   is_published: boolean;
+  show_in_header: boolean;
+  show_in_footer: boolean;
 }
 
 type PagesContextType = {
@@ -26,7 +28,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: pages, error } = await supabase
           .from('pages')
-          .select('slug, title, is_published')
+          .select('slug, title, is_published, show_in_header, show_in_footer')
           .order('created_at');
 
         if (error) {
