@@ -15,7 +15,7 @@ interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  role: string;
+  user_roles: { role: 'admin' | 'client' }[];
 }
 
 export const UserManagement = () => {
@@ -30,7 +30,7 @@ export const UserManagement = () => {
           id,
           email,
           full_name,
-          user_roles!inner (
+          user_roles (
             role
           )
         `);
@@ -43,7 +43,7 @@ export const UserManagement = () => {
         id: profile.id,
         email: profile.email || 'N/A',
         full_name: profile.full_name || 'N/A',
-        role: profile.user_roles?.[0]?.role || 'client'
+        user_roles: profile.user_roles || [{ role: 'client' }]
       }));
 
       setUsers(formattedUsers);
@@ -112,9 +112,9 @@ export const UserManagement = () => {
             <TableRow key={user.id}>
               <TableCell>{user.full_name}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.user_roles[0]?.role || 'client'}</TableCell>
               <TableCell>
-                {user.role === 'admin' ? (
+                {user.user_roles[0]?.role === 'admin' ? (
                   <Button
                     variant="destructive"
                     onClick={() => handleRemoveAdmin(user.id)}
