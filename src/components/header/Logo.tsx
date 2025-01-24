@@ -4,7 +4,7 @@ export const Logo = () => {
   return (
     <motion.a 
       href="/" 
-      className="h-8"
+      className="h-6 md:h-8" // Reduced height for mobile, original size for desktop
       whileHover={{ scale: 1.02 }}
     >
       <img 
