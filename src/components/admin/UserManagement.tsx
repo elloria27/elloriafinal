@@ -83,7 +83,7 @@ export const UserManagement = () => {
       if (error) throw error;
 
       toast.success("User role updated successfully");
-      fetchUsers();
+      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error("Failed to update user role");
@@ -97,11 +97,11 @@ export const UserManagement = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
-        full_name: String(formData.get('full_name') || ''),
-        phone_number: String(formData.get('phone_number') || ''),
-        address: String(formData.get('address') || ''),
-        country: String(formData.get('country') || ''),
-        region: String(formData.get('region') || ''),
+        full_name: formData.get('full_name')?.toString() || '',
+        phone_number: formData.get('phone_number')?.toString() || '',
+        address: formData.get('address')?.toString() || '',
+        country: formData.get('country')?.toString() || '',
+        region: formData.get('region')?.toString() || '',
       };
 
       console.log('Updating user with data:', updates);
@@ -115,7 +115,7 @@ export const UserManagement = () => {
 
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
-      fetchUsers();
+      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error("Failed to update user");
@@ -132,7 +132,7 @@ export const UserManagement = () => {
       if (error) throw error;
 
       toast.success("User deleted successfully");
-      fetchUsers();
+      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error deleting user:', error);
       toast.error("Failed to delete user");

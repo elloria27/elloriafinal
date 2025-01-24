@@ -73,7 +73,6 @@ export const OrderManagement = () => {
 
       if (ordersError) throw ordersError;
 
-      // Type assertion to ensure the data matches our OrderData interface
       const typedOrders = (ordersData as any[]).map(order => ({
         ...order,
         shipping_address: order.shipping_address as ShippingAddress,
@@ -93,23 +92,35 @@ export const OrderManagement = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       console.log('Updating order status:', { orderId, newStatus });
-      const order = orders.find(o => o.id === orderId);
-      if (!order) throw new Error('Order not found');
-
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Fetch the updated order to ensure we have the latest data
+      const { data: updatedOrder, error: fetchError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          profile:profiles (
+            full_name,
+            email
+          )
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError) throw fetchError;
 
       // Send email notification
       const emailResponse = await supabase.functions.invoke('send-order-status-email', {
         body: {
-          customerEmail: order.profile?.email,
-          customerName: order.profile?.full_name || 'Valued Customer',
-          orderId: order.id,
-          orderNumber: order.order_number,
+          customerEmail: updatedOrder.profile?.email,
+          customerName: updatedOrder.profile?.full_name || 'Valued Customer',
+          orderId: updatedOrder.id,
+          orderNumber: updatedOrder.order_number,
           newStatus: newStatus
         }
       });
@@ -121,11 +132,15 @@ export const OrderManagement = () => {
         toast.success("Order status updated and notification sent");
       }
 
-      // Update local state
+      // Update local state with the fetched order data
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId
-            ? { ...order, status: newStatus }
+            ? {
+                ...updatedOrder,
+                shipping_address: updatedOrder.shipping_address as ShippingAddress,
+                items: updatedOrder.items as OrderItem[]
+              }
             : order
         )
       );
