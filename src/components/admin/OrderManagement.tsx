@@ -117,7 +117,10 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            profile: order.profile || undefined
+            profile: {
+              full_name: order.profile?.full_name || null,
+              email: order.profile?.email || null
+            }
           };
           return validatedOrder;
         } catch (error) {
