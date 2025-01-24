@@ -28,13 +28,19 @@ export const ProductManagement = () => {
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<Omit<Product, 'id' | 'created_at' | 'updated_at'>>({
     name: "",
     description: "",
-    price: "",
+    price: 0,
     image: "",
-    features: [] as string[],
-    specifications: {} as Record<string, string>,
+    features: [],
+    specifications: {
+      length: "",
+      absorption: "",
+      quantity: "",
+      material: "",
+      features: ""
+    },
   });
 
   const fetchProducts = async () => {
@@ -51,8 +57,14 @@ export const ProductManagement = () => {
         return;
       }
 
-      console.log("Products fetched successfully:", data);
-      setProducts(data || []);
+      // Transform the data to match our Product type
+      const typedProducts = data.map(product => ({
+        ...product,
+        specifications: product.specifications as Product['specifications']
+      }));
+
+      console.log("Products fetched successfully:", typedProducts);
+      setProducts(typedProducts);
     } catch (error) {
       console.error("Error in fetchProducts:", error);
       toast.error("An unexpected error occurred");

@@ -1,5 +1,5 @@
 export interface Product {
-  id: string;  // Changed from number to string
+  id: string;
   name: string;
   description: string;
   image: string;
@@ -12,4 +12,6 @@ export interface Product {
     material: string;
     features: string;
   };
+  created_at?: string;
+  updated_at?: string;
 }

@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -73,11 +74,26 @@ export const OrderManagement = () => {
 
       if (ordersError) throw ordersError;
 
-      const typedOrders = (ordersData as any[]).map(order => ({
-        ...order,
-        shipping_address: order.shipping_address as ShippingAddress,
-        items: order.items as OrderItem[]
-      })) as OrderData[];
+      // Type assertion and validation for the raw data
+      const typedOrders = (ordersData || []).map(order => {
+        // Ensure shipping_address and items are properly typed
+        const shippingAddress = order.shipping_address as ShippingAddress;
+        const items = order.items as OrderItem[];
+        
+        // Validate status is one of the allowed values
+        const status = order.status as OrderStatus;
+        if (!['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+          console.error(`Invalid status value: ${status}`);
+          throw new Error(`Invalid status value: ${status}`);
+        }
+
+        return {
+          ...order,
+          shipping_address: shippingAddress,
+          items: items,
+          status: status
+        } as OrderData;
+      });
 
       console.log('Orders data fetched:', typedOrders);
       setOrders(typedOrders);
@@ -114,6 +130,20 @@ export const OrderManagement = () => {
 
       if (fetchError) throw fetchError;
 
+      // Update local state with the fetched order data
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId
+            ? {
+                ...updatedOrder,
+                shipping_address: updatedOrder.shipping_address as ShippingAddress,
+                items: updatedOrder.items as OrderItem[],
+                status: updatedOrder.status as OrderStatus
+              }
+            : order
+        )
+      );
+
       // Send email notification
       const emailResponse = await supabase.functions.invoke('send-order-status-email', {
         body: {
@@ -131,19 +161,6 @@ export const OrderManagement = () => {
       } else {
         toast.success("Order status updated and notification sent");
       }
-
-      // Update local state with the fetched order data
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === orderId
-            ? {
-                ...updatedOrder,
-                shipping_address: updatedOrder.shipping_address as ShippingAddress,
-                items: updatedOrder.items as OrderItem[]
-              }
-            : order
-        )
-      );
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Failed to update order status");
