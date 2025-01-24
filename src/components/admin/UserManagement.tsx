@@ -138,40 +138,16 @@ export const UserManagement = () => {
 
     try {
       console.log('Starting user deletion process for ID:', userId);
-
-      // First delete from user_roles table
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
-
-      if (roleError) {
-        console.error('Error deleting user role:', roleError);
-        throw roleError;
-      }
-
-      // Then delete from profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
-      if (profileError) {
-        console.error('Error deleting profile:', profileError);
-        throw profileError;
-      }
-
-      // Finally, delete the auth user using Edge Function
-      const { error: authError } = await supabase.functions.invoke('delete-user', {
+      
+      const { error } = await supabase.functions.invoke('delete-user', {
         body: { userId }
       });
 
-      if (authError) {
-        console.error('Error deleting auth user:', authError);
-        throw authError;
+      if (error) {
+        console.error('Error in delete process:', error);
+        throw error;
       }
 
-      // Update local state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       toast.success("User deleted successfully");
       
