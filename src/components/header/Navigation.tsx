@@ -1,14 +1,28 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { usePages } from "@/contexts/PagesContext";
 
 export const Navigation = () => {
-  const navItems = [
-    { name: "Shop", path: "/shop" },
+  const { publishedPages, isLoading } = usePages();
+
+  const staticItems = [
     { name: "Features", path: "#features" },
-    { name: "Sustainability", path: "/sustainability" },
-    { name: "About Us", path: "/about" },
     { name: "Blog", path: "#blog" }
   ];
+
+  const navItems = [
+    ...publishedPages
+      .filter(page => page.is_published)
+      .map(page => ({
+        name: page.title,
+        path: page.slug === 'index' ? '/' : `/${page.slug}`
+      })),
+    ...staticItems
+  ];
+
+  if (isLoading) {
+    return null; // Or a loading skeleton
+  }
 
   return (
     <nav className="hidden md:flex items-center space-x-12 ml-auto mr-8">

@@ -6,15 +6,29 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { LanguageSelector } from "./LanguageSelector";
 import { CurrencySelector } from "./CurrencySelector";
 import { UserMenu } from "./UserMenu";
+import { usePages } from "@/contexts/PagesContext";
 
 export const MobileMenu = () => {
-  const menuItems = [
-    { name: "Shop", path: "/shop" },
+  const { publishedPages, isLoading } = usePages();
+
+  const staticItems = [
     { name: "Features", path: "#features" },
-    { name: "Sustainability", path: "/sustainability" },
-    { name: "About Us", path: "/about" },
     { name: "Blog", path: "#blog" }
   ];
+
+  const menuItems = [
+    ...publishedPages
+      .filter(page => page.is_published)
+      .map(page => ({
+        name: page.title,
+        path: page.slug === 'index' ? '/' : `/${page.slug}`
+      })),
+    ...staticItems
+  ];
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <Sheet>
