@@ -324,7 +324,6 @@ const Checkout = () => {
           </motion.div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

@@ -11,11 +11,6 @@ import { usePages } from "@/contexts/PagesContext";
 export const MobileMenu = () => {
   const { publishedPages, isLoading } = usePages();
 
-  const staticItems = [
-    { name: "Features", path: "#features" },
-    { name: "Blog", path: "#blog" }
-  ];
-
   // Define technical pages that should not appear in the menu
   const technicalPages = [
     'login',
@@ -36,8 +31,7 @@ export const MobileMenu = () => {
       .map(page => ({
         name: page.title,
         path: page.slug === 'index' ? '/' : `/${page.slug}`
-      })),
-    ...staticItems
+      }))
   ];
 
   if (isLoading) {
@@ -69,26 +63,15 @@ export const MobileMenu = () => {
           <div className="flex flex-col space-y-6 mt-12">
             {menuItems.map((item) => (
               <motion.div key={item.name}>
-                {item.path.startsWith("#") ? (
-                  <motion.a
-                    href={item.path}
-                    className="text-lg text-gray-600 hover:text-primary transition-colors py-2 tracking-wider font-light block"
+                <Link to={item.path}>
+                  <motion.span
+                    className="text-lg text-gray-600 hover:text-primary transition-colors py-2 tracking-wider font-light block cursor-pointer"
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {item.name}
-                  </motion.a>
-                ) : (
-                  <Link to={item.path}>
-                    <motion.span
-                      className="text-lg text-gray-600 hover:text-primary transition-colors py-2 tracking-wider font-light block cursor-pointer"
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {item.name}
-                    </motion.span>
-                  </Link>
-                )}
+                  </motion.span>
+                </Link>
               </motion.div>
             ))}
           </div>
