@@ -16,6 +16,7 @@ export type Database = {
           id: string
           items: Json
           order_number: string
+          profile_id: string
           shipping_address: Json
           status: string
           total_amount: number
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           items: Json
           order_number: string
+          profile_id: string
           shipping_address: Json
           status: string
           total_amount: number
@@ -38,12 +40,21 @@ export type Database = {
           id?: string
           items?: Json
           order_number?: string
+          profile_id?: string
           shipping_address?: Json
           status?: string
           total_amount?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {

@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-// Define the base types we need
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 interface OrderData {
@@ -21,15 +20,17 @@ interface OrderData {
   status: OrderStatus;
   created_at: string | null;
   user_id: string;
-  customer_name: string | null;
-  customer_email: string | null;
+  profile_id: string;
+  profile: {
+    full_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Check admin access and fetch orders
   useEffect(() => {
     const checkAdminAndFetchOrders = async () => {
       try {
@@ -54,7 +55,7 @@ export const OrderManagement = () => {
           return;
         }
 
-        // Fetch orders with customer information
+        // Fetch orders with profile information
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
           .select(`
@@ -64,7 +65,8 @@ export const OrderManagement = () => {
             status,
             created_at,
             user_id,
-            profiles (
+            profile_id,
+            profile:profiles (
               full_name,
               email
             )
@@ -75,19 +77,7 @@ export const OrderManagement = () => {
           throw ordersError;
         }
 
-        // Transform the data to match our OrderData interface
-        const transformedOrders: OrderData[] = ordersData.map(order => ({
-          id: order.id,
-          order_number: order.order_number,
-          total_amount: order.total_amount,
-          status: order.status as OrderStatus,
-          created_at: order.created_at,
-          user_id: order.user_id,
-          customer_name: order.profiles?.full_name || 'N/A',
-          customer_email: order.profiles?.email || 'N/A'
-        }));
-
-        setOrders(transformedOrders);
+        setOrders(ordersData || []);
       } catch (error) {
         console.error('Error:', error);
         toast.error("Failed to load orders");
@@ -99,7 +89,6 @@ export const OrderManagement = () => {
     checkAdminAndFetchOrders();
   }, []);
 
-  // Handle order status update
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       const { error } = await supabase
@@ -109,7 +98,6 @@ export const OrderManagement = () => {
 
       if (error) throw error;
 
-      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId
@@ -162,8 +150,8 @@ export const OrderManagement = () => {
                 <TableCell>{order.order_number}</TableCell>
                 <TableCell>
                   <div>
-                    <div>{order.customer_name}</div>
-                    <div className="text-sm text-gray-500">{order.customer_email}</div>
+                    <div>{order.profile?.full_name || 'N/A'}</div>
+                    <div className="text-sm text-gray-500">{order.profile?.email || 'N/A'}</div>
                   </div>
                 </TableCell>
                 <TableCell>${order.total_amount.toFixed(2)}</TableCell>
