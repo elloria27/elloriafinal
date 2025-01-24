@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -103,6 +102,8 @@ export const OrderManagement = () => {
         return;
       }
 
+      console.log("Raw orders data:", ordersData);
+
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const validatedOrder: OrderData = {
@@ -125,7 +126,7 @@ export const OrderManagement = () => {
         }
       });
 
-      console.log("Orders fetched and validated:", validatedOrders);
+      console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
     } catch (error) {
       console.error("Error in fetchOrders:", error);
@@ -138,6 +139,88 @@ export const OrderManagement = () => {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      console.log("Updating order status:", orderId, newStatus);
+      
+      // First update the order status in the database
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from("orders")
+        .update({ status: newStatus })
+        .eq("id", orderId)
+        .select(`
+          *,
+          profile:profiles(full_name, email)
+        `)
+        .single();
+
+      if (updateError) {
+        console.error("Error updating order:", updateError);
+        toast.error("Failed to update order status");
+        return;
+      }
+
+      console.log("Order updated successfully:", updatedOrder);
+
+      // Validate the updated order data
+      const validatedOrder: OrderData = {
+        id: updatedOrder.id,
+        user_id: updatedOrder.user_id,
+        profile_id: updatedOrder.profile_id,
+        order_number: updatedOrder.order_number,
+        total_amount: updatedOrder.total_amount,
+        status: validateOrderStatus(updatedOrder.status),
+        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
+        billing_address: validateShippingAddress(updatedOrder.billing_address),
+        items: validateOrderItems(updatedOrder.items),
+        created_at: updatedOrder.created_at,
+        profile: updatedOrder.profile || undefined
+      };
+
+      // Update the orders state
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId ? validatedOrder : order
+        )
+      );
+
+      // Update selected order if it's currently being viewed
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(validatedOrder);
+      }
+
+      // Try to send email notification
+      try {
+        if (validatedOrder.profile?.email) {
+          const response = await fetch('/api/send-order-status-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              customerEmail: validatedOrder.profile.email,
+              customerName: validatedOrder.profile.full_name || 'Valued Customer',
+              orderId: validatedOrder.id,
+              orderNumber: validatedOrder.order_number,
+              newStatus: validatedOrder.status
+            }),
+          });
+
+          if (!response.ok) {
+            console.error('Failed to send email notification');
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
+      }
+
+      toast.success("Order status updated successfully");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update order status");
+    }
+  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
@@ -155,58 +238,6 @@ export const OrderManagement = () => {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
-  };
-
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
-    try {
-      console.log("Updating order status:", orderId, newStatus);
-      const { data: updatedOrder, error } = await supabase
-        .from("orders")
-        .update({ status: newStatus })
-        .eq("id", orderId)
-        .select(`
-          *,
-          profile:profiles(full_name, email)
-        `)
-        .single();
-
-      if (error) {
-        console.error("Error updating order:", error);
-        toast.error("Failed to update order status");
-        return;
-      }
-
-      console.log("Order updated successfully:", updatedOrder);
-
-      const validatedOrder: OrderData = {
-        id: updatedOrder.id,
-        user_id: updatedOrder.user_id,
-        profile_id: updatedOrder.profile_id,
-        order_number: updatedOrder.order_number,
-        total_amount: updatedOrder.total_amount,
-        status: validateOrderStatus(updatedOrder.status),
-        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
-        billing_address: validateShippingAddress(updatedOrder.billing_address),
-        items: validateOrderItems(updatedOrder.items),
-        created_at: updatedOrder.created_at,
-        profile: updatedOrder.profile || undefined
-      };
-
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === orderId ? validatedOrder : order
-        )
-      );
-
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder(validatedOrder);
-      }
-
-      toast.success("Order status updated successfully");
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update order status");
-    }
   };
 
   if (loading) {
