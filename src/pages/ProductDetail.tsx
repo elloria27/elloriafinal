@@ -8,10 +8,11 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
+import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
+import { Features } from "@/components/Features";
 
 const ProductDetailContent = () => {
   const { id } = useParams();
@@ -126,28 +127,7 @@ const ProductDetailContent = () => {
               Why Choose Our Product?
             </motion.h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { icon: Droplets, title: "Superior Absorption", desc: "Advanced technology for maximum protection" },
-                { icon: Shield, title: "24/7 Protection", desc: "Feel confident throughout your day" },
-                { icon: Wind, title: "Breathable Design", desc: "Keeps you comfortable all day long" },
-                { icon: Leaf, title: "Eco-Friendly", desc: "Made with sustainable materials" },
-                { icon: Clock, title: "Long-Lasting", desc: "Up to 12 hours of protection" },
-                { icon: RefreshCw, title: "Quick-Change", desc: "Easy to use when you need it most" }
-              ].map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  <feature.icon className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.desc}</p>
-                </motion.div>
-              ))}
-            </div>
+            <Features features={product.why_choose_features || []} />
           </div>
         </section>
 
