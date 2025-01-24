@@ -8,6 +8,7 @@ import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
   pageId: string;
@@ -84,10 +85,18 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleSaveLayout = async () => {
     try {
+      // Convert ContentBlock[] to Json[] for database storage
+      const blocksForStorage: Json[] = blocks.map(block => ({
+        id: block.id,
+        type: block.type,
+        content: block.content,
+        order_index: block.order_index
+      }));
+
       const { error } = await supabase
         .from('pages')
         .update({
-          content_blocks: blocks,
+          content_blocks: blocksForStorage,
           updated_at: new Date().toISOString()
         })
         .eq('id', pageId);

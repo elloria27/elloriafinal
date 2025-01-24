@@ -23,13 +23,14 @@ import { toast } from "sonner";
 import { Edit2, Plus, Trash2 } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
 import { PageBuilder } from "./page-builder/PageBuilder";
+import { ContentBlock } from "@/types/content-blocks";
 
 interface Page {
   id: string;
   title: string;
   slug: string;
   content: Json;
-  content_blocks: Json[] | null;
+  content_blocks: ContentBlock[];
   is_published: boolean;
   show_in_header: boolean;
   show_in_footer: boolean;
