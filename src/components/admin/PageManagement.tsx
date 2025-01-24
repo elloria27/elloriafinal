@@ -41,55 +41,69 @@ export const PageManagement = () => {
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetchPages();
+    checkAuthAndFetchPages();
   }, []);
 
-  const fetchPages = async () => {
+  const checkAuthAndFetchPages = async () => {
     try {
-      console.log('Starting to fetch pages...');
-      
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session check:', sessionData?.session ? 'Active session found' : 'No active session');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         console.error('Session error:', sessionError);
-        toast.error("Помилка аутентифікації");
+        toast.error("Authentication error");
         return;
       }
 
-      if (!sessionData.session) {
-        console.log('No active session found');
-        toast.error("Будь ласка, увійдіть в систему для доступу до адмін-панелі");
+      if (!session) {
+        console.log('No active session');
+        toast.error("Please sign in to access the admin panel");
         return;
       }
 
-      // Викликаємо функцію admin_fetch_all_pages
+      console.log('Session found, checking admin status');
+      
+      const { data: isAdminData, error: isAdminError } = await supabase.rpc('is_admin', {
+        user_id: session.user.id
+      });
+
+      if (isAdminError) {
+        console.error('Error checking admin status:', isAdminError);
+        toast.error("Error verifying admin access");
+        return;
+      }
+
+      if (!isAdminData) {
+        console.log('User is not an admin');
+        toast.error("Admin access required");
+        return;
+      }
+
+      console.log('Admin status confirmed, fetching pages');
+      await fetchPages();
+
+    } catch (error) {
+      console.error('Error in auth check:', error);
+      toast.error("Error checking authentication");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPages = async () => {
+    try {
       const { data, error } = await supabase.rpc('admin_fetch_all_pages');
-      console.log('Response from admin_fetch_all_pages:', { data, error });
-
+      
       if (error) {
         console.error('Error fetching pages:', error);
-        if (error.message.includes('Access denied')) {
-          toast.error("Доступ заборонено: потрібні права адміністратора");
-        } else {
-          toast.error("Помилка при завантаженні сторінок");
-        }
-        return;
-      }
-
-      if (!data) {
-        console.log('No pages data returned');
-        setPages([]);
+        toast.error("Error loading pages");
         return;
       }
 
       console.log('Pages fetched successfully:', data);
-      setPages(data);
+      setPages(data || []);
     } catch (error) {
       console.error('Error in fetchPages:', error);
-      toast.error("Помилка при завантаженні сторінок");
-    } finally {
-      setLoading(false);
+      toast.error("Error loading pages");
     }
   };
 
@@ -175,27 +189,27 @@ export const PageManagement = () => {
   };
 
   if (loading) {
-    return <div>Завантаження сторінок...</div>;
+    return <div>Loading pages...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Управління сторінками</h2>
+        <h2 className="text-2xl font-bold">Page Management</h2>
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Додати нову сторінку
+              Add New Page
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Створити нову сторінку</DialogTitle>
+              <DialogTitle>Create New Page</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreatePage} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Заголовок</Label>
+                <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
                   name="title"
@@ -203,7 +217,7 @@ export const PageManagement = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">URL-адреса</Label>
+                <Label htmlFor="slug">URL</Label>
                 <Input
                   id="slug"
                   name="slug"
@@ -211,7 +225,7 @@ export const PageManagement = () => {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Створити сторінку
+                Create Page
               </Button>
             </form>
           </DialogContent>
@@ -221,11 +235,11 @@ export const PageManagement = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Заголовок</TableHead>
-            <TableHead>URL-адреса</TableHead>
-            <TableHead>Статус</TableHead>
-            <TableHead>Останнє оновлення</TableHead>
-            <TableHead>Дії</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>URL</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Last Updated</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -233,7 +247,7 @@ export const PageManagement = () => {
             <TableRow key={page.id}>
               <TableCell>{page.title}</TableCell>
               <TableCell>{page.slug}</TableCell>
-              <TableCell>{page.is_published ? 'Опубліковано' : 'Чернетка'}</TableCell>
+              <TableCell>{page.is_published ? 'Published' : 'Draft'}</TableCell>
               <TableCell>{new Date(page.updated_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -252,11 +266,11 @@ export const PageManagement = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Редагувати сторінку</DialogTitle>
+                        <DialogTitle>Edit Page</DialogTitle>
                       </DialogHeader>
                       <form onSubmit={handleUpdatePage} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="title">Заголовок</Label>
+                          <Label htmlFor="title">Title</Label>
                           <Input
                             id="title"
                             name="title"
@@ -265,7 +279,7 @@ export const PageManagement = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="slug">URL-адреса</Label>
+                          <Label htmlFor="slug">URL</Label>
                           <Input
                             id="slug"
                             name="slug"
@@ -279,10 +293,10 @@ export const PageManagement = () => {
                             name="is_published"
                             defaultChecked={selectedPage?.is_published}
                           />
-                          <Label htmlFor="is_published">Опубліковано</Label>
+                          <Label htmlFor="is_published">Published</Label>
                         </div>
                         <Button type="submit" className="w-full">
-                          Зберегти зміни
+                          Save Changes
                         </Button>
                       </form>
                     </DialogContent>
