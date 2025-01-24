@@ -39,6 +39,13 @@ interface Page {
   page_template?: string;
 }
 
+interface ContentBlockJson {
+  id: string;
+  type: string;
+  content: Record<string, unknown>;
+  order_index: number;
+}
+
 export const PageManagement = () => {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,12 +123,15 @@ export const PageManagement = () => {
       // Convert the content_blocks from Json[] to ContentBlock[]
       const pagesWithTypedBlocks = data.map((page: any) => ({
         ...page,
-        content_blocks: (page.content_blocks || []).map((block: Json) => ({
-          id: String(block.id),
-          type: String(block.type) as ContentBlock['type'],
-          content: block.content || {},
-          order_index: Number(block.order_index)
-        }))
+        content_blocks: (page.content_blocks || []).map((block: any) => {
+          const typedBlock: ContentBlockJson = block as ContentBlockJson;
+          return {
+            id: typedBlock.id,
+            type: typedBlock.type as ContentBlock['type'],
+            content: typedBlock.content,
+            order_index: typedBlock.order_index
+          };
+        })
       }));
 
       setPages(pagesWithTypedBlocks);
