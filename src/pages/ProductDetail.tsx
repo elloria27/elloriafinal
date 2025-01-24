@@ -1,17 +1,12 @@
 import { useParams } from "react-router-dom";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Features } from "@/components/Features";
-import { GameChanger } from "@/components/GameChanger";
-import { CompetitorComparison } from "@/components/CompetitorComparison";
-import { Testimonials } from "@/components/Testimonials";
-import { ElevatingEssentials } from "@/components/ElevatingEssentials";
-import { Sustainability } from "@/components/Sustainability";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Heart, Share2, ArrowDown } from "lucide-react";
+import { ShoppingCart, Heart, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const ProductDetail = () => {
@@ -64,10 +59,11 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
+      {/* Hero Section with Product Details */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-accent-purple/20 via-white to-white pt-[96px] md:pt-[120px]">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Product Info */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -103,6 +99,7 @@ const ProductDetail = () => {
               </div>
             </motion.div>
             
+            {/* Product Gallery */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -112,33 +109,46 @@ const ProductDetail = () => {
               <ProductGallery media={product.media || []} productName={product.name} />
             </motion.div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
-          >
-            <p className="text-gray-600 mb-2">Discover More</p>
-            <ArrowDown className="w-6 h-6 mx-auto animate-bounce text-primary" />
-          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <ElevatingEssentials />
+      {product.features && product.features.length > 0 && (
+        <section className="py-24 bg-gradient-to-b from-white via-accent-purple/5 to-white">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-4xl mx-auto"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+                Features
+              </h2>
+              <div className="grid gap-6">
+                {product.features.map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  >
+                    <p className="text-gray-800">{feature}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
-      {/* Game Changer Section */}
-      <GameChanger />
-
-      {/* Competitor Comparison */}
-      <CompetitorComparison />
-
-      {/* Sustainability Section */}
-      <Sustainability />
-
-      {/* Testimonials */}
-      <Testimonials />
+      {/* Why Choose Features */}
+      {product.why_choose_features && product.why_choose_features.length > 0 && (
+        <Features features={product.why_choose_features} />
+      )}
 
       {/* Specifications Section */}
       {product.specifications && (
@@ -164,7 +174,9 @@ const ProductDetail = () => {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                   >
-                    <h3 className="font-medium text-gray-600 mb-2">{key}</h3>
+                    <h3 className="font-medium text-gray-600 mb-2 capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </h3>
                     <p className="text-gray-800">{value}</p>
                   </motion.div>
                 ))}
