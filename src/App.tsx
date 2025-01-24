@@ -17,6 +17,7 @@ import OrderSuccess from "@/pages/OrderSuccess";
 import Sustainability from "@/pages/Sustainability";
 import ForBusiness from "@/pages/ForBusiness";
 import BulkOrders from "@/pages/BulkOrders";
+import CustomSolutions from "@/pages/CustomSolutions";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
 import Contact from "@/pages/Contact";
@@ -105,6 +106,11 @@ function AppRoutes() {
       <Route path="/bulk-orders" element={
         <ProtectedRoute slug="bulk-orders">
           <BulkOrders />
+        </ProtectedRoute>
+      } />
+      <Route path="/custom-solutions" element={
+        <ProtectedRoute slug="custom-solutions">
+          <CustomSolutions />
         </ProtectedRoute>
       } />
       <Route path="/admin" element={

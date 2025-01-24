@@ -38,9 +38,11 @@ const ForBusiness = () => {
             <p className="text-gray-600 mb-4">
               Tailored products and packaging to meet your specific needs.
             </p>
-            <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
-              Contact Us →
-            </Button>
+            <Link to="/custom-solutions">
+              <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
+                Learn More →
+              </Button>
+            </Link>
           </div>
 
           {/* Sustainability Program */}
