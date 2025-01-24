@@ -112,7 +112,19 @@ export const PageManagement = () => {
       }
 
       console.log('Pages fetched successfully:', data);
-      setPages(data || []);
+      
+      // Convert the content_blocks from Json[] to ContentBlock[]
+      const pagesWithTypedBlocks = data.map((page: any) => ({
+        ...page,
+        content_blocks: (page.content_blocks || []).map((block: Json) => ({
+          id: String(block.id),
+          type: String(block.type) as ContentBlock['type'],
+          content: block.content || {},
+          order_index: Number(block.order_index)
+        }))
+      }));
+
+      setPages(pagesWithTypedBlocks);
     } catch (error) {
       console.error('Error in fetchPages:', error);
       toast.error("Error loading pages");
