@@ -1,13 +1,43 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
+import { parseSpecifications } from '@/utils/supabase-helpers';
 
-export const useProductSubscription = (onUpdate: (products: Product[]) => void) => {
+export const useProductSubscription = (
+  onProductsUpdate: (products: Product[]) => void
+) => {
+  const fetchProducts = useCallback(async () => {
+    console.log('Fetching products from Supabase');
+    const { data, error } = await supabase
+      .from('products')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching products:', error);
+      return;
+    }
+
+    const products = data.map(p => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      image: p.image,
+      price: p.price,
+      features: p.features,
+      specifications: parseSpecifications(p.specifications),
+      created_at: p.created_at,
+      updated_at: p.updated_at
+    }));
+
+    console.log('Products fetched:', products);
+    onProductsUpdate(products);
+  }, [onProductsUpdate]);
+
   useEffect(() => {
-    console.log('Setting up product subscription');
-    
+    fetchProducts();
+
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('products-changes')
       .on(
         'postgres_changes',
         {
@@ -15,47 +45,15 @@ export const useProductSubscription = (onUpdate: (products: Product[]) => void) 
           schema: 'public',
           table: 'products'
         },
-        async (payload) => {
-          console.log('Product change detected:', payload);
-          
-          const { data: products, error } = await supabase
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: false });
-            
-          if (error) {
-            console.error('Error fetching products:', error);
-            return;
-          }
-          
-          // Convert Supabase data to Product type
-          const typedProducts: Product[] = products.map(p => ({
-            id: p.id,
-            name: p.name,
-            description: p.description,
-            image: p.image,
-            price: p.price,
-            features: p.features,
-            specifications: {
-              length: p.specifications?.length?.toString() || '',
-              absorption: p.specifications?.absorption?.toString() || '',
-              quantity: p.specifications?.quantity?.toString() || '',
-              material: p.specifications?.material?.toString() || '',
-              features: p.specifications?.features?.toString() || ''
-            },
-            created_at: p.created_at,
-            updated_at: p.updated_at
-          }));
-          
-          console.log('Updated products list:', typedProducts);
-          onUpdate(typedProducts);
+        () => {
+          console.log('Products table changed, refetching...');
+          fetchProducts();
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up product subscription');
       supabase.removeChannel(channel);
     };
-  }, [onUpdate]);
+  }, [fetchProducts]);
 };

@@ -1,6 +1,7 @@
 import { Node, Edge } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
+import { parseSpecifications } from '@/utils/supabase-helpers';
 
 const fetchProducts = async (): Promise<Product[]> => {
   const { data, error } = await supabase
@@ -14,13 +15,7 @@ const fetchProducts = async (): Promise<Product[]> => {
 
   return data.map(p => ({
     ...p,
-    specifications: {
-      length: p.specifications?.length?.toString() || '',
-      absorption: p.specifications?.absorption?.toString() || '',
-      quantity: p.specifications?.quantity?.toString() || '',
-      material: p.specifications?.material?.toString() || '',
-      features: p.specifications?.features?.toString() || ''
-    }
+    specifications: parseSpecifications(p.specifications)
   }));
 };
 

@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
+import { parseSpecifications } from '@/utils/supabase-helpers';
 
 interface ProductNodeData {
   productId: string;
@@ -26,13 +27,7 @@ export const ProductNode = memo(({ data }: { data: ProductNodeData }) => {
       if (productData) {
         setProduct({
           ...productData,
-          specifications: {
-            length: productData.specifications?.length?.toString() || '',
-            absorption: productData.specifications?.absorption?.toString() || '',
-            quantity: productData.specifications?.quantity?.toString() || '',
-            material: productData.specifications?.material?.toString() || '',
-            features: productData.specifications?.features?.toString() || ''
-          }
+          specifications: parseSpecifications(productData.specifications)
         });
       }
     };
