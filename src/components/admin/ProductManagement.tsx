@@ -23,24 +23,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 
+type EditFormType = Omit<Product, 'id' | 'created_at' | 'updated_at'>;
+
+const DEFAULT_SPECIFICATIONS = {
+  length: "",
+  absorption: "",
+  quantity: "",
+  material: "",
+  features: ""
+};
+
 export const ProductManagement = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [editForm, setEditForm] = useState<Omit<Product, 'id' | 'created_at' | 'updated_at'>>({
+  const [editForm, setEditForm] = useState<EditFormType>({
     name: "",
     description: "",
     price: 0,
     image: "",
     features: [],
-    specifications: {
-      length: "",
-      absorption: "",
-      quantity: "",
-      material: "",
-      features: ""
-    },
+    specifications: DEFAULT_SPECIFICATIONS,
   });
 
   const fetchProducts = async () => {
@@ -58,7 +62,7 @@ export const ProductManagement = () => {
       }
 
       // Transform the data to match our Product type
-      const typedProducts = data.map(product => ({
+      const typedProducts: Product[] = data.map(product => ({
         ...product,
         specifications: product.specifications as Product['specifications']
       }));
@@ -86,7 +90,7 @@ export const ProductManagement = () => {
       price: product.price,
       image: product.image,
       features: product.features,
-      specifications: product.specifications,
+      specifications: product.specifications || DEFAULT_SPECIFICATIONS,
     });
     setIsEditDialogOpen(true);
   };
@@ -126,7 +130,7 @@ export const ProductManagement = () => {
         .update({
           name: editForm.name,
           description: editForm.description,
-          price: parseFloat(editForm.price.toString()),
+          price: editForm.price,
           image: editForm.image,
           features: editForm.features,
           specifications: editForm.specifications,
@@ -172,7 +176,7 @@ export const ProductManagement = () => {
     }));
   };
 
-  const handleSpecificationChange = (key: string, value: string) => {
+  const handleSpecificationChange = (key: keyof Product['specifications'], value: string) => {
     setEditForm(prev => ({
       ...prev,
       specifications: {
@@ -190,6 +194,8 @@ export const ProductManagement = () => {
     );
   }
 
+  // ... keep existing code (JSX for the component UI)
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -201,13 +207,9 @@ export const ProductManagement = () => {
           image: "",
           price: 0,
           features: [],
-          specifications: {
-            length: "",
-            absorption: "",
-            quantity: "",
-            material: "",
-            features: ""
-          }
+          specifications: DEFAULT_SPECIFICATIONS,
+          created_at: null,
+          updated_at: null
         })}>Add New Product</Button>
       </div>
 
@@ -291,7 +293,7 @@ export const ProductManagement = () => {
                 type="number"
                 step="0.01"
                 value={editForm.price}
-                onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
+                onChange={(e) => setEditForm(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
               />
             </div>
 
@@ -334,7 +336,7 @@ export const ProductManagement = () => {
                   <Input
                     id={`spec-${key}`}
                     value={value}
-                    onChange={(e) => handleSpecificationChange(key, e.target.value)}
+                    onChange={(e) => handleSpecificationChange(key as keyof Product['specifications'], e.target.value)}
                   />
                 </div>
               ))}
