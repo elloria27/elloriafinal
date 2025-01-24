@@ -35,15 +35,16 @@ export default function MainProfile() {
       console.log("User found:", session.user.id);
       setUserEmail(session.user.email);
 
-      const { data: profileData, error } = await supabase
+      // First try to fetch existing profile
+      const { data: profileData, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        throw error;
+      if (fetchError) {
+        console.error("Error fetching profile:", fetchError);
+        throw fetchError;
       }
 
       if (profileData) {
@@ -62,7 +63,7 @@ export default function MainProfile() {
       } else {
         console.log("No profile found, creating new profile");
         // If no profile exists, create one
-        const { error: insertError } = await supabase
+        const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
           .insert([
             {
@@ -74,28 +75,25 @@ export default function MainProfile() {
               country: "",
               region: "",
             }
-          ]);
+          ])
+          .select()
+          .single();
 
         if (insertError) {
           console.error("Error creating profile:", insertError);
           throw insertError;
         }
 
-        // Fetch the newly created profile
-        const { data: newProfile, error: fetchError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error("Error fetching new profile:", fetchError);
-          throw fetchError;
-        }
-
         if (newProfile) {
           console.log("New profile created:", newProfile);
           setProfile(newProfile);
+          // Initialize state with empty values for new profile
+          setFirstName("");
+          setLastName("");
+          setPhoneNumber("");
+          setAddress("");
+          setCountry("");
+          setRegion("");
         }
       }
     } catch (error) {
@@ -141,20 +139,22 @@ export default function MainProfile() {
 
       console.log("Saving profile updates:", updates);
 
-      const { error } = await supabase
+      const { data: updatedProfile, error } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", session.user.id);
+        .eq("id", session.user.id)
+        .select()
+        .single();
 
       if (error) {
         console.error("Error updating profile:", error);
         throw error;
       }
 
-      console.log("Profile updated successfully");
-      toast.success("Profile updated successfully");
-      setProfile(prev => ({ ...prev!, ...updates }));
+      console.log("Profile updated successfully:", updatedProfile);
+      setProfile(updatedProfile);
       setHasChanges(false);
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Error updating profile");

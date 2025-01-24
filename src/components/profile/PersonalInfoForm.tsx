@@ -46,8 +46,7 @@ export const PersonalInfoForm = ({
           onChange={(e) => {
             const newFirstName = e.target.value;
             setFirstName(newFirstName);
-            const newFullName = `${newFirstName} ${lastName}`.trim();
-            handleInputChange('full_name', newFullName);
+            handleInputChange('first_name', newFirstName);
           }}
           disabled={loading}
         />
@@ -62,8 +61,7 @@ export const PersonalInfoForm = ({
           onChange={(e) => {
             const newLastName = e.target.value;
             setLastName(newLastName);
-            const newFullName = `${firstName} ${newLastName}`.trim();
-            handleInputChange('full_name', newFullName);
+            handleInputChange('last_name', newLastName);
           }}
           disabled={loading}
         />
