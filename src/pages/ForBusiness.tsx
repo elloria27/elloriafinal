@@ -51,9 +51,11 @@ const ForBusiness = () => {
             <p className="text-gray-600 mb-4">
               Join our eco-friendly initiative and make a positive impact.
             </p>
-            <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
-              Join Now →
-            </Button>
+            <Link to="/sustainability-program">
+              <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
+                Join Now →
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
