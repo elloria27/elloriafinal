@@ -40,7 +40,7 @@ interface ProfileWithRoles {
   address: string | null;
   country: string | null;
   region: string | null;
-  user_roles: { role: 'admin' | 'client' }[];
+  user_roles: { role: string }[];
 }
 
 export const UserManagement = () => {
@@ -59,13 +59,22 @@ export const UserManagement = () => {
       console.log('Fetching users data...');
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*, user_roles!inner(role)');
+        .select(`
+          *,
+          user_roles (
+            role
+          )
+        `);
 
       if (profilesError) throw profilesError;
 
       console.log('Profiles data fetched:', profiles);
 
-      const usersWithRoles = (profiles as ProfileWithRoles[]).map(profile => ({
+      if (!profiles) {
+        throw new Error('No profiles data returned');
+      }
+
+      const usersWithRoles = (profiles as unknown as ProfileWithRoles[]).map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
         email: profile.email,
