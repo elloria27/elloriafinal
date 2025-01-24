@@ -9,10 +9,27 @@ import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
+import { icons } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
-import { icons } from "lucide-react";
+import { LucideIcon } from "lucide-react";
+
+// Dynamic icon component that properly handles icon rendering
+const DynamicIcon = ({ name }: { name: string }) => {
+  // Convert kebab-case to camelCase for Lucide icon names
+  const iconName = name.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  const Icon = icons[iconName as keyof typeof icons] as LucideIcon;
+  
+  console.log('Rendering icon:', { name, iconName, exists: !!Icon });
+  
+  if (!Icon) {
+    console.warn(`Icon not found: ${name}`);
+    return null;
+  }
+
+  return <Icon className="w-12 h-12 text-primary mb-4" />;
+};
 
 const ProductDetailContent = () => {
   const { id } = useParams();
@@ -90,12 +107,6 @@ const ProductDetailContent = () => {
       </div>
     );
   }
-
-  // Dynamic icon component
-  const DynamicIcon = ({ name }: { name: string }) => {
-    const IconComponent = icons[name as keyof typeof icons];
-    return IconComponent ? <IconComponent className="w-12 h-12 text-primary mb-4" /> : null;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
