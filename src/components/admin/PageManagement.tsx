@@ -41,11 +41,13 @@ export const PageManagement = () => {
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
 
   useEffect(() => {
+    console.log('PageManagement component mounted');
     checkAuthAndFetchPages();
   }, []);
 
   const checkAuthAndFetchPages = async () => {
     try {
+      console.log('Starting auth check and page fetch process');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -60,7 +62,7 @@ export const PageManagement = () => {
         return;
       }
 
-      console.log('Session found, checking admin status');
+      console.log('Session found:', session.user.id);
       
       const { data: isAdminData, error: isAdminError } = await supabase.rpc('is_admin', {
         user_id: session.user.id
@@ -71,6 +73,8 @@ export const PageManagement = () => {
         toast.error("Error verifying admin access");
         return;
       }
+
+      console.log('Admin status:', isAdminData);
 
       if (!isAdminData) {
         console.log('User is not an admin');
@@ -91,6 +95,7 @@ export const PageManagement = () => {
 
   const fetchPages = async () => {
     try {
+      console.log('Fetching pages using admin_fetch_all_pages RPC');
       const { data, error } = await supabase.rpc('admin_fetch_all_pages');
       
       if (error) {
