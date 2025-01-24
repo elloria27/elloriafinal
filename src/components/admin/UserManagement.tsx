@@ -32,6 +32,17 @@ interface UserData {
   region: string | null;
 }
 
+interface ProfileWithRoles {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone_number: string | null;
+  address: string | null;
+  country: string | null;
+  region: string | null;
+  user_roles: { role: 'admin' | 'client' }[];
+}
+
 export const UserManagement = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +65,7 @@ export const UserManagement = () => {
 
       console.log('Profiles data fetched:', profiles);
 
-      const usersWithRoles = profiles.map(profile => ({
+      const usersWithRoles = (profiles as ProfileWithRoles[]).map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
         email: profile.email,
