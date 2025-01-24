@@ -97,6 +97,7 @@ export type Database = {
           address: string | null
           country: string | null
           currency: string | null
+          email: string | null
           email_notifications: boolean | null
           full_name: string | null
           id: string
@@ -110,6 +111,7 @@ export type Database = {
           address?: string | null
           country?: string | null
           currency?: string | null
+          email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
           id: string
@@ -123,6 +125,7 @@ export type Database = {
           address?: string | null
           country?: string | null
           currency?: string | null
+          email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
           id?: string
