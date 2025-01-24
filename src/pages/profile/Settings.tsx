@@ -10,49 +10,69 @@ import { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
 
-interface SettingsProps {
-  profile: Profile | null;
-  loading: boolean;
-}
-
-export default function Settings({ profile, loading }: SettingsProps) {
+export default function Settings() {
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [language, setLanguage] = useState("en");
   const [currency, setCurrency] = useState("USD");
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setEmailNotifications(profile.email_notifications || false);
-      setMarketingEmails(profile.marketing_emails || false);
-      setLanguage(profile.language || "en");
-      setCurrency(profile.currency || "USD");
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfile(data);
+        setEmailNotifications(data.email_notifications || false);
+        setMarketingEmails(data.marketing_emails || false);
+        setLanguage(data.language || "en");
+        setCurrency(data.currency || "USD");
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load settings");
+    } finally {
+      setLoading(false);
     }
-  }, [profile]);
+  };
 
   const updateSetting = async (setting: 'email_notifications' | 'marketing_emails' | 'language' | 'currency', value: any) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('You must be logged in to update settings');
+        toast.error("You must be logged in to update settings");
         return;
       }
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ [setting]: value })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
-      toast.success('Settings updated successfully');
+      setProfile(prev => prev ? { ...prev, [setting]: value } : null);
+      toast.success("Settings updated successfully");
     } catch (error) {
-      console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
+      console.error("Error updating settings:", error);
+      toast.error("Failed to update settings");
     }
   };
 
@@ -70,13 +90,12 @@ export default function Settings({ profile, loading }: SettingsProps) {
 
       if (error) throw error;
 
-      toast.success('Password updated successfully');
-      setCurrentPassword("");
+      toast.success("Password updated successfully");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      console.error('Error changing password:', error);
-      toast.error('Failed to update password');
+      console.error("Error changing password:", error);
+      toast.error("Failed to update password");
     } finally {
       setChangingPassword(false);
     }
@@ -95,12 +114,12 @@ export default function Settings({ profile, loading }: SettingsProps) {
             language={language}
             setLanguage={(value) => {
               setLanguage(value);
-              updateSetting('language', value);
+              updateSetting("language", value);
             }}
             currency={currency}
             setCurrency={(value) => {
               setCurrency(value);
-              updateSetting('currency', value);
+              updateSetting("currency", value);
             }}
           />
         </div>
@@ -120,7 +139,7 @@ export default function Settings({ profile, loading }: SettingsProps) {
                 checked={emailNotifications}
                 onCheckedChange={(checked) => {
                   setEmailNotifications(checked);
-                  updateSetting('email_notifications', checked);
+                  updateSetting("email_notifications", checked);
                 }}
               />
             </div>
@@ -136,7 +155,7 @@ export default function Settings({ profile, loading }: SettingsProps) {
                 checked={marketingEmails}
                 onCheckedChange={(checked) => {
                   setMarketingEmails(checked);
-                  updateSetting('marketing_emails', checked);
+                  updateSetting("marketing_emails", checked);
                 }}
               />
             </div>
@@ -168,7 +187,7 @@ export default function Settings({ profile, loading }: SettingsProps) {
               onClick={handlePasswordChange}
               disabled={changingPassword || !newPassword || !confirmPassword}
             >
-              {changingPassword ? 'Updating...' : 'Update Password'}
+              {changingPassword ? "Updating..." : "Update Password"}
             </Button>
           </div>
         </div>
