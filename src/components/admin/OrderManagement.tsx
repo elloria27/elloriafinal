@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,64 @@ import { Loader2 } from "lucide-react";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+const validateShippingAddress = (address: unknown): ShippingAddress => {
+  if (typeof address !== 'object' || !address) {
+    throw new Error('Invalid shipping address format');
+  }
+  
+  const typedAddress = address as Record<string, unknown>;
+  
+  if (
+    typeof typedAddress.address !== 'string' ||
+    typeof typedAddress.region !== 'string' ||
+    typeof typedAddress.country !== 'string' ||
+    typeof typedAddress.phone !== 'string'
+  ) {
+    throw new Error('Missing required shipping address fields');
+  }
+
+  return {
+    address: typedAddress.address,
+    region: typedAddress.region,
+    country: typedAddress.country,
+    phone: typedAddress.phone,
+  };
+};
+
+const validateOrderItems = (items: unknown): OrderItem[] => {
+  if (!Array.isArray(items)) {
+    throw new Error('Items must be an array');
+  }
+
+  return items.map(item => {
+    if (
+      typeof item !== 'object' ||
+      !item ||
+      typeof (item as any).id !== 'string' ||
+      typeof (item as any).name !== 'string' ||
+      typeof (item as any).quantity !== 'number' ||
+      typeof (item as any).price !== 'number'
+    ) {
+      throw new Error('Invalid order item format');
+    }
+
+    return {
+      id: (item as any).id,
+      name: (item as any).name,
+      quantity: (item as any).quantity,
+      price: (item as any).price,
+      image: (item as any).image,
+    };
+  });
+};
+
+const validateOrderStatus = (status: string): OrderStatus => {
+  if (!ORDER_STATUSES.includes(status as OrderStatus)) {
+    throw new Error(`Invalid order status: ${status}`);
+  }
+  return status as OrderStatus;
+};
 
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -44,24 +103,33 @@ export const OrderManagement = () => {
         return;
       }
 
-      // Type assertion and validation for the raw data
-      const typedOrders = (ordersData || []).map(order => {
-        const validatedOrder: OrderData = {
-          ...order,
-          shipping_address: order.shipping_address as ShippingAddress,
-          billing_address: order.billing_address as ShippingAddress,
-          items: order.items as OrderItem[],
-          status: order.status as OrderStatus,
-          profile: order.profile || undefined
-        };
-        return validatedOrder;
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
+        try {
+          const validatedOrder: OrderData = {
+            id: order.id,
+            user_id: order.user_id,
+            profile_id: order.profile_id,
+            order_number: order.order_number,
+            total_amount: order.total_amount,
+            status: validateOrderStatus(order.status),
+            shipping_address: validateShippingAddress(order.shipping_address),
+            billing_address: validateShippingAddress(order.billing_address),
+            items: validateOrderItems(order.items),
+            created_at: order.created_at,
+            profile: order.profile || undefined
+          };
+          return validatedOrder;
+        } catch (error) {
+          console.error("Error validating order:", error, order);
+          throw error;
+        }
       });
 
-      console.log("Orders fetched successfully:", typedOrders);
-      setOrders(typedOrders);
+      console.log("Orders fetched and validated:", validatedOrders);
+      setOrders(validatedOrders);
     } catch (error) {
       console.error("Error in fetchOrders:", error);
-      toast.error("An unexpected error occurred");
+      toast.error("An unexpected error occurred while fetching orders");
     } finally {
       setLoading(false);
     }
@@ -110,35 +178,31 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Update local state with properly typed data
+      const validatedOrder: OrderData = {
+        id: updatedOrder.id,
+        user_id: updatedOrder.user_id,
+        profile_id: updatedOrder.profile_id,
+        order_number: updatedOrder.order_number,
+        total_amount: updatedOrder.total_amount,
+        status: validateOrderStatus(updatedOrder.status),
+        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
+        billing_address: validateShippingAddress(updatedOrder.billing_address),
+        items: validateOrderItems(updatedOrder.items),
+        created_at: updatedOrder.created_at,
+        profile: updatedOrder.profile || undefined
+      };
+
       setOrders(prevOrders => 
         prevOrders.map(order => 
-          order.id === orderId
-            ? {
-                ...updatedOrder,
-                shipping_address: updatedOrder.shipping_address as ShippingAddress,
-                billing_address: updatedOrder.billing_address as ShippingAddress,
-                items: updatedOrder.items as OrderItem[],
-                status: updatedOrder.status as OrderStatus,
-                profile: updatedOrder.profile || undefined
-              }
-            : order
+          order.id === orderId ? validatedOrder : order
         )
       );
 
-      toast.success("Order status updated successfully");
-
-      // Close dialog if the updated order is currently selected
       if (selectedOrder?.id === orderId) {
-        setSelectedOrder({
-          ...updatedOrder,
-          shipping_address: updatedOrder.shipping_address as ShippingAddress,
-          billing_address: updatedOrder.billing_address as ShippingAddress,
-          items: updatedOrder.items as OrderItem[],
-          status: updatedOrder.status as OrderStatus,
-          profile: updatedOrder.profile || undefined
-        });
+        setSelectedOrder(validatedOrder);
       }
+
+      toast.success("Order status updated successfully");
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update order status");
@@ -205,6 +269,7 @@ export const OrderManagement = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>View and manage order information</DialogDescription>
           </DialogHeader>
 
           {selectedOrder && (
