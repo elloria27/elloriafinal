@@ -32,15 +32,71 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('PageBuilder mounted with pageId:', pageId);
-    console.log('Initial blocks:', initialBlocks);
-    if (initialBlocks && initialBlocks.length > 0) {
-      console.log('Setting initial blocks');
-      setBlocks(initialBlocks);
-    } else {
-      fetchPageBlocks();
-    }
-    setIsLoading(false);
+    const initializeBlocks = async () => {
+      console.log('Initializing blocks for page:', pageId);
+      try {
+        // First check database for existing blocks
+        const { data: dbBlocks, error } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageId)
+          .order('order_index');
+
+        if (error) {
+          console.error('Error fetching blocks from DB:', error);
+          throw error;
+        }
+
+        console.log('Blocks from DB:', dbBlocks);
+
+        if (dbBlocks && dbBlocks.length > 0) {
+          // Use blocks from database if they exist
+          const transformedBlocks: ContentBlock[] = (dbBlocks as SupabaseContentBlock[]).map(block => ({
+            id: block.id,
+            type: block.type,
+            content: block.content as ContentBlock['content'],
+            order_index: block.order_index
+          }));
+          console.log('Setting blocks from DB:', transformedBlocks);
+          setBlocks(transformedBlocks);
+        } else if (initialBlocks && initialBlocks.length > 0) {
+          // If no blocks in DB but we have initial blocks, save them to DB
+          console.log('No blocks in DB, using initial blocks:', initialBlocks);
+          const savedBlocks = await Promise.all(
+            initialBlocks.map(async (block, index) => {
+              const { data, error: insertError } = await supabase
+                .from('content_blocks')
+                .insert({
+                  id: block.id,
+                  page_id: pageId,
+                  type: block.type,
+                  content: block.content,
+                  order_index: index
+                })
+                .select()
+                .single();
+
+              if (insertError) {
+                console.error('Error saving initial block to DB:', insertError);
+                throw insertError;
+              }
+
+              return block;
+            })
+          );
+
+          console.log('Saved initial blocks to DB:', savedBlocks);
+          setBlocks(initialBlocks);
+        }
+      } catch (error) {
+        console.error('Error initializing blocks:', error);
+        toast.error("Failed to initialize page content");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeBlocks();
   }, [pageId, initialBlocks]);
 
   const fetchPageBlocks = async () => {
