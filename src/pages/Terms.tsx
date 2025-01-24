@@ -26,7 +26,7 @@ const Terms = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-20">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-primary to-secondary/30 py-16 md:py-24 mb-8 md:mb-0">
         <div className="container mx-auto px-4">
