@@ -112,7 +112,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleAddBlock = async (blockType: BlockType) => {
-    // Initialize with empty object of type BlockContent
     const defaultContent: BlockContent = {};
     
     const newBlock: ContentBlock = {
@@ -156,9 +155,16 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks(blocks.map(block => 
+      const updatedBlocks = blocks.map(block => 
         block.id === blockId ? { ...block, content } : block
-      ));
+      );
+      setBlocks(updatedBlocks);
+      
+      // Update selected block if it's the one being edited
+      if (selectedBlock?.id === blockId) {
+        setSelectedBlock({ ...selectedBlock, content });
+      }
+      
       toast.success("Block updated successfully");
     } catch (error) {
       console.error('Error updating block:', error);
@@ -268,7 +274,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={handleUpdateBlock}
+            onUpdate={(id: string, content: BlockContent) => handleUpdateBlock(id, content)}
           />
         </div>
       )}
