@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { 
   SidebarProvider, 
@@ -135,7 +133,6 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
       <div className="flex-1 pt-32">
         <SidebarProvider defaultOpen>
           <div className="flex w-full bg-gray-50">
@@ -219,7 +216,6 @@ export default function Profile() {
           </div>
         </SidebarProvider>
       </div>
-      <Footer />
     </div>
   );
 }

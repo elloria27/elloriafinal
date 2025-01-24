@@ -4,16 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { useToast } from "@/hooks/use-toast";
-import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
 import { icons } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
 import { LucideIcon } from "lucide-react";
+import { ProductGallery } from "@/components/ProductGallery";
+import { useToast } from "@/hooks/use-toast";
 
 // Dynamic icon component that properly handles icon rendering
 const DynamicIcon = ({ name }: { name: string }) => {
@@ -110,7 +108,6 @@ const ProductDetailContent = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <Header />
       <main className="pt-32">
         <section className="pb-16 px-4">
           <div className="max-w-7xl mx-auto">
@@ -273,7 +270,6 @@ const ProductDetailContent = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };
