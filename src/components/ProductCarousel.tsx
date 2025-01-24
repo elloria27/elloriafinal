@@ -1,13 +1,16 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useProductSubscription } from "@/hooks/useProductSubscription";
+import { Product } from "@/types/product";
 
-export const products = [
+// Initial products state
+const initialProducts: Product[] = [
   {
     id: "ultra-thin-290",
     name: "Ultra-Thin 290mm",
@@ -80,10 +83,24 @@ export const ProductCarousel = () => {
     offset: ["start end", "end start"]
   });
   const { addItem } = useCart();
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>(
-    Object.fromEntries(products.map(p => [p.id, 1]))
+    Object.fromEntries(initialProducts.map(p => [p.id, 1]))
   );
   const [animatingProduct, setAnimatingProduct] = useState<string | null>(null);
+
+  const handleProductsUpdate = useCallback((updatedProducts: Product[]) => {
+    console.log('Updating products in carousel:', updatedProducts);
+    setProducts(updatedProducts);
+    // Update quantities state with new product IDs
+    setQuantities(prev => ({
+      ...prev,
+      ...Object.fromEntries(updatedProducts.map(p => [p.id, 1]))
+    }));
+  }, []);
+
+  // Subscribe to product changes
+  useProductSubscription(handleProductsUpdate);
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);

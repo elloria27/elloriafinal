@@ -4,19 +4,30 @@ import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { products } from "@/components/ProductCarousel";
+import { useState, useCallback } from "react";
+import { Product } from "@/types/product";
+import { useProductSubscription } from "@/hooks/useProductSubscription";
 
 interface ProductGridProps {
-  products: typeof products;
+  initialProducts: typeof products;
 }
 
-export const ProductGrid = ({ products }: ProductGridProps) => {
+export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
   const { addItem } = useCart();
+  const [products, setProducts] = useState(initialProducts);
   console.log("ProductGrid rendered with products:", products);
 
-  const handleAddToCart = async (e: React.MouseEvent, product: typeof products[0]) => {
-    e.preventDefault(); // Prevent event bubbling
-    e.stopPropagation(); // Stop event propagation
+  const handleProductsUpdate = useCallback((updatedProducts: Product[]) => {
+    console.log('Updating products in grid:', updatedProducts);
+    setProducts(updatedProducts);
+  }, []);
+
+  // Subscribe to product changes
+  useProductSubscription(handleProductsUpdate);
+
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
     console.log("Adding to cart from ProductGrid:", product);
     
     try {
