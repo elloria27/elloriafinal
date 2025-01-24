@@ -32,6 +32,10 @@ interface UserData {
   region: string | null;
 }
 
+interface UserRole {
+  role: 'admin' | 'client';
+}
+
 interface ProfileWithRoles {
   id: string;
   full_name: string | null;
@@ -40,7 +44,7 @@ interface ProfileWithRoles {
   address: string | null;
   country: string | null;
   region: string | null;
-  user_roles: { role: string }[];
+  user_roles: UserRole[] | null;
 }
 
 export const UserManagement = () => {
@@ -83,7 +87,7 @@ export const UserManagement = () => {
         throw new Error('No profiles data returned');
       }
 
-      const usersWithRoles = profiles.map(profile => ({
+      const usersWithRoles = (profiles as ProfileWithRoles[]).map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
         email: profile.email,
