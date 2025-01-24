@@ -56,6 +56,36 @@ export type Database = {
           },
         ]
       }
+      pages: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          slug: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          slug: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          slug?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string | null

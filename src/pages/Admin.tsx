@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { PageManagement } from "@/components/admin/PageManagement";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -105,6 +106,7 @@ const Admin = () => {
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="pages">Pages</TabsTrigger>
         </TabsList>
 
         <TabsContent value="products">
@@ -117,6 +119,10 @@ const Admin = () => {
 
         <TabsContent value="users">
           <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="pages">
+          <PageManagement />
         </TabsContent>
       </Tabs>
     </div>
