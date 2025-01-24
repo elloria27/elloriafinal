@@ -19,6 +19,19 @@ import { toast } from "sonner";
 
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface ShippingAddress {
+  address: string;
+  region: string;
+  country: string;
+  phone: string;
+}
+
 interface OrderData {
   id: string;
   order_number: string;
@@ -27,17 +40,8 @@ interface OrderData {
   created_at: string | null;
   user_id: string;
   profile_id: string;
-  shipping_address: {
-    address: string;
-    region: string;
-    country: string;
-    phone: string;
-  };
-  items: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
+  shipping_address: ShippingAddress;
+  items: OrderItem[];
   profile: {
     full_name: string | null;
     email: string | null;
@@ -69,8 +73,15 @@ export const OrderManagement = () => {
 
       if (ordersError) throw ordersError;
 
-      console.log('Orders data fetched:', ordersData);
-      setOrders(ordersData as OrderData[]);
+      // Type assertion to ensure the data matches our OrderData interface
+      const typedOrders = (ordersData as any[]).map(order => ({
+        ...order,
+        shipping_address: order.shipping_address as ShippingAddress,
+        items: order.items as OrderItem[]
+      })) as OrderData[];
+
+      console.log('Orders data fetched:', typedOrders);
+      setOrders(typedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error("Failed to load orders");
@@ -110,6 +121,7 @@ export const OrderManagement = () => {
         toast.success("Order status updated and notification sent");
       }
 
+      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId

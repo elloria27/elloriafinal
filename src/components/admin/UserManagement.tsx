@@ -97,12 +97,14 @@ export const UserManagement = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
-        full_name: formData.get('full_name'),
-        phone_number: formData.get('phone_number'),
-        address: formData.get('address'),
-        country: formData.get('country'),
-        region: formData.get('region'),
+        full_name: String(formData.get('full_name') || ''),
+        phone_number: String(formData.get('phone_number') || ''),
+        address: String(formData.get('address') || ''),
+        country: String(formData.get('country') || ''),
+        region: String(formData.get('region') || ''),
       };
+
+      console.log('Updating user with data:', updates);
 
       const { error } = await supabase
         .from('profiles')
