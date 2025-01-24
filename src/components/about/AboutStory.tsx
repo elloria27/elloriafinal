@@ -14,12 +14,10 @@ export const AboutStory = () => {
         >
           <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
           <p className="text-gray-600 mb-12">Milestones that shaped who we are today</p>
-          <iframe
-            src="https://www.youtube.com/embed/f3EpenCD1wU"
-            title="Elloria Story"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-[600px] rounded-3xl shadow-2xl"
+          <img 
+            src="/lovable-uploads/8ed49df6-713a-4e20-84ce-07e61732b507.png"
+            alt="Elloria product packaging showing feminine care products"
+            className="w-full rounded-3xl shadow-2xl"
           />
         </motion.div>
         <AboutTimeline />
