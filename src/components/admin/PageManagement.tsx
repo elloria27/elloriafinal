@@ -63,34 +63,13 @@ export const PageManagement = () => {
         return;
       }
 
-      // Перевіряємо чи користувач є адміном
-      const { data: userRoleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', sessionData.session.user.id)
-        .single();
-      
-      console.log('User role check:', userRoleData);
-      
-      if (roleError) {
-        console.error('Role check error:', roleError);
-        toast.error("Error checking user permissions");
-        return;
-      }
-
-      if (userRoleData?.role !== 'admin') {
-        console.log('User is not an admin');
-        toast.error("Admin access required");
-        return;
-      }
-
-      // Використовуємо функцію admin_fetch_all_pages для адміністраторів
+      // Викликаємо функцію admin_fetch_all_pages
       const { data, error } = await supabase.rpc('admin_fetch_all_pages');
       console.log('Response from admin_fetch_all_pages:', { data, error });
 
       if (error) {
         console.error('Error fetching pages:', error);
-        toast.error("Failed to fetch pages");
+        toast.error(error.message || "Failed to fetch pages");
         return;
       }
 
