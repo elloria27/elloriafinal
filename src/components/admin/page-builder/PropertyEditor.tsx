@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ContentBlock } from "@/types/content-blocks";
 
 interface PropertyEditorProps {
@@ -12,12 +13,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<typeof block.content>(block.content);
 
   const handleChange = (key: string, value: string) => {
+    console.log('Updating content:', key, value);
     const newContent = { ...content, [key]: value };
     setContent(newContent);
     onUpdate(block.id, newContent);
   };
 
   const renderFields = () => {
+    console.log('Rendering fields for block type:', block.type);
+    console.log('Current content:', content);
+
     switch (block.type) {
       case 'heading':
         return (
@@ -27,6 +32,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={content.text?.toString() || ''}
                 onChange={(e) => handleChange('text', e.target.value)}
+                placeholder="Enter heading text"
               />
             </div>
             <div>
@@ -49,9 +55,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         return (
           <div>
             <Label>Content</Label>
-            <Input
+            <Textarea
               value={content.text?.toString() || ''}
               onChange={(e) => handleChange('text', e.target.value)}
+              placeholder="Enter text content"
+              className="min-h-[100px]"
             />
           </div>
         );
@@ -64,6 +72,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={content.url?.toString() || ''}
                 onChange={(e) => handleChange('url', e.target.value)}
+                placeholder="Enter image URL"
               />
             </div>
             <div>
@@ -71,8 +80,50 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={content.alt?.toString() || ''}
                 onChange={(e) => handleChange('alt', e.target.value)}
+                placeholder="Enter alt text"
               />
             </div>
+            {content.url && (
+              <div className="mt-4">
+                <img
+                  src={content.url.toString()}
+                  alt={content.alt?.toString() || ''}
+                  className="max-w-full h-auto rounded-md"
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'video':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={content.url?.toString() || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+                placeholder="Enter video URL (YouTube, Vimeo, etc.)"
+              />
+            </div>
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title?.toString() || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter video title"
+              />
+            </div>
+            {content.url && (
+              <div className="mt-4 aspect-video">
+                <iframe
+                  src={content.url.toString()}
+                  title={content.title?.toString() || 'Video'}
+                  className="w-full h-full rounded-md"
+                  allowFullScreen
+                />
+              </div>
+            )}
           </div>
         );
 
@@ -84,6 +135,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={content.text?.toString() || ''}
                 onChange={(e) => handleChange('text', e.target.value)}
+                placeholder="Enter button text"
               />
             </div>
             <div>
@@ -91,6 +143,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={content.url?.toString() || ''}
                 onChange={(e) => handleChange('url', e.target.value)}
+                placeholder="Enter button URL"
               />
             </div>
             <div>
