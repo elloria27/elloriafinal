@@ -18,7 +18,16 @@ Deno.serve(async (req) => {
     const { userId } = await req.json()
     
     if (!userId) {
-      throw new Error('User ID is required')
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { 
+          status: 400,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
+      )
     }
 
     console.log('Starting user deletion process for ID:', userId)
@@ -31,7 +40,19 @@ Deno.serve(async (req) => {
 
     if (roleError) {
       console.error('Error deleting user roles:', roleError)
-      throw roleError
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete user roles',
+          details: roleError.message
+        }),
+        { 
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
+      )
     }
     console.log('Successfully deleted user roles')
 
@@ -43,7 +64,19 @@ Deno.serve(async (req) => {
 
     if (profileError) {
       console.error('Error deleting profile:', profileError)
-      throw profileError
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete user profile',
+          details: profileError.message
+        }),
+        { 
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
+      )
     }
     console.log('Successfully deleted user profile')
 
@@ -52,7 +85,19 @@ Deno.serve(async (req) => {
 
     if (authError) {
       console.error('Error deleting auth user:', authError)
-      throw authError
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete auth user',
+          details: authError.message
+        }),
+        { 
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
+      )
     }
     console.log('Successfully deleted auth user')
 
@@ -69,11 +114,11 @@ Deno.serve(async (req) => {
     console.error('Error in delete-user function:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: 'Failed to complete user deletion process'
+        error: 'Internal server error',
+        details: error.message
       }),
       { 
-        status: 400,
+        status: 500,
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
