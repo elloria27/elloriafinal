@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const ForBusiness = () => {
   return (
@@ -23,9 +25,11 @@ const ForBusiness = () => {
             <p className="text-gray-600 mb-4">
               Get competitive pricing on large orders for your business or organization.
             </p>
-            <button className="text-primary hover:text-primary/80 font-medium">
-              Learn More →
-            </button>
+            <Link to="/bulk-orders">
+              <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
+                Learn More →
+              </Button>
+            </Link>
           </div>
 
           {/* Customization */}
@@ -34,9 +38,9 @@ const ForBusiness = () => {
             <p className="text-gray-600 mb-4">
               Tailored products and packaging to meet your specific needs.
             </p>
-            <button className="text-primary hover:text-primary/80 font-medium">
+            <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
               Contact Us →
-            </button>
+            </Button>
           </div>
 
           {/* Sustainability Program */}
@@ -45,9 +49,9 @@ const ForBusiness = () => {
             <p className="text-gray-600 mb-4">
               Join our eco-friendly initiative and make a positive impact.
             </p>
-            <button className="text-primary hover:text-primary/80 font-medium">
+            <Button variant="ghost" className="text-primary hover:text-primary/80 font-medium">
               Join Now →
-            </button>
+            </Button>
           </div>
         </div>
       </section>
@@ -62,9 +66,9 @@ const ForBusiness = () => {
             Our team is ready to help you find the perfect solution for your business needs.
           </p>
           <div className="flex justify-center">
-            <button className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-colors">
+            <Button className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-colors">
               Contact Our Business Team
-            </button>
+            </Button>
           </div>
         </div>
       </section>
