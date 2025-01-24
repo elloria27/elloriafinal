@@ -39,13 +39,13 @@ export const UserManagement = () => {
       if (rolesError) throw rolesError;
 
       // Map user roles to profiles with proper typing
-      const formattedUsers = profiles.map(profile => {
+      const formattedUsers: UserProfile[] = profiles.map(profile => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         return {
           id: profile.id,
           email: profile.email,
           full_name: profile.full_name,
-          user_roles: userRole ? [{ role: userRole.role as 'admin' | 'client' }] : [{ role: 'client' }]
+          user_roles: userRole ? [{ role: userRole.role as 'admin' | 'client' }] : [{ role: 'client' as const }]
         };
       });
 
