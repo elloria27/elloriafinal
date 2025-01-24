@@ -1,7 +1,7 @@
 import { Node, Edge } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
-import { parseSpecifications } from '@/utils/supabase-helpers';
+import { parseProduct } from '@/utils/supabase-helpers';
 
 const fetchProducts = async (): Promise<Product[]> => {
   const { data, error } = await supabase
@@ -13,10 +13,7 @@ const fetchProducts = async (): Promise<Product[]> => {
     return [];
   }
 
-  return data.map(p => ({
-    ...p,
-    specifications: parseSpecifications(p.specifications)
-  }));
+  return data.map(parseProduct);
 };
 
 export const getInitialElements = async (): Promise<{ nodes: Node[], edges: Edge[] }> => {

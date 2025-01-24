@@ -11,6 +11,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 const ProductDetailContent = () => {
   const { id } = useParams();
@@ -35,16 +36,7 @@ const ProductDetailContent = () => {
       }
 
       if (data) {
-        setProduct({
-          ...data,
-          specifications: {
-            length: data.specifications.length || '',
-            absorption: data.specifications.absorption || '',
-            quantity: data.specifications.quantity || '',
-            material: data.specifications.material || '',
-            features: data.specifications.features || ''
-          }
-        });
+        setProduct(parseProduct(data));
       }
     };
 

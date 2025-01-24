@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
-import { parseSpecifications } from '@/utils/supabase-helpers';
+import { parseProduct } from '@/utils/supabase-helpers';
 
 interface ProductNodeData {
   productId: string;
@@ -25,10 +25,7 @@ export const ProductNode = memo(({ data }: { data: ProductNodeData }) => {
       }
 
       if (productData) {
-        setProduct({
-          ...productData,
-          specifications: parseSpecifications(productData.specifications)
-        });
+        setProduct(parseProduct(productData));
       }
     };
 

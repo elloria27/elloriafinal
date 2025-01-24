@@ -12,6 +12,7 @@ import { Product } from "@/types/product";
 import { Loader2 } from "lucide-react";
 import { ProductForm } from "./product/ProductForm";
 import { ProductList } from "./product/ProductList";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 const DEFAULT_SPECIFICATIONS = {
   length: "",
@@ -42,7 +43,7 @@ export const ProductManagement = () => {
       }
 
       console.log("Products fetched successfully:", data);
-      setProducts(data);
+      setProducts(data.map(parseProduct));
     } catch (error) {
       console.error("Error in fetchProducts:", error);
       toast.error("An unexpected error occurred");
