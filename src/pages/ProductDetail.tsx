@@ -1,8 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
-import { products } from "@/components/ProductCarousel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
@@ -10,15 +9,47 @@ import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Product } from "@/types/product";
 
 const ProductDetailContent = () => {
   const { id } = useParams();
-  const product = products.find((p) => p.id === id);
+  const [product, setProduct] = useState<Product | null>(null);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const { toast } = useToast();
   const addToCartButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product:', error);
+        return;
+      }
+
+      if (data) {
+        setProduct({
+          ...data,
+          specifications: {
+            length: data.specifications.length || '',
+            absorption: data.specifications.absorption || '',
+            quantity: data.specifications.quantity || '',
+            material: data.specifications.material || '',
+            features: data.specifications.features || ''
+          }
+        });
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   const productMedia = [
     {

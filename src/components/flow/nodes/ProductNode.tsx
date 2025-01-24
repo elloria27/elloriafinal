@@ -1,13 +1,44 @@
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { products } from '@/components/ProductCarousel';
+import { supabase } from '@/integrations/supabase/client';
+import { Product } from '@/types/product';
 
 interface ProductNodeData {
   productId: string;
 }
 
 export const ProductNode = memo(({ data }: { data: ProductNodeData }) => {
-  const product = products.find(p => p.id === data.productId);
+  const [product, setProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data: productData, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', data.productId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product:', error);
+        return;
+      }
+
+      if (productData) {
+        setProduct({
+          ...productData,
+          specifications: {
+            length: productData.specifications.length || '',
+            absorption: productData.specifications.absorption || '',
+            quantity: productData.specifications.quantity || '',
+            material: productData.specifications.material || '',
+            features: productData.specifications.features || ''
+          }
+        });
+      }
+    };
+
+    fetchProduct();
+  }, [data.productId]);
 
   if (!product) return null;
 

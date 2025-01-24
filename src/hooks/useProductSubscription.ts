@@ -42,7 +42,9 @@ export const useProductSubscription = (onUpdate: (products: Product[]) => void) 
               quantity: p.specifications.quantity || '',
               material: p.specifications.material || '',
               features: p.specifications.features || ''
-            }
+            },
+            created_at: p.created_at,
+            updated_at: p.updated_at
           }));
           
           console.log('Updated products list:', typedProducts);
