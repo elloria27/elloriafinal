@@ -16,9 +16,23 @@ export const MobileMenu = () => {
     { name: "Blog", path: "#blog" }
   ];
 
+  // Define technical pages that should not appear in the menu
+  const technicalPages = [
+    'login',
+    'register',
+    'profile',
+    'checkout',
+    'product',
+    'order-success',
+    'admin'
+  ];
+
   const menuItems = [
     ...publishedPages
-      .filter(page => page.is_published)
+      .filter(page => 
+        page.is_published && 
+        !technicalPages.includes(page.slug)
+      )
       .map(page => ({
         name: page.title,
         path: page.slug === 'index' ? '/' : `/${page.slug}`
