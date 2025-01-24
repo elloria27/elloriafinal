@@ -10,160 +10,117 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Json } from "@/integrations/supabase/types";
 
-// Define strict types for our data structures
-type Profile = {
-  full_name: string | null;
-  email: string | null;
-};
-
+// Define the base types we need
 type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
-interface Order {
+interface OrderData {
   id: string;
   order_number: string;
   total_amount: number;
   status: OrderStatus;
-  user_id: string;
-  billing_address: Json;
-  shipping_address: Json;
-  items: Json;
   created_at: string | null;
-  profiles: Profile | null;
-}
-
-type OrderResponse = {
-  id: string;
-  order_number: string;
-  total_amount: number;
-  status: OrderStatus;
   user_id: string;
-  billing_address: Json;
-  shipping_address: Json;
-  items: Json;
-  created_at: string | null;
-  profiles: Profile | null;
+  customer_name: string | null;
+  customer_email: string | null;
 }
 
 export const OrderManagement = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Check admin access and fetch orders
   useEffect(() => {
-    checkSessionAndFetchOrders();
-  }, []);
+    const checkAdminAndFetchOrders = async () => {
+      try {
+        setLoading(true);
+        
+        // Get current session
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          toast.error("Please log in to access admin panel");
+          return;
+        }
 
-  const checkSessionAndFetchOrders = async () => {
-    try {
-      console.log('Starting session check...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        toast.error("Session error occurred");
-        return;
-      }
+        // Check if user is admin
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', sessionData.session.user.id)
+          .maybeSingle();
 
-      if (!session) {
-        console.error('No active session');
-        toast.error("Please log in to access admin panel");
-        return;
-      }
+        if (roleError || roleData?.role !== 'admin') {
+          toast.error("Unauthorized - Admin access required");
+          return;
+        }
 
-      console.log('Session found:', session.user.id);
+        // Fetch orders with customer information
+        const { data: ordersData, error: ordersError } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            order_number,
+            total_amount,
+            status,
+            created_at,
+            user_id,
+            profiles (
+              full_name,
+              email
+            )
+          `)
+          .order('created_at', { ascending: false });
 
-      // Check admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
+        if (ordersError) {
+          throw ordersError;
+        }
 
-      console.log('Role check result:', roleData, roleError);
-
-      if (roleError) {
-        console.error('Role check error:', roleError);
-        toast.error("Error verifying admin status");
-        return;
-      }
-
-      if (roleData?.role !== 'admin') {
-        console.error('User is not an admin');
-        toast.error("Unauthorized - Admin access required");
-        return;
-      }
-
-      await fetchOrders();
-    } catch (error) {
-      console.error('Session check error:', error);
-      toast.error("Error checking admin access");
-    }
-  };
-
-  const fetchOrders = async () => {
-    try {
-      console.log('Fetching orders...');
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
-      }
-
-      console.log('Orders fetched successfully:', data);
-      
-      if (data) {
-        const typedOrders: Order[] = (data as OrderResponse[]).map(order => ({
+        // Transform the data to match our OrderData interface
+        const transformedOrders: OrderData[] = ordersData.map(order => ({
           id: order.id,
           order_number: order.order_number,
           total_amount: order.total_amount,
           status: order.status as OrderStatus,
-          user_id: order.user_id,
-          billing_address: order.billing_address,
-          shipping_address: order.shipping_address,
-          items: order.items,
           created_at: order.created_at,
-          profiles: order.profiles
+          user_id: order.user_id,
+          customer_name: order.profiles?.full_name || 'N/A',
+          customer_email: order.profiles?.email || 'N/A'
         }));
-        setOrders(typedOrders);
-      }
-    } catch (error) {
-      console.error('Error in fetchOrders:', error);
-      toast.error("Failed to fetch orders");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error("Failed to load orders");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminAndFetchOrders();
+  }, []);
+
+  // Handle order status update
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      console.log('Updating order status:', { orderId, newStatus });
       const { error } = await supabase
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);
 
-      if (error) {
-        console.error('Error updating status:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      toast.success("Order status updated successfully");
-      await fetchOrders();
+      // Update local state
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId
+            ? { ...order, status: newStatus }
+            : order
+        )
+      );
+
+      toast.success("Order status updated");
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('Error updating status:', error);
       toast.error("Failed to update order status");
     }
   };
@@ -176,8 +133,11 @@ export const OrderManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Order Management</h2>
-        <Button onClick={() => fetchOrders()} variant="outline">
-          Refresh Orders
+        <Button 
+          onClick={() => window.location.reload()} 
+          variant="outline"
+        >
+          Refresh
         </Button>
       </div>
 
@@ -191,7 +151,7 @@ export const OrderManagement = () => {
             <TableRow>
               <TableHead>Order Number</TableHead>
               <TableHead>Customer</TableHead>
-              <TableHead>Total Amount</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -201,15 +161,28 @@ export const OrderManagement = () => {
               <TableRow key={order.id}>
                 <TableCell>{order.order_number}</TableCell>
                 <TableCell>
-                  {order.profiles?.full_name || order.profiles?.email || 'N/A'}
+                  <div>
+                    <div>{order.customer_name}</div>
+                    <div className="text-sm text-gray-500">{order.customer_email}</div>
+                  </div>
                 </TableCell>
                 <TableCell>${order.total_amount.toFixed(2)}</TableCell>
-                <TableCell>{order.status}</TableCell>
+                <TableCell>
+                  <span className={`inline-block px-2 py-1 rounded-full text-sm ${
+                    order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                    order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                    order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                    order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {order.status}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <select
                     className="border rounded p-1"
                     value={order.status}
-                    onChange={(e) => updateOrderStatus(order.id, e.target.value as OrderStatus)}
+                    onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
                   >
                     <option value="pending">Pending</option>
                     <option value="processing">Processing</option>
