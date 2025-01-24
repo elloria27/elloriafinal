@@ -3,7 +3,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface CustomerFormProps {
   country: string;
@@ -57,6 +56,7 @@ export const CustomerForm = ({
   onFormChange
 }: CustomerFormProps) => {
   const [userEmail, setUserEmail] = useState<string>("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Pre-fill form with profile data when available
   useEffect(() => {
@@ -82,8 +82,9 @@ export const CustomerForm = ({
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email) {
-        console.log("Setting user email:", session.user.email);
+        console.log("Setting user email from session:", session.user.email);
         setUserEmail(session.user.email);
+        setIsAuthenticated(true);
       }
     };
     getSession();
@@ -139,8 +140,14 @@ export const CustomerForm = ({
           id="email" 
           name="email" 
           type="email" 
-          value={userEmail}
-          onChange={(e) => handleInputChange('email', e.target.value)}
+          value={isAuthenticated ? userEmail : undefined}
+          onChange={(e) => {
+            if (!isAuthenticated) {
+              setUserEmail(e.target.value);
+              handleInputChange('email', e.target.value);
+            }
+          }}
+          readOnly={isAuthenticated}
           required 
         />
       </div>
