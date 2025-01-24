@@ -119,14 +119,6 @@ const ProductDetailContent = () => {
 
         <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
-            <motion.h2 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              className="text-3xl font-bold text-center mb-16"
-            >
-              Why Choose Our Product?
-            </motion.h2>
-            
             <Features features={product.why_choose_features || []} />
           </div>
         </section>
