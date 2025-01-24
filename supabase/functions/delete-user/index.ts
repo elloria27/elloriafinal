@@ -32,7 +32,32 @@ Deno.serve(async (req) => {
 
     console.log('Starting user deletion process for ID:', userId)
 
-    // First delete from user_roles
+    // First delete associated orders
+    console.log('Deleting associated orders...')
+    const { error: ordersError } = await supabase
+      .from('orders')
+      .delete()
+      .eq('profile_id', userId)
+
+    if (ordersError) {
+      console.error('Error deleting orders:', ordersError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete associated orders',
+          details: ordersError.message
+        }),
+        { 
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
+      )
+    }
+    console.log('Successfully deleted associated orders')
+
+    // Then delete from user_roles
     const { error: roleError } = await supabase
       .from('user_roles')
       .delete()
