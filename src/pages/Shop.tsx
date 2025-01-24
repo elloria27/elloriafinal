@@ -4,7 +4,7 @@ import { ShopHero } from "@/components/shop/ShopHero";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
 import { useState } from "react";
-import { products } from "@/components/ProductCarousel";
+import { initialProducts } from "@/data/initialProducts";
 
 export type SortOption = "featured" | "price-low" | "price-high" | "newest";
 export type FilterOption = "all" | "ultra-thin" | "maxi" | "overnight";
@@ -13,7 +13,7 @@ export default function Shop() {
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
   
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = initialProducts.filter(product => {
     if (filterBy === "all") return true;
     return (
       product.features.some(feature => 
@@ -48,7 +48,7 @@ export default function Shop() {
           onSortChange={setSortBy}
           onFilterChange={setFilterBy}
         />
-        <ProductGrid products={sortedProducts} />
+        <ProductGrid initialProducts={sortedProducts} />
       </main>
       
       <Footer />

@@ -9,7 +9,7 @@ import { Product } from "@/types/product";
 import { useProductSubscription } from "@/hooks/useProductSubscription";
 
 interface ProductGridProps {
-  initialProducts: typeof products;
+  initialProducts: Product[];
 }
 
 export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
