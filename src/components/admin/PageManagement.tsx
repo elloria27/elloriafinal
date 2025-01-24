@@ -46,18 +46,43 @@ export const PageManagement = () => {
 
   const fetchPages = async () => {
     try {
-      console.log('Fetching pages...');
+      console.log('Starting to fetch pages...');
+      
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('Current session:', sessionData?.session ? 'Logged in' : 'No session');
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        return;
+      }
+
+      const { data: userRoleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', sessionData?.session?.user.id)
+        .single();
+        
+      console.log('User role data:', userRoleData);
+      
+      if (roleError) {
+        console.error('Role check error:', roleError);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('pages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching pages:', error);
+        throw error;
+      }
 
       console.log('Pages fetched:', data);
       setPages(data || []);
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error('Error in fetchPages:', error);
       toast.error("Failed to fetch pages");
     } finally {
       setLoading(false);
