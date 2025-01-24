@@ -199,9 +199,11 @@ export const OrderManagement = () => {
         setSelectedOrder(validatedOrder);
       }
 
-      // Try to send email notification
+      // Send email notification
       try {
+        console.log("Attempting to send email notification");
         if (validatedOrder.profile?.email) {
+          console.log("Sending email to:", validatedOrder.profile.email);
           const response = await fetch('/api/send-order-status-email', {
             method: 'POST',
             headers: {
@@ -217,11 +219,19 @@ export const OrderManagement = () => {
           });
 
           if (!response.ok) {
-            console.error('Failed to send email notification');
+            const errorData = await response.text();
+            console.error('Failed to send email notification:', errorData);
+            throw new Error('Failed to send email notification');
+          } else {
+            console.log('Email notification sent successfully');
           }
+        } else {
+          console.warn('No customer email found for order:', validatedOrder.id);
         }
       } catch (emailError) {
         console.error('Error sending email notification:', emailError);
+        toast.error('Order updated but failed to send email notification');
+        return;
       }
 
       toast.success("Order status updated successfully");
