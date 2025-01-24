@@ -47,7 +47,7 @@ export const MobileCart = () => {
 
   const handleCheckout = () => {
     console.log("Starting checkout process");
-    setIsOpen(false); // Ensure cart closes before navigation
+    setIsOpen(false);
     setTimeout(() => {
       navigate("/checkout", { replace: true });
     }, 300);
@@ -63,7 +63,7 @@ export const MobileCart = () => {
     console.log("Clearing entire cart");
     clearCart();
     toast.success("Cart cleared");
-    setIsOpen(false); // Close cart after clearing
+    setIsOpen(false);
   };
 
   const handleApplyPromoCode = () => {
