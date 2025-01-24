@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ContentBlock } from "./PageBuilder";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 
 interface PropertyEditorProps {
   block: ContentBlock;
-  onUpdate: (id: string, content: any) => void;
+  onUpdate: (id: string, content: BlockContent) => void;
 }
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
-  const [content, setContent] = useState(block.content);
+  const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string) => {
     const newContent = { ...content, [key]: value };
     setContent(newContent);
     onUpdate(block.id, newContent);
@@ -51,10 +49,9 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         return (
           <div>
             <Label>Content</Label>
-            <Textarea
+            <Input
               value={content.text || ''}
               onChange={(e) => handleChange('text', e.target.value)}
-              rows={6}
             />
           </div>
         );
@@ -110,8 +107,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             </div>
           </div>
         );
-
-      // Add more cases for other component types
 
       default:
         return (

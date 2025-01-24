@@ -1,4 +1,4 @@
-import { ContentBlock } from "./PageBuilder";
+import { ContentBlock } from "@/types/content-blocks";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -8,11 +8,10 @@ export const PreviewPane = ({ blocks }: PreviewPaneProps) => {
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
       case 'heading':
-        const HeadingTag = block.content.size || 'h2';
         return (
-          <HeadingTag className="text-4xl font-bold mb-4">
+          <div className={`text-4xl font-bold mb-4 ${block.content.size || 'h2'}`}>
             {block.content.text || 'Heading'}
-          </HeadingTag>
+          </div>
         );
 
       case 'text':
@@ -43,8 +42,6 @@ export const PreviewPane = ({ blocks }: PreviewPaneProps) => {
             {block.content.text || 'Button'}
           </button>
         );
-
-      // Add more cases for other component types
 
       default:
         return (

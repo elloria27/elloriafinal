@@ -7,19 +7,11 @@ import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
+import { BlockType, ContentBlock } from "@/types/content-blocks";
 
 interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
-}
-
-export interface ContentBlock {
-  id: string;
-  type: "heading" | "text" | "image" | "video" | "button" | "hero" | "features" | 
-        "testimonials" | "newsletter" | "product_gallery" | "blog_preview" | "store_brands";
-  content: Json;
-  order_index: number;
 }
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
@@ -42,10 +34,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     setBlocks(updatedBlocks);
   };
 
-  const handleAddBlock = async (blockType: string) => {
+  const handleAddBlock = async (blockType: BlockType) => {
     const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
-      type: blockType as ContentBlock["type"],
+      type: blockType,
       content: {},
       order_index: blocks.length,
     };
@@ -71,7 +63,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleUpdateBlock = async (blockId: string, content: Json) => {
+  const handleUpdateBlock = async (blockId: string, content: ContentBlock['content']) => {
     try {
       const { error } = await supabase
         .from('content_blocks')
@@ -87,27 +79,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     } catch (error) {
       console.error('Error updating block:', error);
       toast.error("Failed to update block");
-    }
-  };
-
-  const handleSaveLayout = async () => {
-    try {
-      const updates = blocks.map((block) => ({
-        id: block.id,
-        order_index: block.order_index,
-        type: block.type,
-        content: block.content
-      }));
-
-      const { error } = await supabase
-        .from('content_blocks')
-        .upsert(updates);
-
-      if (error) throw error;
-      toast.success("Layout saved successfully");
-    } catch (error) {
-      console.error('Error saving layout:', error);
-      toast.error("Failed to save layout");
     }
   };
 
