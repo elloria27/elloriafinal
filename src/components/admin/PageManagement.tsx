@@ -21,12 +21,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface Page {
   id: string;
   title: string;
   slug: string;
-  content: any[];
+  content: Json;
   is_published: boolean;
   created_at: string;
   updated_at: string;
