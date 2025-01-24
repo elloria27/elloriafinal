@@ -104,6 +104,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       setBlocks([...blocks, newBlock]);
       setShowComponentPicker(false);
+      setSelectedBlock(newBlock);
       toast.success("Block added successfully");
     } catch (error) {
       console.error('Error adding block:', error);
@@ -225,7 +226,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       </div>
 
       <div className="flex-1 overflow-auto">
-        <PreviewPane blocks={blocks} />
+        <PreviewPane 
+          blocks={blocks} 
+          onSelectBlock={setSelectedBlock}
+        />
       </div>
 
       {selectedBlock && (
