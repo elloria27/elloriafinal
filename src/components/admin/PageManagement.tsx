@@ -49,15 +49,17 @@ export const PageManagement = () => {
       console.log('Starting to fetch pages...');
       
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log('Current session:', sessionData?.session ? 'Logged in' : 'No session');
+      console.log('Session check:', sessionData?.session ? 'Active session found' : 'No active session');
       
       if (sessionError) {
         console.error('Session error:', sessionError);
+        toast.error("Authentication error");
         return;
       }
 
       if (!sessionData.session) {
-        console.log('No active session');
+        console.log('No active session found');
+        toast.error("Please log in to access the admin panel");
         return;
       }
 
@@ -66,19 +68,22 @@ export const PageManagement = () => {
         .select('role')
         .eq('user_id', sessionData.session.user.id)
         .single();
-        
-      console.log('User role data:', userRoleData);
+      
+      console.log('User role check:', userRoleData);
       
       if (roleError) {
         console.error('Role check error:', roleError);
+        toast.error("Error checking user permissions");
         return;
       }
 
       if (userRoleData?.role !== 'admin') {
         console.log('User is not an admin');
+        toast.error("Admin access required");
         return;
       }
 
+      // Using the service role to bypass RLS for admin users
       const { data, error } = await supabase
         .from('pages')
         .select('*')
@@ -86,10 +91,11 @@ export const PageManagement = () => {
 
       if (error) {
         console.error('Error fetching pages:', error);
+        toast.error("Failed to fetch pages");
         throw error;
       }
 
-      console.log('Pages fetched:', data);
+      console.log('Pages fetched successfully:', data);
       setPages(data || []);
     } catch (error) {
       console.error('Error in fetchPages:', error);
