@@ -8,10 +8,11 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { Share2, ShoppingCart, Star, Heart, ArrowRight, Droplets, Shield, Wind, Leaf, Clock, RefreshCw } from "lucide-react";
+import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
+import { icons } from "lucide-react";
 
 const ProductDetailContent = () => {
   const { id } = useParams();
@@ -24,6 +25,7 @@ const ProductDetailContent = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      console.log('Fetching product details for ID:', id);
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -36,40 +38,14 @@ const ProductDetailContent = () => {
       }
 
       if (data) {
-        setProduct(parseProduct(data));
+        const parsedProduct = parseProduct(data);
+        console.log('Parsed product data:', parsedProduct);
+        setProduct(parsedProduct);
       }
     };
 
     fetchProduct();
   }, [id]);
-
-  const productMedia = [
-    {
-      type: "video" as const,
-      url: "https://youtu.be/f3EpenCD1wU",
-      thumbnail: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png",
-    },
-    {
-      type: "image" as const,
-      url: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png",
-    },
-    {
-      type: "image" as const,
-      url: "/lovable-uploads/bf47f5ff-e31b-4bdc-8ed0-5c0fc3d5f0d1.png",
-    },
-    {
-      type: "image" as const,
-      url: "/lovable-uploads/aef79d44-8c62-442e-b797-bf0446d818a8.png",
-    },
-    {
-      type: "image" as const,
-      url: "/lovable-uploads/a7e9335a-6251-4ad6-9140-b04479d11e77.png",
-    },
-    {
-      type: "image" as const,
-      url: "/lovable-uploads/c7fccc71-03c6-4d3d-8e7d-c7c710b91732.png",
-    },
-  ];
 
   const handleShare = async () => {
     try {
@@ -94,6 +70,10 @@ const ProductDetailContent = () => {
       ...product,
       quantity,
     });
+    toast({
+      title: "Added to cart",
+      description: `${product.name} has been added to your cart`,
+    });
   };
 
   if (!product) {
@@ -110,6 +90,12 @@ const ProductDetailContent = () => {
       </div>
     );
   }
+
+  // Dynamic icon component
+  const DynamicIcon = ({ name }: { name: string }) => {
+    const IconComponent = icons[name as keyof typeof icons];
+    return IconComponent ? <IconComponent className="w-12 h-12 text-primary mb-4" /> : null;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -134,7 +120,10 @@ const ProductDetailContent = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <ProductGallery media={productMedia} productName={product.name} />
+              <ProductGallery 
+                media={product.media || []} 
+                productName={product.name} 
+              />
             </motion.div>
           </div>
         </section>
@@ -150,14 +139,7 @@ const ProductDetailContent = () => {
             </motion.h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { icon: Droplets, title: "Superior Absorption", desc: "Advanced technology for maximum protection" },
-                { icon: Shield, title: "24/7 Protection", desc: "Feel confident throughout your day" },
-                { icon: Wind, title: "Breathable Design", desc: "Keeps you comfortable all day long" },
-                { icon: Leaf, title: "Eco-Friendly", desc: "Made with sustainable materials" },
-                { icon: Clock, title: "Long-Lasting", desc: "Up to 12 hours of protection" },
-                { icon: RefreshCw, title: "Quick-Change", desc: "Easy to use when you need it most" }
-              ].map((feature, index) => (
+              {product.why_choose_features?.map((feature, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -165,9 +147,9 @@ const ProductDetailContent = () => {
                   transition={{ delay: index * 0.1 }}
                   className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <feature.icon className="w-12 h-12 text-primary mb-4" />
+                  <DynamicIcon name={feature.icon} />
                   <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.desc}</p>
+                  <p className="text-gray-600">{feature.description}</p>
                 </motion.div>
               ))}
             </div>
