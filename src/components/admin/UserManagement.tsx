@@ -36,17 +36,6 @@ interface UserRole {
   role: 'admin' | 'client';
 }
 
-interface ProfileWithRoles {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  phone_number: string | null;
-  address: string | null;
-  country: string | null;
-  region: string | null;
-  user_roles: UserRole[] | null;
-}
-
 export const UserManagement = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,25 +51,19 @@ export const UserManagement = () => {
     try {
       console.log('Fetching users data...');
       
-      // First, fetch all profiles
+      // Fetch profiles with email included
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          email,
-          phone_number,
-          address,
-          country,
-          region
-        `);
+        .select('id, full_name, email, phone_number, address, country, region');
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         throw profilesError;
       }
 
-      // Then, fetch user roles separately
+      console.log('Profiles fetched:', profiles);
+
+      // Fetch user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -89,6 +72,8 @@ export const UserManagement = () => {
         console.error('Error fetching user roles:', rolesError);
         throw rolesError;
       }
+
+      console.log('User roles fetched:', userRoles);
 
       // Create a map of user_id to role
       const roleMap = new Map(userRoles.map(ur => [ur.user_id, ur.role]));
