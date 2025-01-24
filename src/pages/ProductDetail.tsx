@@ -25,7 +25,6 @@ const ProductDetail = () => {
 
         if (error) throw error;
         
-        // Parse the raw data into the correct Product type
         const parsedProduct = parseProduct(data);
         setProduct(parsedProduct);
       } catch (error) {
@@ -47,7 +46,7 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-[72px] md:pt-[88px]"> {/* Added padding-top to account for fixed header height */}
       <ProductGallery media={product.media || []} productName={product.name} />
       <Features />
       <GameChanger />
