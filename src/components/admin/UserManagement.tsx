@@ -112,12 +112,8 @@ export const UserManagement = () => {
         .update(updates)
         .eq('id', selectedUser.id);
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      // Update local state
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === selectedUser.id 
@@ -128,8 +124,6 @@ export const UserManagement = () => {
 
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
-      
-      // Fetch fresh data to ensure we have the latest state
       await fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
@@ -143,13 +137,18 @@ export const UserManagement = () => {
     }
 
     try {
+      console.log('Starting user deletion process for ID:', userId);
+
       // First delete from user_roles table
       const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', userId);
 
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error('Error deleting user role:', roleError);
+        throw roleError;
+      }
 
       // Then delete from profiles table
       const { error: profileError } = await supabase
@@ -157,14 +156,30 @@ export const UserManagement = () => {
         .delete()
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+        throw profileError;
+      }
+
+      // Finally, delete the auth user using Edge Function
+      const { error: authError } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
+      if (authError) {
+        console.error('Error deleting auth user:', authError);
+        throw authError;
+      }
 
       // Update local state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       toast.success("User deleted successfully");
+      
+      // Refresh the users list to ensure we have the latest data
+      await fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
-      toast.error("Failed to delete user");
+      console.error('Error in delete process:', error);
+      toast.error("Failed to delete user completely. Please try again.");
     }
   };
 
