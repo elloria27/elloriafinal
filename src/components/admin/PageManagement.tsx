@@ -85,16 +85,23 @@ export const PageManagement = () => {
       }
 
       // Використовуємо функцію admin_fetch_all_pages для адміністраторів
-      const { data, error } = await supabase.rpc('admin_fetch_all_pages') as { data: Page[] | null, error: Error | null };
+      const { data, error } = await supabase.rpc('admin_fetch_all_pages');
+      console.log('Response from admin_fetch_all_pages:', { data, error });
 
       if (error) {
         console.error('Error fetching pages:', error);
         toast.error("Failed to fetch pages");
-        throw error;
+        return;
+      }
+
+      if (!data) {
+        console.log('No pages data returned');
+        setPages([]);
+        return;
       }
 
       console.log('Pages fetched successfully:', data);
-      setPages(data || []);
+      setPages(data);
     } catch (error) {
       console.error('Error in fetchPages:', error);
       toast.error("Failed to fetch pages");
