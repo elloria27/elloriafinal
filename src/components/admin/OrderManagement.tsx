@@ -22,10 +22,14 @@ interface Order {
   shipping_address: Json;
   items: Json;
   created_at: string | null;
+  user?: {
+    email: string;
+    id: string;
+  } | null;
   profiles?: {
     full_name: string | null;
     email: string | null;
-  } | null | undefined;
+  } | null;
 }
 
 export const OrderManagement = () => {
@@ -93,7 +97,11 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles (
+          user:user_id (
+            email,
+            id
+          ),
+          profiles:user_id (
             full_name,
             email
           )
@@ -106,11 +114,7 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      const typedOrders: Order[] = (data || []).map(order => ({
-        ...order,
-        profiles: order.profiles || null
-      }));
-      setOrders(typedOrders);
+      setOrders(data || []);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
@@ -172,7 +176,9 @@ export const OrderManagement = () => {
             {orders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell>{order.order_number}</TableCell>
-                <TableCell>{order.profiles?.full_name || 'N/A'}</TableCell>
+                <TableCell>
+                  {order.profiles?.full_name || order.user?.email || 'N/A'}
+                </TableCell>
                 <TableCell>${order.total_amount.toFixed(2)}</TableCell>
                 <TableCell>{order.status}</TableCell>
                 <TableCell>
