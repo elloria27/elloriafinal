@@ -25,26 +25,23 @@ export default function MainProfile() {
 
   const fetchProfile = async () => {
     try {
-      console.log("Fetching profile...");
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.log("No authenticated user found");
         return;
       }
 
-      console.log("User found:", session.user.id);
       setUserEmail(session.user.email);
 
-      // First try to fetch existing profile
-      const { data: profileData, error: fetchError } = await supabase
+      const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .maybeSingle();
+        .single();
 
-      if (fetchError) {
-        console.error("Error fetching profile:", fetchError);
-        throw fetchError;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
       }
 
       if (profileData) {
@@ -60,41 +57,6 @@ export default function MainProfile() {
         setAddress(profileData.address || "");
         setCountry(profileData.country || "");
         setRegion(profileData.region || "");
-      } else {
-        console.log("No profile found, creating new profile");
-        // If no profile exists, create one
-        const { data: newProfile, error: insertError } = await supabase
-          .from("profiles")
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              full_name: "",
-              phone_number: "",
-              address: "",
-              country: "",
-              region: "",
-            }
-          ])
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-          throw insertError;
-        }
-
-        if (newProfile) {
-          console.log("New profile created:", newProfile);
-          setProfile(newProfile);
-          // Initialize state with empty values for new profile
-          setFirstName("");
-          setLastName("");
-          setPhoneNumber("");
-          setAddress("");
-          setCountry("");
-          setRegion("");
-        }
       }
     } catch (error) {
       console.error("Error in profile management:", error);
@@ -137,22 +99,17 @@ export default function MainProfile() {
         updated_at: new Date().toISOString(),
       };
 
-      console.log("Saving profile updates:", updates);
-
-      const { data: updatedProfile, error } = await supabase
+      const { error } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", session.user.id)
-        .select()
-        .single();
+        .eq("id", session.user.id);
 
       if (error) {
         console.error("Error updating profile:", error);
         throw error;
       }
 
-      console.log("Profile updated successfully:", updatedProfile);
-      setProfile(updatedProfile);
+      setProfile(prev => ({ ...prev!, ...updates }));
       setHasChanges(false);
       toast.success("Profile updated successfully");
     } catch (error) {

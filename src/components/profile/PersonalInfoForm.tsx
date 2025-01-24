@@ -29,7 +29,6 @@ export const PersonalInfoForm = ({
   onFormChange
 }: PersonalInfoFormProps) => {
   const handleInputChange = (field: string, value: string) => {
-    console.log(`Handling input change for ${field}:`, value);
     if (onFormChange) {
       onFormChange(field, value);
     }
@@ -46,7 +45,8 @@ export const PersonalInfoForm = ({
           onChange={(e) => {
             const newFirstName = e.target.value;
             setFirstName(newFirstName);
-            handleInputChange('first_name', newFirstName);
+            const newFullName = `${newFirstName} ${lastName}`.trim();
+            handleInputChange('full_name', newFullName);
           }}
           disabled={loading}
         />
@@ -61,7 +61,8 @@ export const PersonalInfoForm = ({
           onChange={(e) => {
             const newLastName = e.target.value;
             setLastName(newLastName);
-            handleInputChange('last_name', newLastName);
+            const newFullName = `${firstName} ${newLastName}`.trim();
+            handleInputChange('full_name', newFullName);
           }}
           disabled={loading}
         />
