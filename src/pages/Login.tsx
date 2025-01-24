@@ -16,6 +16,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    // Check for stored email from order completion
+    const storedEmail = localStorage.getItem('loginEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
+      localStorage.removeItem('loginEmail'); // Clear after use
+    }
+  }, []);
+
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get("redirectTo");
 
