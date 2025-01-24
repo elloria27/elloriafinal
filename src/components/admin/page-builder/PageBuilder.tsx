@@ -82,6 +82,24 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
+  const handleSaveLayout = async () => {
+    try {
+      const { error } = await supabase
+        .from('pages')
+        .update({
+          content_blocks: blocks,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', pageId);
+
+      if (error) throw error;
+      toast.success("Layout saved successfully");
+    } catch (error) {
+      console.error('Error saving layout:', error);
+      toast.error("Failed to save layout");
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       <div className="w-64 bg-gray-100 p-4 border-r">

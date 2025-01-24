@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock } from "@/types/content-blocks";
 
 interface PropertyEditorProps {
   block: ContentBlock;
-  onUpdate: (id: string, content: BlockContent) => void;
+  onUpdate: (id: string, content: ContentBlock['content']) => void;
 }
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
-  const [content, setContent] = useState<BlockContent>(block.content);
+  const [content, setContent] = useState<typeof block.content>(block.content);
 
   const handleChange = (key: string, value: string) => {
     const newContent = { ...content, [key]: value };
@@ -25,7 +25,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Text</Label>
               <Input
-                value={content.text || ''}
+                value={content.text?.toString() || ''}
                 onChange={(e) => handleChange('text', e.target.value)}
               />
             </div>
@@ -33,7 +33,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Label>Size</Label>
               <select
                 className="w-full border rounded-md p-2"
-                value={content.size || 'h2'}
+                value={content.size?.toString() || 'h2'}
                 onChange={(e) => handleChange('size', e.target.value)}
               >
                 <option value="h1">H1</option>
@@ -50,7 +50,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           <div>
             <Label>Content</Label>
             <Input
-              value={content.text || ''}
+              value={content.text?.toString() || ''}
               onChange={(e) => handleChange('text', e.target.value)}
             />
           </div>
@@ -62,14 +62,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Image URL</Label>
               <Input
-                value={content.url || ''}
+                value={content.url?.toString() || ''}
                 onChange={(e) => handleChange('url', e.target.value)}
               />
             </div>
             <div>
               <Label>Alt Text</Label>
               <Input
-                value={content.alt || ''}
+                value={content.alt?.toString() || ''}
                 onChange={(e) => handleChange('alt', e.target.value)}
               />
             </div>
@@ -82,14 +82,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Text</Label>
               <Input
-                value={content.text || ''}
+                value={content.text?.toString() || ''}
                 onChange={(e) => handleChange('text', e.target.value)}
               />
             </div>
             <div>
               <Label>URL</Label>
               <Input
-                value={content.url || ''}
+                value={content.url?.toString() || ''}
                 onChange={(e) => handleChange('url', e.target.value)}
               />
             </div>
@@ -97,7 +97,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Label>Style</Label>
               <select
                 className="w-full border rounded-md p-2"
-                value={content.variant || 'default'}
+                value={content.variant?.toString() || 'default'}
                 onChange={(e) => handleChange('variant', e.target.value)}
               >
                 <option value="default">Default</option>

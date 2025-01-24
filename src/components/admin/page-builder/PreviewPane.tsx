@@ -9,23 +9,23 @@ export const PreviewPane = ({ blocks }: PreviewPaneProps) => {
     switch (block.type) {
       case 'heading':
         return (
-          <div className={`text-4xl font-bold mb-4 ${block.content.size || 'h2'}`}>
-            {block.content.text || 'Heading'}
+          <div className={`text-4xl font-bold mb-4 ${block.content.size?.toString() || 'h2'}`}>
+            {block.content.text?.toString() || 'Heading'}
           </div>
         );
 
       case 'text':
         return (
           <p className="text-gray-600 mb-4">
-            {block.content.text || 'Text block'}
+            {block.content.text?.toString() || 'Text block'}
           </p>
         );
 
       case 'image':
         return (
           <img
-            src={block.content.url || '/placeholder.svg'}
-            alt={block.content.alt || ''}
+            src={block.content.url?.toString() || '/placeholder.svg'}
+            alt={block.content.alt?.toString() || ''}
             className="max-w-full h-auto mb-4"
           />
         );
@@ -39,7 +39,7 @@ export const PreviewPane = ({ blocks }: PreviewPaneProps) => {
                 : 'bg-primary text-white'
             }`}
           >
-            {block.content.text || 'Button'}
+            {block.content.text?.toString() || 'Button'}
           </button>
         );
 
