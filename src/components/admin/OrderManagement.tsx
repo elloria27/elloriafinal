@@ -199,32 +199,30 @@ export const OrderManagement = () => {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification
+      // Send email notification using Supabase Edge Function
       try {
         console.log("Attempting to send email notification");
         if (validatedOrder.profile?.email) {
           console.log("Sending email to:", validatedOrder.profile.email);
-          const response = await fetch('/api/send-order-status-email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              customerEmail: validatedOrder.profile.email,
-              customerName: validatedOrder.profile.full_name || 'Valued Customer',
-              orderId: validatedOrder.id,
-              orderNumber: validatedOrder.order_number,
-              newStatus: validatedOrder.status
-            }),
-          });
+          const { data: emailData, error: emailError } = await supabase.functions.invoke(
+            'send-order-status-email',
+            {
+              body: {
+                customerEmail: validatedOrder.profile.email,
+                customerName: validatedOrder.profile.full_name || 'Valued Customer',
+                orderId: validatedOrder.id,
+                orderNumber: validatedOrder.order_number,
+                newStatus: validatedOrder.status
+              }
+            }
+          );
 
-          if (!response.ok) {
-            const errorData = await response.text();
-            console.error('Failed to send email notification:', errorData);
-            throw new Error('Failed to send email notification');
-          } else {
-            console.log('Email notification sent successfully');
+          if (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            throw emailError;
           }
+
+          console.log('Email notification sent successfully:', emailData);
         } else {
           console.warn('No customer email found for order:', validatedOrder.id);
         }
