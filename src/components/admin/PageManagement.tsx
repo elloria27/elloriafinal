@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Edit2, Plus, Trash2, Layout } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
 import { PageBuilder } from "./page-builder/PageBuilder";
 import { ContentBlock } from "@/types/content-blocks";
@@ -227,6 +227,7 @@ export const PageManagement = () => {
   };
 
   const handleEditContent = (page: Page) => {
+    console.log('Opening content editor for page:', page.id);
     setSelectedPageForEdit(page);
   };
 
@@ -235,7 +236,7 @@ export const PageManagement = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">
-            Editing: {selectedPageForEdit.title}
+            Editing Content: {selectedPageForEdit.title}
           </h2>
           <Button
             variant="outline"
@@ -323,6 +324,15 @@ export const PageManagement = () => {
               <TableCell>{new Date(page.updated_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditContent(page)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <Layout className="h-4 w-4" />
+                  </Button>
+
                   <Dialog open={isEditDialogOpen && selectedPage?.id === page.id} onOpenChange={(open) => {
                     setIsEditDialogOpen(open);
                     if (!open) setSelectedPage(null);
@@ -338,7 +348,7 @@ export const PageManagement = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Page</DialogTitle>
+                        <DialogTitle>Edit Page Settings</DialogTitle>
                       </DialogHeader>
                       <form onSubmit={handleUpdatePage} className="space-y-4">
                         <div className="space-y-2">
