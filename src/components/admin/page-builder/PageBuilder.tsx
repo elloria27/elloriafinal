@@ -96,7 +96,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     initializeBlocks();
   }, [pageId, initialBlocks]);
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
     const items = Array.from(blocks);
@@ -108,7 +108,22 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       order_index: index,
     }));
 
-    setBlocks(updatedBlocks);
+    try {
+      // Update order_index in database
+      const updatePromises = updatedBlocks.map(block => 
+        supabase
+          .from('content_blocks')
+          .update({ order_index: block.order_index })
+          .eq('id', block.id)
+      );
+
+      await Promise.all(updatePromises);
+      setBlocks(updatedBlocks);
+      toast.success("Block order updated successfully");
+    } catch (error) {
+      console.error('Error updating block order:', error);
+      toast.error("Failed to update block order");
+    }
   };
 
   const handleAddBlock = async (blockType: BlockType) => {
@@ -135,7 +150,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks([...blocks, newBlock]);
+      setBlocks(prevBlocks => [...prevBlocks, newBlock]);
       setShowComponentPicker(false);
       setSelectedBlock(newBlock);
       toast.success("Block added successfully");
@@ -155,15 +170,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      const updatedBlocks = blocks.map(block => 
-        block.id === blockId ? { ...block, content } : block
+      setBlocks(prevBlocks => 
+        prevBlocks.map(block => 
+          block.id === blockId ? { ...block, content } : block
+        )
       );
-      setBlocks(updatedBlocks);
       
-      // Update selected block if it's the one being edited
-      if (selectedBlock?.id === blockId) {
-        setSelectedBlock({ ...selectedBlock, content });
-      }
+      setSelectedBlock(prev => 
+        prev?.id === blockId ? { ...prev, content } : prev
+      );
       
       toast.success("Block updated successfully");
     } catch (error) {
@@ -176,15 +191,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       console.log('Saving layout for page:', pageId);
       console.log('Blocks to save:', blocks);
-
-      const updatePromises = blocks.map((block, index) => 
-        supabase
-          .from('content_blocks')
-          .update({ order_index: index })
-          .eq('id', block.id)
-      );
-
-      await Promise.all(updatePromises);
 
       const blocksForStorage: Json[] = blocks.map(block => ({
         id: block.id,
@@ -274,7 +280,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={(id: string, content: BlockContent) => handleUpdateBlock(id, content)}
+            onUpdate={handleUpdateBlock}
           />
         </div>
       )}
