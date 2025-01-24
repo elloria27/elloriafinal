@@ -63,11 +63,11 @@ const ProductDetail = () => {
 
             <div className="flex flex-col gap-4">
               <Button className="w-full" size="lg">
-                <ShoppingCart />
+                <ShoppingCart className="mr-2 h-5 w-5" />
                 Add to Cart
               </Button>
               <Button variant="outline" className="w-full" size="lg">
-                <Heart />
+                <Heart className="mr-2 h-5 w-5" />
                 Add to Wishlist
               </Button>
             </div>
