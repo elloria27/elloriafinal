@@ -102,7 +102,7 @@ export const UserManagement = () => {
         address: formData.get('address')?.toString() || '',
         country: formData.get('country')?.toString() || '',
         region: formData.get('region')?.toString() || '',
-        updated_at: new Date().toISOString(), // Add updated_at timestamp
+        updated_at: new Date().toISOString(),
       };
 
       console.log('Updating user with data:', updates);
@@ -117,7 +117,7 @@ export const UserManagement = () => {
         throw error;
       }
 
-      // Update local state to reflect changes
+      // Update local state
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === selectedUser.id 
@@ -128,6 +128,9 @@ export const UserManagement = () => {
 
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
+      
+      // Fetch fresh data to ensure we have the latest state
+      await fetchUsers();
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error("Failed to update user");
@@ -140,15 +143,7 @@ export const UserManagement = () => {
     }
 
     try {
-      // First delete from profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
-      if (profileError) throw profileError;
-
-      // Then delete from user_roles table
+      // First delete from user_roles table
       const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
@@ -156,9 +151,13 @@ export const UserManagement = () => {
 
       if (roleError) throw roleError;
 
-      // Finally delete the auth user
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      if (authError) throw authError;
+      // Then delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
 
       // Update local state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
