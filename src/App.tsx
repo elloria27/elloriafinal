@@ -18,6 +18,7 @@ import Sustainability from "@/pages/Sustainability";
 import ForBusiness from "@/pages/ForBusiness";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
+import Contact from "@/pages/Contact";
 
 import "./App.css";
 
@@ -53,6 +54,11 @@ function AppRoutes() {
       <Route path="/blog" element={
         <ProtectedRoute slug="blog">
           <Blog />
+        </ProtectedRoute>
+      } />
+      <Route path="/contact" element={
+        <ProtectedRoute slug="contact">
+          <Contact />
         </ProtectedRoute>
       } />
       <Route path="/login" element={
