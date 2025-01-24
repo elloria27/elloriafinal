@@ -22,6 +22,7 @@ import SustainabilityProgram from "@/pages/SustainabilityProgram";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
 import Contact from "@/pages/Contact";
+import Terms from "@/pages/Terms";
 
 import "./App.css";
 
@@ -122,6 +123,11 @@ function AppRoutes() {
       <Route path="/admin" element={
         <ProtectedRoute slug="admin">
           <Admin />
+        </ProtectedRoute>
+      } />
+      <Route path="/terms" element={
+        <ProtectedRoute slug="terms">
+          <Terms />
         </ProtectedRoute>
       } />
     </Routes>
