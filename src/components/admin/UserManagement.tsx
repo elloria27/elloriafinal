@@ -33,6 +33,7 @@ interface UserData {
 }
 
 interface UserRole {
+  user_id: string;
   role: 'admin' | 'client';
 }
 
@@ -49,51 +50,51 @@ export const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users data...');
+      console.log('Starting to fetch users data...');
       
-      // Fetch profiles with email included
+      // Fetch all profiles with their email addresses
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, phone_number, address, country, region');
+        .select('*');
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         throw profilesError;
       }
 
-      console.log('Profiles fetched:', profiles);
+      console.log('Profiles fetched successfully:', profiles);
 
-      // Fetch user roles
+      // Fetch all user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('*');
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
         throw rolesError;
       }
 
-      console.log('User roles fetched:', userRoles);
-
-      // Create a map of user_id to role
-      const roleMap = new Map(userRoles.map(ur => [ur.user_id, ur.role]));
+      console.log('User roles fetched successfully:', userRoles);
 
       // Combine profiles with roles
-      const usersWithRoles = profiles.map(profile => ({
-        id: profile.id,
-        full_name: profile.full_name,
-        email: profile.email,
-        role: roleMap.get(profile.id) || 'client',
-        phone_number: profile.phone_number,
-        address: profile.address,
-        country: profile.country,
-        region: profile.region
-      }));
+      const usersWithRoles = profiles.map(profile => {
+        const userRole = userRoles?.find(role => role.user_id === profile.id);
+        return {
+          id: profile.id,
+          full_name: profile.full_name,
+          email: profile.email, // This should now be properly included
+          role: userRole?.role || 'client',
+          phone_number: profile.phone_number,
+          address: profile.address,
+          country: profile.country,
+          region: profile.region
+        };
+      });
 
-      console.log('Users with roles:', usersWithRoles);
+      console.log('Combined users with roles:', usersWithRoles);
       setUsers(usersWithRoles);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error in fetchUsers:', error);
       toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
