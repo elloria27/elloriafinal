@@ -34,7 +34,10 @@ export const MobileCart = () => {
     };
 
     window.addEventListener('openCart', handleOpen);
-    return () => window.removeEventListener('openCart', handleOpen);
+    return () => {
+      console.log('Cleaning up mobile cart event listener');
+      window.removeEventListener('openCart', handleOpen);
+    };
   }, []);
 
   const handleClose = () => {
@@ -44,7 +47,7 @@ export const MobileCart = () => {
 
   const handleCheckout = () => {
     console.log("Starting checkout process");
-    handleClose();
+    setIsOpen(false); // Ensure cart closes before navigation
     setTimeout(() => {
       navigate("/checkout", { replace: true });
     }, 300);
@@ -60,6 +63,7 @@ export const MobileCart = () => {
     console.log("Clearing entire cart");
     clearCart();
     toast.success("Cart cleared");
+    setIsOpen(false); // Close cart after clearing
   };
 
   const handleApplyPromoCode = () => {
@@ -81,10 +85,16 @@ export const MobileCart = () => {
     <Sheet 
       open={isOpen} 
       onOpenChange={setIsOpen}
+      modal={true}
     >
       <SheetContent 
         side="bottom" 
         className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-white"
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+          setIsOpen(false);
+        }}
+        onEscapeKeyDown={() => setIsOpen(false)}
       >
         <CartHeader 
           onClose={handleClose}
