@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, TreePine, Recycle, World } from "lucide-react";
+import { Leaf, TreePine, Recycle, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SustainabilityProgram = () => {
@@ -54,7 +54,7 @@ const SustainabilityProgram = () => {
                 description: "Optimize packaging and reduce waste"
               },
               {
-                icon: <World className="w-8 h-8" />,
+                icon: <Globe className="w-8 h-8" />,
                 title: "Global Impact",
                 description: "Be part of worldwide sustainability initiatives"
               }
