@@ -7,7 +7,7 @@ import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { BlockType, ContentBlock } from "@/types/content-blocks";
+import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Json } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
@@ -54,7 +54,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           const transformedBlocks: ContentBlock[] = (dbBlocks as SupabaseContentBlock[]).map(block => ({
             id: block.id,
             type: block.type,
-            content: block.content as ContentBlock['content'],
+            content: block.content as BlockContent,
             order_index: block.order_index
           }));
           console.log('Setting blocks from DB:', transformedBlocks);
@@ -119,7 +119,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       const transformedBlocks: ContentBlock[] = (blocksData as SupabaseContentBlock[])?.map(block => ({
         id: block.id,
         type: block.type,
-        content: block.content as ContentBlock['content'],
+        content: block.content as BlockContent,
         order_index: block.order_index
       })) || [];
 
@@ -146,10 +146,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleAddBlock = async (blockType: BlockType) => {
+    const defaultContent: BlockContent = {};
+    
     const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
       type: blockType,
-      content: {},
+      content: defaultContent,
       order_index: blocks.length,
     };
 
@@ -161,7 +163,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           id: newBlock.id,
           page_id: pageId,
           type: blockType,
-          content: newBlock.content,
+          content: defaultContent,
           order_index: blocks.length,
         });
 
@@ -177,7 +179,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleUpdateBlock = async (blockId: string, content: ContentBlock['content']) => {
+  const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
     try {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
