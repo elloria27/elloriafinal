@@ -15,6 +15,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import Checkout from "@/pages/Checkout";
 import OrderSuccess from "@/pages/OrderSuccess";
 import Sustainability from "@/pages/Sustainability";
+import ForBusiness from "@/pages/ForBusiness";
 import Admin from "@/pages/Admin";
 
 import "./App.css";
@@ -81,6 +82,11 @@ function AppRoutes() {
       <Route path="/sustainability" element={
         <ProtectedRoute slug="sustainability">
           <Sustainability />
+        </ProtectedRoute>
+      } />
+      <Route path="/for-business" element={
+        <ProtectedRoute slug="for-business">
+          <ForBusiness />
         </ProtectedRoute>
       } />
       <Route path="/admin" element={
