@@ -22,10 +22,6 @@ interface Order {
   shipping_address: Json;
   items: Json;
   created_at: string | null;
-  user?: {
-    email: string;
-    id: string;
-  } | null;
   profiles?: {
     full_name: string | null;
     email: string | null;
@@ -97,11 +93,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          user:user_id (
-            email,
-            id
-          ),
-          profiles:user_id (
+          profiles:profiles!orders_user_id_fkey (
             full_name,
             email
           )
@@ -116,7 +108,6 @@ export const OrderManagement = () => {
       console.log('Orders fetched successfully:', data);
       
       if (data) {
-        // Ensure the data matches our Order interface structure
         const typedOrders: Order[] = data.map(order => ({
           id: order.id,
           order_number: order.order_number,
@@ -127,7 +118,6 @@ export const OrderManagement = () => {
           shipping_address: order.shipping_address,
           items: order.items,
           created_at: order.created_at,
-          user: order.user,
           profiles: order.profiles
         }));
         setOrders(typedOrders);
@@ -194,7 +184,7 @@ export const OrderManagement = () => {
               <TableRow key={order.id}>
                 <TableCell>{order.order_number}</TableCell>
                 <TableCell>
-                  {order.profiles?.full_name || order.user?.email || 'N/A'}
+                  {order.profiles?.full_name || order.profiles?.email || 'N/A'}
                 </TableCell>
                 <TableCell>${order.total_amount.toFixed(2)}</TableCell>
                 <TableCell>{order.status}</TableCell>
