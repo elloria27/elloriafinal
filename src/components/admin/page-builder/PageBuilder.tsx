@@ -15,6 +15,16 @@ interface PageBuilderProps {
   initialBlocks: ContentBlock[];
 }
 
+interface SupabaseContentBlock {
+  id: string;
+  page_id: string;
+  type: BlockType;
+  content: Json;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
@@ -34,7 +44,16 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         if (error) throw error;
 
         console.log('Fetched blocks:', blocksData);
-        setBlocks(blocksData || []);
+        
+        // Transform the Supabase data to match ContentBlock type
+        const transformedBlocks: ContentBlock[] = (blocksData as SupabaseContentBlock[])?.map(block => ({
+          id: block.id,
+          type: block.type,
+          content: block.content as ContentBlock['content'],
+          order_index: block.order_index
+        })) || [];
+
+        setBlocks(transformedBlocks);
       } catch (error) {
         console.error('Error fetching blocks:', error);
         toast.error("Failed to load page content");
