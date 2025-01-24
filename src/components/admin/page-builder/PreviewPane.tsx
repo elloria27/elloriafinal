@@ -9,6 +9,8 @@ interface PreviewPaneProps {
 
 export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   const renderBlock = (block: ContentBlock) => {
+    console.log('Rendering block:', block);
+    
     const blockContent = (
       <div className="group relative">
         <Button
@@ -95,8 +97,9 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
 
   return (
     <div className="p-8 bg-white rounded-lg shadow-sm">
-      {blocks.map((block) => renderBlock(block))}
-      {blocks.length === 0 && (
+      {blocks.length > 0 ? (
+        blocks.map((block) => renderBlock(block))
+      ) : (
         <div className="text-center text-gray-500 py-8">
           No content blocks yet. Click "Add Component" to get started.
         </div>

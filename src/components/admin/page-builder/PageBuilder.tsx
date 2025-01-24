@@ -32,38 +32,47 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPageBlocks = async () => {
-      try {
-        console.log('Fetching blocks for page:', pageId);
-        const { data: blocksData, error } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pageId)
-          .order('order_index');
+    console.log('PageBuilder mounted with pageId:', pageId);
+    console.log('Initial blocks:', initialBlocks);
+    if (initialBlocks && initialBlocks.length > 0) {
+      console.log('Setting initial blocks');
+      setBlocks(initialBlocks);
+    } else {
+      fetchPageBlocks();
+    }
+    setIsLoading(false);
+  }, [pageId, initialBlocks]);
 
-        if (error) throw error;
+  const fetchPageBlocks = async () => {
+    try {
+      console.log('Fetching blocks for page:', pageId);
+      const { data: blocksData, error } = await supabase
+        .from('content_blocks')
+        .select('*')
+        .eq('page_id', pageId)
+        .order('order_index');
 
-        console.log('Fetched blocks:', blocksData);
-        
-        // Transform the Supabase data to match ContentBlock type
-        const transformedBlocks: ContentBlock[] = (blocksData as SupabaseContentBlock[])?.map(block => ({
-          id: block.id,
-          type: block.type,
-          content: block.content as ContentBlock['content'],
-          order_index: block.order_index
-        })) || [];
-
-        setBlocks(transformedBlocks);
-      } catch (error) {
+      if (error) {
         console.error('Error fetching blocks:', error);
-        toast.error("Failed to load page content");
-      } finally {
-        setIsLoading(false);
+        throw error;
       }
-    };
 
-    fetchPageBlocks();
-  }, [pageId]);
+      console.log('Fetched blocks:', blocksData);
+      
+      // Transform the Supabase data to match ContentBlock type
+      const transformedBlocks: ContentBlock[] = (blocksData as SupabaseContentBlock[])?.map(block => ({
+        id: block.id,
+        type: block.type,
+        content: block.content as ContentBlock['content'],
+        order_index: block.order_index
+      })) || [];
+
+      setBlocks(transformedBlocks);
+    } catch (error) {
+      console.error('Error fetching blocks:', error);
+      toast.error("Failed to load page content");
+    }
+  };
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -236,7 +245,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={handleUpdateBlock}
+            onUpdate={(content) => handleUpdateBlock(selectedBlock.id, content)}
           />
         </div>
       )}
