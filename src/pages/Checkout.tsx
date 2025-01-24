@@ -12,6 +12,12 @@ import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { sendOrderEmails } from "@/utils/emailService";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  CANADIAN_TAX_RATES, 
+  US_TAX_RATES, 
+  SHIPPING_OPTIONS,
+  USD_TO_CAD 
+} from "@/utils/locationData";
 
 const Checkout = () => {
   const navigate = useNavigate();
