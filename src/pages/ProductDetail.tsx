@@ -46,7 +46,7 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen pt-[72px] md:pt-[88px]"> {/* Added padding-top to account for fixed header height */}
+    <div className="min-h-screen pt-[96px] md:pt-[120px]"> {/* Increased padding-top for better spacing */}
       <ProductGallery media={product.media || []} productName={product.name} />
       <Features />
       <GameChanger />
