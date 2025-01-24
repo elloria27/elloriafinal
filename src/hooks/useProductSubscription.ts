@@ -37,11 +37,11 @@ export const useProductSubscription = (onUpdate: (products: Product[]) => void) 
             price: p.price,
             features: p.features,
             specifications: {
-              length: p.specifications.length || '',
-              absorption: p.specifications.absorption || '',
-              quantity: p.specifications.quantity || '',
-              material: p.specifications.material || '',
-              features: p.specifications.features || ''
+              length: p.specifications?.length?.toString() || '',
+              absorption: p.specifications?.absorption?.toString() || '',
+              quantity: p.specifications?.quantity?.toString() || '',
+              material: p.specifications?.material?.toString() || '',
+              features: p.specifications?.features?.toString() || ''
             },
             created_at: p.created_at,
             updated_at: p.updated_at

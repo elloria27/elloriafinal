@@ -27,11 +27,11 @@ export const ProductNode = memo(({ data }: { data: ProductNodeData }) => {
         setProduct({
           ...productData,
           specifications: {
-            length: productData.specifications.length || '',
-            absorption: productData.specifications.absorption || '',
-            quantity: productData.specifications.quantity || '',
-            material: productData.specifications.material || '',
-            features: productData.specifications.features || ''
+            length: productData.specifications?.length?.toString() || '',
+            absorption: productData.specifications?.absorption?.toString() || '',
+            quantity: productData.specifications?.quantity?.toString() || '',
+            material: productData.specifications?.material?.toString() || '',
+            features: productData.specifications?.features?.toString() || ''
           }
         });
       }

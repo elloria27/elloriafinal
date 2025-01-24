@@ -1,42 +1,59 @@
-import {
-  ReactFlow,
-  MiniMap,
+import { useCallback, useEffect, useState } from 'react';
+import ReactFlow, {
+  Node,
+  Edge,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
+  BackgroundVariant,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { initialNodes, initialEdges } from './initial-elements';
-import { AnnotationNode } from './nodes/AnnotationNode';
+import { getInitialElements } from './initial-elements';
 import { ProductNode } from './nodes/ProductNode';
+import { AnnotationNode } from './nodes/AnnotationNode';
 
 const nodeTypes = {
-  annotation: AnnotationNode,
   product: ProductNode,
+  annotation: AnnotationNode,
 };
 
 export const FlowCanvas = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
 
-  const onConnect = (params: any) => setEdges((eds) => addEdge(params, eds));
+  useEffect(() => {
+    const initializeFlow = async () => {
+      const elements = await getInitialElements();
+      setNodes(elements.nodes);
+      setEdges(elements.edges);
+    };
+
+    initializeFlow();
+  }, []);
+
+  const onNodesChange = useCallback((changes: any) => {
+    setNodes((nds) => {
+      return changes.reduce((acc: Node[], change: any) => {
+        if (change.type === 'position' && change.dragging) {
+          const node = acc.find((n) => n.id === change.id);
+          if (node) {
+            node.position = change.position;
+          }
+        }
+        return acc;
+      }, [...nds]);
+    });
+  }, []);
 
   return (
-    <div className="w-full h-[800px]">
+    <div className="h-[600px] w-full bg-white rounded-lg shadow-lg">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
       >
-        <Background />
+        <Background variant={BackgroundVariant.Dots} />
         <Controls />
-        <MiniMap />
       </ReactFlow>
     </div>
   );

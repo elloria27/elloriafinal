@@ -15,11 +15,11 @@ const fetchProducts = async (): Promise<Product[]> => {
   return data.map(p => ({
     ...p,
     specifications: {
-      length: p.specifications.length || '',
-      absorption: p.specifications.absorption || '',
-      quantity: p.specifications.quantity || '',
-      material: p.specifications.material || '',
-      features: p.specifications.features || ''
+      length: p.specifications?.length?.toString() || '',
+      absorption: p.specifications?.absorption?.toString() || '',
+      quantity: p.specifications?.quantity?.toString() || '',
+      material: p.specifications?.material?.toString() || '',
+      features: p.specifications?.features?.toString() || ''
     }
   }));
 };
