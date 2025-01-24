@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 interface UserProfile {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string | null;
   user_roles: { role: 'admin' | 'client' }[];
 }
@@ -39,11 +39,11 @@ export const UserManagement = () => {
       if (rolesError) throw rolesError;
 
       // Map user roles to profiles with proper typing
-      const formattedUsers: UserProfile[] = profiles.map(profile => {
+      const formattedUsers = profiles.map(profile => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         return {
           id: profile.id,
-          email: profile.email || 'N/A',
+          email: profile.email,
           full_name: profile.full_name,
           user_roles: userRole ? [{ role: userRole.role as 'admin' | 'client' }] : [{ role: 'client' }]
         };
@@ -113,8 +113,8 @@ export const UserManagement = () => {
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.full_name}</TableCell>
-              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.full_name || 'N/A'}</TableCell>
+              <TableCell>{user.email || 'N/A'}</TableCell>
               <TableCell>{user.user_roles[0]?.role || 'client'}</TableCell>
               <TableCell>
                 {user.user_roles[0]?.role === 'admin' ? (
