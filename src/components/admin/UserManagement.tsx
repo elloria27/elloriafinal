@@ -60,13 +60,22 @@ export const UserManagement = () => {
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
-          *,
+          id,
+          full_name,
+          email,
+          phone_number,
+          address,
+          country,
+          region,
           user_roles (
             role
           )
         `);
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
 
       console.log('Profiles data fetched:', profiles);
 
@@ -74,11 +83,11 @@ export const UserManagement = () => {
         throw new Error('No profiles data returned');
       }
 
-      const usersWithRoles = (profiles as unknown as ProfileWithRoles[]).map(profile => ({
+      const usersWithRoles = profiles.map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
         email: profile.email,
-        role: profile.user_roles[0]?.role || 'client',
+        role: profile.user_roles?.[0]?.role || 'client',
         phone_number: profile.phone_number,
         address: profile.address,
         country: profile.country,
