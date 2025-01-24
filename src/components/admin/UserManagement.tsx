@@ -37,6 +37,7 @@ export const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -83,7 +84,7 @@ export const UserManagement = () => {
       if (error) throw error;
 
       toast.success("User role updated successfully");
-      await fetchUsers(); // Refresh the users list
+      await fetchUsers();
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error("Failed to update user role");
@@ -136,6 +137,7 @@ export const UserManagement = () => {
       return;
     }
 
+    setIsDeleting(true);
     try {
       console.log('Starting user deletion process for ID:', userId);
       
@@ -156,6 +158,8 @@ export const UserManagement = () => {
     } catch (error) {
       console.error('Error in delete process:', error);
       toast.error("Failed to delete user completely. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -263,6 +267,7 @@ export const UserManagement = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteUser(user.id)}
+                    disabled={isDeleting}
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
