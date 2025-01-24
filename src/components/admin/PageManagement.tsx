@@ -53,13 +53,13 @@ export const PageManagement = () => {
       
       if (sessionError) {
         console.error('Session error:', sessionError);
-        toast.error("Authentication error");
+        toast.error("Помилка аутентифікації");
         return;
       }
 
       if (!sessionData.session) {
         console.log('No active session found');
-        toast.error("Please log in to access the admin panel");
+        toast.error("Будь ласка, увійдіть в систему для доступу до адмін-панелі");
         return;
       }
 
@@ -69,7 +69,11 @@ export const PageManagement = () => {
 
       if (error) {
         console.error('Error fetching pages:', error);
-        toast.error(error.message || "Failed to fetch pages");
+        if (error.message.includes('Access denied')) {
+          toast.error("Доступ заборонено: потрібні права адміністратора");
+        } else {
+          toast.error("Помилка при завантаженні сторінок");
+        }
         return;
       }
 
@@ -83,7 +87,7 @@ export const PageManagement = () => {
       setPages(data);
     } catch (error) {
       console.error('Error in fetchPages:', error);
-      toast.error("Failed to fetch pages");
+      toast.error("Помилка при завантаженні сторінок");
     } finally {
       setLoading(false);
     }
@@ -171,27 +175,27 @@ export const PageManagement = () => {
   };
 
   if (loading) {
-    return <div>Loading pages...</div>;
+    return <div>Завантаження сторінок...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Page Management</h2>
+        <h2 className="text-2xl font-bold">Управління сторінками</h2>
         <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add New Page
+              Додати нову сторінку
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Page</DialogTitle>
+              <DialogTitle>Створити нову сторінку</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreatePage} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">Заголовок</Label>
                 <Input
                   id="title"
                   name="title"
@@ -199,7 +203,7 @@ export const PageManagement = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
+                <Label htmlFor="slug">URL-адреса</Label>
                 <Input
                   id="slug"
                   name="slug"
@@ -207,7 +211,7 @@ export const PageManagement = () => {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Create Page
+                Створити сторінку
               </Button>
             </form>
           </DialogContent>
@@ -217,11 +221,11 @@ export const PageManagement = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Updated</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Заголовок</TableHead>
+            <TableHead>URL-адреса</TableHead>
+            <TableHead>Статус</TableHead>
+            <TableHead>Останнє оновлення</TableHead>
+            <TableHead>Дії</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -229,7 +233,7 @@ export const PageManagement = () => {
             <TableRow key={page.id}>
               <TableCell>{page.title}</TableCell>
               <TableCell>{page.slug}</TableCell>
-              <TableCell>{page.is_published ? 'Published' : 'Draft'}</TableCell>
+              <TableCell>{page.is_published ? 'Опубліковано' : 'Чернетка'}</TableCell>
               <TableCell>{new Date(page.updated_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -248,11 +252,11 @@ export const PageManagement = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Page</DialogTitle>
+                        <DialogTitle>Редагувати сторінку</DialogTitle>
                       </DialogHeader>
                       <form onSubmit={handleUpdatePage} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="title">Title</Label>
+                          <Label htmlFor="title">Заголовок</Label>
                           <Input
                             id="title"
                             name="title"
@@ -261,7 +265,7 @@ export const PageManagement = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="slug">Slug</Label>
+                          <Label htmlFor="slug">URL-адреса</Label>
                           <Input
                             id="slug"
                             name="slug"
@@ -275,10 +279,10 @@ export const PageManagement = () => {
                             name="is_published"
                             defaultChecked={selectedPage?.is_published}
                           />
-                          <Label htmlFor="is_published">Published</Label>
+                          <Label htmlFor="is_published">Опубліковано</Label>
                         </div>
                         <Button type="submit" className="w-full">
-                          Save Changes
+                          Зберегти зміни
                         </Button>
                       </form>
                     </DialogContent>
