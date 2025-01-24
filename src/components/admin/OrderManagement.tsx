@@ -76,7 +76,6 @@ export const OrderManagement = () => {
         return;
       }
 
-      // If we get here, user is confirmed admin, fetch orders
       await fetchOrders();
     } catch (error) {
       console.error('Session check error:', error);
@@ -93,7 +92,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles:profiles!orders_user_id_fkey (
+          profiles:user_id(
             full_name,
             email
           )
@@ -108,19 +107,7 @@ export const OrderManagement = () => {
       console.log('Orders fetched successfully:', data);
       
       if (data) {
-        const typedOrders: Order[] = data.map(order => ({
-          id: order.id,
-          order_number: order.order_number,
-          total_amount: order.total_amount,
-          status: order.status,
-          user_id: order.user_id,
-          billing_address: order.billing_address,
-          shipping_address: order.shipping_address,
-          items: order.items,
-          created_at: order.created_at,
-          profiles: order.profiles
-        }));
-        setOrders(typedOrders);
+        setOrders(data as Order[]);
       }
     } catch (error) {
       console.error('Error in fetchOrders:', error);
