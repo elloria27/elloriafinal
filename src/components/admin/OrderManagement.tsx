@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 
+// Define strict types for our data structures
+type Profile = {
+  full_name: string | null;
+  email: string | null;
+};
+
 interface Order {
   id: string;
   order_number: string;
@@ -22,10 +28,7 @@ interface Order {
   shipping_address: Json;
   items: Json;
   created_at: string | null;
-  profiles?: {
-    full_name: string | null;
-    email: string | null;
-  } | null;
+  profiles?: Profile | null;
 }
 
 export const OrderManagement = () => {
@@ -60,7 +63,7 @@ export const OrderManagement = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       console.log('Role check result:', roleData, roleError);
 
@@ -92,7 +95,7 @@ export const OrderManagement = () => {
         .from('orders')
         .select(`
           *,
-          profiles:user_id(
+          profiles (
             full_name,
             email
           )
@@ -107,7 +110,20 @@ export const OrderManagement = () => {
       console.log('Orders fetched successfully:', data);
       
       if (data) {
-        setOrders(data as Order[]);
+        // Ensure the data matches our Order type
+        const typedOrders: Order[] = data.map(order => ({
+          id: order.id,
+          order_number: order.order_number,
+          total_amount: order.total_amount,
+          status: order.status,
+          user_id: order.user_id,
+          billing_address: order.billing_address,
+          shipping_address: order.shipping_address,
+          items: order.items,
+          created_at: order.created_at,
+          profiles: order.profiles
+        }));
+        setOrders(typedOrders);
       }
     } catch (error) {
       console.error('Error in fetchOrders:', error);
