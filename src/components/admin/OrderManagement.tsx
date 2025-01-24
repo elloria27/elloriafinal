@@ -18,17 +18,32 @@ type Profile = {
   email: string | null;
 };
 
+type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+
 interface Order {
   id: string;
   order_number: string;
   total_amount: number;
-  status: string;
+  status: OrderStatus;
   user_id: string;
   billing_address: Json;
   shipping_address: Json;
   items: Json;
   created_at: string | null;
-  profiles?: Profile | null;
+  profiles: Profile | null;
+}
+
+type OrderResponse = {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: OrderStatus;
+  user_id: string;
+  billing_address: Json;
+  shipping_address: Json;
+  items: Json;
+  created_at: string | null;
+  profiles: Profile | null;
 }
 
 export const OrderManagement = () => {
@@ -110,12 +125,11 @@ export const OrderManagement = () => {
       console.log('Orders fetched successfully:', data);
       
       if (data) {
-        // Ensure the data matches our Order type
-        const typedOrders: Order[] = data.map(order => ({
+        const typedOrders: Order[] = (data as OrderResponse[]).map(order => ({
           id: order.id,
           order_number: order.order_number,
           total_amount: order.total_amount,
-          status: order.status,
+          status: order.status as OrderStatus,
           user_id: order.user_id,
           billing_address: order.billing_address,
           shipping_address: order.shipping_address,
@@ -133,7 +147,7 @@ export const OrderManagement = () => {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     try {
       console.log('Updating order status:', { orderId, newStatus });
       const { error } = await supabase
@@ -195,7 +209,7 @@ export const OrderManagement = () => {
                   <select
                     className="border rounded p-1"
                     value={order.status}
-                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                    onChange={(e) => updateOrderStatus(order.id, e.target.value as OrderStatus)}
                   >
                     <option value="pending">Pending</option>
                     <option value="processing">Processing</option>
