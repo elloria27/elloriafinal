@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Product } from "@/types/product";
-import { Trash2, Plus, Image, Video } from "lucide-react";
+import { Trash2, Plus, Image, Video, Upload, Link } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type EditFormType = Omit<Product, 'id' | 'created_at' | 'updated_at'>;
 
@@ -46,6 +49,8 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
     why_choose_features: []
   });
 
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     if (product) {
       setEditForm({
@@ -60,6 +65,51 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
       });
     }
   }, [product]);
+
+  const handleFileUpload = async (file: File, type: 'main' | 'gallery', index?: number) => {
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      if (type === 'main') {
+        setEditForm(prev => ({
+          ...prev,
+          image: publicUrl
+        }));
+      } else if (type === 'gallery' && typeof index === 'number') {
+        const newMedia = [...editForm.media];
+        newMedia[index] = {
+          ...newMedia[index],
+          url: publicUrl
+        };
+        setEditForm(prev => ({
+          ...prev,
+          media: newMedia
+        }));
+      }
+
+      toast.success('File uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Error uploading file');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Features handlers
   const handleFeatureChange = (index: number, value: string) => {
@@ -109,7 +159,6 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
     }));
   };
 
-  // Why Choose Features handlers
   const handleWhyChooseFeatureChange = (index: number, field: keyof typeof DEFAULT_WHY_CHOOSE_FEATURE, value: string) => {
     const newFeatures = [...editForm.why_choose_features];
     newFeatures[index] = { ...newFeatures[index], [field]: value };
@@ -167,12 +216,48 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="image">Main Product Image URL</Label>
-          <Input
-            id="image"
-            value={editForm.image}
-            onChange={(e) => setEditForm(prev => ({ ...prev, image: e.target.value }))}
-          />
+          <Label>Main Product Image</Label>
+          <Tabs defaultValue="url" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="url" className="flex items-center gap-2">
+                <Link className="w-4 h-4" />
+                URL
+              </TabsTrigger>
+              <TabsTrigger value="upload" className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                Upload
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="url">
+              <Input
+                value={editForm.image}
+                onChange={(e) => setEditForm(prev => ({ ...prev, image: e.target.value }))}
+                placeholder="Enter image URL"
+              />
+            </TabsContent>
+            <TabsContent value="upload">
+              <div className="flex gap-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, 'main');
+                    }
+                  }}
+                  disabled={uploading}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+          {editForm.image && (
+            <img 
+              src={editForm.image} 
+              alt="Preview" 
+              className="w-32 h-32 object-cover rounded-lg mt-2"
+            />
+          )}
         </div>
       </div>
 
@@ -212,16 +297,53 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            <Input
-              placeholder="Media URL"
-              value={item.url}
-              onChange={(e) => handleMediaChange(index, 'url', e.target.value)}
-            />
+
+            <Tabs defaultValue="url" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="url" className="flex items-center gap-2">
+                  <Link className="w-4 h-4" />
+                  URL
+                </TabsTrigger>
+                <TabsTrigger value="upload" className="flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Upload
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="url">
+                <Input
+                  placeholder="Media URL"
+                  value={item.url}
+                  onChange={(e) => handleMediaChange(index, 'url', e.target.value)}
+                />
+              </TabsContent>
+              <TabsContent value="upload">
+                <Input
+                  type="file"
+                  accept={item.type === 'image' ? 'image/*' : 'video/*'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, 'gallery', index);
+                    }
+                  }}
+                  disabled={uploading}
+                />
+              </TabsContent>
+            </Tabs>
+
             {item.type === "video" && (
               <Input
                 placeholder="Thumbnail URL"
                 value={item.thumbnail}
                 onChange={(e) => handleMediaChange(index, 'thumbnail', e.target.value)}
+              />
+            )}
+
+            {item.url && item.type === 'image' && (
+              <img 
+                src={item.url} 
+                alt="Preview" 
+                className="w-32 h-32 object-cover rounded-lg"
               />
             )}
           </div>
