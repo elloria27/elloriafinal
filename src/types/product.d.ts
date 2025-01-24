@@ -12,6 +12,16 @@ export interface Product {
     material: string;
     features: string;
   };
+  media?: {
+    type: 'image' | 'video';
+    url: string;
+    thumbnail?: string;
+  }[];
+  why_choose_features?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
   created_at?: string;
   updated_at?: string;
 }

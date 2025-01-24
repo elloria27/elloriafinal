@@ -63,10 +63,12 @@ export type Database = {
           features: string[]
           id: string
           image: string
+          media: Json | null
           name: string
           price: number
           specifications: Json
           updated_at: string | null
+          why_choose_features: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -74,10 +76,12 @@ export type Database = {
           features?: string[]
           id?: string
           image: string
+          media?: Json | null
           name: string
           price: number
           specifications?: Json
           updated_at?: string | null
+          why_choose_features?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -85,10 +89,12 @@ export type Database = {
           features?: string[]
           id?: string
           image?: string
+          media?: Json | null
           name?: string
           price?: number
           specifications?: Json
           updated_at?: string | null
+          why_choose_features?: Json | null
         }
         Relationships: []
       }
