@@ -142,7 +142,16 @@ export const OrderManagement = () => {
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      console.log("Updating order status:", orderId, newStatus);
+      console.log("Starting order status update:", { orderId, newStatus });
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error("No active session found");
+        toast.error("You must be logged in to update orders");
+        return;
+      }
+
+      console.log("Current user session:", session.user.id);
       
       // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
