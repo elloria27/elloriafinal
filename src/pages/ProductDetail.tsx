@@ -5,7 +5,6 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
@@ -38,7 +37,7 @@ const ProductDetailContent = () => {
 
       if (data) {
         const parsedProduct = parseProduct(data);
-        console.log('Parsed product media:', parsedProduct.media); // Debug log
+        console.log('Parsed product media:', parsedProduct.media);
         setProduct(parsedProduct);
       }
     };
@@ -229,7 +228,6 @@ const ProductDetailContent = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };
