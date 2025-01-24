@@ -56,16 +56,26 @@ export const PageManagement = () => {
         return;
       }
 
+      if (!sessionData.session) {
+        console.log('No active session');
+        return;
+      }
+
       const { data: userRoleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', sessionData?.session?.user.id)
+        .eq('user_id', sessionData.session.user.id)
         .single();
         
       console.log('User role data:', userRoleData);
       
       if (roleError) {
         console.error('Role check error:', roleError);
+        return;
+      }
+
+      if (userRoleData?.role !== 'admin') {
+        console.log('User is not an admin');
         return;
       }
 
