@@ -115,9 +115,23 @@ export const OrderManagement = () => {
 
       console.log('Orders fetched successfully:', data);
       
-      // Type assertion to ensure the data matches our Order interface
-      const typedOrders = (data || []) as Order[];
-      setOrders(typedOrders);
+      if (data) {
+        // Ensure the data matches our Order interface structure
+        const typedOrders: Order[] = data.map(order => ({
+          id: order.id,
+          order_number: order.order_number,
+          total_amount: order.total_amount,
+          status: order.status,
+          user_id: order.user_id,
+          billing_address: order.billing_address,
+          shipping_address: order.shipping_address,
+          items: order.items,
+          created_at: order.created_at,
+          user: order.user,
+          profiles: order.profiles
+        }));
+        setOrders(typedOrders);
+      }
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
