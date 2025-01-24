@@ -1,6 +1,7 @@
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 
 interface CartHeaderProps {
   onClose: () => void;
@@ -11,7 +12,12 @@ interface CartHeaderProps {
 export const CartHeader = ({ onClose, onClear, hasItems }: CartHeaderProps) => {
   return (
     <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-4">
-      <div className="flex items-center justify-between">
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <SheetTitle className="text-xl font-medium flex items-center gap-2">
           <Button 
             variant="ghost" 
@@ -33,7 +39,7 @@ export const CartHeader = ({ onClose, onClear, hasItems }: CartHeaderProps) => {
             <Trash2 className="h-4 w-4" />
           </Button>
         )}
-      </div>
+      </motion.div>
     </SheetHeader>
   );
 };
