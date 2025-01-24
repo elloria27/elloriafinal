@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, Heart, Shield, Sparkles, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -106,16 +107,17 @@ export const Hero = () => {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-white px-8 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              asChild
             >
-              Buy Now
+              <Link to="/shop">Shop Now</Link>
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               className="border-2 border-primary text-primary hover:bg-primary/10 px-8 py-7 text-lg rounded-full transition-all duration-300"
-              onClick={handleLearnMore}
+              asChild
             >
-              Learn More
+              <Link to="/about">Learn More</Link>
             </Button>
           </motion.div>
         </div>
