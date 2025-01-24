@@ -61,6 +61,8 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users data...');
+      
+      // First, fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -70,10 +72,7 @@ export const UserManagement = () => {
           phone_number,
           address,
           country,
-          region,
-          user_roles (
-            role
-          )
+          region
         `);
 
       if (profilesError) {
@@ -81,17 +80,25 @@ export const UserManagement = () => {
         throw profilesError;
       }
 
-      console.log('Profiles data fetched:', profiles);
+      // Then, fetch user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
 
-      if (!profiles) {
-        throw new Error('No profiles data returned');
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        throw rolesError;
       }
 
-      const usersWithRoles = (profiles as ProfileWithRoles[]).map(profile => ({
+      // Create a map of user_id to role
+      const roleMap = new Map(userRoles.map(ur => [ur.user_id, ur.role]));
+
+      // Combine profiles with roles
+      const usersWithRoles = profiles.map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
         email: profile.email,
-        role: profile.user_roles?.[0]?.role || 'client',
+        role: roleMap.get(profile.id) || 'client',
         phone_number: profile.phone_number,
         address: profile.address,
         country: profile.country,
