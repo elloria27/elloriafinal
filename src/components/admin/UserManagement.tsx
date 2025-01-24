@@ -24,28 +24,32 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users...');
+      // First, get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          user_roles (
-            role
-          )
-        `);
+        .select('id, email, full_name');
 
       if (profilesError) throw profilesError;
 
-      console.log('Fetched profiles:', profiles);
+      // Then, get user roles for each profile
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
 
-      const formattedUsers = profiles.map(profile => ({
-        id: profile.id,
-        email: profile.email || 'N/A',
-        full_name: profile.full_name || 'N/A',
-        user_roles: profile.user_roles || [{ role: 'client' }]
-      }));
+      if (rolesError) throw rolesError;
 
+      // Map user roles to profiles
+      const formattedUsers = profiles.map(profile => {
+        const userRole = userRoles.find(role => role.user_id === profile.id);
+        return {
+          id: profile.id,
+          email: profile.email || 'N/A',
+          full_name: profile.full_name || 'N/A',
+          user_roles: userRole ? [{ role: userRole.role as 'admin' | 'client' }] : [{ role: 'client' }]
+        };
+      });
+
+      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
