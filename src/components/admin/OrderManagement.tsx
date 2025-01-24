@@ -114,7 +114,10 @@ export const OrderManagement = () => {
       }
 
       console.log('Orders fetched successfully:', data);
-      setOrders(data || []);
+      
+      // Type assertion to ensure the data matches our Order interface
+      const typedOrders = (data || []) as Order[];
+      setOrders(typedOrders);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
       toast.error("Failed to fetch orders");
