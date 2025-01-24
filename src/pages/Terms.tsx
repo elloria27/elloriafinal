@@ -1,5 +1,4 @@
 import { FileText, Shield, Info, ScrollText, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
@@ -29,7 +28,7 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-primary to-secondary/30 py-16 md:py-24">
+      <div className="relative bg-gradient-to-r from-primary to-secondary/30 py-16 md:py-24 mb-8 md:mb-0">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <FileText className="w-16 h-16 mx-auto mb-6 text-primary" />
@@ -64,7 +63,7 @@ const Terms = () => {
           </CardContent>
         </Card>
 
-        {/* Content Sections */}
+      {/* Content Sections */}
         <div className="max-w-4xl mx-auto space-y-12">
           <section id="general" className="scroll-mt-24">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
