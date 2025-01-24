@@ -125,25 +125,23 @@ export const Hero = () => {
         >
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
           <motion.div 
-            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl group"
+            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl"
             whileHover={{ scale: isMobile ? 1 : 1.05 }}
             transition={{ duration: 0.3 }}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
-            <div className="relative w-full pt-[56.25%] bg-gray-100">
-              <video 
-                ref={videoRef}
-                loop 
-                muted={isMuted}
-                playsInline
-                poster="/lovable-uploads/8ab579b3-d593-44fc-9a30-670e62eb6a58.png"
-                className="absolute top-0 left-0 w-full h-full object-cover"
-              >
-                <source src="https://elloria.ca/Video_290mm.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
+            <video 
+              ref={videoRef}
+              loop 
+              muted={isMuted}
+              playsInline
+              poster="/lovable-uploads/8ab579b3-d593-44fc-9a30-670e62eb6a58.png"
+              className="w-full aspect-video object-cover"
+            >
+              <source src="https://elloria.ca/Video_290mm.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
             
             <AnimatePresence>
               {!isPlaying && (
