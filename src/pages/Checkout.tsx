@@ -188,6 +188,7 @@ const Checkout = () => {
           .from('orders')
           .insert({
             user_id: user.id,
+            profile_id: user.id, // Add profile_id here
             order_number: orderNumber,
             total_amount: total,
             status: 'pending',

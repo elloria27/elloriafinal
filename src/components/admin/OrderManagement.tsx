@@ -77,7 +77,14 @@ export const OrderManagement = () => {
           throw ordersError;
         }
 
-        setOrders(ordersData || []);
+        // Transform the data to ensure correct typing
+        const transformedOrders: OrderData[] = (ordersData || []).map(order => ({
+          ...order,
+          status: order.status as OrderStatus,
+          profile: order.profile || null
+        }));
+
+        setOrders(transformedOrders);
       } catch (error) {
         console.error('Error:', error);
         toast.error("Failed to load orders");
