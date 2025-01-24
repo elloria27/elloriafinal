@@ -7,6 +7,7 @@ import { Testimonials } from "@/components/Testimonials";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -23,7 +24,10 @@ const ProductDetail = () => {
           .single();
 
         if (error) throw error;
-        setProduct(data);
+        
+        // Parse the raw data into the correct Product type
+        const parsedProduct = parseProduct(data);
+        setProduct(parsedProduct);
       } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
@@ -44,7 +48,7 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen">
-      <ProductGallery product={product} />
+      <ProductGallery media={product.media || []} productName={product.name} />
       <Features />
       <GameChanger />
       <CompetitorComparison />
