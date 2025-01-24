@@ -63,6 +63,7 @@ export const PageManagement = () => {
         return;
       }
 
+      // Перевіряємо чи користувач є адміном
       const { data: userRoleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -83,11 +84,8 @@ export const PageManagement = () => {
         return;
       }
 
-      // Using the service role to bypass RLS for admin users
-      const { data, error } = await supabase
-        .from('pages')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Використовуємо serviceRole для адміністраторів
+      const { data, error } = await supabase.rpc('admin_fetch_all_pages');
 
       if (error) {
         console.error('Error fetching pages:', error);
