@@ -102,6 +102,7 @@ export const UserManagement = () => {
         address: formData.get('address')?.toString() || '',
         country: formData.get('country')?.toString() || '',
         region: formData.get('region')?.toString() || '',
+        updated_at: new Date().toISOString(), // Add updated_at timestamp
       };
 
       console.log('Updating user with data:', updates);
@@ -111,11 +112,22 @@ export const UserManagement = () => {
         .update(updates)
         .eq('id', selectedUser.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
+      }
+
+      // Update local state to reflect changes
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === selectedUser.id 
+            ? { ...user, ...updates }
+            : user
+        )
+      );
 
       toast.success("User updated successfully");
       setIsEditDialogOpen(false);
-      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error updating user:', error);
       toast.error("Failed to update user");
@@ -128,11 +140,29 @@ export const UserManagement = () => {
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      // First delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
 
+      if (profileError) throw profileError;
+
+      // Then delete from user_roles table
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (roleError) throw roleError;
+
+      // Finally delete the auth user
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      if (authError) throw authError;
+
+      // Update local state
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       toast.success("User deleted successfully");
-      await fetchUsers(); // Refresh the users list
     } catch (error) {
       console.error('Error deleting user:', error);
       toast.error("Failed to delete user");
