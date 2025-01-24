@@ -35,7 +35,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     const initializeBlocks = async () => {
       console.log('Initializing blocks for page:', pageId);
       try {
-        // First check database for existing blocks
         const { data: dbBlocks, error } = await supabase
           .from('content_blocks')
           .select('*')
@@ -50,7 +49,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         console.log('Blocks from DB:', dbBlocks);
 
         if (dbBlocks && dbBlocks.length > 0) {
-          // Use blocks from database if they exist
           const transformedBlocks: ContentBlock[] = (dbBlocks as SupabaseContentBlock[]).map(block => ({
             id: block.id,
             type: block.type,
@@ -60,7 +58,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           console.log('Setting blocks from DB:', transformedBlocks);
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
-          // If no blocks in DB but we have initial blocks, save them to DB
           console.log('No blocks in DB, using initial blocks:', initialBlocks);
           const savedBlocks = await Promise.all(
             initialBlocks.map(async (block, index) => {
@@ -99,37 +96,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     initializeBlocks();
   }, [pageId, initialBlocks]);
 
-  const fetchPageBlocks = async () => {
-    try {
-      console.log('Fetching blocks for page:', pageId);
-      const { data: blocksData, error } = await supabase
-        .from('content_blocks')
-        .select('*')
-        .eq('page_id', pageId)
-        .order('order_index');
-
-      if (error) {
-        console.error('Error fetching blocks:', error);
-        throw error;
-      }
-
-      console.log('Fetched blocks:', blocksData);
-      
-      // Transform the Supabase data to match ContentBlock type
-      const transformedBlocks: ContentBlock[] = (blocksData as SupabaseContentBlock[])?.map(block => ({
-        id: block.id,
-        type: block.type,
-        content: block.content as BlockContent,
-        order_index: block.order_index
-      })) || [];
-
-      setBlocks(transformedBlocks);
-    } catch (error) {
-      console.error('Error fetching blocks:', error);
-      toast.error("Failed to load page content");
-    }
-  };
-
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
@@ -146,6 +112,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleAddBlock = async (blockType: BlockType) => {
+    // Initialize with empty object of type BlockContent
     const defaultContent: BlockContent = {};
     
     const newBlock: ContentBlock = {
@@ -204,7 +171,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Saving layout for page:', pageId);
       console.log('Blocks to save:', blocks);
 
-      // Update order_index for each block in content_blocks table
       const updatePromises = blocks.map((block, index) => 
         supabase
           .from('content_blocks')
@@ -214,7 +180,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       await Promise.all(updatePromises);
 
-      // Convert ContentBlock[] to Json[] for database storage
       const blocksForStorage: Json[] = blocks.map(block => ({
         id: block.id,
         type: block.type,
@@ -303,7 +268,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={(content) => handleUpdateBlock(selectedBlock.id, content)}
+            onUpdate={handleUpdateBlock}
           />
         </div>
       )}
