@@ -78,8 +78,8 @@ export const InstagramFeed = () => {
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-white">
                 <p className="text-sm mb-4 text-center">{post.caption}</p>
                 <Button
-                  variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-black"
+                  variant="secondary"
+                  className="bg-white text-black hover:bg-gray-200"
                   onClick={() => window.open(post.link, '_blank')}
                 >
                   View on Instagram
