@@ -120,21 +120,26 @@ export const PageManagement = () => {
 
       console.log('Pages fetched successfully:', data);
       
-      // Convert the content_blocks from Json[] to ContentBlock[]
-      const pagesWithTypedBlocks = data.map((page: any) => ({
-        ...page,
-        content_blocks: (page.content_blocks || []).map((block: any) => {
-          const typedBlock: ContentBlockJson = block as ContentBlockJson;
-          return {
-            id: typedBlock.id,
-            type: typedBlock.type as ContentBlock['type'],
-            content: typedBlock.content,
-            order_index: typedBlock.order_index
-          };
-        })
+      // Fetch content blocks for each page
+      const pagesWithBlocks = await Promise.all(data.map(async (page: any) => {
+        const { data: blocks, error: blocksError } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', page.id)
+          .order('order_index');
+
+        if (blocksError) {
+          console.error('Error fetching blocks for page:', page.id, blocksError);
+          return page;
+        }
+
+        return {
+          ...page,
+          content_blocks: blocks || []
+        };
       }));
 
-      setPages(pagesWithTypedBlocks);
+      setPages(pagesWithBlocks);
     } catch (error) {
       console.error('Error in fetchPages:', error);
       toast.error("Error loading pages");
@@ -211,6 +216,18 @@ export const PageManagement = () => {
     }
 
     try {
+      // First delete all content blocks associated with the page
+      const { error: blocksError } = await supabase
+        .from('content_blocks')
+        .delete()
+        .eq('page_id', pageId);
+
+      if (blocksError) {
+        console.error('Error deleting content blocks:', blocksError);
+        throw blocksError;
+      }
+
+      // Then delete the page
       const { error } = await supabase
         .from('pages')
         .delete()
@@ -227,7 +244,7 @@ export const PageManagement = () => {
   };
 
   const handleEditContent = (page: Page) => {
-    console.log('Opening content editor for page:', page.id);
+    console.log('Opening content editor for page:', page);
     setSelectedPageForEdit(page);
   };
 
