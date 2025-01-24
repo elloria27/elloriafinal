@@ -26,7 +26,8 @@ export const MobileMenu = () => {
     ...publishedPages
       .filter(page => 
         page.is_published && 
-        !technicalPages.includes(page.slug)
+        !technicalPages.includes(page.slug) &&
+        page.show_in_header
       )
       .map(page => ({
         name: page.title,

@@ -29,6 +29,8 @@ interface Page {
   slug: string;
   content: Json;
   is_published: boolean;
+  show_in_header: boolean;
+  show_in_footer: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -121,7 +123,9 @@ export const PageManagement = () => {
         title: formData.get('title')?.toString() || '',
         slug: formData.get('slug')?.toString() || '',
         content: [],
-        is_published: false
+        is_published: false,
+        show_in_header: false,
+        show_in_footer: false
       };
 
       console.log('Creating new page:', newPage);
@@ -151,6 +155,8 @@ export const PageManagement = () => {
         title: formData.get('title')?.toString() || '',
         slug: formData.get('slug')?.toString() || '',
         is_published: formData.get('is_published') === 'on',
+        show_in_header: formData.get('show_in_header') === 'on',
+        show_in_footer: formData.get('show_in_footer') === 'on',
         updated_at: new Date().toISOString(),
       };
 
@@ -243,6 +249,7 @@ export const PageManagement = () => {
             <TableHead>Title</TableHead>
             <TableHead>URL</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Menu Visibility</TableHead>
             <TableHead>Last Updated</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -253,6 +260,13 @@ export const PageManagement = () => {
               <TableCell>{page.title}</TableCell>
               <TableCell>{page.slug}</TableCell>
               <TableCell>{page.is_published ? 'Published' : 'Draft'}</TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  {page.show_in_header && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Header</span>}
+                  {page.show_in_footer && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Footer</span>}
+                  {!page.show_in_header && !page.show_in_footer && <span className="text-xs text-gray-500">Hidden</span>}
+                </div>
+              </TableCell>
               <TableCell>{new Date(page.updated_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -299,6 +313,22 @@ export const PageManagement = () => {
                             defaultChecked={selectedPage?.is_published}
                           />
                           <Label htmlFor="is_published">Published</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="show_in_header"
+                            name="show_in_header"
+                            defaultChecked={selectedPage?.show_in_header}
+                          />
+                          <Label htmlFor="show_in_header">Show in Header Menu</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="show_in_footer"
+                            name="show_in_footer"
+                            defaultChecked={selectedPage?.show_in_footer}
+                          />
+                          <Label htmlFor="show_in_footer">Show in Footer Menu</Label>
                         </div>
                         <Button type="submit" className="w-full">
                           Save Changes

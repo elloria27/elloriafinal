@@ -1,6 +1,35 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { usePages } from "@/contexts/PagesContext";
 
 export const Footer = () => {
+  const { publishedPages, isLoading } = usePages();
+
+  const technicalPages = [
+    'login',
+    'register',
+    'profile',
+    'checkout',
+    'product',
+    'order-success',
+    'admin'
+  ];
+
+  const footerPages = publishedPages
+    .filter(page => 
+      page.is_published && 
+      !technicalPages.includes(page.slug) &&
+      page.show_in_footer
+    )
+    .map(page => ({
+      name: page.title,
+      path: page.slug === 'index' ? '/' : `/${page.slug}`
+    }));
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <footer className="bg-white border-t border-gray-100">
       <div className="container mx-auto px-4 py-8 md:py-12">
@@ -29,12 +58,18 @@ export const Footer = () => {
           </div>
           
           <div className="flex flex-col items-center md:items-start space-y-4">
-            <h4 className="font-semibold text-gray-900">Company</h4>
+            <h4 className="font-semibold text-gray-900">Pages</h4>
             <ul className="space-y-2 text-center md:text-left">
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Sustainability</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Blog</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Contact</a></li>
+              {footerPages.map((page) => (
+                <li key={page.path}>
+                  <Link 
+                    to={page.path} 
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
+                    {page.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           
