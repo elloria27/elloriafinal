@@ -23,13 +23,6 @@ export const Hero = () => {
     { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
   ];
 
-  const handleLearnMore = () => {
-    const sustainabilitySection = document.querySelector('#sustainability');
-    if (sustainabilitySection) {
-      sustainabilitySection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handlePlayVideo = () => {
     if (videoRef.current) {
       if (!isPlaying) {
@@ -141,6 +134,7 @@ export const Hero = () => {
               loop 
               muted={isMuted}
               playsInline
+              poster="https://elloria.ca/wp-content/uploads/2023/10/Elloria-Pads-Eco-Friendly-Feminine-Care-Products-1.jpg"
               className="w-full h-full object-cover"
             >
               <source src="https://elloria.ca/Video_290mm.mp4" type="video/mp4" />
