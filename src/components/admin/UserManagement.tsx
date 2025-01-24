@@ -52,10 +52,18 @@ export const UserManagement = () => {
     try {
       console.log('Starting to fetch users data...');
       
-      // Fetch all profiles with their email addresses
+      // First fetch all users from auth.users through profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select(`
+          id,
+          full_name,
+          email,
+          phone_number,
+          address,
+          country,
+          region
+        `);
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
@@ -64,7 +72,7 @@ export const UserManagement = () => {
 
       console.log('Profiles fetched successfully:', profiles);
 
-      // Fetch all user roles
+      // Fetch user roles separately
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
@@ -76,20 +84,20 @@ export const UserManagement = () => {
 
       console.log('User roles fetched successfully:', userRoles);
 
+      // Create a map for faster role lookups
+      const roleMap = new Map(userRoles?.map(role => [role.user_id, role.role]));
+
       // Combine profiles with roles
-      const usersWithRoles = profiles.map(profile => {
-        const userRole = userRoles?.find(role => role.user_id === profile.id);
-        return {
-          id: profile.id,
-          full_name: profile.full_name,
-          email: profile.email, // This should now be properly included
-          role: userRole?.role || 'client',
-          phone_number: profile.phone_number,
-          address: profile.address,
-          country: profile.country,
-          region: profile.region
-        };
-      });
+      const usersWithRoles = profiles?.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name,
+        email: profile.email,
+        role: roleMap.get(profile.id) || 'client',
+        phone_number: profile.phone_number,
+        address: profile.address,
+        country: profile.country,
+        region: profile.region
+      })) || [];
 
       console.log('Combined users with roles:', usersWithRoles);
       setUsers(usersWithRoles);
