@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, Save } from "lucide-react";
@@ -8,6 +7,7 @@ import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
   pageId: string;
@@ -16,8 +16,9 @@ interface PageBuilderProps {
 
 export interface ContentBlock {
   id: string;
-  type: string;
-  content: any;
+  type: "heading" | "text" | "image" | "video" | "button" | "hero" | "features" | 
+        "testimonials" | "newsletter" | "product_gallery" | "blog_preview" | "store_brands";
+  content: Json;
   order_index: number;
 }
 
@@ -33,7 +34,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Update order_index for each block
     const updatedBlocks = items.map((block, index) => ({
       ...block,
       order_index: index,
@@ -43,9 +43,9 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleAddBlock = async (blockType: string) => {
-    const newBlock = {
+    const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
-      type: blockType,
+      type: blockType as ContentBlock["type"],
       content: {},
       order_index: blocks.length,
     };
@@ -53,12 +53,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       const { error } = await supabase
         .from('content_blocks')
-        .insert([{
+        .insert({
           page_id: pageId,
           type: blockType,
           content: {},
           order_index: blocks.length,
-        }]);
+        });
 
       if (error) throw error;
 
@@ -71,7 +71,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleUpdateBlock = async (blockId: string, content: any) => {
+  const handleUpdateBlock = async (blockId: string, content: Json) => {
     try {
       const { error } = await supabase
         .from('content_blocks')
@@ -92,10 +92,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleSaveLayout = async () => {
     try {
-      // Update order indices in database
-      const updates = blocks.map((block, index) => ({
+      const updates = blocks.map((block) => ({
         id: block.id,
-        order_index: index,
+        order_index: block.order_index,
+        type: block.type,
+        content: block.content
       }));
 
       const { error } = await supabase

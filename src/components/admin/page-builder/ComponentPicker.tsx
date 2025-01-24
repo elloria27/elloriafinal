@@ -6,7 +6,7 @@ import {
   Type, 
   Image, 
   Video, 
-  ButtonIcon, 
+  Square, // Replacing ButtonIcon with Square for button icon
   LayoutGrid,
   MessageSquareQuote,
   Mail,
@@ -27,7 +27,7 @@ const components = [
   { type: 'text', icon: Type, label: 'Text Block' },
   { type: 'image', icon: Image, label: 'Image' },
   { type: 'video', icon: Video, label: 'Video' },
-  { type: 'button', icon: ButtonIcon, label: 'Button' },
+  { type: 'button', icon: Square, label: 'Button' },
   { type: 'features', icon: LayoutGrid, label: 'Features Grid' },
   { type: 'testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
   { type: 'newsletter', icon: Mail, label: 'Newsletter' },

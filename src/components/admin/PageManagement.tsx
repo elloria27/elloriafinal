@@ -29,11 +29,13 @@ interface Page {
   title: string;
   slug: string;
   content: Json;
+  content_blocks: Json[] | null;
   is_published: boolean;
   show_in_header: boolean;
   show_in_footer: boolean;
   created_at: string;
   updated_at: string;
+  page_template?: string;
 }
 
 export const PageManagement = () => {
