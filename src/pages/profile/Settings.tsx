@@ -27,18 +27,27 @@ export default function Settings() {
 
   const fetchProfile = async () => {
     try {
+      console.log("Fetching profile for settings...");
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {
+        console.log("No authenticated user found in settings");
+        return;
+      }
 
+      console.log("User found in settings:", session.user.id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile in settings:", error);
+        throw error;
+      }
 
       if (data) {
+        console.log("Profile data fetched in settings:", data);
         setProfile(data);
         setEmailNotifications(data.email_notifications || false);
         setMarketingEmails(data.marketing_emails || false);
@@ -55,8 +64,10 @@ export default function Settings() {
 
   const updateSetting = async (setting: 'email_notifications' | 'marketing_emails' | 'language' | 'currency', value: any) => {
     try {
+      console.log(`Updating setting ${setting} to:`, value);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log("No authenticated user found while updating settings");
         toast.error("You must be logged in to update settings");
         return;
       }
@@ -66,8 +77,12 @@ export default function Settings() {
         .update({ [setting]: value })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating settings:", error);
+        throw error;
+      }
 
+      console.log("Setting updated successfully");
       setProfile(prev => prev ? { ...prev, [setting]: value } : null);
       toast.success("Settings updated successfully");
     } catch (error) {
@@ -84,12 +99,17 @@ export default function Settings() {
 
     try {
       setChangingPassword(true);
+      console.log("Changing password...");
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error changing password:", error);
+        throw error;
+      }
 
+      console.log("Password updated successfully");
       toast.success("Password updated successfully");
       setNewPassword("");
       setConfirmPassword("");

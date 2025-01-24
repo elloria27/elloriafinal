@@ -25,21 +25,24 @@ export default function MainProfile() {
 
   const fetchProfile = async () => {
     try {
+      console.log("Fetching profile...");
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.log("No authenticated user found");
         return;
       }
 
+      console.log("User found:", session.user.id);
       setUserEmail(session.user.email);
 
       const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
+        console.error("Error fetching profile:", error);
         throw error;
       }
 
@@ -56,9 +59,47 @@ export default function MainProfile() {
         setAddress(profileData.address || "");
         setCountry(profileData.country || "");
         setRegion(profileData.region || "");
+      } else {
+        console.log("No profile found, creating new profile");
+        // If no profile exists, create one
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              full_name: "",
+              phone_number: "",
+              address: "",
+              country: "",
+              region: "",
+            }
+          ]);
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          throw insertError;
+        }
+
+        // Fetch the newly created profile
+        const { data: newProfile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error("Error fetching new profile:", fetchError);
+          throw fetchError;
+        }
+
+        if (newProfile) {
+          console.log("New profile created:", newProfile);
+          setProfile(newProfile);
+        }
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error in profile management:", error);
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
@@ -83,7 +124,10 @@ export default function MainProfile() {
     try {
       setIsSaving(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user) {
+        toast.error("No authenticated user found");
+        return;
+      }
 
       const updates = {
         id: session.user.id,
@@ -95,13 +139,19 @@ export default function MainProfile() {
         updated_at: new Date().toISOString(),
       };
 
+      console.log("Saving profile updates:", updates);
+
       const { error } = await supabase
         .from("profiles")
         .update(updates)
         .eq("id", session.user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
 
+      console.log("Profile updated successfully");
       toast.success("Profile updated successfully");
       setProfile(prev => ({ ...prev!, ...updates }));
       setHasChanges(false);
