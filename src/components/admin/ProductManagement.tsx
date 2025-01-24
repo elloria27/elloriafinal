@@ -83,7 +83,7 @@ export const ProductManagement = () => {
     setEditForm({
       name: product.name,
       description: product.description,
-      price: product.price.toString(),
+      price: product.price,
       image: product.image,
       features: product.features,
       specifications: product.specifications,
@@ -126,7 +126,7 @@ export const ProductManagement = () => {
         .update({
           name: editForm.name,
           description: editForm.description,
-          price: parseFloat(editForm.price),
+          price: parseFloat(editForm.price.toString()),
           image: editForm.image,
           features: editForm.features,
           specifications: editForm.specifications,

@@ -77,8 +77,8 @@ export const OrderManagement = () => {
       // Type assertion and validation for the raw data
       const typedOrders = (ordersData || []).map(order => {
         // Ensure shipping_address and items are properly typed
-        const shippingAddress = order.shipping_address as ShippingAddress;
-        const items = order.items as OrderItem[];
+        const shippingAddress = order.shipping_address as unknown as ShippingAddress;
+        const items = order.items as unknown as OrderItem[];
         
         // Validate status is one of the allowed values
         const status = order.status as OrderStatus;
@@ -103,6 +103,24 @@ export const OrderManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
@@ -136,8 +154,8 @@ export const OrderManagement = () => {
           order.id === orderId
             ? {
                 ...updatedOrder,
-                shipping_address: updatedOrder.shipping_address as ShippingAddress,
-                items: updatedOrder.items as OrderItem[],
+                shipping_address: updatedOrder.shipping_address as unknown as ShippingAddress,
+                items: updatedOrder.items as unknown as OrderItem[],
                 status: updatedOrder.status as OrderStatus
               }
             : order
@@ -165,24 +183,6 @@ export const OrderManagement = () => {
       console.error('Error updating status:', error);
       toast.error("Failed to update order status");
     }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
   };
 
   if (loading) {
