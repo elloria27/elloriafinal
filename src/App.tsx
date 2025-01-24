@@ -17,6 +17,7 @@ import OrderSuccess from "@/pages/OrderSuccess";
 import Sustainability from "@/pages/Sustainability";
 import ForBusiness from "@/pages/ForBusiness";
 import Admin from "@/pages/Admin";
+import Blog from "@/pages/Blog";
 
 import "./App.css";
 
@@ -24,7 +25,7 @@ const ProtectedRoute = ({ children, slug }: { children: React.ReactNode; slug: s
   const { publishedPages, isLoading } = usePages();
   
   if (isLoading) {
-    return null; // Or a loading component
+    return null;
   }
 
   const page = publishedPages.find(p => p.slug === slug);
@@ -47,6 +48,11 @@ function AppRoutes() {
       <Route path="/about" element={
         <ProtectedRoute slug="about">
           <About />
+        </ProtectedRoute>
+      } />
+      <Route path="/blog" element={
+        <ProtectedRoute slug="blog">
+          <Blog />
         </ProtectedRoute>
       } />
       <Route path="/login" element={
