@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 interface UserProfile {
   id: string;
-  email: string | null;
+  email: string;
   full_name: string | null;
   user_roles: { role: 'admin' | 'client' }[];
 }
@@ -24,7 +24,7 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       console.log('Fetching users...');
-      // First, get all profiles with emails
+      // First, get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, full_name');
@@ -38,21 +38,17 @@ export const UserManagement = () => {
 
       if (rolesError) throw rolesError;
 
-      console.log('Fetched profiles:', profiles);
-      console.log('Fetched user roles:', userRoles);
-
       // Map user roles to profiles with proper typing
       const formattedUsers: UserProfile[] = profiles.map(profile => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         return {
           id: profile.id,
-          email: profile.email,
+          email: profile.email || 'N/A',
           full_name: profile.full_name,
           user_roles: userRole ? [{ role: userRole.role as 'admin' | 'client' }] : [{ role: 'client' }]
         };
       });
 
-      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -117,8 +113,8 @@ export const UserManagement = () => {
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>{user.full_name || 'N/A'}</TableCell>
-              <TableCell>{user.email || 'N/A'}</TableCell>
+              <TableCell>{user.full_name}</TableCell>
+              <TableCell>{user.email}</TableCell>
               <TableCell>{user.user_roles[0]?.role || 'client'}</TableCell>
               <TableCell>
                 {user.user_roles[0]?.role === 'admin' ? (
