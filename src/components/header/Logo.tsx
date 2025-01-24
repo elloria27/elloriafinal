@@ -4,10 +4,14 @@ export const Logo = () => {
   return (
     <motion.a 
       href="/" 
-      className="text-3xl font-extralight tracking-[0.2em] bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent"
+      className="h-8"
       whileHover={{ scale: 1.02 }}
     >
-      ELLORIA
+      <img 
+        src="/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png" 
+        alt="Elloria" 
+        className="h-full w-auto"
+      />
     </motion.a>
   );
 };

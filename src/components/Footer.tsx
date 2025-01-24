@@ -6,9 +6,11 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Elloria
-            </h3>
+            <img 
+              src="/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png" 
+              alt="Elloria" 
+              className="h-8 w-auto"
+            />
             <p className="text-gray-600 max-w-xs">
               Revolutionizing feminine care with sustainable, comfortable solutions.
             </p>
@@ -51,6 +53,7 @@ export const Footer = () => {
               Subscribe to our newsletter for updates and exclusive offers.
             </p>
           </div>
+          
         </div>
         
         <div className="mt-12 pt-8 border-t border-gray-100">
