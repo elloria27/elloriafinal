@@ -92,7 +92,10 @@ export const OrderManagement = () => {
         .from("orders")
         .select(`
           *,
-          profile:profiles(full_name, email)
+          profiles (
+            full_name,
+            email
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -118,8 +121,8 @@ export const OrderManagement = () => {
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             profile: {
-              full_name: order.profile?.full_name || null,
-              email: order.profile?.email || null
+              full_name: order.profiles?.full_name || null,
+              email: order.profiles?.email || null
             }
           };
           return validatedOrder;
