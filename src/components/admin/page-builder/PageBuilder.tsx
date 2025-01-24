@@ -20,6 +20,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
   const [showComponentPicker, setShowComponentPicker] = useState(false);
 
+  console.log('PageBuilder mounted with blocks:', blocks);
+
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
@@ -44,12 +46,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     };
 
     try {
+      console.log('Adding new block:', newBlock);
       const { error } = await supabase
         .from('content_blocks')
         .insert({
+          id: newBlock.id,
           page_id: pageId,
           type: blockType,
-          content: {},
+          content: newBlock.content,
           order_index: blocks.length,
         });
 
@@ -66,6 +70,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleUpdateBlock = async (blockId: string, content: ContentBlock['content']) => {
     try {
+      console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
         .update({ content })
@@ -85,6 +90,19 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleSaveLayout = async () => {
     try {
+      console.log('Saving layout for page:', pageId);
+      console.log('Blocks to save:', blocks);
+
+      // Update order_index for each block in content_blocks table
+      const updatePromises = blocks.map((block, index) => 
+        supabase
+          .from('content_blocks')
+          .update({ order_index: index })
+          .eq('id', block.id)
+      );
+
+      await Promise.all(updatePromises);
+
       // Convert ContentBlock[] to Json[] for database storage
       const blocksForStorage: Json[] = blocks.map(block => ({
         id: block.id,
@@ -93,6 +111,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         order_index: block.order_index
       }));
 
+      // Update the page with the new content_blocks array
       const { error } = await supabase
         .from('pages')
         .update({
