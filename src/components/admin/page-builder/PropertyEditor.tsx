@@ -227,33 +227,19 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Features</Label>
-                <Button onClick={() => {
-                  const currentFeatures = 'features' in content ? content.features || [] : [];
-                  const newFeatures = [...currentFeatures, {
-                    icon: "Droplets",
-                    title: "New Feature",
-                    description: "Feature description",
-                    detail: "Additional details"
-                  }];
-                  handleChange('features', newFeatures);
-                }} size="sm">
+                <Button onClick={addFeature} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Feature
                 </Button>
               </div>
-              {'features' in content && Array.isArray(content.features) && content.features.map((feature: any, index: number) => (
+              {getFeatures().map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => {
-                        if ('features' in content && Array.isArray(content.features)) {
-                          const newFeatures = content.features.filter((_, i) => i !== index);
-                          handleChange('features', newFeatures);
-                        }
-                      }}
+                      onClick={() => removeFeature(index)}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
@@ -262,13 +248,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Icon</Label>
                     <Select
                       value={feature.icon}
-                      onValueChange={(value) => {
-                        if ('features' in content && Array.isArray(content.features)) {
-                          const newFeatures = [...content.features];
-                          newFeatures[index] = { ...feature, icon: value };
-                          handleChange('features', newFeatures);
-                        }
-                      }}
+                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select icon" />
@@ -286,13 +266,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Title</Label>
                     <Input
                       value={feature.title}
-                      onChange={(e) => {
-                        if ('features' in content && Array.isArray(content.features)) {
-                          const newFeatures = [...content.features];
-                          newFeatures[index] = { ...feature, title: e.target.value };
-                          handleChange('features', newFeatures);
-                        }
-                      }}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
                       placeholder="Enter feature title"
                     />
                   </div>
@@ -300,13 +274,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Description</Label>
                     <Input
                       value={feature.description}
-                      onChange={(e) => {
-                        if ('features' in content && Array.isArray(content.features)) {
-                          const newFeatures = [...content.features];
-                          newFeatures[index] = { ...feature, description: e.target.value };
-                          handleChange('features', newFeatures);
-                        }
-                      }}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
                       placeholder="Enter feature description"
                     />
                   </div>
@@ -314,13 +282,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Detail</Label>
                     <Textarea
                       value={feature.detail}
-                      onChange={(e) => {
-                        if ('features' in content && Array.isArray(content.features)) {
-                          const newFeatures = [...content.features];
-                          newFeatures[index] = { ...feature, detail: e.target.value };
-                          handleChange('features', newFeatures);
-                        }
-                      }}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
                       placeholder="Enter additional details"
                     />
                   </div>
