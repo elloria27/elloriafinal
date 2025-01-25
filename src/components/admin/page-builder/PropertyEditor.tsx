@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -17,16 +18,16 @@ const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkl
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleChange = (key: string, value: string | FeatureItem[]) => {
+  const handleChange = (key: string, value: string | FeatureItem[] | Json) => {
     console.log('Updating content:', key, value);
-    const newContent = { ...content, [key]: value };
+    const newContent = { ...content, [key]: value } as BlockContent;
     setContent(newContent);
     onUpdate(block.id, newContent);
   };
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
     if ('features' in content && Array.isArray(content.features)) {
-      const newFeatures = [...content.features];
+      const newFeatures = [...content.features] as FeatureItem[];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
       handleChange('features', newFeatures);
     }
@@ -39,20 +40,21 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       description: "Feature description"
     };
     if ('features' in content) {
-      const currentFeatures = Array.isArray(content.features) ? content.features : [];
+      const currentFeatures = Array.isArray(content.features) ? content.features as FeatureItem[] : [];
       handleChange('features', [...currentFeatures, newFeature]);
     }
   };
 
   const removeFeature = (index: number) => {
     if ('features' in content && Array.isArray(content.features)) {
-      const newFeatures = content.features.filter((_, i) => i !== index);
+      const newFeatures = (content.features as FeatureItem[]).filter((_, i) => i !== index);
       handleChange('features', newFeatures);
     }
   };
 
   const getContentValue = (key: string): string => {
-    return ((content as any)[key]?.toString() || '') as string;
+    const value = (content as Record<string, Json>)[key];
+    return (value?.toString() || '') as string;
   };
 
   const renderFields = () => {
@@ -125,7 +127,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Feature
                 </Button>
               </div>
-              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+              {'features' in content && Array.isArray(content.features) && (content.features as FeatureItem[]).map((feature: FeatureItem, index: number) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>
