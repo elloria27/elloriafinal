@@ -1,7 +1,7 @@
 import { Json } from "@/integrations/supabase/types";
 
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | any;
+  [key: string]: string | number | boolean | null | Json;
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
@@ -55,6 +55,54 @@ export interface GameChangerContent extends BaseBlockContent {
   features?: FeatureItem[];
 }
 
+export interface StoreBrandsContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  brands?: {
+    name: string;
+    logo: string;
+    link: string;
+  }[];
+}
+
+export interface SustainabilityContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  stats?: {
+    icon: string;
+    value: string;
+    label: string;
+    description: string;
+  }[];
+}
+
+export interface TestimonialsContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  testimonials?: {
+    name: string;
+    rating: number;
+    text: string;
+    source: string;
+  }[];
+}
+
+export interface BlogPreviewContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  articles?: {
+    title: string;
+    category: string;
+    image: string;
+  }[];
+}
+
+export interface NewsletterContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -64,6 +112,11 @@ export type BlockContent =
   | HeroContent
   | FeaturesContent
   | GameChangerContent
+  | StoreBrandsContent
+  | SustainabilityContent
+  | TestimonialsContent
+  | BlogPreviewContent
+  | NewsletterContent
   | Record<string, Json>;
 
 export type BlockType = 
@@ -76,7 +129,6 @@ export type BlockType =
   | "features" 
   | "testimonials" 
   | "newsletter" 
-  | "product_gallery" 
   | "blog_preview" 
   | "store_brands"
   | "sustainability"
