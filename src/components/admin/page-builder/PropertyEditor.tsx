@@ -27,7 +27,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
     if ('features' in content && Array.isArray(content.features)) {
-      const newFeatures = [...content.features] as FeatureItem[];
+      const features = content.features as FeatureItem[];
+      const newFeatures = [...features];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
       handleChange('features', newFeatures);
     }
@@ -39,15 +40,17 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       title: "New Feature",
       description: "Feature description"
     };
+    
     if ('features' in content) {
-      const currentFeatures = Array.isArray(content.features) ? content.features as FeatureItem[] : [];
-      handleChange('features', [...currentFeatures, newFeature]);
+      const features = content.features as FeatureItem[] || [];
+      handleChange('features', [...features, newFeature]);
     }
   };
 
   const removeFeature = (index: number) => {
     if ('features' in content && Array.isArray(content.features)) {
-      const newFeatures = (content.features as FeatureItem[]).filter((_, i) => i !== index);
+      const features = content.features as FeatureItem[];
+      const newFeatures = features.filter((_, i) => i !== index);
       handleChange('features', newFeatures);
     }
   };
@@ -127,7 +130,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Feature
                 </Button>
               </div>
-              {'features' in content && Array.isArray(content.features) && (content.features as FeatureItem[]).map((feature: FeatureItem, index: number) => (
+              {content.features && Array.isArray(content.features) && (content.features as FeatureItem[]).map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>

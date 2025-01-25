@@ -4,6 +4,14 @@ export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
 }
 
+export interface FeatureItem {
+  [key: string]: string;
+  icon: string;
+  title: string;
+  description: string;
+  detail?: string;
+}
+
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -33,13 +41,6 @@ export interface HeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   videoUrl?: string;
-}
-
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
 }
 
 export interface FeaturesContent extends BaseBlockContent {
@@ -116,8 +117,7 @@ export type BlockContent =
   | SustainabilityContent
   | TestimonialsContent
   | BlogPreviewContent
-  | NewsletterContent
-  | Record<string, Json>;
+  | NewsletterContent;
 
 export type BlockType = 
   | "heading" 
@@ -145,12 +145,4 @@ export interface ContentBlock {
   page_id?: string;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content: FeaturesContent;
-}
-
-export interface HeroProps {
-  content: HeroContent;
 }
