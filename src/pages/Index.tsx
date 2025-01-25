@@ -13,6 +13,39 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 
 const Index = () => {
+  const heroContent = {
+    title: "Redefining Comfort, Confidence, and Sustainability",
+    subtitle: "Experience ultra-thin, eco-friendly feminine care made for modern women.",
+    videoUrl: "https://elloria.ca/Video_290mm.mp4"
+  };
+
+  const featuresContent = {
+    title: "Elevating Everyday Essentials",
+    subtitle: "Experience the perfect harmony of comfort and sustainability with Elloria's innovative feminine care products.",
+    features: [
+      {
+        icon: "Shrink",
+        title: "Ultra-thin Design",
+        description: "Advanced technology compressed into an ultra-thin profile for maximum discretion and comfort"
+      },
+      {
+        icon: "Shield",
+        title: "Hypoallergenic Materials",
+        description: "Gentle, skin-friendly materials designed for sensitive skin and ultimate comfort"
+      },
+      {
+        icon: "Droplets",
+        title: "High Absorption",
+        description: "Superior absorption technology keeps you confident and protected throughout your day"
+      },
+      {
+        icon: "Leaf",
+        title: "Recyclable Components",
+        description: "Eco-conscious materials that minimize environmental impact without compromising performance"
+      }
+    ]
+  };
+
   return (
     <>
       <Header />
@@ -22,10 +55,10 @@ const Index = () => {
         transition={{ duration: 0.6 }}
         className="min-h-screen overflow-hidden pt-16"
       >
-        <Hero />
+        <Hero content={heroContent} />
         <ElevatingEssentials />
         <GameChanger />
-        <Features />
+        <Features content={featuresContent} />
         <StoreBrands />
         <Sustainability />
         <ProductCarousel />
