@@ -13,7 +13,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockType } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -53,22 +53,19 @@ const Index = () => {
           if (createError) throw createError;
           
           // Create default content blocks
-          const defaultBlocks = [
-            { type: 'hero', content: {}, order_index: 0 },
-            { type: 'elevating_essentials', content: {}, order_index: 1 },
-            { type: 'game_changer', content: {}, order_index: 2 },
-            { type: 'features', content: {}, order_index: 3 },
-            { type: 'store_brands', content: {}, order_index: 4 },
-            { type: 'sustainability', content: {}, order_index: 5 },
-            { type: 'product_carousel', content: {}, order_index: 6 },
-            { type: 'competitor_comparison', content: {}, order_index: 7 },
-            { type: 'testimonials', content: {}, order_index: 8 },
-            { type: 'blog_preview', content: {}, order_index: 9 },
-            { type: 'newsletter', content: {}, order_index: 10 }
-          ].map(block => ({
-            ...block,
-            page_id: newPage.id
-          }));
+          const defaultBlocks: Omit<ContentBlock, 'id' | 'created_at' | 'updated_at'>[] = [
+            { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
+            { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
+            { type: 'game_changer' as BlockType, content: {}, order_index: 2, page_id: newPage.id },
+            { type: 'features' as BlockType, content: {}, order_index: 3, page_id: newPage.id },
+            { type: 'store_brands' as BlockType, content: {}, order_index: 4, page_id: newPage.id },
+            { type: 'sustainability' as BlockType, content: {}, order_index: 5, page_id: newPage.id },
+            { type: 'product_carousel' as BlockType, content: {}, order_index: 6, page_id: newPage.id },
+            { type: 'competitor_comparison' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
+            { type: 'testimonials' as BlockType, content: {}, order_index: 8, page_id: newPage.id },
+            { type: 'blog_preview' as BlockType, content: {}, order_index: 9, page_id: newPage.id },
+            { type: 'newsletter' as BlockType, content: {}, order_index: 10, page_id: newPage.id }
+          ];
 
           const { error: blocksError } = await supabase
             .from('content_blocks')
@@ -92,7 +89,7 @@ const Index = () => {
         }
 
         console.log('Content blocks fetched:', blocks);
-        setBlocks(blocks);
+        setBlocks(blocks as ContentBlock[]);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load page content');

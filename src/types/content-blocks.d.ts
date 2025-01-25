@@ -5,7 +5,6 @@ export interface BaseBlockContent {
 }
 
 export interface FeatureItem {
-  [key: string]: string;
   icon: string;
   title: string;
   description: string;
