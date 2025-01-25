@@ -28,6 +28,66 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     console.log('Current content:', content);
 
     switch (block.type) {
+      case 'hero':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={getContentValue('videoUrl')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+                placeholder="Enter video URL"
+              />
+            </div>
+          </div>
+        );
+
+      case 'features':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter features section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter features section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter features section description"
+              />
+            </div>
+          </div>
+        );
+
       case 'heading':
         return (
           <div className="space-y-4">

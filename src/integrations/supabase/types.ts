@@ -356,6 +356,8 @@ export type Database = {
         | "product_gallery"
         | "blog_preview"
         | "store_brands"
+        | "sustainability"
+        | "product_carousel"
       user_role: "admin" | "client"
     }
     CompositeTypes: {
