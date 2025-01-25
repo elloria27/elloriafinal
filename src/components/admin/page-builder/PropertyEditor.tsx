@@ -26,13 +26,26 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const getFeatures = (): FeatureItem[] => {
-    if ('features' in content && Array.isArray(content.features)) {
-      return content.features.map(feature => ({
-        icon: String(feature.icon || ''),
-        title: String(feature.title || ''),
-        description: String(feature.description || ''),
-        detail: String(feature.detail || '')
-      }));
+    if ('features' in content) {
+      const features = content.features;
+      if (Array.isArray(features)) {
+        return features.map(feature => {
+          if (typeof feature === 'object' && feature !== null) {
+            return {
+              icon: String(feature.icon || ''),
+              title: String(feature.title || ''),
+              description: String(feature.description || ''),
+              detail: String(feature.detail || '')
+            };
+          }
+          return {
+            icon: 'Shield',
+            title: '',
+            description: '',
+            detail: ''
+          };
+        });
+      }
     }
     return [];
   };
