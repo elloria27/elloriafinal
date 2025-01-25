@@ -5,23 +5,28 @@ export interface BaseBlockContent {
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
-  text: string;
-  size: 'h1' | 'h2' | 'h3' | 'h4';
+  text?: string;
+  size?: 'h1' | 'h2' | 'h3' | 'h4';
 }
 
 export interface TextBlockContent extends BaseBlockContent {
-  text: string;
+  text?: string;
 }
 
 export interface ImageBlockContent extends BaseBlockContent {
-  url: string;
-  alt: string;
+  url?: string;
+  alt?: string;
+}
+
+export interface VideoBlockContent extends BaseBlockContent {
+  url?: string;
+  title?: string;
 }
 
 export interface ButtonBlockContent extends BaseBlockContent {
-  text: string;
-  url: string;
-  variant: 'default' | 'outline' | 'ghost';
+  text?: string;
+  url?: string;
+  variant?: 'default' | 'outline' | 'ghost';
 }
 
 export interface HeroBlockContent extends BaseBlockContent {
@@ -46,6 +51,7 @@ export type BlockContent =
   | HeadingBlockContent 
   | TextBlockContent 
   | ImageBlockContent 
+  | VideoBlockContent
   | ButtonBlockContent
   | HeroBlockContent
   | FeaturesBlockContent
@@ -63,14 +69,12 @@ export type BlockType =
   | "newsletter" 
   | "product_gallery" 
   | "blog_preview" 
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel";
+  | "store_brands";
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
-  content: Json | BlockContent;
+  content: BlockContent;
   order_index: number;
   page_id?: string;
   created_at?: string;

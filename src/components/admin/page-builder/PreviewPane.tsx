@@ -1,4 +1,4 @@
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
 
@@ -8,6 +8,13 @@ interface PreviewPaneProps {
 }
 
 export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
+  const getContentValue = <T extends keyof BlockContent>(
+    content: BlockContent,
+    key: T
+  ): BlockContent[T] | undefined => {
+    return content[key];
+  };
+
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
@@ -25,17 +32,17 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         {(() => {
           switch (block.type) {
             case 'heading':
-              const HeadingTag = (block.content.size?.toString() || 'h2') as keyof JSX.IntrinsicElements;
+              const HeadingTag = (getContentValue(block.content, 'size')?.toString() || 'h2') as keyof JSX.IntrinsicElements;
               return (
                 <HeadingTag className="text-4xl font-bold mb-4">
-                  {block.content.text?.toString() || 'Heading'}
+                  {getContentValue(block.content, 'text')?.toString() || 'Heading'}
                 </HeadingTag>
               );
 
             case 'text':
               return (
                 <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                  {block.content.text?.toString() || 'Text block'}
+                  {getContentValue(block.content, 'text')?.toString() || 'Text block'}
                 </p>
               );
 
@@ -43,8 +50,8 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               return (
                 <div className="mb-4">
                   <img
-                    src={block.content.url?.toString() || '/placeholder.svg'}
-                    alt={block.content.alt?.toString() || ''}
+                    src={getContentValue(block.content, 'url')?.toString() || '/placeholder.svg'}
+                    alt={getContentValue(block.content, 'alt')?.toString() || ''}
                     className="max-w-full h-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -54,8 +61,8 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               return (
                 <div className="mb-4 aspect-video">
                   <iframe
-                    src={block.content.url?.toString()}
-                    title={block.content.title?.toString() || 'Video'}
+                    src={getContentValue(block.content, 'url')?.toString()}
+                    title={getContentValue(block.content, 'title')?.toString() || 'Video'}
                     className="w-full h-full rounded-lg shadow-md"
                     allowFullScreen
                   />
@@ -66,14 +73,14 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               return (
                 <button
                   className={`px-4 py-2 rounded mb-4 ${
-                    block.content.variant === 'outline'
+                    getContentValue(block.content, 'variant') === 'outline'
                       ? 'border border-primary text-primary'
-                      : block.content.variant === 'ghost'
+                      : getContentValue(block.content, 'variant') === 'ghost'
                       ? 'text-primary hover:bg-primary/10'
                       : 'bg-primary text-white'
                   }`}
                 >
-                  {block.content.text?.toString() || 'Button'}
+                  {getContentValue(block.content, 'text')?.toString() || 'Button'}
                 </button>
               );
 

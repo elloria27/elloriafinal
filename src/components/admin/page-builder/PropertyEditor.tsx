@@ -2,21 +2,25 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 
 interface PropertyEditorProps {
   block: ContentBlock;
-  onUpdate: (id: string, content: ContentBlock['content']) => void;
+  onUpdate: (id: string, content: BlockContent) => void;
 }
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
-  const [content, setContent] = useState<typeof block.content>(block.content);
+  const [content, setContent] = useState<BlockContent>(block.content);
 
   const handleChange = (key: string, value: string) => {
     console.log('Updating content:', key, value);
     const newContent = { ...content, [key]: value };
     setContent(newContent);
     onUpdate(block.id, newContent);
+  };
+
+  const getContentValue = (key: string): string => {
+    return (content as any)[key]?.toString() || '';
   };
 
   const renderFields = () => {
@@ -30,7 +34,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Text</Label>
               <Input
-                value={content.text?.toString() || ''}
+                value={getContentValue('text')}
                 onChange={(e) => handleChange('text', e.target.value)}
                 placeholder="Enter heading text"
               />
@@ -39,7 +43,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Label>Size</Label>
               <select
                 className="w-full border rounded-md p-2"
-                value={content.size?.toString() || 'h2'}
+                value={getContentValue('size') || 'h2'}
                 onChange={(e) => handleChange('size', e.target.value)}
               >
                 <option value="h1">H1</option>
@@ -56,7 +60,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           <div>
             <Label>Content</Label>
             <Textarea
-              value={content.text?.toString() || ''}
+              value={getContentValue('text')}
               onChange={(e) => handleChange('text', e.target.value)}
               placeholder="Enter text content"
               className="min-h-[100px]"
@@ -70,7 +74,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Image URL</Label>
               <Input
-                value={content.url?.toString() || ''}
+                value={getContentValue('url')}
                 onChange={(e) => handleChange('url', e.target.value)}
                 placeholder="Enter image URL"
               />
@@ -78,16 +82,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Alt Text</Label>
               <Input
-                value={content.alt?.toString() || ''}
+                value={getContentValue('alt')}
                 onChange={(e) => handleChange('alt', e.target.value)}
                 placeholder="Enter alt text"
               />
             </div>
-            {content.url && (
+            {getContentValue('url') && (
               <div className="mt-4">
                 <img
-                  src={content.url.toString()}
-                  alt={content.alt?.toString() || ''}
+                  src={getContentValue('url')}
+                  alt={getContentValue('alt')}
                   className="max-w-full h-auto rounded-md"
                 />
               </div>
@@ -101,7 +105,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Video URL</Label>
               <Input
-                value={content.url?.toString() || ''}
+                value={getContentValue('url')}
                 onChange={(e) => handleChange('url', e.target.value)}
                 placeholder="Enter video URL (YouTube, Vimeo, etc.)"
               />
@@ -109,16 +113,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title?.toString() || ''}
+                value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Enter video title"
               />
             </div>
-            {content.url && (
+            {getContentValue('url') && (
               <div className="mt-4 aspect-video">
                 <iframe
-                  src={content.url.toString()}
-                  title={content.title?.toString() || 'Video'}
+                  src={getContentValue('url')}
+                  title={getContentValue('title')}
                   className="w-full h-full rounded-md"
                   allowFullScreen
                 />
@@ -133,7 +137,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Text</Label>
               <Input
-                value={content.text?.toString() || ''}
+                value={getContentValue('text')}
                 onChange={(e) => handleChange('text', e.target.value)}
                 placeholder="Enter button text"
               />
@@ -141,7 +145,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>URL</Label>
               <Input
-                value={content.url?.toString() || ''}
+                value={getContentValue('url')}
                 onChange={(e) => handleChange('url', e.target.value)}
                 placeholder="Enter button URL"
               />
@@ -150,7 +154,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Label>Style</Label>
               <select
                 className="w-full border rounded-md p-2"
-                value={content.variant?.toString() || 'default'}
+                value={getContentValue('variant') || 'default'}
                 onChange={(e) => handleChange('variant', e.target.value)}
               >
                 <option value="default">Default</option>
