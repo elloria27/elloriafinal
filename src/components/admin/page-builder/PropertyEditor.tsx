@@ -12,7 +12,7 @@ interface PropertyEditorProps {
   onUpdate: (id: string, content: BlockContent) => void;
 }
 
-const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf"];
+const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkles", "Recycle", "Package", "Factory"];
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
@@ -28,21 +28,20 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     if ('features' in content && Array.isArray(content.features)) {
       const newFeatures = [...content.features];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
-      const newContent = { ...content, features: newFeatures };
-      setContent(newContent);
-      onUpdate(block.id, newContent);
+      handleChange('features', newFeatures);
     }
   };
 
   const addFeature = () => {
     const newFeature: FeatureItem = {
-      icon: "Shrink",
+      icon: "Shield",
       title: "New Feature",
       description: "Feature description"
     };
-    const currentFeatures = 'features' in content ? content.features || [] : [];
-    const newFeatures = [...currentFeatures, newFeature];
-    handleChange('features', newFeatures);
+    if ('features' in content) {
+      const currentFeatures = Array.isArray(content.features) ? content.features : [];
+      handleChange('features', [...currentFeatures, newFeature]);
+    }
   };
 
   const removeFeature = (index: number) => {
@@ -295,6 +294,154 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                         }
                       }}
                       placeholder="Enter additional details"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'store_brands':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Brands</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Brand
+                </Button>
+              </div>
+              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Brand {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter brand name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Logo URL</Label>
+                    <Input
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter logo URL"
+                    />
+                  </div>
+                  <div>
+                    <Label>Link</Label>
+                    <Input
+                      value={feature.detail || ''}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
+                      placeholder="Enter brand link"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'sustainability':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Stats</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Stat
+                </Button>
+              </div>
+              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Stat {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={feature.icon}
+                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableIcons.map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter stat title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter stat description"
                     />
                   </div>
                 </div>
