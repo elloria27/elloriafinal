@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { StoreBrands } from "@/components/StoreBrands";
@@ -7,12 +10,92 @@ import { CompetitorComparison } from "@/components/CompetitorComparison";
 import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
-import { Header } from "@/components/Header";
 import { ElevatingEssentials } from "@/components/ElevatingEssentials";
 import { GameChanger } from "@/components/GameChanger";
-import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { ContentBlock } from "@/types/content-blocks";
 
 const Index = () => {
+  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContentBlocks = async () => {
+      try {
+        console.log('Fetching content blocks for home page');
+        const { data: pageData, error: pageError } = await supabase
+          .from('pages')
+          .select('id')
+          .eq('slug', 'home')
+          .single();
+
+        if (pageError) {
+          console.error('Error fetching home page:', pageError);
+          return;
+        }
+
+        if (!pageData) {
+          console.log('Home page not found');
+          return;
+        }
+
+        console.log('Found home page:', pageData);
+
+        const { data: blocks, error: blocksError } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageData.id)
+          .order('order_index');
+
+        if (blocksError) {
+          console.error('Error fetching content blocks:', blocksError);
+          return;
+        }
+
+        console.log('Fetched content blocks:', blocks);
+        setContentBlocks(blocks || []);
+      } catch (error) {
+        console.error('Error in fetchContentBlocks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContentBlocks();
+  }, []);
+
+  const renderBlock = (block: ContentBlock) => {
+    console.log('Rendering block:', block);
+    
+    switch (block.type) {
+      case 'hero':
+        return <Hero key={block.id} content={block.content} />;
+      case 'features':
+        return <Features key={block.id} content={block.content} />;
+      case 'store_brands':
+        return <StoreBrands key={block.id} />;
+      case 'sustainability':
+        return <Sustainability key={block.id} />;
+      case 'product_carousel':
+        return <ProductCarousel key={block.id} />;
+      case 'testimonials':
+        return <Testimonials key={block.id} />;
+      case 'newsletter':
+        return <Newsletter key={block.id} />;
+      default:
+        console.warn('Unknown block type:', block.type);
+        return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Header />
@@ -22,17 +105,7 @@ const Index = () => {
         transition={{ duration: 0.6 }}
         className="min-h-screen overflow-hidden pt-16"
       >
-        <Hero />
-        <ElevatingEssentials />
-        <GameChanger />
-        <Features />
-        <StoreBrands />
-        <Sustainability />
-        <ProductCarousel />
-        <CompetitorComparison />
-        <Testimonials />
-        <BlogPreview />
-        <Newsletter />
+        {contentBlocks.map(block => renderBlock(block))}
       </motion.main>
     </>
   );

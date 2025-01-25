@@ -1,98 +1,93 @@
 import { motion } from "framer-motion";
-import { Droplet, Leaf, Heart, Package, Shield, Recycle } from "lucide-react";
-import { LucideIcon } from "lucide-react";
+import { Shrink, Shield, Droplets, Leaf, Heart } from "lucide-react";
 
-// Define the type for a single feature
 interface Feature {
   icon: string;
   title: string;
   description: string;
+  detail?: string;
 }
 
-// Define the props interface
-interface FeaturesProps {
+interface FeaturesContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
   features?: Feature[];
 }
 
-// Map of icon names to components
-const iconMap: { [key: string]: LucideIcon } = {
-  droplet: Droplet,
-  leaf: Leaf,
-  heart: Heart,
-  package: Package,
-  shield: Shield,
-  recycle: Recycle
+interface FeaturesProps {
+  content: FeaturesContent;
+}
+
+const iconMap: { [key: string]: any } = {
+  Shrink,
+  Shield,
+  Droplets,
+  Leaf,
+  Heart
 };
 
-const defaultFeatures = [
-  {
-    icon: "droplet",
-    title: "Superior Absorption",
-    description: "Advanced technology for complete protection and confidence"
-  },
-  {
-    icon: "shield",
-    title: "Ultra Protection",
-    description: "Innovative design for maximum security and comfort"
-  },
-  {
-    icon: "heart",
-    title: "Gentle Care",
-    description: "Hypoallergenic materials for sensitive skin"
-  },
-  {
-    icon: "package",
-    title: "Smart Packaging",
-    description: "Convenient and discreet packaging design"
-  },
-  {
-    icon: "leaf",
-    title: "Eco-Friendly",
-    description: "Sustainable materials that care for our planet"
-  },
-  {
-    icon: "recycle",
-    title: "Recyclable",
-    description: "Responsible disposal options for a better future"
-  }
-];
+export const Features = ({ content }: FeaturesProps) => {
+  const features = content.features || [];
 
-export const Features = ({ features = defaultFeatures }: FeaturesProps) => {
   return (
-    <section className="py-32 bg-gradient-to-b from-white via-accent-purple/5 to-white">
-      <div className="container px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-20"
-        >
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Why Choose Elloria?
-          </h2>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            Experience the perfect blend of comfort, protection, and sustainability
-          </p>
-        </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-bold mb-6"
+          >
+            {content.title || "Our Features"}
+          </motion.h2>
+          {content.subtitle && (
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-xl text-gray-600"
+            >
+              {content.subtitle}
+            </motion.p>
+          )}
+          {content.description && (
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-lg text-gray-600"
+            >
+              {content.description}
+            </motion.p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => {
-            const IconComponent = iconMap[feature.icon.toLowerCase()] || Package;
+            const IconComponent = iconMap[feature.icon] || Leaf;
+            
             return (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="bg-white p-10 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="p-6 rounded-xl bg-white shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
-                <div className="text-primary mb-8 bg-primary/5 w-20 h-20 rounded-2xl flex items-center justify-center transform -rotate-6 hover:rotate-0 transition-transform duration-300">
-                  <IconComponent className="w-10 h-10" />
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <IconComponent className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-600 text-lg leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+                {feature.detail && (
+                  <p className="mt-2 text-sm text-gray-500">{feature.detail}</p>
+                )}
               </motion.div>
             );
           })}

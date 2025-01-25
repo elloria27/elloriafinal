@@ -333,6 +333,16 @@ export type Database = {
       }
     }
     Enums: {
+      block_type:
+        | "hero"
+        | "elevating_essentials"
+        | "game_changer"
+        | "features"
+        | "store_brands"
+        | "sustainability"
+        | "product_carousel"
+        | "testimonials"
+        | "newsletter"
       content_block_type:
         | "heading"
         | "text"
