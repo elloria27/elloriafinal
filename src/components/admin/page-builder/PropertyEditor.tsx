@@ -32,7 +32,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         return features.map(feature => {
           if (typeof feature === 'object' && feature !== null) {
             return {
-              icon: String(feature.icon || ''),
+              icon: String(feature.icon || 'Shield'),
               title: String(feature.title || ''),
               description: String(feature.description || ''),
               detail: String(feature.detail || '')
@@ -61,7 +61,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     const newFeature: FeatureItem = {
       icon: "Shield",
       title: "New Feature",
-      description: "Feature description"
+      description: "Feature description",
+      detail: ""
     };
     
     const features = getFeatures();
