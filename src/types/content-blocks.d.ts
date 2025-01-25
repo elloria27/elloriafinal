@@ -1,7 +1,7 @@
 import { Json } from "@/integrations/supabase/types";
 
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null;
+  [key: string]: string | number | boolean | null | any; // Added any to handle nested objects
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
@@ -24,12 +24,32 @@ export interface ButtonBlockContent extends BaseBlockContent {
   variant: 'default' | 'outline' | 'ghost';
 }
 
+export interface HeroBlockContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  videoUrl?: string;
+}
+
+export interface FeaturesBlockContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+    detail?: string;
+  }[];
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
   | ImageBlockContent 
   | ButtonBlockContent
-  | Record<string, string>;
+  | HeroBlockContent
+  | FeaturesBlockContent
+  | Record<string, any>; // Added to handle other content types
 
 export type BlockType = 
   | "heading" 
@@ -43,11 +63,16 @@ export type BlockType =
   | "newsletter" 
   | "product_gallery" 
   | "blog_preview" 
-  | "store_brands";
+  | "store_brands"
+  | "sustainability"
+  | "product_carousel";
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
   content: BlockContent;
   order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }

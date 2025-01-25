@@ -6,14 +6,10 @@ import { Features } from "@/components/Features";
 import { StoreBrands } from "@/components/StoreBrands";
 import { Sustainability } from "@/components/Sustainability";
 import { ProductCarousel } from "@/components/ProductCarousel";
-import { CompetitorComparison } from "@/components/CompetitorComparison";
 import { Testimonials } from "@/components/Testimonials";
-import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
-import { ElevatingEssentials } from "@/components/ElevatingEssentials";
-import { GameChanger } from "@/components/GameChanger";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, HeroBlockContent, FeaturesBlockContent } from "@/types/content-blocks";
 
 const Index = () => {
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
@@ -69,9 +65,9 @@ const Index = () => {
     
     switch (block.type) {
       case 'hero':
-        return <Hero key={block.id} content={block.content} />;
+        return <Hero key={block.id} content={block.content as HeroBlockContent} />;
       case 'features':
-        return <Features key={block.id} content={block.content} />;
+        return <Features key={block.id} content={block.content as FeaturesBlockContent} />;
       case 'store_brands':
         return <StoreBrands key={block.id} />;
       case 'sustainability':
