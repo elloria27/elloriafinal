@@ -42,7 +42,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     };
     
     if ('features' in content) {
-      const features = content.features as FeatureItem[] || [];
+      const features = Array.isArray(content.features) ? content.features as FeatureItem[] : [];
       handleChange('features', [...features, newFeature]);
     }
   };
@@ -61,6 +61,13 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return value?.toString() || '';
     }
     return '';
+  };
+
+  const getFeatures = (): FeatureItem[] => {
+    if ('features' in content && Array.isArray(content.features)) {
+      return content.features as FeatureItem[];
+    }
+    return [];
   };
 
   const renderFields = () => {
