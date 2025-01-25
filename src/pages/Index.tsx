@@ -49,7 +49,7 @@ const Index = () => {
         }
 
         console.log('Fetched content blocks:', blocks);
-        setContentBlocks(blocks || []);
+        setContentBlocks(blocks as ContentBlock[]);
       } catch (error) {
         console.error('Error in fetchContentBlocks:', error);
       } finally {

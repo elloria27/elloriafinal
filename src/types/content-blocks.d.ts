@@ -1,7 +1,7 @@
 import { Json } from "@/integrations/supabase/types";
 
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | any; // Added any to handle nested objects
+  [key: string]: string | number | boolean | null | any;
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
@@ -49,7 +49,7 @@ export type BlockContent =
   | ButtonBlockContent
   | HeroBlockContent
   | FeaturesBlockContent
-  | Record<string, any>; // Added to handle other content types
+  | Record<string, any>;
 
 export type BlockType = 
   | "heading" 
@@ -70,9 +70,13 @@ export type BlockType =
 export interface ContentBlock {
   id: string;
   type: BlockType;
-  content: BlockContent;
+  content: Json | BlockContent;
   order_index: number;
   page_id?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface FeaturesProps {
+  content: FeaturesBlockContent;
 }
