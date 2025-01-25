@@ -13,7 +13,7 @@ import { Header } from "@/components/Header";
 import { ElevatingEssentials } from "@/components/ElevatingEssentials";
 import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, HeroBlockContent, FeaturesBlockContent } from "@/types/content-blocks";
 
 const Index = () => {
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
@@ -23,7 +23,6 @@ const Index = () => {
     const fetchPageContent = async () => {
       try {
         console.log('Fetching home page content');
-        // First get the home page ID
         const { data: pages, error: pageError } = await supabase
           .from('pages')
           .select('id')
@@ -42,7 +41,6 @@ const Index = () => {
 
         console.log('Found home page:', pages);
 
-        // Then fetch all content blocks for this page
         const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
@@ -55,7 +53,7 @@ const Index = () => {
         }
 
         console.log('Fetched content blocks:', blocks);
-        setContentBlocks(blocks || []);
+        setContentBlocks(blocks as ContentBlock[] || []);
       } catch (error) {
         console.error('Error:', error);
       } finally {
@@ -71,9 +69,9 @@ const Index = () => {
     
     switch (block.type) {
       case 'hero':
-        return <Hero content={block.content} />;
+        return <Hero content={block.content as HeroBlockContent} />;
       case 'features':
-        return <Features content={block.content} />;
+        return <Features content={block.content as FeaturesBlockContent} />;
       case 'store_brands':
         return <StoreBrands />;
       case 'sustainability':
