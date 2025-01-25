@@ -358,6 +358,8 @@ export type Database = {
         | "store_brands"
         | "sustainability"
         | "product_carousel"
+        | "elevating_essentials"
+        | "game_changer"
       user_role: "admin" | "client"
     }
     CompositeTypes: {
