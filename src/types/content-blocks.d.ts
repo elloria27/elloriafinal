@@ -146,3 +146,11 @@ export interface ContentBlock {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
+export interface HeroProps {
+  content?: HeroContent;
+}

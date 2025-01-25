@@ -56,8 +56,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const getContentValue = (key: string): string => {
-    const value = (content as Record<string, Json>)[key];
-    return (value?.toString() || '') as string;
+    if (key in content) {
+      const value = (content as any)[key];
+      return value?.toString() || '';
+    }
+    return '';
   };
 
   const renderFields = () => {
