@@ -29,7 +29,7 @@ const Index = () => {
           .from('pages')
           .select('id')
           .eq('slug', '/')
-          .single();
+          .maybeSingle();
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
@@ -50,7 +50,7 @@ const Index = () => {
 
           if (createError) throw createError;
           
-          const defaultBlocks: Omit<ContentBlock, 'id' | 'created_at' | 'updated_at'>[] = [
+          const defaultBlocks = [
             { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
             { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
             { type: 'game_changer' as BlockType, content: {}, order_index: 2, page_id: newPage.id },
@@ -73,10 +73,13 @@ const Index = () => {
           toast.success('Home page created with default content blocks');
         }
 
+        const pageId = page?.id;
+        console.log('Fetching content blocks for page:', pageId);
+
         const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', page?.id || '')
+          .eq('page_id', pageId)
           .order('order_index');
 
         if (blocksError) {
