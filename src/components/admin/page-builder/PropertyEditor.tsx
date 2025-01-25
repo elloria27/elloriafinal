@@ -17,7 +17,7 @@ const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf"];
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleChange = (key: string, value: string) => {
+  const handleChange = (key: string, value: string | FeatureItem[]) => {
     console.log('Updating content:', key, value);
     const newContent = { ...content, [key]: value };
     setContent(newContent);
@@ -25,7 +25,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
-    if (content.features) {
+    if ('features' in content && Array.isArray(content.features)) {
       const newFeatures = [...content.features];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
       const newContent = { ...content, features: newFeatures };
@@ -40,23 +40,20 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       title: "New Feature",
       description: "Feature description"
     };
-    const newFeatures = content.features ? [...content.features, newFeature] : [newFeature];
-    const newContent = { ...content, features: newFeatures };
-    setContent(newContent);
-    onUpdate(block.id, newContent);
+    const currentFeatures = 'features' in content ? content.features || [] : [];
+    const newFeatures = [...currentFeatures, newFeature];
+    handleChange('features', newFeatures);
   };
 
   const removeFeature = (index: number) => {
-    if (content.features) {
+    if ('features' in content && Array.isArray(content.features)) {
       const newFeatures = content.features.filter((_, i) => i !== index);
-      const newContent = { ...content, features: newFeatures };
-      setContent(newContent);
-      onUpdate(block.id, newContent);
+      handleChange('features', newFeatures);
     }
   };
 
   const getContentValue = (key: string): string => {
-    return (content as any)[key]?.toString() || '';
+    return ((content as any)[key]?.toString() || '') as string;
   };
 
   const renderFields = () => {
@@ -129,7 +126,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Feature
                 </Button>
               </div>
-              {content.features?.map((feature: FeatureItem, index: number) => (
+              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>
@@ -204,7 +201,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <div className="flex justify-between items-center">
                 <Label>Features</Label>
                 <Button onClick={() => {
-                  const newFeatures = [...(content.features || []), {
+                  const currentFeatures = 'features' in content ? content.features || [] : [];
+                  const newFeatures = [...currentFeatures, {
                     icon: "Droplets",
                     title: "New Feature",
                     description: "Feature description",
@@ -216,7 +214,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Feature
                 </Button>
               </div>
-              {content.features?.map((feature: any, index: number) => (
+              {'features' in content && Array.isArray(content.features) && content.features.map((feature: any, index: number) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>
@@ -224,8 +222,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newFeatures = content.features.filter((_: any, i: number) => i !== index);
-                        handleChange('features', newFeatures);
+                        if ('features' in content && Array.isArray(content.features)) {
+                          const newFeatures = content.features.filter((_, i) => i !== index);
+                          handleChange('features', newFeatures);
+                        }
                       }}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
@@ -236,9 +236,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={feature.icon}
                       onValueChange={(value) => {
-                        const newFeatures = [...content.features];
-                        newFeatures[index] = { ...feature, icon: value };
-                        handleChange('features', newFeatures);
+                        if ('features' in content && Array.isArray(content.features)) {
+                          const newFeatures = [...content.features];
+                          newFeatures[index] = { ...feature, icon: value };
+                          handleChange('features', newFeatures);
+                        }
                       }}
                     >
                       <SelectTrigger>
@@ -258,9 +260,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={feature.title}
                       onChange={(e) => {
-                        const newFeatures = [...content.features];
-                        newFeatures[index] = { ...feature, title: e.target.value };
-                        handleChange('features', newFeatures);
+                        if ('features' in content && Array.isArray(content.features)) {
+                          const newFeatures = [...content.features];
+                          newFeatures[index] = { ...feature, title: e.target.value };
+                          handleChange('features', newFeatures);
+                        }
                       }}
                       placeholder="Enter feature title"
                     />
@@ -270,9 +274,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={feature.description}
                       onChange={(e) => {
-                        const newFeatures = [...content.features];
-                        newFeatures[index] = { ...feature, description: e.target.value };
-                        handleChange('features', newFeatures);
+                        if ('features' in content && Array.isArray(content.features)) {
+                          const newFeatures = [...content.features];
+                          newFeatures[index] = { ...feature, description: e.target.value };
+                          handleChange('features', newFeatures);
+                        }
                       }}
                       placeholder="Enter feature description"
                     />
@@ -282,9 +288,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Textarea
                       value={feature.detail}
                       onChange={(e) => {
-                        const newFeatures = [...content.features];
-                        newFeatures[index] = { ...feature, detail: e.target.value };
-                        handleChange('features', newFeatures);
+                        if ('features' in content && Array.isArray(content.features)) {
+                          const newFeatures = [...content.features];
+                          newFeatures[index] = { ...feature, detail: e.target.value };
+                          handleChange('features', newFeatures);
+                        }
                       }}
                       placeholder="Enter additional details"
                     />
