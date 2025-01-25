@@ -13,52 +13,133 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockContent, HeroContent, FeaturesContent } from "@/types/content-blocks";
+import { ContentBlock } from "@/types/content-blocks";
+import { toast } from "sonner";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBlocks = async () => {
-      console.log('Fetching content blocks for home page');
-      const { data: pages, error: pagesError } = await supabase
-        .from('pages')
-        .select('id')
-        .eq('slug', '/')
-        .maybeSingle();
+    const fetchHomePageContent = async () => {
+      try {
+        console.log('Fetching home page content');
+        
+        // First get the home page ID
+        const { data: page, error: pageError } = await supabase
+          .from('pages')
+          .select('id')
+          .eq('slug', '/')
+          .single();
 
-      if (pagesError) {
-        console.error('Error fetching home page:', pagesError);
-        return;
+        if (pageError) {
+          console.error('Error fetching home page:', pageError);
+          throw pageError;
+        }
+
+        if (!page) {
+          console.log('Creating home page...');
+          // Create the home page if it doesn't exist
+          const { data: newPage, error: createError } = await supabase
+            .from('pages')
+            .insert({
+              title: 'Home',
+              slug: '/',
+              is_published: true
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          
+          // Create default content blocks
+          const defaultBlocks = [
+            { type: 'hero', content: {}, order_index: 0 },
+            { type: 'elevating_essentials', content: {}, order_index: 1 },
+            { type: 'game_changer', content: {}, order_index: 2 },
+            { type: 'features', content: {}, order_index: 3 },
+            { type: 'store_brands', content: {}, order_index: 4 },
+            { type: 'sustainability', content: {}, order_index: 5 },
+            { type: 'product_carousel', content: {}, order_index: 6 },
+            { type: 'competitor_comparison', content: {}, order_index: 7 },
+            { type: 'testimonials', content: {}, order_index: 8 },
+            { type: 'blog_preview', content: {}, order_index: 9 },
+            { type: 'newsletter', content: {}, order_index: 10 }
+          ].map(block => ({
+            ...block,
+            page_id: newPage.id
+          }));
+
+          const { error: blocksError } = await supabase
+            .from('content_blocks')
+            .insert(defaultBlocks);
+
+          if (blocksError) throw blocksError;
+          
+          toast.success('Home page created with default content blocks');
+        }
+
+        // Now fetch the content blocks
+        const { data: blocks, error: blocksError } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', page?.id || '')
+          .order('order_index');
+
+        if (blocksError) {
+          console.error('Error fetching content blocks:', blocksError);
+          throw blocksError;
+        }
+
+        console.log('Content blocks fetched:', blocks);
+        setBlocks(blocks);
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('Failed to load page content');
+      } finally {
+        setLoading(false);
       }
-
-      if (!pages) {
-        console.error('Home page not found');
-        return;
-      }
-
-      const { data: blocks, error: blocksError } = await supabase
-        .from('content_blocks')
-        .select('*')
-        .eq('page_id', pages.id)
-        .order('order_index');
-
-      if (blocksError) {
-        console.error('Error fetching content blocks:', blocksError);
-        return;
-      }
-
-      console.log('Content blocks fetched:', blocks);
-      setBlocks(blocks as ContentBlock[]);
     };
 
-    fetchBlocks();
+    fetchHomePageContent();
   }, []);
 
-  const getBlockContent = (type: string): BlockContent => {
-    const block = blocks.find(b => b.type === type);
-    return block?.content || {};
+  const renderBlock = (block: ContentBlock) => {
+    switch (block.type) {
+      case 'hero':
+        return <Hero content={block.content} />;
+      case 'features':
+        return <Features content={block.content} />;
+      case 'elevating_essentials':
+        return <ElevatingEssentials />;
+      case 'game_changer':
+        return <GameChanger />;
+      case 'store_brands':
+        return <StoreBrands />;
+      case 'sustainability':
+        return <Sustainability />;
+      case 'product_carousel':
+        return <ProductCarousel />;
+      case 'competitor_comparison':
+        return <CompetitorComparison />;
+      case 'testimonials':
+        return <Testimonials />;
+      case 'blog_preview':
+        return <BlogPreview />;
+      case 'newsletter':
+        return <Newsletter />;
+      default:
+        return null;
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -69,17 +150,11 @@ const Index = () => {
         transition={{ duration: 0.6 }}
         className="min-h-screen overflow-hidden pt-16"
       >
-        <Hero content={getBlockContent('hero') as HeroContent} />
-        <ElevatingEssentials />
-        <GameChanger />
-        <Features content={getBlockContent('features') as FeaturesContent} />
-        <StoreBrands />
-        <Sustainability />
-        <ProductCarousel />
-        <CompetitorComparison />
-        <Testimonials />
-        <BlogPreview />
-        <Newsletter />
+        {blocks.map((block) => (
+          <div key={block.id}>
+            {renderBlock(block)}
+          </div>
+        ))}
       </motion.main>
     </>
   );
