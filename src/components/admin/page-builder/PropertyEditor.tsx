@@ -27,18 +27,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const getFeatures = (): FeatureItem[] => {
     if ('features' in content && Array.isArray(content.features)) {
-      return content.features as FeatureItem[];
+      return content.features;
     }
     return [];
   };
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
     const features = getFeatures();
-    if (features.length > 0) {
-      const newFeatures = [...features];
-      newFeatures[index] = { ...newFeatures[index], [field]: value };
-      handleChange('features', newFeatures);
-    }
+    const newFeatures = [...features];
+    newFeatures[index] = { ...newFeatures[index], [field]: value };
+    handleChange('features', newFeatures);
   };
 
   const addFeature = () => {
@@ -136,7 +134,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Feature
                 </Button>
               </div>
-              {content.features && Array.isArray(content.features) && (content.features as FeatureItem[]).map((feature, index) => (
+              {getFeatures().map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Feature {index + 1}</Label>
