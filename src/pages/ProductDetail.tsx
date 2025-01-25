@@ -118,7 +118,11 @@ const ProductDetailContent = () => {
 
         <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
-            <Features features={product.why_choose_features || []} />
+            <Features content={{
+              features: product.why_choose_features || [],
+              title: "Why Choose Our Product",
+              subtitle: "Discover what makes our product special"
+            }} />
           </div>
         </section>
 

@@ -69,7 +69,9 @@ export type BlockType =
   | "newsletter" 
   | "product_gallery" 
   | "blog_preview" 
-  | "store_brands";
+  | "store_brands"
+  | "sustainability"
+  | "product_carousel";
 
 export interface ContentBlock {
   id: string;
