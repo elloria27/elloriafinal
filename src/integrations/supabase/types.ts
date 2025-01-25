@@ -360,6 +360,7 @@ export type Database = {
         | "product_carousel"
         | "elevating_essentials"
         | "game_changer"
+        | "competitor_comparison"
       user_role: "admin" | "client"
     }
     CompositeTypes: {
