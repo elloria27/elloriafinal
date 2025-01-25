@@ -29,6 +29,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     switch (block.type) {
       case 'hero':
+      case 'elevating_essentials':
+      case 'game_changer':
         return (
           <div className="space-y-4">
             <div>
@@ -36,7 +38,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter hero title"
+                placeholder="Enter title"
               />
             </div>
             <div>
@@ -44,17 +46,19 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('subtitle')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter hero subtitle"
+                placeholder="Enter subtitle"
               />
             </div>
-            <div>
-              <Label>Video URL</Label>
-              <Input
-                value={getContentValue('videoUrl')}
-                onChange={(e) => handleChange('videoUrl', e.target.value)}
-                placeholder="Enter video URL"
-              />
-            </div>
+            {block.type === 'hero' && (
+              <div>
+                <Label>Video URL</Label>
+                <Input
+                  value={getContentValue('videoUrl')}
+                  onChange={(e) => handleChange('videoUrl', e.target.value)}
+                  placeholder="Enter video URL"
+                />
+              </div>
+            )}
           </div>
         );
 

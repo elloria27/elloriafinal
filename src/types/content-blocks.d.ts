@@ -71,7 +71,10 @@ export type BlockType =
   | "blog_preview" 
   | "store_brands"
   | "sustainability"
-  | "product_carousel";
+  | "product_carousel"
+  | "elevating_essentials"
+  | "game_changer"
+  | "competitor_comparison";
 
 export interface ContentBlock {
   id: string;
