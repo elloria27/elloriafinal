@@ -1,38 +1,96 @@
 import { FeaturesProps } from "@/types/content-blocks";
+import { motion } from "framer-motion";
+import { Shrink, Shield, Droplets, Leaf } from "lucide-react";
+
+const iconMap: { [key: string]: any } = {
+  Shrink,
+  Shield,
+  Droplets,
+  Leaf
+};
 
 export const Features = ({ content }: FeaturesProps) => {
+  const defaultFeatures = [
+    {
+      icon: "Shrink",
+      title: "Ultra-thin Design",
+      description: "Advanced technology compressed into an ultra-thin profile for maximum discretion and comfort"
+    },
+    {
+      icon: "Shield",
+      title: "Hypoallergenic Materials",
+      description: "Gentle, skin-friendly materials designed for sensitive skin and ultimate comfort"
+    },
+    {
+      icon: "Droplets",
+      title: "High Absorption",
+      description: "Superior absorption technology keeps you confident and protected throughout your day"
+    },
+    {
+      icon: "Leaf",
+      title: "Recyclable Components",
+      description: "Eco-conscious materials that minimize environmental impact without compromising performance"
+    }
+  ];
+
+  const features = content?.features || defaultFeatures;
+
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        {content.title && (
-          <h2 className="text-3xl font-bold text-center mb-8">{content.title}</h2>
-        )}
-        {content.subtitle && (
-          <p className="text-lg text-gray-600 text-center mb-12">{content.subtitle}</p>
-        )}
-        {content.description && (
-          <p className="text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-            {content.description}
+    <section className="py-32 bg-gradient-to-b from-white via-accent-purple/5 to-white">
+      <div className="container px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            {content?.title || "Elevating Everyday Essentials"}
+          </h2>
+          <p className="text-gray-600 text-xl max-w-3xl mx-auto">
+            {content?.subtitle || "Experience the perfect harmony of comfort and sustainability with Elloria's innovative feminine care products."}
           </p>
-        )}
-        {content.features && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {content.features.map((feature, index) => (
-              <div key={index} className="p-6 bg-gray-50 rounded-lg">
-                {feature.icon && (
-                  <div className="w-12 h-12 mb-4 text-primary">
-                    <img src={feature.icon} alt="" className="w-full h-full object-contain" />
+          {content?.description && (
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
+              {content.description}
+            </p>
+          )}
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((feature, index) => {
+            const Icon = iconMap[feature.icon] || Shrink;
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+                  className="mb-6"
+                >
+                  <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center transform -rotate-6 hover:rotate-0 transition-transform duration-300">
+                    <Icon className="w-8 h-8 text-primary" />
                   </div>
-                )}
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-                {feature.detail && (
-                  <p className="mt-2 text-sm text-gray-500">{feature.detail}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                </motion.div>
+                <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            )}
+          )}
+        </div>
       </div>
     </section>
   );

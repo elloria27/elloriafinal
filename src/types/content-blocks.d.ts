@@ -35,16 +35,18 @@ export interface HeroBlockContent extends BaseBlockContent {
   videoUrl?: string;
 }
 
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+  detail?: string;
+}
+
 export interface FeaturesBlockContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: string;
-  features?: {
-    icon: string;
-    title: string;
-    description: string;
-    detail?: string;
-  }[];
+  features?: FeatureItem[];
 }
 
 export type BlockContent = 
