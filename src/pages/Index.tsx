@@ -13,7 +13,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockType } from "@/types/content-blocks";
+import { ContentBlock, BlockType, HeroContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -25,7 +25,6 @@ const Index = () => {
       try {
         console.log('Fetching home page content');
         
-        // First get the home page ID
         const { data: page, error: pageError } = await supabase
           .from('pages')
           .select('id')
@@ -39,7 +38,6 @@ const Index = () => {
 
         if (!page) {
           console.log('Creating home page...');
-          // Create the home page if it doesn't exist
           const { data: newPage, error: createError } = await supabase
             .from('pages')
             .insert({
@@ -52,7 +50,6 @@ const Index = () => {
 
           if (createError) throw createError;
           
-          // Create default content blocks
           const defaultBlocks: Omit<ContentBlock, 'id' | 'created_at' | 'updated_at'>[] = [
             { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
             { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
@@ -76,7 +73,6 @@ const Index = () => {
           toast.success('Home page created with default content blocks');
         }
 
-        // Now fetch the content blocks
         const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
@@ -104,7 +100,7 @@ const Index = () => {
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
       case 'hero':
-        return <Hero content={block.content} />;
+        return <Hero content={block.content as HeroContent} />;
       case 'features':
         return <Features content={block.content} />;
       case 'elevating_essentials':
