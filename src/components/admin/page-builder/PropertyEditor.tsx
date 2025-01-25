@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { Json } from "@/integrations/supabase/types";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -18,9 +17,9 @@ const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkl
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleChange = (key: string, value: string | FeatureItem[] | Json) => {
+  const handleChange = (key: string, value: any) => {
     console.log('Updating content:', key, value);
-    const newContent = { ...content, [key]: value } as BlockContent;
+    const newContent = { ...content, [key]: value };
     setContent(newContent);
     onUpdate(block.id, newContent);
   };
@@ -79,11 +78,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const getContentValue = (key: string): string => {
-    if (key in content) {
-      const value = (content as any)[key];
-      return value?.toString() || '';
-    }
-    return '';
+    if (!content) return '';
+    return (content as any)[key]?.toString() || '';
   };
 
   const renderFields = () => {
@@ -122,6 +118,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         );
 
       case 'features':
+      case 'elevating_essentials':
         return (
           <div className="space-y-6">
             <div>
@@ -129,7 +126,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter features section title"
+                placeholder="Enter section title"
               />
             </div>
             <div>
@@ -137,7 +134,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('subtitle')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter features section subtitle"
+                placeholder="Enter section subtitle"
               />
             </div>
             <div>
@@ -145,7 +142,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Textarea
                 value={getContentValue('description')}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter features section description"
+                placeholder="Enter section description"
               />
             </div>
             <div className="space-y-4">
@@ -257,7 +254,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                         <SelectValue placeholder="Select icon" />
                       </SelectTrigger>
                       <SelectContent>
-                        {['Droplets', 'Leaf', 'Heart'].map((icon) => (
+                        {availableIcons.map((icon) => (
                           <SelectItem key={icon} value={icon}>
                             {icon}
                           </SelectItem>
@@ -322,7 +319,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Brand
                 </Button>
               </div>
-              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+              {getFeatures().map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Brand {index + 1}</Label>
@@ -391,7 +388,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   Add Stat
                 </Button>
               </div>
-              {'features' in content && Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+              {getFeatures().map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Stat {index + 1}</Label>
@@ -439,6 +436,166 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        );
+
+      case 'testimonials':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Testimonials</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </div>
+              {getFeatures().map((feature, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Testimonial {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Text</Label>
+                    <Textarea
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter testimonial text"
+                    />
+                  </div>
+                  <div>
+                    <Label>Source</Label>
+                    <Input
+                      value={feature.detail || ''}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
+                      placeholder="Enter testimonial source"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'blog_preview':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Articles</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Article
+                </Button>
+              </div>
+              {getFeatures().map((feature, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Article {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter article title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Input
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter article category"
+                    />
+                  </div>
+                  <div>
+                    <Label>Image URL</Label>
+                    <Input
+                      value={feature.detail || ''}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
+                      placeholder="Enter article image URL"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'newsletter':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter newsletter title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter newsletter subtitle"
+              />
+            </div>
+            <div>
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
             </div>
           </div>
         );
