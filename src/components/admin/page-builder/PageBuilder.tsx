@@ -15,16 +15,6 @@ interface PageBuilderProps {
   initialBlocks: ContentBlock[];
 }
 
-interface SupabaseContentBlock {
-  id: string;
-  page_id: string;
-  type: BlockType;
-  content: Json;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
@@ -49,11 +39,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         console.log('Blocks from DB:', dbBlocks);
 
         if (dbBlocks && dbBlocks.length > 0) {
-          const transformedBlocks: ContentBlock[] = (dbBlocks as SupabaseContentBlock[]).map(block => ({
+          const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
             id: block.id,
-            type: block.type,
+            type: block.type as BlockType,
             content: block.content as BlockContent,
-            order_index: block.order_index
+            order_index: block.order_index,
+            page_id: block.page_id,
+            created_at: block.created_at,
+            updated_at: block.updated_at
           }));
           console.log('Setting blocks from DB:', transformedBlocks);
           setBlocks(transformedBlocks);
@@ -67,7 +60,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                   id: block.id,
                   page_id: pageId,
                   type: block.type,
-                  content: block.content,
+                  content: block.content as Json,
                   order_index: index
                 })
                 .select()
@@ -165,7 +158,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content })
+        .update({ content: content as Json })
         .eq('id', blockId);
 
       if (error) throw error;
@@ -192,17 +185,17 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Saving layout for page:', pageId);
       console.log('Blocks to save:', blocks);
 
-      const blocksForStorage: Json[] = blocks.map(block => ({
+      const blocksForStorage = blocks.map(block => ({
         id: block.id,
         type: block.type,
-        content: block.content,
+        content: block.content as Json,
         order_index: block.order_index
       }));
 
       const { error } = await supabase
         .from('pages')
         .update({
-          content_blocks: blocksForStorage,
+          content_blocks: blocksForStorage as Json[],
           updated_at: new Date().toISOString()
         })
         .eq('id', pageId);

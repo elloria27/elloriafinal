@@ -29,7 +29,7 @@ export interface ButtonBlockContent extends BaseBlockContent {
   variant?: 'default' | 'outline' | 'ghost';
 }
 
-export interface HeroContent {
+export interface HeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   videoUrl?: string;
@@ -42,10 +42,16 @@ export interface FeatureItem {
   detail?: string;
 }
 
-export interface FeaturesContent {
+export interface FeaturesContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: string;
+  features?: FeatureItem[];
+}
+
+export interface GameChangerContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
   features?: FeatureItem[];
 }
 
@@ -57,7 +63,8 @@ export type BlockContent =
   | ButtonBlockContent
   | HeroContent
   | FeaturesContent
-  | Record<string, any>;
+  | GameChangerContent
+  | Record<string, Json>;
 
 export type BlockType = 
   | "heading" 

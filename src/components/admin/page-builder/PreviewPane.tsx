@@ -8,11 +8,8 @@ interface PreviewPaneProps {
 }
 
 export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
-  const getContentValue = <T extends keyof BlockContent>(
-    content: BlockContent,
-    key: T
-  ): BlockContent[T] | undefined => {
-    return content[key];
+  const getContentValue = (content: BlockContent, key: string): any => {
+    return (content as any)[key];
   };
 
   const renderBlock = (block: ContentBlock) => {
@@ -32,17 +29,17 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         {(() => {
           switch (block.type) {
             case 'heading':
-              const HeadingTag = (getContentValue(block.content, 'size')?.toString() || 'h2') as keyof JSX.IntrinsicElements;
+              const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
               return (
                 <HeadingTag className="text-4xl font-bold mb-4">
-                  {getContentValue(block.content, 'text')?.toString() || 'Heading'}
+                  {getContentValue(block.content, 'text') || 'Heading'}
                 </HeadingTag>
               );
 
             case 'text':
               return (
                 <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                  {getContentValue(block.content, 'text')?.toString() || 'Text block'}
+                  {getContentValue(block.content, 'text') || 'Text block'}
                 </p>
               );
 
@@ -50,8 +47,8 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               return (
                 <div className="mb-4">
                   <img
-                    src={getContentValue(block.content, 'url')?.toString() || '/placeholder.svg'}
-                    alt={getContentValue(block.content, 'alt')?.toString() || ''}
+                    src={getContentValue(block.content, 'url') || '/placeholder.svg'}
+                    alt={getContentValue(block.content, 'alt') || ''}
                     className="max-w-full h-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -61,8 +58,8 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               return (
                 <div className="mb-4 aspect-video">
                   <iframe
-                    src={getContentValue(block.content, 'url')?.toString()}
-                    title={getContentValue(block.content, 'title')?.toString() || 'Video'}
+                    src={getContentValue(block.content, 'url')}
+                    title={getContentValue(block.content, 'title') || 'Video'}
                     className="w-full h-full rounded-lg shadow-md"
                     allowFullScreen
                   />
@@ -80,7 +77,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                       : 'bg-primary text-white'
                   }`}
                 >
-                  {getContentValue(block.content, 'text')?.toString() || 'Button'}
+                  {getContentValue(block.content, 'text') || 'Button'}
                 </button>
               );
 
