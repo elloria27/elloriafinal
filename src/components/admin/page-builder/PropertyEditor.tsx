@@ -25,6 +25,13 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     onUpdate(block.id, newContent);
   };
 
+  const getFeatures = (): FeatureItem[] => {
+    if ('features' in content && Array.isArray(content.features)) {
+      return content.features as FeatureItem[];
+    }
+    return [];
+  };
+
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
     const features = getFeatures();
     if (features.length > 0) {
@@ -47,10 +54,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const removeFeature = (index: number) => {
     const features = getFeatures();
-    if (features.length > 0) {
-      const newFeatures = features.filter((_, i) => i !== index);
-      handleChange('features', newFeatures);
-    }
+    const newFeatures = features.filter((_, i) => i !== index);
+    handleChange('features', newFeatures);
   };
 
   const getContentValue = (key: string): string => {
@@ -59,13 +64,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return value?.toString() || '';
     }
     return '';
-  };
-
-  const getFeatures = (): FeatureItem[] => {
-    if ('features' in content && Array.isArray(content.features)) {
-      return content.features as FeatureItem[];
-    }
-    return [];
   };
 
   const renderFields = () => {
