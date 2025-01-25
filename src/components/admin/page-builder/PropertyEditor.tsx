@@ -64,6 +64,36 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     console.log('Current content:', content);
 
     switch (block.type) {
+      case 'hero':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={getContentValue('videoUrl')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+                placeholder="Enter video URL"
+              />
+            </div>
+          </div>
+        );
+
       case 'features':
         return (
           <div className="space-y-6">
@@ -151,8 +181,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
-      case 'hero':
-      case 'elevating_essentials':
       case 'game_changer':
         return (
           <div className="space-y-4">
@@ -161,7 +189,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter title"
+                placeholder="Enter section title"
               />
             </div>
             <div>
@@ -169,155 +197,100 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('subtitle')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter subtitle"
+                placeholder="Enter section subtitle"
               />
             </div>
-            {block.type === 'hero' && (
-              <div>
-                <Label>Video URL</Label>
-                <Input
-                  value={getContentValue('videoUrl')}
-                  onChange={(e) => handleChange('videoUrl', e.target.value)}
-                  placeholder="Enter video URL"
-                />
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Features</Label>
+                <Button onClick={() => {
+                  const newFeatures = [...(content.features || []), {
+                    icon: "Droplets",
+                    title: "New Feature",
+                    description: "Feature description",
+                    detail: "Additional details"
+                  }];
+                  handleChange('features', newFeatures);
+                }} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Feature
+                </Button>
               </div>
-            )}
-          </div>
-        );
-
-      case 'heading':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Text</Label>
-              <Input
-                value={getContentValue('text')}
-                onChange={(e) => handleChange('text', e.target.value)}
-                placeholder="Enter heading text"
-              />
-            </div>
-            <div>
-              <Label>Size</Label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={getContentValue('size') || 'h2'}
-                onChange={(e) => handleChange('size', e.target.value)}
-              >
-                <option value="h1">H1</option>
-                <option value="h2">H2</option>
-                <option value="h3">H3</option>
-                <option value="h4">H4</option>
-              </select>
-            </div>
-          </div>
-        );
-
-      case 'text':
-        return (
-          <div>
-            <Label>Content</Label>
-            <Textarea
-              value={getContentValue('text')}
-              onChange={(e) => handleChange('text', e.target.value)}
-              placeholder="Enter text content"
-              className="min-h-[100px]"
-            />
-          </div>
-        );
-
-      case 'image':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Image URL</Label>
-              <Input
-                value={getContentValue('url')}
-                onChange={(e) => handleChange('url', e.target.value)}
-                placeholder="Enter image URL"
-              />
-            </div>
-            <div>
-              <Label>Alt Text</Label>
-              <Input
-                value={getContentValue('alt')}
-                onChange={(e) => handleChange('alt', e.target.value)}
-                placeholder="Enter alt text"
-              />
-            </div>
-            {getContentValue('url') && (
-              <div className="mt-4">
-                <img
-                  src={getContentValue('url')}
-                  alt={getContentValue('alt')}
-                  className="max-w-full h-auto rounded-md"
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 'video':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Video URL</Label>
-              <Input
-                value={getContentValue('url')}
-                onChange={(e) => handleChange('url', e.target.value)}
-                placeholder="Enter video URL (YouTube, Vimeo, etc.)"
-              />
-            </div>
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter video title"
-              />
-            </div>
-            {getContentValue('url') && (
-              <div className="mt-4 aspect-video">
-                <iframe
-                  src={getContentValue('url')}
-                  title={getContentValue('title')}
-                  className="w-full h-full rounded-md"
-                  allowFullScreen
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 'button':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Text</Label>
-              <Input
-                value={getContentValue('text')}
-                onChange={(e) => handleChange('text', e.target.value)}
-                placeholder="Enter button text"
-              />
-            </div>
-            <div>
-              <Label>URL</Label>
-              <Input
-                value={getContentValue('url')}
-                onChange={(e) => handleChange('url', e.target.value)}
-                placeholder="Enter button URL"
-              />
-            </div>
-            <div>
-              <Label>Style</Label>
-              <select
-                className="w-full border rounded-md p-2"
-                value={getContentValue('variant') || 'default'}
-                onChange={(e) => handleChange('variant', e.target.value)}
-              >
-                <option value="default">Default</option>
-                <option value="outline">Outline</option>
-                <option value="ghost">Ghost</option>
-              </select>
+              {content.features?.map((feature: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Feature {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newFeatures = content.features.filter((_: any, i: number) => i !== index);
+                        handleChange('features', newFeatures);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={feature.icon}
+                      onValueChange={(value) => {
+                        const newFeatures = [...content.features];
+                        newFeatures[index] = { ...feature, icon: value };
+                        handleChange('features', newFeatures);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Droplets', 'Leaf', 'Heart'].map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => {
+                        const newFeatures = [...content.features];
+                        newFeatures[index] = { ...feature, title: e.target.value };
+                        handleChange('features', newFeatures);
+                      }}
+                      placeholder="Enter feature title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Input
+                      value={feature.description}
+                      onChange={(e) => {
+                        const newFeatures = [...content.features];
+                        newFeatures[index] = { ...feature, description: e.target.value };
+                        handleChange('features', newFeatures);
+                      }}
+                      placeholder="Enter feature description"
+                    />
+                  </div>
+                  <div>
+                    <Label>Detail</Label>
+                    <Textarea
+                      value={feature.detail}
+                      onChange={(e) => {
+                        const newFeatures = [...content.features];
+                        newFeatures[index] = { ...feature, detail: e.target.value };
+                        handleChange('features', newFeatures);
+                      }}
+                      placeholder="Enter additional details"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );
