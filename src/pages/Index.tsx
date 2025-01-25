@@ -13,7 +13,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, HeroContent, FeaturesContent } from "@/types/content-blocks";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -25,10 +25,15 @@ const Index = () => {
         .from('pages')
         .select('id')
         .eq('slug', '/')
-        .single();
+        .maybeSingle();
 
       if (pagesError) {
         console.error('Error fetching home page:', pagesError);
+        return;
+      }
+
+      if (!pages) {
+        console.error('Home page not found');
         return;
       }
 
@@ -44,13 +49,13 @@ const Index = () => {
       }
 
       console.log('Content blocks fetched:', blocks);
-      setBlocks(blocks);
+      setBlocks(blocks as ContentBlock[]);
     };
 
     fetchBlocks();
   }, []);
 
-  const getBlockContent = (type: string) => {
+  const getBlockContent = (type: string): BlockContent => {
     const block = blocks.find(b => b.type === type);
     return block?.content || {};
   };
@@ -64,10 +69,10 @@ const Index = () => {
         transition={{ duration: 0.6 }}
         className="min-h-screen overflow-hidden pt-16"
       >
-        <Hero content={getBlockContent('hero')} />
+        <Hero content={getBlockContent('hero') as HeroContent} />
         <ElevatingEssentials />
         <GameChanger />
-        <Features content={getBlockContent('features')} />
+        <Features content={getBlockContent('features') as FeaturesContent} />
         <StoreBrands />
         <Sustainability />
         <ProductCarousel />

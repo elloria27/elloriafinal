@@ -29,7 +29,7 @@ export interface ButtonBlockContent extends BaseBlockContent {
   variant?: 'default' | 'outline' | 'ghost';
 }
 
-export interface HeroBlockContent extends BaseBlockContent {
+export interface HeroContent {
   title?: string;
   subtitle?: string;
   videoUrl?: string;
@@ -42,7 +42,7 @@ export interface FeatureItem {
   detail?: string;
 }
 
-export interface FeaturesBlockContent extends BaseBlockContent {
+export interface FeaturesContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -55,8 +55,8 @@ export type BlockContent =
   | ImageBlockContent 
   | VideoBlockContent
   | ButtonBlockContent
-  | HeroBlockContent
-  | FeaturesBlockContent
+  | HeroContent
+  | FeaturesContent
   | Record<string, any>;
 
 export type BlockType = 
@@ -89,5 +89,9 @@ export interface ContentBlock {
 }
 
 export interface FeaturesProps {
-  content: FeaturesBlockContent;
+  content: FeaturesContent;
+}
+
+export interface HeroProps {
+  content: HeroContent;
 }
