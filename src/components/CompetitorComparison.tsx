@@ -18,7 +18,8 @@ interface CompetitorComparisonProps {
 export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => {
   console.log('CompetitorComparison content:', content);
 
-  const defaultMetrics = [
+  // Only use defaultMetrics if no content.metrics is provided
+  const metrics = content?.metrics || [
     {
       category: "Absorption Capacity",
       elloria: 95,
@@ -49,7 +50,6 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
     }
   ];
 
-  const metrics = content?.metrics || defaultMetrics;
   const title = content?.title || "Why Choose Elloria?";
   const subtitle = content?.subtitle || "Experience the difference in every detail";
   const buttonText = content?.buttonText || "Experience the Elloria Difference";
