@@ -293,37 +293,60 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 placeholder="Enter section description"
               />
             </div>
+            
+            {/* Stats Section */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Stats</Label>
-                <Button onClick={addFeature} size="sm">
+                <Button 
+                  onClick={() => {
+                    const currentStats = content.stats || [];
+                    handleChange('stats', [...currentStats, {
+                      icon: "Recycle",
+                      title: "New Stat",
+                      description: "Enter description",
+                      color: "bg-accent-green"
+                    }]);
+                  }} 
+                  size="sm"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Stat
                 </Button>
               </div>
-              {getFeatures().map((feature, index) => (
+              
+              {(content.stats || []).map((stat: any, index: number) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Stat {index + 1}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => removeFeature(index)}
+                      onClick={() => {
+                        const newStats = [...(content.stats || [])];
+                        newStats.splice(index, 1);
+                        handleChange('stats', newStats);
+                      }}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
+                  
                   <div>
                     <Label>Icon</Label>
                     <Select
-                      value={feature.icon}
-                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
+                      value={stat.icon}
+                      onValueChange={(value) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], icon: value };
+                        handleChange('stats', newStats);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select icon" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableIcons.map((icon) => (
+                        {['Recycle', 'Package', 'Factory', 'Leaf'].map((icon) => (
                           <SelectItem key={icon} value={icon}>
                             {icon}
                           </SelectItem>
@@ -331,184 +354,103 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div>
                     <Label>Title</Label>
                     <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      value={stat.title}
+                      onChange={(e) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], title: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
                       placeholder="Enter stat title"
                     />
                   </div>
+                  
                   <div>
                     <Label>Description</Label>
                     <Textarea
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      value={stat.description}
+                      onChange={(e) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], description: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
                       placeholder="Enter stat description"
                     />
                   </div>
+                  
+                  <div>
+                    <Label>Color</Label>
+                    <Select
+                      value={stat.color}
+                      onValueChange={(value) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], color: value };
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select color" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          { label: 'Green', value: 'bg-accent-green' },
+                          { label: 'Purple', value: 'bg-accent-purple' },
+                          { label: 'Peach', value: 'bg-accent-peach' }
+                        ].map((color) => (
+                          <SelectItem key={color.value} value={color.value}>
+                            {color.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        );
-
-      case 'testimonials':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
+            
+            {/* Timeline Items Section */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>Testimonials</Label>
-                <Button onClick={addFeature} size="sm">
+                <Label>Timeline Items</Label>
+                <Button 
+                  onClick={() => {
+                    const currentItems = content.timelineItems || [];
+                    handleChange('timelineItems', [...currentItems, "New Timeline Item"]);
+                  }} 
+                  size="sm"
+                >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Testimonial
+                  Add Timeline Item
                 </Button>
               </div>
-              {getFeatures().map((feature, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Testimonial {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeFeature(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter customer name"
-                    />
-                  </div>
-                  <div>
-                    <Label>Text</Label>
-                    <Textarea
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter testimonial text"
-                    />
-                  </div>
-                  <div>
-                    <Label>Source</Label>
-                    <Input
-                      value={feature.detail || ''}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter testimonial source"
-                    />
-                  </div>
+              
+              {(content.timelineItems || []).map((item: string, index: number) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={item}
+                    onChange={(e) => {
+                      const newItems = [...(content.timelineItems || [])];
+                      newItems[index] = e.target.value;
+                      handleChange('timelineItems', newItems);
+                    }}
+                    placeholder="Enter timeline item"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const newItems = [...(content.timelineItems || [])];
+                      newItems.splice(index, 1);
+                      handleChange('timelineItems', newItems);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
                 </div>
               ))}
-            </div>
-          </div>
-        );
-
-      case 'blog_preview':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Articles</Label>
-                <Button onClick={addFeature} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Article
-                </Button>
-              </div>
-              {getFeatures().map((feature, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Article {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeFeature(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter article title"
-                    />
-                  </div>
-                  <div>
-                    <Label>Category</Label>
-                    <Input
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter article category"
-                    />
-                  </div>
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={feature.detail || ''}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter article image URL"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'newsletter':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter newsletter title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter newsletter subtitle"
-              />
-            </div>
-            <div>
-              <Label>Button Text</Label>
-              <Input
-                value={getContentValue('buttonText')}
-                onChange={(e) => handleChange('buttonText', e.target.value)}
-                placeholder="Enter button text"
-              />
             </div>
           </div>
         );
@@ -531,3 +473,4 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
+
