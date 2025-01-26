@@ -9,9 +9,15 @@ import { Testimonials } from "@/components/Testimonials";
 import { Newsletter } from "@/components/Newsletter";
 
 const Index = () => {
+  const heroContent = {
+    title: "Redefining Comfort, Confidence, and Sustainability",
+    subtitle: "Experience ultra-thin, eco-friendly feminine care made for modern women.",
+    videoUrl: "https://elloria.ca/Video_290mm.mp4"
+  };
+
   return (
     <div className="flex flex-col gap-16 md:gap-32">
-      <Hero />
+      <Hero content={heroContent} />
       <Features />
       <ProductCarousel />
       <StoreBrands />
