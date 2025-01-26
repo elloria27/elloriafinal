@@ -12,7 +12,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockType, HeroContent } from "@/types/content-blocks";
+import { ContentBlock, BlockType, GameChangerContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -27,8 +27,8 @@ const Index = () => {
         const { data: page, error: pageError } = await supabase
           .from('pages')
           .select('id')
-          .eq('slug', '/')
-          .maybeSingle();
+          .eq('slug', 'index')
+          .single();
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
@@ -36,49 +36,16 @@ const Index = () => {
         }
 
         if (!page) {
-          console.log('Creating home page...');
-          const { data: newPage, error: createError } = await supabase
-            .from('pages')
-            .insert({
-              title: 'Home',
-              slug: '/',
-              is_published: true
-            })
-            .select()
-            .single();
-
-          if (createError) throw createError;
-          
-          const defaultBlocks = [
-            { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
-            { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
-            { type: 'game_changer' as BlockType, content: {}, order_index: 2, page_id: newPage.id },
-            { type: 'features' as BlockType, content: {}, order_index: 3, page_id: newPage.id },
-            { type: 'store_brands' as BlockType, content: {}, order_index: 4, page_id: newPage.id },
-            { type: 'sustainability' as BlockType, content: {}, order_index: 5, page_id: newPage.id },
-            { type: 'product_carousel' as BlockType, content: {}, order_index: 6, page_id: newPage.id },
-            { type: 'competitor_comparison' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
-            { type: 'testimonials' as BlockType, content: {}, order_index: 8, page_id: newPage.id },
-            { type: 'blog_preview' as BlockType, content: {}, order_index: 9, page_id: newPage.id },
-            { type: 'newsletter' as BlockType, content: {}, order_index: 10, page_id: newPage.id }
-          ];
-
-          const { error: blocksError } = await supabase
-            .from('content_blocks')
-            .insert(defaultBlocks);
-
-          if (blocksError) throw blocksError;
-          
-          toast.success('Home page created with default content blocks');
+          console.error('Home page not found');
+          return;
         }
 
-        const pageId = page?.id;
-        console.log('Fetching content blocks for page:', pageId);
+        console.log('Fetching content blocks for page:', page.id);
 
         const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', pageId)
+          .eq('page_id', page.id)
           .order('order_index');
 
         if (blocksError) {
@@ -87,7 +54,7 @@ const Index = () => {
         }
 
         console.log('Content blocks fetched:', blocks);
-        setBlocks(blocks as ContentBlock[]);
+        setBlocks(blocks || []);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load page content');
@@ -97,18 +64,41 @@ const Index = () => {
     };
 
     fetchHomePageContent();
+
+    // Subscribe to content_blocks changes
+    const channel = supabase
+      .channel('content_blocks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'content_blocks'
+        },
+        () => {
+          console.log('Content blocks changed, refreshing...');
+          fetchHomePageContent();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const renderBlock = (block: ContentBlock) => {
+    console.log('Rendering block:', block.type, block.content);
+    
     switch (block.type) {
       case 'hero':
-        return <Hero content={block.content as HeroContent} />;
+        return <Hero content={block.content} />;
       case 'elevating_essentials':
         return <Features content={block.content} />;
+      case 'game_changer':
+        return <GameChanger content={block.content as GameChangerContent} />;
       case 'features':
         return <Features content={block.content} />;
-      case 'game_changer':
-        return <GameChanger />;
       case 'store_brands':
         return <StoreBrands />;
       case 'sustainability':
@@ -143,13 +133,15 @@ const Index = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="flex-grow pt-16"
+        className="flex-grow"
       >
-        {blocks.map((block) => (
-          <div key={block.id}>
-            {renderBlock(block)}
-          </div>
-        ))}
+        <div className="page-content">
+          {blocks.map((block) => (
+            <div key={block.id}>
+              {renderBlock(block)}
+            </div>
+          ))}
+        </div>
       </motion.main>
     </div>
   );
