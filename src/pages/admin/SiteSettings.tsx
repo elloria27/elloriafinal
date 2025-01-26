@@ -10,24 +10,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
-interface SiteSettings {
+type SiteSettings = {
   id: string;
   site_title: string;
-  default_language: 'en' | 'fr' | 'uk';
-  default_currency: 'USD' | 'EUR' | 'UAH' | 'CAD';
+  default_language: Database['public']['Enums']['supported_language'];
+  default_currency: Database['public']['Enums']['supported_currency'];
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
   meta_keywords: string | null;
   custom_scripts: any[];
+  created_at: string;
+  updated_at: string;
   homepage_slug: string;
-}
-
-interface Page {
-  id: string;
-  title: string;
-  slug: string;
 }
 
 export default function SiteSettings() {
@@ -35,7 +32,7 @@ export default function SiteSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [pages, setPages] = useState<Page[]>([]);
+  const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
 
   useEffect(() => {
     checkAdminAndLoadData();
@@ -89,9 +86,11 @@ export default function SiteSettings() {
       if (error) throw error;
 
       console.log('Settings loaded:', data);
-      // Ensure homepage_slug is included in the data
+      
+      // Transform the data to match our expected types
       setSettings({
         ...data,
+        custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
         homepage_slug: data.homepage_slug || ''
       });
     } catch (error) {
@@ -352,4 +351,4 @@ export default function SiteSettings() {
       </Tabs>
     </div>
   );
-}
+};
