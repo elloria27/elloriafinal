@@ -33,11 +33,15 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     ]
   };
 
+  // Ensure we have the latest content by merging with defaults
   const {
     title = defaultContent.title,
     subtitle = defaultContent.subtitle,
     brands = defaultContent.brands
   } = content || defaultContent;
+
+  console.log('StoreBrands content:', content); // Debug log
+  console.log('Rendered brands:', brands); // Debug log
 
   return (
     <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
@@ -57,9 +61,9 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
-          {brands.map((brand, index) => (
+          {Array.isArray(brands) && brands.map((brand, index) => (
             <motion.a
-              key={brand.name}
+              key={`${brand.name}-${index}`}
               href={brand.link}
               target="_blank"
               rel="noopener noreferrer"
@@ -78,6 +82,10 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
                 src={brand.logo}
                 alt={`${brand.name} logo`}
                 className="w-full h-full object-contain"
+                onError={(e) => {
+                  console.error(`Error loading image for ${brand.name}:`, brand.logo);
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
               />
             </motion.a>
           ))}
