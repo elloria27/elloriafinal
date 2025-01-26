@@ -8,7 +8,6 @@ import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { Header } from "@/components/Header";
-import { ElevatingEssentials } from "@/components/ElevatingEssentials";
 import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -52,16 +51,15 @@ const Index = () => {
           
           const defaultBlocks = [
             { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
-            { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
+            { type: 'features' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
             { type: 'game_changer' as BlockType, content: {}, order_index: 2, page_id: newPage.id },
-            { type: 'features' as BlockType, content: {}, order_index: 3, page_id: newPage.id },
-            { type: 'store_brands' as BlockType, content: {}, order_index: 4, page_id: newPage.id },
-            { type: 'sustainability' as BlockType, content: {}, order_index: 5, page_id: newPage.id },
-            { type: 'product_carousel' as BlockType, content: {}, order_index: 6, page_id: newPage.id },
-            { type: 'competitor_comparison' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
-            { type: 'testimonials' as BlockType, content: {}, order_index: 8, page_id: newPage.id },
-            { type: 'blog_preview' as BlockType, content: {}, order_index: 9, page_id: newPage.id },
-            { type: 'newsletter' as BlockType, content: {}, order_index: 10, page_id: newPage.id }
+            { type: 'store_brands' as BlockType, content: {}, order_index: 3, page_id: newPage.id },
+            { type: 'sustainability' as BlockType, content: {}, order_index: 4, page_id: newPage.id },
+            { type: 'product_carousel' as BlockType, content: {}, order_index: 5, page_id: newPage.id },
+            { type: 'competitor_comparison' as BlockType, content: {}, order_index: 6, page_id: newPage.id },
+            { type: 'testimonials' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
+            { type: 'blog_preview' as BlockType, content: {}, order_index: 8, page_id: newPage.id },
+            { type: 'newsletter' as BlockType, content: {}, order_index: 9, page_id: newPage.id }
           ];
 
           const { error: blocksError } = await supabase
@@ -106,10 +104,6 @@ const Index = () => {
         return <Hero content={block.content as HeroContent} />;
       case 'features':
         return <Features content={block.content} />;
-      case 'elevating_essentials':
-        return <ElevatingEssentials />;
-      case 'game_changer':
-        return <GameChanger />;
       case 'store_brands':
         return <StoreBrands />;
       case 'sustainability':
@@ -124,6 +118,8 @@ const Index = () => {
         return <BlogPreview />;
       case 'newsletter':
         return <Newsletter />;
+      case 'game_changer':
+        return <GameChanger />;
       default:
         return null;
     }

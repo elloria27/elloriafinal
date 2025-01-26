@@ -1,35 +1,47 @@
 import { FeaturesProps } from "@/types/content-blocks";
 import { motion } from "framer-motion";
-import { Shrink, Shield, Droplets, Leaf } from "lucide-react";
+import { Droplets, Shield, Heart, Package, Leaf, Recycle } from "lucide-react";
 
 const iconMap: { [key: string]: any } = {
-  Shrink,
-  Shield,
   Droplets,
-  Leaf
+  Shield,
+  Heart,
+  Package,
+  Leaf,
+  Recycle
 };
 
 export const Features = ({ content }: FeaturesProps) => {
   const defaultFeatures = [
     {
-      icon: "Shrink",
-      title: "Ultra-thin Design",
-      description: "Advanced technology compressed into an ultra-thin profile for maximum discretion and comfort"
+      icon: "Droplets",
+      title: "Superior Absorption",
+      description: "Advanced technology for complete protection and confidence"
     },
     {
       icon: "Shield",
-      title: "Hypoallergenic Materials",
-      description: "Gentle, skin-friendly materials designed for sensitive skin and ultimate comfort"
+      title: "Ultra Protection",
+      description: "Innovative design for maximum security and comfort"
     },
     {
-      icon: "Droplets",
-      title: "High Absorption",
-      description: "Superior absorption technology keeps you confident and protected throughout your day"
+      icon: "Heart",
+      title: "Gentle Care",
+      description: "Hypoallergenic materials for sensitive skin"
+    },
+    {
+      icon: "Package",
+      title: "Smart Packaging",
+      description: "Convenient and discreet packaging design"
     },
     {
       icon: "Leaf",
-      title: "Recyclable Components",
-      description: "Eco-conscious materials that minimize environmental impact without compromising performance"
+      title: "Eco-Friendly",
+      description: "Sustainable materials that care for our planet"
+    },
+    {
+      icon: "Recycle",
+      title: "Recyclable",
+      description: "Responsible disposal options for a better future"
     }
   ];
 
@@ -46,10 +58,10 @@ export const Features = ({ content }: FeaturesProps) => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {content?.title || "Elevating Everyday Essentials"}
+            {content?.title || "Why Choose Elloria?"}
           </h2>
           <p className="text-gray-600 text-xl max-w-3xl mx-auto">
-            {content?.subtitle || "Experience the perfect harmony of comfort and sustainability with Elloria's innovative feminine care products."}
+            {content?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability"}
           </p>
           {content?.description && (
             <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
@@ -58,9 +70,9 @@ export const Features = ({ content }: FeaturesProps) => {
           )}
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => {
-            const Icon = iconMap[feature.icon] || Shrink;
+            const Icon = iconMap[feature.icon] || Droplets;
             return (
               <motion.div
                 key={index}
