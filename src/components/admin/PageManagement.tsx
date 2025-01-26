@@ -37,6 +37,9 @@ interface Page {
   created_at: string;
   updated_at: string;
   page_template?: string;
+  parent_id?: string | null;
+  menu_order?: number;
+  menu_type?: string;
 }
 
 interface ContentBlockJson {
