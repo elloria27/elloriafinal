@@ -31,7 +31,7 @@ export default function Settings() {
       }
 
       console.log("Fetching profile for user:", session.user.id);
-      const { data, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
@@ -43,9 +43,9 @@ export default function Settings() {
         return;
       }
 
-      if (data) {
-        console.log("Profile loaded successfully:", data);
-        setProfile(data);
+      if (profileData) {
+        console.log("Profile loaded successfully:", profileData);
+        setProfile(profileData);
       } else {
         console.log("No profile found");
         toast.error("Profile not found");
