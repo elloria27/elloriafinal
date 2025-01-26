@@ -315,8 +315,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     const currentStats = getSustainabilityStats();
                     handleChange('stats', [...currentStats, {
                       icon: "Recycle",
-                      value: "New Value",
-                      label: "New Label",
+                      title: "New Stat Title",
                       description: "Enter description",
                       color: "bg-accent-green"
                     }]);
@@ -369,31 +368,18 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
                   
                   <div>
-                    <Label>Value</Label>
+                    <Label>Title</Label>
                     <Input
-                      value={stat.value}
+                      value={stat.title}
                       onChange={(e) => {
                         const newStats = [...getSustainabilityStats()];
-                        newStats[index] = { ...newStats[index], value: e.target.value };
+                        newStats[index] = { ...newStats[index], title: e.target.value };
                         handleChange('stats', newStats);
                       }}
-                      placeholder="Enter stat value"
+                      placeholder="Enter stat title"
                     />
                   </div>
 
-                  <div>
-                    <Label>Label</Label>
-                    <Input
-                      value={stat.label}
-                      onChange={(e) => {
-                        const newStats = [...getSustainabilityStats()];
-                        newStats[index] = { ...newStats[index], label: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
-                      placeholder="Enter stat label"
-                    />
-                  </div>
-                  
                   <div>
                     <Label>Description</Label>
                     <Textarea
