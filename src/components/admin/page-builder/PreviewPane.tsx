@@ -1,7 +1,6 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
-import { StoreBrands } from "@/components/StoreBrands";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -30,7 +29,23 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         {(() => {
           switch (block.type) {
             case 'store_brands':
-              return <StoreBrands content={block.content} />;
+              return (
+                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                  <h3 className="font-semibold mb-2">
+                    {getContentValue(block.content, 'title') || 'Store Brands'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {getContentValue(block.content, 'subtitle') || 'Available at retailers'}
+                  </p>
+                  <div className="text-sm text-gray-500">
+                    {Array.isArray(getContentValue(block.content, 'brands')) ? (
+                      `${getContentValue(block.content, 'brands').length} brands configured`
+                    ) : (
+                      'No brands configured'
+                    )}
+                  </div>
+                </div>
+              );
               
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
