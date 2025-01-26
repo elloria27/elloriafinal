@@ -8,7 +8,7 @@
 main {
   flex: 1 0 auto;
   width: 100%;
-  padding-top: 5rem; /* Increased padding for mobile to account for header height */
+  padding-top: 0;
   display: flex;
   flex-direction: column;
 }
@@ -23,6 +23,6 @@ main {
 /* Add responsive padding adjustments */
 @media (min-width: 768px) {
   main {
-    padding-top: 2rem;
+    padding-top: 0;
   }
 }

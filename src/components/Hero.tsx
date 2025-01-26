@@ -52,7 +52,7 @@ export const Hero = ({ content }: HeroProps) => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden pt-8">
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden mt-20 md:mt-0">
       <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
       
       <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
@@ -83,7 +83,7 @@ export const Hero = ({ content }: HeroProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
                 {content.title || "Redefining Comfort, Confidence, and Sustainability"}
               </span>
@@ -94,7 +94,7 @@ export const Hero = ({ content }: HeroProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl"
+            className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl"
           >
             {content.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
           </motion.p>
@@ -103,11 +103,11 @@ export const Hero = ({ content }: HeroProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start"
+            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
           >
             <Button 
               size="lg" 
-              className="bg-primary hover:bg-primary/90 text-white px-8 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
               asChild
             >
               <Link to="/shop">Shop Now</Link>
@@ -115,7 +115,7 @@ export const Hero = ({ content }: HeroProps) => {
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary/10 px-8 py-7 text-lg rounded-full transition-all duration-300"
+              className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
               asChild
             >
               <Link to="/about">Learn More</Link>
