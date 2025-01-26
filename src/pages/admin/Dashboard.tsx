@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ShoppingBag, DollarSign, FileText } from "lucide-react";
+import { Users, ShoppingBag, DollarSign, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardStats {
@@ -96,7 +96,7 @@ const Dashboard = () => {
     {
       title: "Total Products",
       value: stats.totalProducts,
-      icon: FileText,
+      icon: Package,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
     },
@@ -104,21 +104,21 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center p-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <Card key={index}>
+            <Card key={index} className="border shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {card.title}
