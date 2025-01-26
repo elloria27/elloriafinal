@@ -14,8 +14,8 @@ import { Loader2 } from "lucide-react";
 interface SiteSettings {
   id: string;
   site_title: string;
-  default_language: 'en' | 'fr' | 'es';
-  default_currency: 'USD' | 'EUR' | 'CAD';
+  default_language: 'en' | 'fr' | 'uk';
+  default_currency: 'USD' | 'EUR' | 'UAH' | 'CAD';
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
@@ -89,7 +89,11 @@ export default function SiteSettings() {
       if (error) throw error;
 
       console.log('Settings loaded:', data);
-      setSettings(data);
+      // Ensure homepage_slug is included in the data
+      setSettings({
+        ...data,
+        homepage_slug: data.homepage_slug || ''
+      });
     } catch (error) {
       console.error('Error loading settings:', error);
       toast.error("Error loading site settings");
@@ -231,7 +235,7 @@ export default function SiteSettings() {
                 <Label htmlFor="default_language">Default Language</Label>
                 <Select 
                   value={settings.default_language}
-                  onValueChange={(value: 'en' | 'fr' | 'es') => setSettings({ ...settings, default_language: value })}
+                  onValueChange={(value: 'en' | 'fr' | 'uk') => setSettings({ ...settings, default_language: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
@@ -239,7 +243,7 @@ export default function SiteSettings() {
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
                     <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="uk">Українська</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -248,7 +252,7 @@ export default function SiteSettings() {
                 <Label htmlFor="default_currency">Default Currency</Label>
                 <Select 
                   value={settings.default_currency}
-                  onValueChange={(value: 'USD' | 'EUR' | 'CAD') => setSettings({ ...settings, default_currency: value })}
+                  onValueChange={(value: 'USD' | 'EUR' | 'UAH' | 'CAD') => setSettings({ ...settings, default_currency: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select currency" />
@@ -256,6 +260,7 @@ export default function SiteSettings() {
                   <SelectContent>
                     <SelectItem value="USD">USD ($)</SelectItem>
                     <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="UAH">UAH (₴)</SelectItem>
                     <SelectItem value="CAD">CAD ($)</SelectItem>
                   </SelectContent>
                 </Select>
