@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
+import { Tables, Json } from "@/integrations/supabase/types";
 
 type SiteSettings = Tables<"site_settings">;
 
@@ -21,7 +21,11 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
     try {
       const existingScripts = settings?.custom_scripts;
       if (Array.isArray(existingScripts)) {
-        return existingScripts as Script[];
+        return existingScripts.map((script: any) => ({
+          id: script.id || crypto.randomUUID(),
+          name: script.name || "",
+          content: script.content || ""
+        }));
       }
       return [];
     } catch (error) {
@@ -63,10 +67,17 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
     console.log("Starting to save scripts...");
 
     try {
+      // Convert Script[] to Json type for Supabase
+      const scriptsForSaving = scripts.map(({ id, name, content }) => ({
+        id,
+        name,
+        content,
+      })) as Json;
+
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scripts,
+          custom_scripts: scriptsForSaving,
         })
         .eq("id", settings.id);
 
