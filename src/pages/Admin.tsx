@@ -8,7 +8,8 @@ import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart } from "lucide-react";
+import Dashboard from "./admin/Dashboard";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -101,13 +102,33 @@ const Admin = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="products" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="pages">Pages</TabsTrigger>
+      <Tabs defaultValue="dashboard" className="space-y-4">
+        <TabsList className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Products
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Orders
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="pages" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Pages
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard">
+          <Dashboard />
+        </TabsContent>
 
         <TabsContent value="products">
           <ProductManagement />
