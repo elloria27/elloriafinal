@@ -33,16 +33,16 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     ]
   };
 
-  // Ensure we have the latest content by merging with defaults
-  const finalContent = content || defaultContent;
-  const {
-    title = defaultContent.title,
-    subtitle = defaultContent.subtitle,
-    brands = defaultContent.brands
-  } = finalContent;
+  // Використовуємо вхідний контент, якщо він є, інакше використовуємо значення за замовчуванням
+  const finalContent = {
+    title: content?.title || defaultContent.title,
+    subtitle: content?.subtitle || defaultContent.subtitle,
+    brands: content?.brands || defaultContent.brands
+  };
 
-  console.log('StoreBrands rendered with content:', finalContent);
-  console.log('Brands to display:', brands);
+  console.log('StoreBrands rendered with content:', content);
+  console.log('Final content after merge:', finalContent);
+  console.log('Brands to display:', finalContent.brands);
 
   return (
     <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
@@ -55,44 +55,41 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {title}
+            {finalContent.title}
           </h2>
           <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            {subtitle}
+            {finalContent.subtitle}
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
-          {Array.isArray(brands) && brands.map((brand, index) => {
-            console.log('Rendering brand:', brand);
-            return (
-              <motion.a
-                key={`${brand.name}-${index}-${brand.logo}`}
-                href={brand.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ 
-                  scale: 1.05,
-                  rotate: [-1, 1, -1],
-                  transition: { rotate: { repeat: Infinity, duration: 2 } }
+          {Array.isArray(finalContent.brands) && finalContent.brands.map((brand, index) => (
+            <motion.a
+              key={`${brand.name}-${index}-${brand.logo}`}
+              href={brand.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ 
+                scale: 1.05,
+                rotate: [-1, 1, -1],
+                transition: { rotate: { repeat: Infinity, duration: 2 } }
+              }}
+              className="w-48 h-48 flex items-center justify-center p-8 rounded-3xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border border-gray-100"
+            >
+              <img
+                src={brand.logo}
+                alt={`${brand.name} logo`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  console.error(`Error loading image for ${brand.name}:`, brand.logo);
+                  e.currentTarget.src = '/placeholder.svg';
                 }}
-                className="w-48 h-48 flex items-center justify-center p-8 rounded-3xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border border-gray-100"
-              >
-                <img
-                  src={brand.logo}
-                  alt={`${brand.name} logo`}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    console.error(`Error loading image for ${brand.name}:`, brand.logo);
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
-              </motion.a>
-            );
-          })}
+              />
+            </motion.a>
+          ))}
         </div>
       </div>
     </section>

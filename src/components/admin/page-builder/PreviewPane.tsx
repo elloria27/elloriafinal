@@ -13,24 +13,16 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   };
 
   const renderBlock = (block: ContentBlock) => {
-    console.log('Rendering block:', block);
+    console.log('Rendering block in preview:', block);
     
     const blockContent = (
-      <div className="group relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onSelectBlock(block)}
-        >
-          <Edit2 className="h-4 w-4" />
-        </Button>
-
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
         {(() => {
           switch (block.type) {
             case 'store_brands':
+              const brands = getContentValue(block.content, 'brands') || [];
               return (
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                <>
                   <h3 className="font-semibold mb-2">
                     {getContentValue(block.content, 'title') || 'Store Brands'}
                   </h3>
@@ -38,13 +30,13 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                     {getContentValue(block.content, 'subtitle') || 'Available at retailers'}
                   </p>
                   <div className="text-sm text-gray-500">
-                    {Array.isArray(getContentValue(block.content, 'brands')) ? (
-                      `${getContentValue(block.content, 'brands').length} brands configured`
+                    {Array.isArray(brands) ? (
+                      `${brands.length} brands configured`
                     ) : (
                       'No brands configured'
                     )}
                   </div>
-                </div>
+                </>
               );
               
             case 'heading':
