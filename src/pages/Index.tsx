@@ -49,7 +49,6 @@ const Index = () => {
 
           if (createError) throw createError;
           
-          // Updated order of content blocks
           const defaultBlocks = [
             { type: 'hero' as BlockType, content: {}, order_index: 0, page_id: newPage.id },
             { type: 'elevating_essentials' as BlockType, content: {}, order_index: 1, page_id: newPage.id },
