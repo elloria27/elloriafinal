@@ -18,9 +18,9 @@ interface Script {
 
 export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) => {
   const [scripts, setScripts] = useState<Script[]>(() => {
+    if (!settings?.custom_scripts) return [];
+    
     try {
-      if (!settings?.custom_scripts) return [];
-      
       const existingScripts = settings.custom_scripts;
       if (Array.isArray(existingScripts)) {
         return existingScripts.map((script: any) => ({
@@ -29,32 +29,30 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
           content: script.content || ""
         }));
       }
-      return [];
     } catch (error) {
       console.error("Error parsing custom scripts:", error);
-      return [];
     }
+    return [];
   });
   
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
   const addScript = () => {
-    const newScript = {
+    setScripts(prev => [...prev, {
       id: crypto.randomUUID(),
       name: "",
       content: ""
-    };
-    setScripts([...scripts, newScript]);
+    }]);
   };
 
   const removeScript = (id: string) => {
-    setScripts(scripts.filter((script) => script.id !== id));
+    setScripts(prev => prev.filter(script => script.id !== id));
   };
 
   const updateScript = (id: string, field: keyof Script, value: string) => {
-    setScripts(
-      scripts.map((script) =>
+    setScripts(prev => 
+      prev.map(script =>
         script.id === id ? { ...script, [field]: value } : script
       )
     );

@@ -14,20 +14,50 @@ const Settings = () => {
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
-      console.log("Fetching site settings...");
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("*")
-        .single();
+      try {
+        console.log("Fetching site settings...");
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("*")
+          .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching site settings:", error);
-        toast.error("Failed to load site settings");
+        if (error) {
+          console.error("Error fetching site settings:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("No settings found, creating default settings...");
+          const { data: newSettings, error: createError } = await supabase
+            .from("site_settings")
+            .insert([
+              {
+                site_title: "My Website",
+                default_language: "en",
+                default_currency: "USD",
+                enable_registration: true,
+                enable_search_indexing: true,
+                custom_scripts: []
+              }
+            ])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error("Error creating default settings:", createError);
+            throw createError;
+          }
+
+          return newSettings;
+        }
+
+        console.log("Site settings loaded:", data);
+        return data;
+      } catch (error) {
+        console.error("Error in settings query:", error);
+        toast.error("Failed to load settings");
         throw error;
       }
-
-      console.log("Site settings loaded:", data);
-      return data;
     },
   });
 
