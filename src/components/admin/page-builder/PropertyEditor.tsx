@@ -205,7 +205,29 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
-      case 'game_changer':
+      case 'product_carousel':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+          </div>
+        );
+
+      case 'competitor_comparison':
         return (
           <div className="space-y-4">
             <div>
@@ -226,16 +248,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>Features</Label>
+                <Label>Metrics</Label>
                 <Button onClick={addFeature} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Feature
+                  Add Metric
                 </Button>
               </div>
               {getFeatures().map((feature, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
-                    <Label>Feature {index + 1}</Label>
+                    <Label>Metric {index + 1}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -263,27 +285,47 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     </Select>
                   </div>
                   <div>
-                    <Label>Title</Label>
+                    <Label>Category</Label>
                     <Input
                       value={feature.title}
                       onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter feature title"
+                      placeholder="Enter metric category"
                     />
                   </div>
                   <div>
                     <Label>Description</Label>
-                    <Input
+                    <Textarea
                       value={feature.description}
                       onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter feature description"
+                      placeholder="Enter metric description"
                     />
                   </div>
                   <div>
-                    <Label>Detail</Label>
-                    <Textarea
-                      value={feature.detail}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter additional details"
+                    <Label>Elloria Score</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={feature.detail?.split(',')[0] || ''}
+                      onChange={(e) => {
+                        const competitors = feature.detail?.split(',')[1] || '';
+                        handleFeatureChange(index, 'detail', `${e.target.value},${competitors}`);
+                      }}
+                      placeholder="Enter Elloria score (0-100)"
+                    />
+                  </div>
+                  <div>
+                    <Label>Competitors Score</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={feature.detail?.split(',')[1] || ''}
+                      onChange={(e) => {
+                        const elloria = feature.detail?.split(',')[0] || '';
+                        handleFeatureChange(index, 'detail', `${elloria},${e.target.value}`);
+                      }}
+                      placeholder="Enter competitors score (0-100)"
                     />
                   </div>
                 </div>
