@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface Script {
   id: string;
@@ -15,7 +16,7 @@ interface Script {
 
 export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
   const [scripts, setScripts] = useState<Script[]>(
-    settings?.custom_scripts || []
+    (settings?.custom_scripts as Script[]) || []
   );
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -44,10 +45,15 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     setIsLoading(true);
 
     try {
+      // Convert Script[] to a format that matches the Json type
+      const scriptsJson = scripts.map(script => ({
+        ...script,
+      })) as Json;
+
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scripts,
+          custom_scripts: scriptsJson,
         })
         .eq("id", settings.id);
 
