@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
-import { Json } from "@/integrations/supabase/types";
+import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+type SiteSettings = Tables<"site_settings">;
 
 interface Script {
   id: string;
@@ -14,13 +16,12 @@ interface Script {
   content: string;
 }
 
-export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
+export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) => {
   const [scripts, setScripts] = useState<Script[]>(() => {
-    // Safely parse existing scripts or return empty array
     try {
       const existingScripts = settings?.custom_scripts;
       if (Array.isArray(existingScripts)) {
-        return existingScripts;
+        return existingScripts as Script[];
       }
       return [];
     } catch (error) {
@@ -33,17 +34,22 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
   const queryClient = useQueryClient();
 
   const addScript = () => {
-    setScripts([
-      ...scripts,
-      { id: crypto.randomUUID(), name: "", content: "" },
-    ]);
+    const newScript = {
+      id: crypto.randomUUID(),
+      name: "",
+      content: ""
+    };
+    console.log("Adding new script:", newScript);
+    setScripts([...scripts, newScript]);
   };
 
   const removeScript = (id: string) => {
+    console.log("Removing script with id:", id);
     setScripts(scripts.filter((script) => script.id !== id));
   };
 
-  const updateScript = (id: string, field: "name" | "content", value: string) => {
+  const updateScript = (id: string, field: keyof Script, value: string) => {
+    console.log("Updating script:", { id, field, value });
     setScripts(
       scripts.map((script) =>
         script.id === id ? { ...script, [field]: value } : script
@@ -54,21 +60,13 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("Starting to save scripts...");
 
     try {
-      console.log("Saving scripts:", scripts);
-      
-      // Convert Script[] to a format that matches the Json type
-      const scriptsForSaving = scripts.map(({ id, name, content }) => ({
-        id,
-        name,
-        content,
-      })) as unknown as Json;
-
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scriptsForSaving,
+          custom_scripts: scripts,
         })
         .eq("id", settings.id);
 
@@ -77,6 +75,7 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
         throw error;
       }
 
+      console.log("Scripts saved successfully");
       toast.success("Custom scripts updated successfully");
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
     } catch (error) {
@@ -142,7 +141,14 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
         </div>
       </div>
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Saving..." : "Save Changes"}
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          "Save Changes"
+        )}
       </Button>
     </form>
   );
