@@ -33,15 +33,11 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     ]
   };
 
-  // Використовуємо вхідний контент, якщо він є, інакше використовуємо значення за замовчуванням
-  const finalContent = {
-    title: content?.title || defaultContent.title,
-    subtitle: content?.subtitle || defaultContent.subtitle,
-    brands: content?.brands || defaultContent.brands
-  };
+  // Use content if provided, otherwise use default content
+  const finalContent = content || defaultContent;
 
   console.log('StoreBrands rendered with content:', content);
-  console.log('Final content after merge:', finalContent);
+  console.log('Final content:', finalContent);
   console.log('Brands to display:', finalContent.brands);
 
   return (

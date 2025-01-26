@@ -22,11 +22,11 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
             case 'store_brands':
               const brands = getContentValue(block.content, 'brands') || [];
               return (
-                <>
-                  <h3 className="font-semibold mb-2">
+                <div className="space-y-2">
+                  <h3 className="font-semibold">
                     {getContentValue(block.content, 'title') || 'Store Brands'}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-600">
                     {getContentValue(block.content, 'subtitle') || 'Available at retailers'}
                   </p>
                   <div className="text-sm text-gray-500">
@@ -36,7 +36,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                       'No brands configured'
                     )}
                   </div>
-                </>
+                </div>
               );
               
             case 'heading':
@@ -104,7 +104,17 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
     );
 
     return (
-      <div key={block.id} className="mb-6 relative hover:bg-gray-50 rounded-lg p-2 transition-colors">
+      <div key={block.id} className="mb-6 relative group">
+        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onSelectBlock(block)}
+            className="h-8 w-8"
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        </div>
         {blockContent}
       </div>
     );
