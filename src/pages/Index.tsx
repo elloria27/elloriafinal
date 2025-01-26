@@ -27,22 +27,22 @@ const Index = () => {
         const { data: pages, error: pageError } = await supabase
           .from('pages')
           .select('id')
-          .eq('slug', 'index')
-          .single();
+          .eq('slug', 'index');
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
           throw pageError;
         }
 
-        if (!pages) {
+        if (!pages || pages.length === 0) {
           console.error('Home page not found');
           toast.error('Home page content not found');
+          setBlocks([]);
           return;
         }
 
-        const pageId = pages.id;
-        console.log('Found index page with ID:', pageId);
+        const pageId = pages[0].id;
+        console.log('Fetching content blocks for page:', pageId);
 
         const { data: contentBlocks, error: blocksError } = await supabase
           .from('content_blocks')
@@ -57,18 +57,12 @@ const Index = () => {
 
         console.log('Content blocks fetched:', contentBlocks);
         
-        if (!contentBlocks || contentBlocks.length === 0) {
-          console.log('No content blocks found for the index page');
-          return;
-        }
-        
         // Transform the content blocks to ensure proper typing
-        const typedBlocks: ContentBlock[] = contentBlocks.map(block => ({
+        const typedBlocks: ContentBlock[] = (contentBlocks || []).map(block => ({
           ...block,
           content: block.content as BlockContent
         }));
         
-        console.log('Typed blocks:', typedBlocks);
         setBlocks(typedBlocks);
       } catch (error) {
         console.error('Error:', error);
@@ -79,6 +73,27 @@ const Index = () => {
     };
 
     fetchHomePageContent();
+
+    // Subscribe to content_blocks changes
+    const channel = supabase
+      .channel('content_blocks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'content_blocks'
+        },
+        () => {
+          console.log('Content blocks changed, refreshing...');
+          fetchHomePageContent();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const renderBlock = (block: ContentBlock) => {
@@ -100,8 +115,7 @@ const Index = () => {
       case 'product_carousel':
         return <ProductCarousel content={block.content} />;
       case 'competitor_comparison':
-        console.log('Rendering competitor comparison with content:', block.content);
-        return <CompetitorComparison content={block.content} />;
+        return <CompetitorComparison />;
       case 'testimonials':
         return <Testimonials />;
       case 'blog_preview':
@@ -132,17 +146,11 @@ const Index = () => {
         className="flex-grow"
       >
         <div className="page-content">
-          {blocks.length > 0 ? (
-            blocks.map((block) => (
-              <div key={block.id}>
-                {renderBlock(block)}
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No content blocks found for this page.</p>
+          {blocks.map((block) => (
+            <div key={block.id}>
+              {renderBlock(block)}
             </div>
-          )}
+          ))}
         </div>
       </motion.main>
     </div>
