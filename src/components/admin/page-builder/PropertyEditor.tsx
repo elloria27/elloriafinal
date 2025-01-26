@@ -1,4 +1,3 @@
-<lov-code>
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,57 +24,35 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     onUpdate(block.id, newContent);
   };
 
-  const getFeatures = (): FeatureItem[] => {
-    if (!content || !('features' in content)) {
-      return [];
-    }
-
-    const features = content.features;
-    if (!Array.isArray(features)) {
-      return [];
-    }
-
-    return features.map(feature => {
-      if (typeof feature === 'object' && feature !== null) {
-        return {
-          icon: String(feature.icon || 'Shield'),
-          title: String(feature.title || ''),
-          description: String(feature.description || ''),
-          detail: String(feature.detail || '')
-        };
-      }
-      return {
-        icon: 'Shield',
-        title: '',
-        description: '',
-        detail: ''
-      };
-    });
+  const handleMetricChange = (index: number, field: string, value: any) => {
+    if (!content || !('metrics' in content)) return;
+    
+    const metrics = [...(content as CompetitorComparisonContent).metrics || []];
+    metrics[index] = { ...metrics[index], [field]: value };
+    handleChange('metrics', metrics);
   };
 
-  const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
-    const features = getFeatures();
-    const newFeatures = [...features];
-    newFeatures[index] = { ...newFeatures[index], [field]: value };
-    handleChange('features', newFeatures);
-  };
-
-  const addFeature = () => {
-    const newFeature: FeatureItem = {
+  const addMetric = () => {
+    if (!content || !('metrics' in content)) return;
+    
+    const newMetric = {
+      category: "New Category",
+      elloria: 100,
+      competitors: 50,
       icon: "Shield",
-      title: "New Feature",
-      description: "Feature description",
-      detail: ""
+      description: "Description"
     };
     
-    const features = getFeatures();
-    handleChange('features', [...features, newFeature]);
+    const metrics = [...((content as CompetitorComparisonContent).metrics || []), newMetric];
+    handleChange('metrics', metrics);
   };
 
-  const removeFeature = (index: number) => {
-    const features = getFeatures();
-    const newFeatures = features.filter((_, i) => i !== index);
-    handleChange('features', newFeatures);
+  const removeMetric = (index: number) => {
+    if (!content || !('metrics' in content)) return;
+    
+    const metrics = [...(content as CompetitorComparisonContent).metrics || []];
+    metrics.splice(index, 1);
+    handleChange('metrics', metrics);
   };
 
   const getContentValue = (key: string): string => {
@@ -83,85 +60,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     return (content as any)[key]?.toString() || '';
   };
 
-  const getSustainabilityStats = () => {
-    if (!content || !('stats' in content)) return [];
-    const sustainabilityContent = content as SustainabilityContent;
-    return Array.isArray(sustainabilityContent.stats) ? sustainabilityContent.stats : [];
-  };
-
-  const getTimelineItems = () => {
-    if (!content || !('timelineItems' in content)) return [];
-    const sustainabilityContent = content as SustainabilityContent;
-    return Array.isArray(sustainabilityContent.timelineItems) ? sustainabilityContent.timelineItems : [];
-  };
-
   const renderFields = () => {
     console.log('Rendering fields for block type:', block.type);
     console.log('Current content:', content);
 
     switch (block.type) {
-      case 'product_carousel':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-          </div>
-        );
-
-      case 'hero':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter hero title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter hero subtitle"
-              />
-            </div>
-            <div>
-              <Label>Video URL</Label>
-              <Input
-                value={getContentValue('videoUrl')}
-                onChange={(e) => handleChange('videoUrl', e.target.value)}
-                placeholder="Enter video URL"
-              />
-            </div>
-          </div>
-        );
-
-      case 'features':
-      case 'elevating_essentials':
+      case 'competitor_comparison':
         return (
           <div className="space-y-6">
             <div>
@@ -181,29 +85,29 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               />
             </div>
             <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
               />
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>Features</Label>
-                <Button onClick={addFeature} size="sm">
+                <Label>Comparison Metrics</Label>
+                <Button onClick={addMetric} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Feature
+                  Add Metric
                 </Button>
               </div>
-              {getFeatures().map((feature, index) => (
+              {(content as CompetitorComparisonContent)?.metrics?.map((metric, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
-                    <Label>Feature {index + 1}</Label>
+                    <Label>Metric {index + 1}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => removeFeature(index)}
+                      onClick={() => removeMetric(index)}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
@@ -211,8 +115,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <div>
                     <Label>Icon</Label>
                     <Select
-                      value={feature.icon}
-                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
+                      value={metric.icon}
+                      onValueChange={(value) => handleMetricChange(index, 'icon', value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select icon" />
@@ -227,19 +131,37 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     </Select>
                   </div>
                   <div>
-                    <Label>Title</Label>
+                    <Label>Category</Label>
                     <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter feature title"
+                      value={metric.category}
+                      onChange={(e) => handleMetricChange(index, 'category', e.target.value)}
+                      placeholder="Enter category name"
                     />
                   </div>
                   <div>
                     <Label>Description</Label>
                     <Textarea
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter feature description"
+                      value={metric.description}
+                      onChange={(e) => handleMetricChange(index, 'description', e.target.value)}
+                      placeholder="Enter metric description"
+                    />
+                  </div>
+                  <div>
+                    <Label>Elloria Score (%)</Label>
+                    <Input
+                      type="number"
+                      value={metric.elloria}
+                      onChange={(e) => handleMetricChange(index, 'elloria', parseInt(e.target.value))}
+                      placeholder="Enter Elloria score"
+                    />
+                  </div>
+                  <div>
+                    <Label>Competitors Score (%)</Label>
+                    <Input
+                      type="number"
+                      value={metric.competitors}
+                      onChange={(e) => handleMetricChange(index, 'competitors', parseInt(e.target.value))}
+                      placeholder="Enter competitors score"
                     />
                   </div>
                 </div>
@@ -248,159 +170,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
-      case 'store_brands':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Brands</Label>
-                <Button onClick={addFeature} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Brand
-                </Button>
-              </div>
-              {getFeatures().map((feature, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Brand {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeFeature(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter brand name"
-                    />
-                  </div>
-                  <div>
-                    <Label>Logo URL</Label>
-                    <Input
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter logo URL"
-                    />
-                  </div>
-                  <div>
-                    <Label>Link</Label>
-                    <Input
-                      value={feature.detail || ''}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter brand link"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+      default:
+        return null;
+    }
+  };
 
-      case 'sustainability':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            
-            {/* Stats Section */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Stats</Label>
-                <Button 
-                  onClick={() => {
-                    const currentStats = getSustainabilityStats();
-                    handleChange('stats', [...currentStats, {
-                      icon: "Recycle",
-                      title: "New Stat Title",
-                      description: "Enter description",
-                      color: "bg-accent-green"
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Stat
-                </Button>
-              </div>
-              
-              {getSustainabilityStats().map((stat, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Stat {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newStats = [...getSustainabilityStats()];
-                        newStats.splice(index, 1);
-                        handleChange('stats', newStats);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Icon</Label>
-                    <Select
-                      value={stat.icon}
-                      onValueChange={(value) => {
-                        const newStats = [...getSustainabilityStats()];
-                        newStats[index] = { ...newStats[index], icon: value };
-                        handleChange('stats', newStats);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {['Recycle', 'Package', 'Factory', 'Leaf'].map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={stat.title}
-                      onChange={(e) => {
-                        const newStats = [...getSustainabilityStats
+  return (
+    <div className="space-y-6 p-4">
+      {renderFields()}
+    </div>
+  );
+};
