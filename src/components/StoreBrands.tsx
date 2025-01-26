@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { StoreBrandsContent } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface StoreBrandsProps {
   content?: StoreBrandsContent;
@@ -40,19 +41,23 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   };
 
   // Transform features from admin panel format to brands format
-  const transformFeaturesToBrands = (features: Feature[]) => {
-    return features.map(feature => ({
-      name: feature.title || '',
-      logo: feature.description || '', // Logo URL is stored in description field
-      link: feature.detail || '#' // Link is stored in detail field
-    }));
+  const transformFeaturesToBrands = (features: Json[]) => {
+    return features.map(feature => {
+      // Safely type cast the Json object to access properties
+      const featureObj = feature as unknown as Feature;
+      return {
+        name: featureObj.title || '',
+        logo: featureObj.description || '', // Logo URL is stored in description field
+        link: featureObj.detail || '#' // Link is stored in detail field
+      };
+    });
   };
 
   const finalContent = {
     title: content?.title || defaultContent.title,
     subtitle: content?.subtitle || defaultContent.subtitle,
     brands: Array.isArray(content?.features) 
-      ? transformFeaturesToBrands(content.features as Feature[]) 
+      ? transformFeaturesToBrands(content.features) 
       : defaultContent.brands
   };
 
