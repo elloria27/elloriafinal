@@ -7,11 +7,18 @@ import { LanguageSelector } from "./LanguageSelector";
 import { CurrencySelector } from "./CurrencySelector";
 import { UserMenu } from "./UserMenu";
 import { usePages } from "@/contexts/PagesContext";
+import { useState } from "react";
+
+interface MenuItem {
+  name: string;
+  path: string;
+  children?: MenuItem[];
+}
 
 export const MobileMenu = () => {
   const { publishedPages, isLoading } = usePages();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  // Define technical pages that should not appear in the menu
   const technicalPages = [
     'login',
     'register',
@@ -22,18 +29,84 @@ export const MobileMenu = () => {
     'admin'
   ];
 
-  const menuItems = [
-    ...publishedPages
+  const buildMenuTree = (pages: any[], parentId: string | null = null): MenuItem[] => {
+    return pages
       .filter(page => 
         page.is_published && 
         !technicalPages.includes(page.slug) &&
-        page.show_in_header
+        page.show_in_header &&
+        page.parent_id === parentId
       )
+      .sort((a, b) => (a.menu_order || 0) - (b.menu_order || 0))
       .map(page => ({
         name: page.title,
-        path: page.slug === 'index' ? '/' : `/${page.slug}`
-      }))
-  ];
+        path: page.slug === 'index' ? '/' : `/${page.slug}`,
+        children: buildMenuTree(pages, page.id)
+      }));
+  };
+
+  const menuItems = buildMenuTree(publishedPages);
+
+  const toggleExpanded = (path: string) => {
+    setExpandedItems(prev => 
+      prev.includes(path)
+        ? prev.filter(item => item !== path)
+        : [...prev, path]
+    );
+  };
+
+  const MenuItem = ({ item, level = 0 }: { item: MenuItem; level?: number }) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.includes(item.path);
+
+    return (
+      <div className="w-full">
+        <div 
+          className={`flex items-center justify-between py-2 ${level > 0 ? 'pl-4' : ''}`}
+          onClick={() => hasChildren && toggleExpanded(item.path)}
+        >
+          <Link to={item.path}>
+            <motion.span
+              className="text-lg text-gray-600 hover:text-primary transition-colors tracking-wider font-light block cursor-pointer"
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {item.name}
+            </motion.span>
+          </Link>
+          {hasChildren && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleExpanded(item.path);
+              }}
+            >
+              <motion.span
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                className="text-gray-500"
+              >
+                ▼
+              </motion.span>
+            </Button>
+          )}
+        </div>
+        {hasChildren && isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="pl-4 border-l border-gray-200 ml-4"
+          >
+            {item.children.map((child) => (
+              <MenuItem key={child.path} item={child} level={level + 1} />
+            ))}
+          </motion.div>
+        )}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return null;
@@ -61,19 +134,9 @@ export const MobileMenu = () => {
         </SheetHeader>
         
         <div className="flex-1">
-          <div className="flex flex-col space-y-6 mt-12">
+          <div className="flex flex-col mt-12">
             {menuItems.map((item) => (
-              <motion.div key={item.name}>
-                <Link to={item.path}>
-                  <motion.span
-                    className="text-lg text-gray-600 hover:text-primary transition-colors py-2 tracking-wider font-light block cursor-pointer"
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {item.name}
-                  </motion.span>
-                </Link>
-              </motion.div>
+              <MenuItem key={item.path} item={item} />
             ))}
           </div>
         </div>

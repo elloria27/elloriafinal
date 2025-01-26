@@ -157,7 +157,10 @@ export const PageManagement = () => {
         content: [],
         is_published: false,
         show_in_header: false,
-        show_in_footer: false
+        show_in_footer: false,
+        parent_id: formData.get('parent_id')?.toString() || null,
+        menu_order: parseInt(formData.get('menu_order')?.toString() || '0'),
+        menu_type: formData.get('menu_type')?.toString() || 'main'
       };
 
       console.log('Creating new page:', newPage);
@@ -189,6 +192,9 @@ export const PageManagement = () => {
         is_published: formData.get('is_published') === 'on',
         show_in_header: formData.get('show_in_header') === 'on',
         show_in_footer: formData.get('show_in_footer') === 'on',
+        parent_id: formData.get('parent_id')?.toString() || null,
+        menu_order: parseInt(formData.get('menu_order')?.toString() || '0'),
+        menu_type: formData.get('menu_type')?.toString() || 'main',
         updated_at: new Date().toISOString(),
       };
 
@@ -306,6 +312,30 @@ export const PageManagement = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="parent_id">Parent Page</Label>
+                <select
+                  id="parent_id"
+                  name="parent_id"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                >
+                  <option value="">None (Top Level)</option>
+                  {pages.map((page) => (
+                    <option key={page.id} value={page.id}>
+                      {page.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="menu_order">Menu Order</Label>
+                <Input
+                  id="menu_order"
+                  name="menu_order"
+                  type="number"
+                  defaultValue="0"
+                />
+              </div>
               <Button type="submit" className="w-full">
                 Create Page
               </Button>
@@ -319,6 +349,8 @@ export const PageManagement = () => {
           <TableRow>
             <TableHead>Title</TableHead>
             <TableHead>URL</TableHead>
+            <TableHead>Parent</TableHead>
+            <TableHead>Order</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Menu Visibility</TableHead>
             <TableHead>Last Updated</TableHead>
@@ -330,6 +362,10 @@ export const PageManagement = () => {
             <TableRow key={page.id}>
               <TableCell>{page.title}</TableCell>
               <TableCell>{page.slug}</TableCell>
+              <TableCell>
+                {pages.find(p => p.id === page.parent_id)?.title || '-'}
+              </TableCell>
+              <TableCell>{page.menu_order || 0}</TableCell>
               <TableCell>{page.is_published ? 'Published' : 'Draft'}</TableCell>
               <TableCell>
                 <div className="space-y-1">
@@ -384,6 +420,34 @@ export const PageManagement = () => {
                             name="slug"
                             defaultValue={selectedPage?.slug}
                             required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="parent_id">Parent Page</Label>
+                          <select
+                            id="parent_id"
+                            name="parent_id"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2"
+                            defaultValue={selectedPage?.parent_id || ''}
+                          >
+                            <option value="">None (Top Level)</option>
+                            {pages
+                              .filter(p => p.id !== selectedPage?.id)
+                              .map((page) => (
+                                <option key={page.id} value={page.id}>
+                                  {page.title}
+                                </option>
+                              ))
+                            }
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="menu_order">Menu Order</Label>
+                          <Input
+                            id="menu_order"
+                            name="menu_order"
+                            type="number"
+                            defaultValue={selectedPage?.menu_order || 0}
                           />
                         </div>
                         <div className="flex items-center space-x-2">
