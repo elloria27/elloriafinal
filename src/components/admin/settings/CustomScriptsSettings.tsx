@@ -16,7 +16,7 @@ interface Script {
 
 export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
   const [scripts, setScripts] = useState<Script[]>(
-    (settings?.custom_scripts as Script[]) || []
+    (Array.isArray(settings?.custom_scripts) ? settings.custom_scripts : []) as Script[]
   );
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -45,10 +45,11 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     setIsLoading(true);
 
     try {
-      // Convert Script[] to a format that matches the Json type
-      const scriptsJson = scripts.map(script => ({
-        ...script,
-      })) as Json;
+      const scriptsJson = scripts.map(({ id, name, content }) => ({
+        id,
+        name,
+        content,
+      }));
 
       const { error } = await supabase
         .from("site_settings")
