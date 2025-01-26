@@ -2,11 +2,15 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Page = {
+  id: string;
   slug: string;
   title: string;
   is_published: boolean;
   show_in_header: boolean;
   show_in_footer: boolean;
+  menu_type: 'main' | 'submenu';
+  parent_id: string | null;
+  menu_order: number;
 }
 
 type PagesContextType = {
@@ -28,7 +32,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: pages, error } = await supabase
           .from('pages')
-          .select('slug, title, is_published, show_in_header, show_in_footer')
+          .select('id, slug, title, is_published, show_in_header, show_in_footer, menu_type, parent_id, menu_order')
           .order('created_at');
 
         if (error) {
