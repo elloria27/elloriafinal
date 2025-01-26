@@ -75,11 +75,15 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
     setTimeout(() => setAnimatingProduct(null), 1000);
   };
 
+  // Use content from props if available, otherwise use default content
   const finalContent = {
     title: content?.title || defaultContent.title,
     subtitle: content?.subtitle || defaultContent.subtitle,
     description: content?.description || defaultContent.description
   };
+
+  console.log('ProductCarousel content:', content);
+  console.log('Final content being used:', finalContent);
 
   return (
     <section 
