@@ -33,11 +33,20 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     ]
   };
 
-  const {
-    title = defaultContent.title,
-    subtitle = defaultContent.subtitle,
-    brands = defaultContent.brands
-  } = content || defaultContent;
+  // Transform features from admin panel format to brands format
+  const transformFeaturesToBrands = (features: any[] = []) => {
+    return features.map(feature => ({
+      name: feature.title || '',
+      logo: feature.description || '', // Logo URL is stored in description field
+      link: feature.detail || '#' // Link is stored in detail field
+    }));
+  };
+
+  const finalContent = {
+    title: content?.title || defaultContent.title,
+    subtitle: content?.subtitle || defaultContent.subtitle,
+    brands: content?.features ? transformFeaturesToBrands(content.features) : defaultContent.brands
+  };
 
   return (
     <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
@@ -50,16 +59,16 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {title}
+            {finalContent.title}
           </h2>
           <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            {subtitle}
+            {finalContent.subtitle}
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
-          {brands.map((brand, index) => (
+          {finalContent.brands.map((brand, index) => (
             <motion.a
-              key={brand.name}
+              key={brand.name || index}
               href={brand.link}
               target="_blank"
               rel="noopener noreferrer"
