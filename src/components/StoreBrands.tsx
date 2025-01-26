@@ -5,6 +5,12 @@ interface StoreBrandsProps {
   content?: StoreBrandsContent;
 }
 
+interface Feature {
+  title: string;
+  description: string;
+  detail?: string;
+}
+
 export const StoreBrands = ({ content }: StoreBrandsProps) => {
   const defaultContent = {
     title: "Available At",
@@ -34,7 +40,7 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   };
 
   // Transform features from admin panel format to brands format
-  const transformFeaturesToBrands = (features: any[] = []) => {
+  const transformFeaturesToBrands = (features: Feature[]) => {
     return features.map(feature => ({
       name: feature.title || '',
       logo: feature.description || '', // Logo URL is stored in description field
@@ -45,7 +51,9 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   const finalContent = {
     title: content?.title || defaultContent.title,
     subtitle: content?.subtitle || defaultContent.subtitle,
-    brands: content?.features ? transformFeaturesToBrands(content.features) : defaultContent.brands
+    brands: Array.isArray(content?.features) 
+      ? transformFeaturesToBrands(content.features as Feature[]) 
+      : defaultContent.brands
   };
 
   return (
