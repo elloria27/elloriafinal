@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -80,6 +80,18 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const getContentValue = (key: string): string => {
     if (!content) return '';
     return (content as any)[key]?.toString() || '';
+  };
+
+  const getSustainabilityStats = () => {
+    if (!content || !('stats' in content)) return [];
+    const sustainabilityContent = content as SustainabilityContent;
+    return Array.isArray(sustainabilityContent.stats) ? sustainabilityContent.stats : [];
+  };
+
+  const getTimelineItems = () => {
+    if (!content || !('timelineItems' in content)) return [];
+    const sustainabilityContent = content as SustainabilityContent;
+    return Array.isArray(sustainabilityContent.timelineItems) ? sustainabilityContent.timelineItems : [];
   };
 
   const renderFields = () => {
@@ -300,7 +312,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Stats</Label>
                 <Button 
                   onClick={() => {
-                    const currentStats = content.stats || [];
+                    const currentStats = getSustainabilityStats();
                     handleChange('stats', [...currentStats, {
                       icon: "Recycle",
                       title: "New Stat",
@@ -315,7 +327,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {(content.stats || []).map((stat: any, index: number) => (
+              {getSustainabilityStats().map((stat, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Stat {index + 1}</Label>
@@ -323,7 +335,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newStats = [...(content.stats || [])];
+                        const newStats = [...getSustainabilityStats()];
                         newStats.splice(index, 1);
                         handleChange('stats', newStats);
                       }}
@@ -337,7 +349,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={stat.icon}
                       onValueChange={(value) => {
-                        const newStats = [...(content.stats || [])];
+                        const newStats = [...getSustainabilityStats()];
                         newStats[index] = { ...newStats[index], icon: value };
                         handleChange('stats', newStats);
                       }}
@@ -360,7 +372,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={stat.title}
                       onChange={(e) => {
-                        const newStats = [...(content.stats || [])];
+                        const newStats = [...getSustainabilityStats()];
                         newStats[index] = { ...newStats[index], title: e.target.value };
                         handleChange('stats', newStats);
                       }}
@@ -373,7 +385,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Textarea
                       value={stat.description}
                       onChange={(e) => {
-                        const newStats = [...(content.stats || [])];
+                        const newStats = [...getSustainabilityStats()];
                         newStats[index] = { ...newStats[index], description: e.target.value };
                         handleChange('stats', newStats);
                       }}
@@ -386,7 +398,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={stat.color}
                       onValueChange={(value) => {
-                        const newStats = [...(content.stats || [])];
+                        const newStats = [...getSustainabilityStats()];
                         newStats[index] = { ...newStats[index], color: value };
                         handleChange('stats', newStats);
                       }}
@@ -417,7 +429,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Timeline Items</Label>
                 <Button 
                   onClick={() => {
-                    const currentItems = content.timelineItems || [];
+                    const currentItems = getTimelineItems();
                     handleChange('timelineItems', [...currentItems, "New Timeline Item"]);
                   }} 
                   size="sm"
@@ -427,12 +439,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {(content.timelineItems || []).map((item: string, index: number) => (
+              {getTimelineItems().map((item, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Input
                     value={item}
                     onChange={(e) => {
-                      const newItems = [...(content.timelineItems || [])];
+                      const newItems = [...getTimelineItems()];
                       newItems[index] = e.target.value;
                       handleChange('timelineItems', newItems);
                     }}
@@ -442,7 +454,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     variant="ghost" 
                     size="sm"
                     onClick={() => {
-                      const newItems = [...(content.timelineItems || [])];
+                      const newItems = [...getTimelineItems()];
                       newItems.splice(index, 1);
                       handleChange('timelineItems', newItems);
                     }}
@@ -473,4 +485,3 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
-
