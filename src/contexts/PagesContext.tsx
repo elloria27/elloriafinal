@@ -2,11 +2,15 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Page = {
+  id: string;
   slug: string;
   title: string;
   is_published: boolean;
   show_in_header: boolean;
   show_in_footer: boolean;
+  parent_id: string | null;
+  menu_order: number;
+  menu_type: string;
 }
 
 type PagesContextType = {
@@ -28,14 +32,15 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: pages, error } = await supabase
           .from('pages')
-          .select('slug, title, is_published, show_in_header, show_in_footer')
-          .order('created_at');
+          .select('id, slug, title, is_published, show_in_header, show_in_footer, parent_id, menu_order, menu_type')
+          .order('menu_order');
 
         if (error) {
           console.error('Error fetching pages:', error);
           return;
         }
 
+        console.log('Fetched pages:', pages); // Debug log
         setPublishedPages(pages || []);
       } catch (error) {
         console.error('Error:', error);

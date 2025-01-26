@@ -22,7 +22,9 @@ export const Navigation = () => {
     'checkout',
     'product',
     'order-success',
-    'admin'
+    'admin',
+    'terms',
+    'donation'
   ];
 
   const buildMenuTree = (pages: any[], parentId: string | null = null): MenuItem[] => {
@@ -46,6 +48,8 @@ export const Navigation = () => {
   if (isLoading) {
     return null;
   }
+
+  console.log('Menu Items:', menuItems); // Debug log to see what menu items are being generated
 
   const MenuItem = ({ item }: { item: MenuItem }) => {
     const hasChildren = item.children && item.children.length > 0;
