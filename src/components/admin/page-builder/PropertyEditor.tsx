@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +17,11 @@ const availableIcons = ["Shield", "Leaf", "Heart", "Sparkles"];
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
+  useEffect(() => {
+    console.log('Block content updated:', block.content);
+    setContent(block.content);
+  }, [block.content]);
+
   const handleChange = (key: string, value: any) => {
     console.log('Updating content:', key, value);
     const newContent = { ...content, [key]: value };
@@ -28,29 +33,23 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     if (!content || !('metrics' in content)) return;
     
     const metrics = [...(content as CompetitorComparisonContent).metrics || []];
-    metrics[index] = { ...metrics[index], [field]: value };
+    metrics[index] = { ...metrics[index], [field]: field === 'elloria' || field === 'competitors' ? Number(value) : value };
     handleChange('metrics', metrics);
   };
 
   const addMetric = () => {
+    const newMetric = {
+      category: "New Category",
+      elloria: 90,
+      competitors: 70,
+      icon: "Shield",
+      description: "Description"
+    };
+
     if (!content || !('metrics' in content)) {
-      const newMetric = {
-        category: "New Category",
-        elloria: 90,
-        competitors: 70,
-        icon: "Shield",
-        description: "Description"
-      };
       handleChange('metrics', [newMetric]);
     } else {
       const metrics = [...((content as CompetitorComparisonContent).metrics || [])];
-      const newMetric = {
-        category: "New Category",
-        elloria: 90,
-        competitors: 70,
-        icon: "Shield",
-        description: "Description"
-      };
       metrics.push(newMetric);
       handleChange('metrics', metrics);
     }
@@ -168,7 +167,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       type="number"
                       value={metric.elloria}
-                      onChange={(e) => handleMetricChange(index, 'elloria', parseInt(e.target.value))}
+                      onChange={(e) => handleMetricChange(index, 'elloria', e.target.value)}
                       placeholder="Enter Elloria score"
                     />
                   </div>
@@ -177,7 +176,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       type="number"
                       value={metric.competitors}
-                      onChange={(e) => handleMetricChange(index, 'competitors', parseInt(e.target.value))}
+                      onChange={(e) => handleMetricChange(index, 'competitors', e.target.value)}
                       placeholder="Enter competitors score"
                     />
                   </div>

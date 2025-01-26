@@ -16,6 +16,8 @@ interface CompetitorComparisonProps {
 }
 
 export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => {
+  console.log('CompetitorComparison content:', content);
+
   const defaultMetrics = [
     {
       category: "Absorption Capacity",
@@ -76,7 +78,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
             const Icon = iconComponents[metric.icon as keyof typeof iconComponents];
             return (
               <motion.div
-                key={metric.category}
+                key={index}
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
