@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -14,24 +13,19 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [formData, setFormData] = useState({
-    email_notifications: false,
-    marketing_emails: false,
-    language: "en",
-    currency: "USD",
-  });
 
   useEffect(() => {
-    fetchProfile();
+    console.log("Settings component mounted");
+    loadProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  const loadProfile = async () => {
     try {
-      console.log("Checking auth session...");
+      console.log("Loading profile...");
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
-        console.log("No authenticated user found");
+        console.log("No session found");
         toast.error("Please sign in to view settings");
         return;
       }
@@ -45,23 +39,20 @@ export default function Settings() {
 
       if (error) {
         console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile settings");
+        toast.error("Failed to load profile");
         return;
       }
 
       if (data) {
-        console.log("Profile loaded:", data);
+        console.log("Profile loaded successfully:", data);
         setProfile(data);
-        setFormData({
-          email_notifications: data.email_notifications || false,
-          marketing_emails: data.marketing_emails || false,
-          language: data.language || "en",
-          currency: data.currency || "USD",
-        });
+      } else {
+        console.log("No profile found");
+        toast.error("Profile not found");
       }
     } catch (error) {
-      console.error("Error in fetchProfile:", error);
-      toast.error("Failed to load settings");
+      console.error("Error in loadProfile:", error);
+      toast.error("Error loading profile");
     } finally {
       setLoading(false);
     }
@@ -69,23 +60,30 @@ export default function Settings() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!profile) {
+      toast.error("No profile data to save");
+      return;
+    }
+
     setSaving(true);
+    console.log("Saving profile changes:", profile);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         toast.error("You must be logged in to update settings");
         return;
       }
 
-      console.log("Updating settings for user:", user.id);
       const { error } = await supabase
         .from("profiles")
         .update({
-          email_notifications: formData.email_notifications,
-          marketing_emails: formData.marketing_emails,
-          language: formData.language,
-          currency: formData.currency,
+          email_notifications: profile.email_notifications,
+          marketing_emails: profile.marketing_emails,
+          language: profile.language,
+          currency: profile.currency,
         })
         .eq("id", user.id);
 
@@ -94,7 +92,7 @@ export default function Settings() {
       console.log("Settings updated successfully");
       toast.success("Settings updated successfully");
     } catch (error) {
-      console.error("Error updating settings:", error);
+      console.error("Error saving settings:", error);
       toast.error("Failed to update settings");
     } finally {
       setSaving(false);
@@ -133,9 +131,9 @@ export default function Settings() {
                 </p>
               </div>
               <Switch
-                checked={formData.email_notifications}
+                checked={profile.email_notifications || false}
                 onCheckedChange={(checked) =>
-                  setFormData(prev => ({ ...prev, email_notifications: checked }))
+                  setProfile(prev => prev ? { ...prev, email_notifications: checked } : null)
                 }
               />
             </div>
@@ -148,9 +146,9 @@ export default function Settings() {
                 </p>
               </div>
               <Switch
-                checked={formData.marketing_emails}
+                checked={profile.marketing_emails || false}
                 onCheckedChange={(checked) =>
-                  setFormData(prev => ({ ...prev, marketing_emails: checked }))
+                  setProfile(prev => prev ? { ...prev, marketing_emails: checked } : null)
                 }
               />
             </div>
@@ -164,9 +162,9 @@ export default function Settings() {
               <Label>Language</Label>
               <select
                 className="w-full p-2 border rounded-md"
-                value={formData.language}
+                value={profile.language || 'en'}
                 onChange={(e) =>
-                  setFormData(prev => ({ ...prev, language: e.target.value }))
+                  setProfile(prev => prev ? { ...prev, language: e.target.value } : null)
                 }
               >
                 <option value="en">English</option>
@@ -179,9 +177,9 @@ export default function Settings() {
               <Label>Currency</Label>
               <select
                 className="w-full p-2 border rounded-md"
-                value={formData.currency}
+                value={profile.currency || 'USD'}
                 onChange={(e) =>
-                  setFormData(prev => ({ ...prev, currency: e.target.value }))
+                  setProfile(prev => prev ? { ...prev, currency: e.target.value } : null)
                 }
               >
                 <option value="USD">USD ($)</option>
