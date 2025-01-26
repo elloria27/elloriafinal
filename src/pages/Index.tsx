@@ -12,7 +12,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockType, GameChangerContent } from "@/types/content-blocks";
+import { ContentBlock, BlockType, GameChangerContent, HeroContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -24,28 +24,30 @@ const Index = () => {
       try {
         console.log('Fetching home page content');
         
-        const { data: page, error: pageError } = await supabase
+        const { data: pages, error: pageError } = await supabase
           .from('pages')
           .select('id')
-          .eq('slug', 'index')
-          .single();
+          .eq('slug', 'index');
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
           throw pageError;
         }
 
-        if (!page) {
+        if (!pages || pages.length === 0) {
           console.error('Home page not found');
+          toast.error('Home page content not found');
+          setBlocks([]);
           return;
         }
 
-        console.log('Fetching content blocks for page:', page.id);
+        const pageId = pages[0].id;
+        console.log('Fetching content blocks for page:', pageId);
 
-        const { data: blocks, error: blocksError } = await supabase
+        const { data: contentBlocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', page.id)
+          .eq('page_id', pageId)
           .order('order_index');
 
         if (blocksError) {
@@ -53,8 +55,8 @@ const Index = () => {
           throw blocksError;
         }
 
-        console.log('Content blocks fetched:', blocks);
-        setBlocks(blocks || []);
+        console.log('Content blocks fetched:', contentBlocks);
+        setBlocks(contentBlocks || []);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load page content');
@@ -90,9 +92,9 @@ const Index = () => {
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block.type, block.content);
     
-    switch (block.type) {
+    switch (block.type as BlockType) {
       case 'hero':
-        return <Hero content={block.content} />;
+        return <Hero content={block.content as HeroContent} />;
       case 'elevating_essentials':
         return <Features content={block.content} />;
       case 'game_changer':
@@ -114,6 +116,7 @@ const Index = () => {
       case 'newsletter':
         return <Newsletter />;
       default:
+        console.warn('Unknown block type:', block.type);
         return null;
     }
   };

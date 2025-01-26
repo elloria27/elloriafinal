@@ -133,6 +133,7 @@ export type BlockType =
   | "store_brands"
   | "sustainability"
   | "product_carousel"
+  | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison";
