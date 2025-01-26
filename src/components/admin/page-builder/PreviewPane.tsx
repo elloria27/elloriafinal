@@ -13,32 +13,21 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   };
 
   const renderBlock = (block: ContentBlock) => {
-    console.log('Rendering block in preview:', block);
+    console.log('Rendering block:', block);
     
     const blockContent = (
-      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+      <div className="group relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => onSelectBlock(block)}
+        >
+          <Edit2 className="h-4 w-4" />
+        </Button>
+
         {(() => {
           switch (block.type) {
-            case 'store_brands':
-              const brands = getContentValue(block.content, 'brands') || [];
-              return (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">
-                    {getContentValue(block.content, 'title') || 'Store Brands'}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {getContentValue(block.content, 'subtitle') || 'Available at retailers'}
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    {Array.isArray(brands) ? (
-                      `${brands.length} brands configured`
-                    ) : (
-                      'No brands configured'
-                    )}
-                  </div>
-                </div>
-              );
-              
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
               return (
@@ -104,17 +93,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
     );
 
     return (
-      <div key={block.id} className="mb-6 relative group">
-        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onSelectBlock(block)}
-            className="h-8 w-8"
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-        </div>
+      <div key={block.id} className="mb-6 relative hover:bg-gray-50 rounded-lg p-2 transition-colors">
         {blockContent}
       </div>
     );

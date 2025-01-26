@@ -33,12 +33,11 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     ]
   };
 
-  // Use content if provided, otherwise use default content
-  const finalContent = content || defaultContent;
-
-  console.log('StoreBrands rendered with content:', content);
-  console.log('Final content:', finalContent);
-  console.log('Brands to display:', finalContent.brands);
+  const {
+    title = defaultContent.title,
+    subtitle = defaultContent.subtitle,
+    brands = defaultContent.brands
+  } = content || defaultContent;
 
   return (
     <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
@@ -51,16 +50,16 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {finalContent.title}
+            {title}
           </h2>
           <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-            {finalContent.subtitle}
+            {subtitle}
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
-          {Array.isArray(finalContent.brands) && finalContent.brands.map((brand, index) => (
+          {brands.map((brand, index) => (
             <motion.a
-              key={`${brand.name}-${index}-${brand.logo}`}
+              key={brand.name}
               href={brand.link}
               target="_blank"
               rel="noopener noreferrer"
@@ -79,10 +78,6 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
                 src={brand.logo}
                 alt={`${brand.name} logo`}
                 className="w-full h-full object-contain"
-                onError={(e) => {
-                  console.error(`Error loading image for ${brand.name}:`, brand.logo);
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
               />
             </motion.a>
           ))}
