@@ -30,12 +30,16 @@ export default function Settings() {
         return;
       }
 
-      console.log("Fetching profile for user:", session.user.id);
+      console.log("Current user ID:", session.user.id);
+      console.log("Current user email:", session.user.email);
+
       const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .maybeSingle();
+
+      console.log("Profile query response:", { profileData, error });
 
       if (error) {
         console.error("Error fetching profile:", error);
@@ -43,12 +47,34 @@ export default function Settings() {
         return;
       }
 
-      if (profileData) {
-        console.log("Profile loaded successfully:", profileData);
-        setProfile(profileData);
+      if (!profileData) {
+        console.log("No profile found, creating new profile");
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              email_notifications: false,
+              marketing_emails: false,
+              language: "en",
+              currency: "USD"
+            }
+          ])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Error creating profile:", createError);
+          toast.error("Failed to create profile");
+          return;
+        }
+
+        console.log("New profile created:", newProfile);
+        setProfile(newProfile);
       } else {
-        console.log("No profile found");
-        toast.error("Profile not found");
+        console.log("Profile loaded:", profileData);
+        setProfile(profileData);
       }
     } catch (error) {
       console.error("Error in loadProfile:", error);
@@ -87,7 +113,10 @@ export default function Settings() {
         })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
 
       console.log("Settings updated successfully");
       toast.success("Settings updated successfully");
