@@ -58,10 +58,17 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     try {
       console.log("Saving scripts:", scripts);
       
+      // Convert Script[] to a format that matches the Json type
+      const scriptsForSaving = scripts.map(({ id, name, content }) => ({
+        id,
+        name,
+        content,
+      })) as unknown as Json;
+
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scripts as Json,
+          custom_scripts: scriptsForSaving,
         })
         .eq("id", settings.id);
 
