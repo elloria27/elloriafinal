@@ -113,7 +113,7 @@ const Index = () => {
       case 'sustainability':
         return <Sustainability content={block.content} />;
       case 'product_carousel':
-        return <ProductCarousel />;
+        return <ProductCarousel content={block.content} />;
       case 'competitor_comparison':
         return <CompetitorComparison />;
       case 'testimonials':
