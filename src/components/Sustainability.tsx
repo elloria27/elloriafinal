@@ -1,35 +1,63 @@
 import { motion } from "framer-motion";
 import { Leaf, Recycle, Percent, Package, Factory } from "lucide-react";
+import { SustainabilityContent } from "@/types/content-blocks";
 
-const stats = [
-  {
-    icon: <Recycle className="w-10 h-10" />,
-    title: "55% Recyclable",
-    description: "Materials used in our products",
-    color: "bg-accent-green"
-  },
-  {
-    icon: <Package className="w-10 h-10" />,
-    title: "85% Reduction",
-    description: "In packaging waste through innovative design",
-    color: "bg-accent-purple"
-  },
-  {
-    icon: <Factory className="w-10 h-10" />,
-    title: "Eco-Production",
-    description: "Sustainable sourcing and manufacturing",
-    color: "bg-accent-peach"
-  }
-];
+interface SustainabilityProps {
+  content?: SustainabilityContent;
+}
 
-const timelineItems = [
-  "Sustainable Material Sourcing",
-  "Eco-Friendly Manufacturing",
-  "Recyclable Packaging",
-  "Low-Impact Delivery"
-];
+export const Sustainability = ({ content }: SustainabilityProps) => {
+  const defaultContent = {
+    title: "Our Commitment to Sustainability",
+    description: "We're dedicated to reducing our environmental impact while delivering premium products through innovative, sustainable practices.",
+    stats: [
+      {
+        icon: "Recycle",
+        title: "55% Recyclable",
+        description: "Materials used in our products",
+        color: "bg-accent-green"
+      },
+      {
+        icon: "Package",
+        title: "85% Reduction",
+        description: "In packaging waste through innovative design",
+        color: "bg-accent-purple"
+      },
+      {
+        icon: "Factory",
+        title: "Eco-Production",
+        description: "Sustainable sourcing and manufacturing",
+        color: "bg-accent-peach"
+      }
+    ],
+    timelineItems: [
+      "Sustainable Material Sourcing",
+      "Eco-Friendly Manufacturing",
+      "Recyclable Packaging",
+      "Low-Impact Delivery"
+    ]
+  };
 
-export const Sustainability = () => {
+  const {
+    title = defaultContent.title,
+    description = defaultContent.description,
+    stats = defaultContent.stats,
+    timelineItems = defaultContent.timelineItems
+  } = content || defaultContent;
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "Recycle":
+        return <Recycle className="w-10 h-10" />;
+      case "Package":
+        return <Package className="w-10 h-10" />;
+      case "Factory":
+        return <Factory className="w-10 h-10" />;
+      default:
+        return <Leaf className="w-10 h-10" />;
+    }
+  };
+
   return (
     <section className="py-24 bg-gradient-to-b from-accent-green/10 to-white">
       <div className="container px-4">
@@ -41,10 +69,10 @@ export const Sustainability = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-600">
-            Our Commitment to Sustainability
+            {title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            We're dedicated to reducing our environmental impact while delivering premium products through innovative, sustainable practices.
+            {description}
           </p>
         </motion.div>
 
@@ -67,7 +95,7 @@ export const Sustainability = () => {
                   transition: { duration: 0.2 }
                 }}
               >
-                {stat.icon}
+                {getIconComponent(stat.icon)}
               </motion.div>
               <h3 className="text-2xl font-bold mb-3">{stat.title}</h3>
               <p className="text-gray-600">{stat.description}</p>
