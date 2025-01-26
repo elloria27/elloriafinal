@@ -137,13 +137,13 @@ const Index = () => {
   }
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Header />
       <motion.main 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="min-h-screen overflow-hidden pt-16"
+        className="flex-grow pt-16"
       >
         {blocks.map((block) => (
           <div key={block.id}>
@@ -151,7 +151,7 @@ const Index = () => {
           </div>
         ))}
       </motion.main>
-    </>
+    </div>
   );
 };
 
