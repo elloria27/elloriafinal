@@ -40,7 +40,13 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        setPublishedPages(pages || []);
+        // Transform the data to ensure menu_type is correctly typed
+        const typedPages: Page[] = (pages || []).map(page => ({
+          ...page,
+          menu_type: page.menu_type as 'main' | 'submenu'
+        }));
+
+        setPublishedPages(typedPages);
       } catch (error) {
         console.error('Error:', error);
       } finally {
