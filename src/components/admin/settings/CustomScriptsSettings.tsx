@@ -15,9 +15,20 @@ interface Script {
 }
 
 export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
-  const [scripts, setScripts] = useState<Script[]>(
-    (settings?.custom_scripts ? JSON.parse(JSON.stringify(settings.custom_scripts)) : []) as Script[]
-  );
+  const [scripts, setScripts] = useState<Script[]>(() => {
+    // Safely parse existing scripts or return empty array
+    try {
+      const existingScripts = settings?.custom_scripts;
+      if (Array.isArray(existingScripts)) {
+        return existingScripts;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error parsing custom scripts:", error);
+      return [];
+    }
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -47,16 +58,10 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     try {
       console.log("Saving scripts:", scripts);
       
-      // Convert Script[] to Json before saving
-      const scriptsJson = scripts.reduce((acc, { id, name, content }) => {
-        acc[id] = { name, content };
-        return acc;
-      }, {} as Record<string, { name: string; content: string }>);
-
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scriptsJson as Json,
+          custom_scripts: scripts as Json,
         })
         .eq("id", settings.id);
 
