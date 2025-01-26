@@ -315,7 +315,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     const currentStats = getSustainabilityStats();
                     handleChange('stats', [...currentStats, {
                       icon: "Recycle",
-                      title: "New Stat",
+                      value: "New Value",
+                      label: "New Label",
                       description: "Enter description",
                       color: "bg-accent-green"
                     }]);
@@ -368,15 +369,28 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
                   
                   <div>
-                    <Label>Title</Label>
+                    <Label>Value</Label>
                     <Input
-                      value={stat.title}
+                      value={stat.value}
                       onChange={(e) => {
                         const newStats = [...getSustainabilityStats()];
-                        newStats[index] = { ...newStats[index], title: e.target.value };
+                        newStats[index] = { ...newStats[index], value: e.target.value };
                         handleChange('stats', newStats);
                       }}
-                      placeholder="Enter stat title"
+                      placeholder="Enter stat value"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Label</Label>
+                    <Input
+                      value={stat.label}
+                      onChange={(e) => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats[index] = { ...newStats[index], label: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat label"
                     />
                   </div>
                   
