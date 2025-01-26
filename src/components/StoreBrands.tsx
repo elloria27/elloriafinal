@@ -34,14 +34,15 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   };
 
   // Ensure we have the latest content by merging with defaults
+  const finalContent = content || defaultContent;
   const {
     title = defaultContent.title,
     subtitle = defaultContent.subtitle,
     brands = defaultContent.brands
-  } = content || defaultContent;
+  } = finalContent;
 
-  console.log('StoreBrands content:', content); // Debug log
-  console.log('Rendered brands:', brands); // Debug log
+  console.log('StoreBrands rendered with content:', finalContent);
+  console.log('Brands to display:', brands);
 
   return (
     <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
@@ -61,34 +62,37 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           </p>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
-          {Array.isArray(brands) && brands.map((brand, index) => (
-            <motion.a
-              key={`${brand.name}-${index}`}
-              href={brand.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ 
-                scale: 1.05,
-                rotate: [-1, 1, -1],
-                transition: { rotate: { repeat: Infinity, duration: 2 } }
-              }}
-              className="w-48 h-48 flex items-center justify-center p-8 rounded-3xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border border-gray-100"
-            >
-              <img
-                src={brand.logo}
-                alt={`${brand.name} logo`}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  console.error(`Error loading image for ${brand.name}:`, brand.logo);
-                  e.currentTarget.src = '/placeholder.svg';
+          {Array.isArray(brands) && brands.map((brand, index) => {
+            console.log('Rendering brand:', brand);
+            return (
+              <motion.a
+                key={`${brand.name}-${index}-${brand.logo}`}
+                href={brand.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ 
+                  scale: 1.05,
+                  rotate: [-1, 1, -1],
+                  transition: { rotate: { repeat: Infinity, duration: 2 } }
                 }}
-              />
-            </motion.a>
-          ))}
+                className="w-48 h-48 flex items-center justify-center p-8 rounded-3xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border border-gray-100"
+              >
+                <img
+                  src={brand.logo}
+                  alt={`${brand.name} logo`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    console.error(`Error loading image for ${brand.name}:`, brand.logo);
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              </motion.a>
+            );
+          })}
         </div>
       </div>
     </section>
