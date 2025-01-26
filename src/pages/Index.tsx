@@ -109,7 +109,7 @@ const Index = () => {
       case 'features':
         return <Features content={block.content} />;
       case 'store_brands':
-        return <StoreBrands />;
+        return <StoreBrands content={block.content} />;
       case 'sustainability':
         return <Sustainability />;
       case 'product_carousel':
