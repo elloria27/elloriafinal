@@ -94,6 +94,34 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     return Array.isArray(sustainabilityContent.timelineItems) ? sustainabilityContent.timelineItems : [];
   };
 
+  const getMetrics = (content: BlockContent): ComparisonMetric[] => {
+    if (!content || !('metrics' in content)) {
+      return [];
+    }
+    const metrics = content.metrics;
+    if (!Array.isArray(metrics)) {
+      return [];
+    }
+    return metrics.map(metric => {
+      if (typeof metric === 'object' && metric !== null) {
+        return {
+          category: String(metric.category || ''),
+          elloria: Number(metric.elloria || 0),
+          competitors: Number(metric.competitors || 0),
+          icon: String(metric.icon || 'Shield'),
+          description: String(metric.description || '')
+        };
+      }
+      return {
+        category: '',
+        elloria: 0,
+        competitors: 0,
+        icon: 'Shield',
+        description: ''
+      };
+    });
+  };
+
   const renderFields = () => {
     console.log('Rendering fields for block type:', block.type);
     console.log('Current content:', content);
@@ -498,7 +526,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         );
 
       case 'competitor_comparison':
-        const metrics = content?.metrics || [];
+        const metrics = getMetrics(content);
         return (
           <div className="space-y-6">
             <div>
@@ -523,7 +551,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Metrics</Label>
                 <Button 
                   onClick={() => {
-                    const newMetric = {
+                    const newMetric: ComparisonMetric = {
                       category: "New Metric",
                       elloria: 90,
                       competitors: 70,
