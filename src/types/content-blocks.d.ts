@@ -112,6 +112,19 @@ export interface ProductCarouselContent extends BaseBlockContent {
   description?: string;
 }
 
+export interface CompetitorComparisonContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  metrics?: {
+    category: string;
+    elloria: number;
+    competitors: number;
+    icon: string;
+    description: string;
+  }[];
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -126,7 +139,8 @@ export type BlockContent =
   | TestimonialsContent
   | BlogPreviewContent
   | NewsletterContent
-  | ProductCarouselContent;
+  | ProductCarouselContent
+  | CompetitorComparisonContent;
 
 export type BlockType = 
   | "heading" 
