@@ -1,6 +1,6 @@
 import { FeaturesProps } from "@/types/content-blocks";
 import { motion } from "framer-motion";
-import { Droplets, Shield, Heart, Package, Leaf, Recycle } from "lucide-react";
+import { Droplets, Shield, Heart, Package, Leaf, Recycle, Shrink } from "lucide-react";
 
 const iconMap: { [key: string]: any } = {
   Droplets,
@@ -8,20 +8,21 @@ const iconMap: { [key: string]: any } = {
   Heart,
   Package,
   Leaf,
-  Recycle
+  Recycle,
+  Shrink
 };
 
 export const Features = ({ content }: FeaturesProps) => {
   const defaultFeatures = [
     {
-      icon: "Droplets",
-      title: "Superior Absorption",
-      description: "Advanced technology for complete protection and confidence"
+      icon: "Shrink",
+      title: "Ultra-thin Design",
+      description: "Advanced technology compressed into an ultra-thin profile for maximum discretion and comfort"
     },
     {
       icon: "Shield",
-      title: "Ultra Protection",
-      description: "Innovative design for maximum security and comfort"
+      title: "Superior Protection",
+      description: "Innovative design for maximum security and confidence"
     },
     {
       icon: "Heart",
@@ -45,6 +46,7 @@ export const Features = ({ content }: FeaturesProps) => {
     }
   ];
 
+  // Use content.features if available, otherwise use defaultFeatures
   const features = content?.features || defaultFeatures;
 
   return (
