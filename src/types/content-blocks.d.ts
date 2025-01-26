@@ -106,6 +106,12 @@ export interface NewsletterContent extends BaseBlockContent {
   buttonText?: string;
 }
 
+export interface ProductCarouselContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -119,7 +125,8 @@ export type BlockContent =
   | SustainabilityContent
   | TestimonialsContent
   | BlogPreviewContent
-  | NewsletterContent;
+  | NewsletterContent
+  | ProductCarouselContent;
 
 export type BlockType = 
   | "heading" 

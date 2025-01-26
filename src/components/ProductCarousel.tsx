@@ -9,8 +9,19 @@ import { toast } from "sonner";
 import { useProductSubscription } from "@/hooks/useProductSubscription";
 import { Product } from "@/types/product";
 import { initialProducts } from "@/data/initialProducts";
+import { ProductCarouselContent } from "@/types/content-blocks";
 
-export const ProductCarousel = () => {
+interface ProductCarouselProps {
+  content?: ProductCarouselContent;
+}
+
+const defaultContent = {
+  title: "Our Products",
+  subtitle: "Designed with comfort and confidence in mind",
+  description: ""
+};
+
+export const ProductCarousel = ({ content }: ProductCarouselProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -26,14 +37,12 @@ export const ProductCarousel = () => {
   const handleProductsUpdate = useCallback((updatedProducts: Product[]) => {
     console.log('Updating products in carousel:', updatedProducts);
     setProducts(updatedProducts);
-    // Update quantities state with new product IDs
     setQuantities(prev => ({
       ...prev,
       ...Object.fromEntries(updatedProducts.map(p => [p.id, 1]))
     }));
   }, []);
 
-  // Subscribe to product changes
   useProductSubscription(handleProductsUpdate);
 
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
@@ -66,6 +75,12 @@ export const ProductCarousel = () => {
     setTimeout(() => setAnimatingProduct(null), 1000);
   };
 
+  const finalContent = {
+    title: content?.title || defaultContent.title,
+    subtitle: content?.subtitle || defaultContent.subtitle,
+    description: content?.description || defaultContent.description
+  };
+
   return (
     <section 
       ref={containerRef}
@@ -82,12 +97,17 @@ export const ProductCarousel = () => {
       >
         <h2 className="text-4xl md:text-6xl font-bold mb-6">
           <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Our Products
+            {finalContent.title}
           </span>
         </h2>
         <p className="text-gray-600 text-xl max-w-2xl mx-auto leading-relaxed">
-          Designed with comfort and confidence in mind
+          {finalContent.subtitle}
         </p>
+        {finalContent.description && (
+          <p className="text-gray-600 text-lg max-w-3xl mx-auto mt-4 leading-relaxed">
+            {finalContent.description}
+          </p>
+        )}
       </motion.div>
 
       <motion.div 
