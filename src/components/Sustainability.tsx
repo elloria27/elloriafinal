@@ -37,8 +37,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
       "Eco-Friendly Manufacturing",
       "Recyclable Packaging",
       "Low-Impact Delivery"
-    ],
-    statsTitle: "Our Sustainability Stats" // Added default stats title
+    ]
   };
 
   // Ensure we're properly handling the content prop
@@ -67,11 +66,8 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           </p>
         </motion.div>
 
-        {/* Stats Section with Title */}
-        <div className="mb-12 text-center">
-          <h3 className="text-3xl font-bold mb-8 text-gray-800">
-            {finalContent.statsTitle}
-          </h3>
+        {/* Stats Section */}
+        <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {(finalContent.stats || defaultContent.stats).map((stat, index) => (
               <motion.div
