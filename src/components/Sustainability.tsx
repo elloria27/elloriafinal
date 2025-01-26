@@ -37,11 +37,16 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
       "Eco-Friendly Manufacturing",
       "Recyclable Packaging",
       "Low-Impact Delivery"
-    ]
+    ],
+    statsTitle: "Our Sustainability Stats" // Added default stats title
   };
 
   // Ensure we're properly handling the content prop
-  const finalContent = content || defaultContent;
+  const finalContent = {
+    ...defaultContent,
+    ...(content || {}),
+  };
+  
   console.log("Final content being used:", finalContent);
 
   return (
@@ -62,42 +67,48 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {(finalContent.stats || defaultContent.stats).map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
-              className={`${stat.color}/10 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
-            >
-              <motion.div 
-                className="text-primary mb-6"
-                whileHover={{ 
-                  scale: 1.1,
-                  filter: "brightness(1.2)",
-                  transition: { duration: 0.2 }
-                }}
+        {/* Stats Section with Title */}
+        <div className="mb-12 text-center">
+          <h3 className="text-3xl font-bold mb-8 text-gray-800">
+            {finalContent.statsTitle}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {(finalContent.stats || defaultContent.stats).map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                className={`${stat.color}/10 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
               >
-                {(() => {
-                  switch (stat.icon) {
-                    case "Recycle":
-                      return <Recycle className="w-10 h-10" />;
-                    case "Package":
-                      return <Package className="w-10 h-10" />;
-                    case "Factory":
-                      return <Factory className="w-10 h-10" />;
-                    default:
-                      return <Leaf className="w-10 h-10" />;
-                  }
-                })()}
+                <motion.div 
+                  className="text-primary mb-6"
+                  whileHover={{ 
+                    scale: 1.1,
+                    filter: "brightness(1.2)",
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  {(() => {
+                    switch (stat.icon) {
+                      case "Recycle":
+                        return <Recycle className="w-10 h-10" />;
+                      case "Package":
+                        return <Package className="w-10 h-10" />;
+                      case "Factory":
+                        return <Factory className="w-10 h-10" />;
+                      default:
+                        return <Leaf className="w-10 h-10" />;
+                    }
+                  })()}
+                </motion.div>
+                <h3 className="text-2xl font-bold mb-3">{stat.title}</h3>
+                <p className="text-gray-600">{stat.description}</p>
               </motion.div>
-              <h3 className="text-2xl font-bold mb-3">{stat.title}</h3>
-              <p className="text-gray-600">{stat.description}</p>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <motion.div
