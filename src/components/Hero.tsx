@@ -11,10 +11,14 @@ interface HeroContent {
 }
 
 interface HeroProps {
-  content: HeroContent;
+  content?: HeroContent;  // Made optional
 }
 
-export const Hero = ({ content }: HeroProps) => {
+export const Hero = ({ content = {
+  title: "Redefining Comfort, Confidence, and Sustainability",
+  subtitle: "Experience ultra-thin, eco-friendly feminine care made for modern women.",
+  videoUrl: "https://elloria.ca/Video_290mm.mp4"
+} }: HeroProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -85,7 +89,7 @@ export const Hero = ({ content }: HeroProps) => {
           >
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
-                {content.title || "Redefining Comfort, Confidence, and Sustainability"}
+                {content.title}
               </span>
             </h1>
           </motion.div>
@@ -96,7 +100,7 @@ export const Hero = ({ content }: HeroProps) => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl"
           >
-            {content.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
+            {content.subtitle}
           </motion.p>
           
           <motion.div
@@ -144,7 +148,7 @@ export const Hero = ({ content }: HeroProps) => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
+              <source src={content.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             
