@@ -47,10 +47,16 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     try {
       console.log("Saving scripts:", scripts);
       
+      // Convert Script[] to Json before saving
+      const scriptsJson = scripts.reduce((acc, { id, name, content }) => {
+        acc[id] = { name, content };
+        return acc;
+      }, {} as Record<string, { name: string; content: string }>);
+
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scripts,
+          custom_scripts: scriptsJson as Json,
         })
         .eq("id", settings.id);
 
