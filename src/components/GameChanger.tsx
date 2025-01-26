@@ -1,28 +1,48 @@
 import { motion } from "framer-motion";
 import { Droplets, Leaf, Heart } from "lucide-react";
+import { GameChangerContent } from "@/types/content-blocks";
 
-const features = [
-  {
-    icon: <Droplets className="w-12 h-12" />,
-    title: "Superior Absorption",
-    description: "Up to 600ml absorption capacity for overnight protection",
-    detail: "Advanced multi-layer core technology ensures quick absorption and complete leak protection"
-  },
-  {
-    icon: <Leaf className="w-12 h-12" />,
-    title: "Eco-Friendly Materials",
-    description: "72% recyclable materials for a greener planet",
-    detail: "Sustainable sourcing and biodegradable components reduce environmental impact"
-  },
-  {
-    icon: <Heart className="w-12 h-12" />,
-    title: "Ultimate Comfort",
-    description: "Soft, breathable backsheet for irritation-free comfort",
-    detail: "Dermatologically tested materials ensure gentle care for sensitive skin"
-  }
-];
+interface GameChangerProps {
+  content?: GameChangerContent;
+}
 
-export const GameChanger = () => {
+export const GameChanger = ({ content }: GameChangerProps) => {
+  const defaultFeatures = [
+    {
+      icon: "Droplets",
+      title: "Superior Absorption",
+      description: "Up to 600ml absorption capacity for overnight protection",
+      detail: "Advanced multi-layer core technology ensures quick absorption and complete leak protection"
+    },
+    {
+      icon: "Leaf",
+      title: "Eco-Friendly Materials",
+      description: "72% recyclable materials for a greener planet",
+      detail: "Sustainable sourcing and biodegradable components reduce environmental impact"
+    },
+    {
+      icon: "Heart",
+      title: "Ultimate Comfort",
+      description: "Soft, breathable backsheet for irritation-free comfort",
+      detail: "Dermatologically tested materials ensure gentle care for sensitive skin"
+    }
+  ];
+
+  const features = content?.features || defaultFeatures;
+  
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case "Droplets":
+        return <Droplets className="w-12 h-12" />;
+      case "Leaf":
+        return <Leaf className="w-12 h-12" />;
+      case "Heart":
+        return <Heart className="w-12 h-12" />;
+      default:
+        return <Droplets className="w-12 h-12" />;
+    }
+  };
+
   return (
     <section className="py-24 bg-primary text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgNTYgMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiNGRkYiIGZpbGwtcnVsZT0iZXZlbm9kZCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiLz48L2c+PC9zdmc+')] opacity-10" />
@@ -36,13 +56,13 @@ export const GameChanger = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Why Elloria Pads Are a{" "}
+            {content?.title || "Why Elloria Pads Are a"}{" "}
             <span className="text-secondary">
-              Game-Changer
+              {content?.subtitle || "Game-Changer"}
             </span>
           </h2>
           <p className="text-white/80 max-w-2xl mx-auto text-lg">
-            Experience the perfect blend of innovation and comfort with features that set us apart
+            {content?.description || "Experience the perfect blend of innovation and comfort with features that set us apart"}
           </p>
         </motion.div>
 
@@ -70,7 +90,7 @@ export const GameChanger = () => {
                   }}
                   className="mb-6 text-secondary relative"
                 >
-                  {feature.icon}
+                  {getIcon(feature.icon)}
                 </motion.div>
                 
                 <h3 className="text-2xl font-semibold mb-4">

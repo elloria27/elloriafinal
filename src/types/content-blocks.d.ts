@@ -52,6 +52,7 @@ export interface FeaturesContent extends BaseBlockContent {
 export interface GameChangerContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
+  description?: string;
   features?: FeatureItem[];
 }
 
