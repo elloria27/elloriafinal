@@ -90,7 +90,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto py-4 px-4 md:py-8">
+      <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
           <Button 
@@ -104,28 +104,30 @@ const Admin = () => {
         </div>
         
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-4 w-full mb-4">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-sm">
-              <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden md:inline">Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2 text-sm">
-              <Package className="h-4 w-4" />
-              <span className="hidden md:inline">Products</span>
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2 text-sm">
-              <ShoppingCart className="h-4 w-4" />
-              <span className="hidden md:inline">Orders</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 text-sm">
-              <Users className="h-4 w-4" />
-              <span className="hidden md:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">Pages</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="w-full grid grid-cols-5 gap-1">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
+                <LayoutDashboard className="h-5 w-5" />
+                <span className="hidden md:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
+                <Package className="h-5 w-5" />
+                <span className="hidden md:inline">Products</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="hidden md:inline">Orders</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
+                <Users className="h-5 w-5" />
+                <span className="hidden md:inline">Users</span>
+              </TabsTrigger>
+              <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
+                <FileText className="h-5 w-5" />
+                <span className="hidden md:inline">Pages</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <TabsContent value="dashboard">
