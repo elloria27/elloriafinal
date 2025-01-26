@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface MenuItem {
   name: string;
@@ -13,6 +13,7 @@ interface MenuItem {
 export const Navigation = () => {
   const { publishedPages, isLoading } = usePages();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   // Define technical pages that should not appear in the menu
   const technicalPages = [
@@ -60,14 +61,27 @@ export const Navigation = () => {
 
   console.log('Final Menu Items:', menuItems);
 
+  const handleMouseEnter = (path: string) => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+    }
+    setHoveredItem(path);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = window.setTimeout(() => {
+      setHoveredItem(null);
+    }, 300); // 300ms delay before hiding submenu
+  };
+
   const MenuItem = ({ item }: { item: MenuItem }) => {
     const hasChildren = item.children && item.children.length > 0;
     
     return (
       <div
         className="relative"
-        onMouseEnter={() => setHoveredItem(item.path)}
-        onMouseLeave={() => setHoveredItem(null)}
+        onMouseEnter={() => handleMouseEnter(item.path)}
+        onMouseLeave={handleMouseLeave}
       >
         <Link to={item.path}>
           <motion.span
