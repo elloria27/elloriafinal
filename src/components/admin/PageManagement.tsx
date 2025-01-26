@@ -189,7 +189,7 @@ export const PageManagement = () => {
         is_published: formData.get('is_published') === 'on',
         show_in_header: formData.get('show_in_header') === 'on',
         show_in_footer: formData.get('show_in_footer') === 'on',
-        menu_type: formData.get('menu_type')?.toString() || 'main',
+        menu_type: formData.get('menu_type')?.toString() as 'main' | 'submenu' || 'main',
         parent_id: formData.get('parent_id')?.toString() || null,
         menu_order: parseInt(formData.get('menu_order')?.toString() || '0'),
         updated_at: new Date().toISOString(),
@@ -206,6 +206,7 @@ export const PageManagement = () => {
 
       toast.success("Page updated successfully");
       setIsEditDialogOpen(false);
+      setSelectedPage(null);
       await fetchPages();
     } catch (error) {
       console.error('Error updating page:', error);
@@ -396,15 +397,25 @@ export const PageManagement = () => {
                     <Layout className="h-4 w-4" />
                   </Button>
 
-                  <Dialog open={isEditDialogOpen && selectedPage?.id === page.id} onOpenChange={(open) => {
-                    setIsEditDialogOpen(open);
-                    if (!open) setSelectedPage(null);
-                  }}>
+                  <Dialog 
+                    open={isEditDialogOpen && selectedPage?.id === page.id} 
+                    onOpenChange={(open) => {
+                      if (open) {
+                        setSelectedPage(page);
+                      } else {
+                        setSelectedPage(null);
+                      }
+                      setIsEditDialogOpen(open);
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedPage(page)}
+                        onClick={() => {
+                          setSelectedPage(page);
+                          setIsEditDialogOpen(true);
+                        }}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -458,7 +469,10 @@ export const PageManagement = () => {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="menu_type">Menu Type</Label>
-                          <Select name="menu_type" defaultValue={selectedPage?.menu_type}>
+                          <Select 
+                            name="menu_type" 
+                            defaultValue={selectedPage?.menu_type}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select menu type" />
                             </SelectTrigger>
