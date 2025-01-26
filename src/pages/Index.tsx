@@ -12,7 +12,7 @@ import { GameChanger } from "@/components/GameChanger";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockType, GameChangerContent, HeroContent } from "@/types/content-blocks";
+import { ContentBlock, BlockType, GameChangerContent, HeroContent, BlockContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -56,7 +56,14 @@ const Index = () => {
         }
 
         console.log('Content blocks fetched:', contentBlocks);
-        setBlocks(contentBlocks || []);
+        
+        // Transform the content blocks to ensure proper typing
+        const typedBlocks: ContentBlock[] = (contentBlocks || []).map(block => ({
+          ...block,
+          content: block.content as BlockContent
+        }));
+        
+        setBlocks(typedBlocks);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load page content');
