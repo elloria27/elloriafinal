@@ -13,44 +13,49 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     console.log("Settings component mounted");
-    loadProfile();
+    checkAdminAndLoadProfile();
   }, []);
 
-  const loadProfile = async () => {
+  const checkAdminAndLoadProfile = async () => {
     try {
-      console.log("Loading profile...");
-      const { data: { session } } = await supabase.auth.getSession();
+      setLoading(true);
+      console.log("Checking admin status and loading profile...");
 
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         console.log("No session found");
         toast.error("Please sign in to view settings");
         return;
       }
 
-      console.log("Current user ID:", session.user.id);
-
-      // Check if user is admin
-      const { data: roleData, error: roleError } = await supabase
+      // Check admin status
+      const { data: adminCheck, error: adminError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id)
-        .single();
+        .eq("role", "admin")
+        .maybeSingle();
 
-      if (roleError) {
-        console.error("Error checking user role:", roleError);
-        toast.error("Error loading user role");
+      if (adminError) {
+        console.error("Error checking admin status:", adminError);
+        toast.error("Error verifying permissions");
         return;
       }
 
-      if (roleData.role !== 'admin') {
+      if (!adminCheck) {
         console.log("User is not an admin");
         toast.error("Admin access required");
         return;
       }
 
+      setIsAdmin(true);
+      console.log("Admin status confirmed, loading profile...");
+
+      // Load admin profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -58,25 +63,23 @@ export default function Settings() {
         .maybeSingle();
 
       if (profileError) {
-        console.error("Error fetching profile:", profileError);
+        console.error("Error loading profile:", profileError);
         toast.error("Failed to load profile");
         return;
       }
 
       if (!profileData) {
-        console.log("Creating new admin profile");
+        console.log("No profile found, creating admin profile...");
         const { data: newProfile, error: createError } = await supabase
           .from("profiles")
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              email_notifications: false,
-              marketing_emails: false,
-              language: "en",
-              currency: "USD"
-            }
-          ])
+          .insert([{
+            id: session.user.id,
+            email: session.user.email,
+            email_notifications: false,
+            marketing_emails: false,
+            language: "en",
+            currency: "USD"
+          }])
           .select()
           .single();
 
@@ -86,15 +89,15 @@ export default function Settings() {
           return;
         }
 
-        console.log("New profile created:", newProfile);
+        console.log("New admin profile created:", newProfile);
         setProfile(newProfile);
       } else {
-        console.log("Profile loaded:", profileData);
+        console.log("Existing profile loaded:", profileData);
         setProfile(profileData);
       }
     } catch (error) {
-      console.error("Error in loadProfile:", error);
-      toast.error("Error loading profile");
+      console.error("Error in checkAdminAndLoadProfile:", error);
+      toast.error("Error loading settings");
     } finally {
       setLoading(false);
     }
@@ -102,7 +105,6 @@ export default function Settings() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!profile) {
       toast.error("No profile data to save");
       return;
@@ -113,9 +115,8 @@ export default function Settings() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
-        toast.error("You must be logged in to update settings");
+        toast.error("Authentication required");
         return;
       }
 
@@ -152,10 +153,18 @@ export default function Settings() {
     );
   }
 
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Admin access required</p>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Please sign in to view settings</p>
+        <p className="text-muted-foreground">No profile data available</p>
       </div>
     );
   }
