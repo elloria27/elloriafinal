@@ -8,9 +8,8 @@ import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings2 } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart } from "lucide-react";
 import Dashboard from "./admin/Dashboard";
-import Settings from "./admin/Settings";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -106,7 +105,7 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-6 gap-1">
+            <TabsList className="w-full grid grid-cols-5 gap-1">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="hidden md:inline">Dashboard</span>
@@ -126,10 +125,6 @@ const Admin = () => {
               <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
                 <FileText className="h-5 w-5" />
                 <span className="hidden md:inline">Pages</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
-                <Settings2 className="h-5 w-5" />
-                <span className="hidden md:inline">Settings</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -153,10 +148,6 @@ const Admin = () => {
 
             <TabsContent value="pages">
               <PageManagement />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <Settings />
             </TabsContent>
           </div>
         </Tabs>

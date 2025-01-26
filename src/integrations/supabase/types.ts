@@ -300,48 +300,6 @@ export type Database = {
         }
         Relationships: []
       }
-      site_settings: {
-        Row: {
-          created_at: string
-          custom_scripts: Json | null
-          default_currency: Database["public"]["Enums"]["supported_currency"]
-          default_language: Database["public"]["Enums"]["supported_language"]
-          enable_registration: boolean
-          enable_search_indexing: boolean
-          id: string
-          meta_description: string | null
-          meta_keywords: string | null
-          site_title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          custom_scripts?: Json | null
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
-          default_language?: Database["public"]["Enums"]["supported_language"]
-          enable_registration?: boolean
-          enable_search_indexing?: boolean
-          id?: string
-          meta_description?: string | null
-          meta_keywords?: string | null
-          site_title?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          custom_scripts?: Json | null
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
-          default_language?: Database["public"]["Enums"]["supported_language"]
-          enable_registration?: boolean
-          enable_search_indexing?: boolean
-          id?: string
-          meta_description?: string | null
-          meta_keywords?: string | null
-          site_title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -423,8 +381,6 @@ export type Database = {
         | "elevating_essentials"
         | "game_changer"
         | "competitor_comparison"
-      supported_currency: "USD" | "EUR" | "UAH" | "CAD"
-      supported_language: "en" | "fr" | "uk"
       user_role: "admin" | "client"
     }
     CompositeTypes: {

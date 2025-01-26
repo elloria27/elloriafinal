@@ -25,7 +25,7 @@ export const PreferencesForm = ({
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="fr">Français</SelectItem>
-            <SelectItem value="uk">Українська</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -38,8 +38,8 @@ export const PreferencesForm = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="USD">USD ($)</SelectItem>
+            <SelectItem value="CAD">CAD ($)</SelectItem>
             <SelectItem value="EUR">EUR (€)</SelectItem>
-            <SelectItem value="UAH">UAH (₴)</SelectItem>
           </SelectContent>
         </Select>
       </div>
