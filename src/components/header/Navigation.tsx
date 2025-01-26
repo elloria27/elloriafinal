@@ -23,12 +23,14 @@ export const Navigation = () => {
     'product',
     'order-success',
     'admin',
-    'terms',
-    'donation'
+    'terms'
   ];
 
   const buildMenuTree = (pages: any[], parentId: string | null = null): MenuItem[] => {
-    return pages
+    console.log('Building menu tree for parent:', parentId);
+    console.log('Available pages:', pages);
+    
+    const menuItems = pages
       .filter(page => 
         page.is_published && 
         !technicalPages.includes(page.slug) &&
@@ -36,11 +38,18 @@ export const Navigation = () => {
         page.parent_id === parentId
       )
       .sort((a, b) => (a.menu_order || 0) - (b.menu_order || 0))
-      .map(page => ({
-        name: page.title,
-        path: page.slug === 'index' ? '/' : `/${page.slug}`,
-        children: buildMenuTree(pages, page.id)
-      }));
+      .map(page => {
+        const children = buildMenuTree(pages, page.id);
+        console.log(`Page ${page.title} has ${children.length} children`);
+        
+        return {
+          name: page.title,
+          path: page.slug === 'index' ? '/' : `/${page.slug}`,
+          children: children.length > 0 ? children : undefined
+        };
+      });
+
+    return menuItems;
   };
 
   const menuItems = buildMenuTree(publishedPages);
@@ -49,7 +58,7 @@ export const Navigation = () => {
     return null;
   }
 
-  console.log('Menu Items:', menuItems); // Debug log to see what menu items are being generated
+  console.log('Final Menu Items:', menuItems);
 
   const MenuItem = ({ item }: { item: MenuItem }) => {
     const hasChildren = item.children && item.children.length > 0;
