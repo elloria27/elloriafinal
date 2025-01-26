@@ -51,7 +51,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
   const title = content?.title || "Why Choose Elloria?";
   const subtitle = content?.subtitle || "Experience the difference in every detail";
   const buttonText = content?.buttonText || "Experience the Elloria Difference";
-  const buttonLink = content?.buttonLink || "/shop";
+  const buttonLink = (content?.buttonLink as string) || "/shop";
 
   return (
     <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
