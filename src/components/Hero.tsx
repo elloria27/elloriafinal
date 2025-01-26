@@ -52,7 +52,7 @@ export const Hero = ({ content }: HeroProps) => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden pt-16">
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden pt-12">
       <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
       
       <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
