@@ -7,6 +7,8 @@ interface SustainabilityProps {
 }
 
 export const Sustainability = ({ content }: SustainabilityProps) => {
+  console.log("Sustainability content received:", content);
+  
   const defaultContent = {
     title: "Our Commitment to Sustainability",
     description: "We're dedicated to reducing our environmental impact while delivering premium products through innovative, sustainable practices.",
@@ -38,25 +40,9 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ]
   };
 
-  const {
-    title = defaultContent.title,
-    description = defaultContent.description,
-    stats = defaultContent.stats,
-    timelineItems = defaultContent.timelineItems
-  } = content || defaultContent;
-
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case "Recycle":
-        return <Recycle className="w-10 h-10" />;
-      case "Package":
-        return <Package className="w-10 h-10" />;
-      case "Factory":
-        return <Factory className="w-10 h-10" />;
-      default:
-        return <Leaf className="w-10 h-10" />;
-    }
-  };
+  // Ensure we're properly handling the content prop
+  const finalContent = content || defaultContent;
+  console.log("Final content being used:", finalContent);
 
   return (
     <section className="py-24 bg-gradient-to-b from-accent-green/10 to-white">
@@ -69,15 +55,15 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-600">
-            {title}
+            {finalContent.title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            {description}
+            {finalContent.description}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          {stats.map((stat, index) => (
+          {(finalContent.stats || defaultContent.stats).map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -95,7 +81,18 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                   transition: { duration: 0.2 }
                 }}
               >
-                {getIconComponent(stat.icon)}
+                {(() => {
+                  switch (stat.icon) {
+                    case "Recycle":
+                      return <Recycle className="w-10 h-10" />;
+                    case "Package":
+                      return <Package className="w-10 h-10" />;
+                    case "Factory":
+                      return <Factory className="w-10 h-10" />;
+                    default:
+                      return <Leaf className="w-10 h-10" />;
+                  }
+                })()}
               </motion.div>
               <h3 className="text-2xl font-bold mb-3">{stat.title}</h3>
               <p className="text-gray-600">{stat.description}</p>
@@ -111,7 +108,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           className="max-w-4xl mx-auto"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {timelineItems.map((item, index) => (
+            {(finalContent.timelineItems || defaultContent.timelineItems).map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -124,7 +121,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                   {index + 1}
                 </div>
                 <span className="text-gray-700 font-medium">{item}</span>
-                {index < timelineItems.length - 1 && (
+                {index < (finalContent.timelineItems || defaultContent.timelineItems).length - 1 && (
                   <div className="hidden md:block w-12 h-0.5 bg-primary/20" />
                 )}
               </motion.div>
