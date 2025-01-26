@@ -32,6 +32,7 @@ const Settings = () => {
   });
 
   if (error) {
+    console.error("Settings error:", error);
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="text-red-500">Error loading settings. Please try again.</div>

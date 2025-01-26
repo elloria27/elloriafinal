@@ -19,7 +19,9 @@ interface Script {
 export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) => {
   const [scripts, setScripts] = useState<Script[]>(() => {
     try {
-      const existingScripts = settings?.custom_scripts || [];
+      if (!settings?.custom_scripts) return [];
+      
+      const existingScripts = settings.custom_scripts;
       if (Array.isArray(existingScripts)) {
         return existingScripts.map((script: any) => ({
           id: script.id || crypto.randomUUID(),
@@ -76,7 +78,10 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
         })
         .eq("id", settings.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating custom scripts:", error);
+        throw error;
+      }
 
       toast.success("Custom scripts updated successfully");
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
