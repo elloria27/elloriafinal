@@ -57,7 +57,7 @@ const Index = () => {
             { type: 'store_brands' as BlockType, content: {}, order_index: 4, page_id: newPage.id },
             { type: 'sustainability' as BlockType, content: {}, order_index: 5, page_id: newPage.id },
             { type: 'product_carousel' as BlockType, content: {}, order_index: 6, page_id: newPage.id },
-            { type: 'features' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
+            { type: 'competitor_comparison' as BlockType, content: {}, order_index: 7, page_id: newPage.id },
             { type: 'testimonials' as BlockType, content: {}, order_index: 8, page_id: newPage.id },
             { type: 'blog_preview' as BlockType, content: {}, order_index: 9, page_id: newPage.id },
             { type: 'newsletter' as BlockType, content: {}, order_index: 10, page_id: newPage.id }
@@ -115,6 +115,8 @@ const Index = () => {
         return <Sustainability />;
       case 'product_carousel':
         return <ProductCarousel />;
+      case 'competitor_comparison':
+        return <CompetitorComparison />;
       case 'testimonials':
         return <Testimonials />;
       case 'blog_preview':
