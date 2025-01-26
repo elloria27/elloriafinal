@@ -19,7 +19,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Edit2, Plus, Trash2, Layout } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
@@ -38,9 +37,13 @@ interface Page {
   created_at: string;
   updated_at: string;
   page_template?: string;
-  parent_id?: string | null;
-  menu_type: 'main' | 'submenu';
-  menu_order: number;
+}
+
+interface ContentBlockJson {
+  id: string;
+  type: string;
+  content: Record<string, unknown>;
+  order_index: number;
 }
 
 export const PageManagement = () => {
@@ -154,10 +157,7 @@ export const PageManagement = () => {
         content: [],
         is_published: false,
         show_in_header: false,
-        show_in_footer: false,
-        menu_type: formData.get('menu_type')?.toString() || 'main',
-        parent_id: formData.get('parent_id')?.toString() || null,
-        menu_order: parseInt(formData.get('menu_order')?.toString() || '0')
+        show_in_footer: false
       };
 
       console.log('Creating new page:', newPage);
@@ -189,9 +189,6 @@ export const PageManagement = () => {
         is_published: formData.get('is_published') === 'on',
         show_in_header: formData.get('show_in_header') === 'on',
         show_in_footer: formData.get('show_in_footer') === 'on',
-        menu_type: formData.get('menu_type')?.toString() as 'main' | 'submenu' || 'main',
-        parent_id: formData.get('parent_id')?.toString() || null,
-        menu_order: parseInt(formData.get('menu_order')?.toString() || '0'),
         updated_at: new Date().toISOString(),
       };
 
@@ -206,7 +203,6 @@ export const PageManagement = () => {
 
       toast.success("Page updated successfully");
       setIsEditDialogOpen(false);
-      setSelectedPage(null);
       await fetchPages();
     } catch (error) {
       console.error('Error updating page:', error);
@@ -250,10 +246,6 @@ export const PageManagement = () => {
   const handleEditContent = (page: Page) => {
     console.log('Opening content editor for page:', page);
     setSelectedPageForEdit(page);
-  };
-
-  const getMainPages = () => {
-    return pages.filter(page => !page.parent_id && page.menu_type === 'main');
   };
 
   if (selectedPageForEdit) {
@@ -314,43 +306,6 @@ export const PageManagement = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="menu_type">Menu Type</Label>
-                <Select name="menu_type" defaultValue="main">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select menu type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="main">Main Menu</SelectItem>
-                    <SelectItem value="submenu">Submenu</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="parent_id">Parent Page</Label>
-                <Select name="parent_id">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent page" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {getMainPages().map(page => (
-                      <SelectItem key={page.id} value={page.id}>
-                        {page.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="menu_order">Menu Order</Label>
-                <Input
-                  id="menu_order"
-                  name="menu_order"
-                  type="number"
-                  defaultValue="0"
-                />
-              </div>
               <Button type="submit" className="w-full">
                 Create Page
               </Button>
@@ -365,9 +320,7 @@ export const PageManagement = () => {
             <TableHead>Title</TableHead>
             <TableHead>URL</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Menu Type</TableHead>
-            <TableHead>Parent Page</TableHead>
-            <TableHead>Menu Order</TableHead>
+            <TableHead>Menu Visibility</TableHead>
             <TableHead>Last Updated</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -379,12 +332,12 @@ export const PageManagement = () => {
               <TableCell>{page.slug}</TableCell>
               <TableCell>{page.is_published ? 'Published' : 'Draft'}</TableCell>
               <TableCell>
-                {page.menu_type === 'main' ? 'Main Menu' : 'Submenu'}
+                <div className="space-y-1">
+                  {page.show_in_header && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Header</span>}
+                  {page.show_in_footer && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Footer</span>}
+                  {!page.show_in_header && !page.show_in_footer && <span className="text-xs text-gray-500">Hidden</span>}
+                </div>
               </TableCell>
-              <TableCell>
-                {page.parent_id ? pages.find(p => p.id === page.parent_id)?.title || 'Unknown' : 'None'}
-              </TableCell>
-              <TableCell>{page.menu_order}</TableCell>
               <TableCell>{new Date(page.updated_at).toLocaleDateString()}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -397,25 +350,15 @@ export const PageManagement = () => {
                     <Layout className="h-4 w-4" />
                   </Button>
 
-                  <Dialog 
-                    open={isEditDialogOpen && selectedPage?.id === page.id} 
-                    onOpenChange={(open) => {
-                      if (open) {
-                        setSelectedPage(page);
-                      } else {
-                        setSelectedPage(null);
-                      }
-                      setIsEditDialogOpen(open);
-                    }}
-                  >
+                  <Dialog open={isEditDialogOpen && selectedPage?.id === page.id} onOpenChange={(open) => {
+                    setIsEditDialogOpen(open);
+                    if (!open) setSelectedPage(null);
+                  }}>
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          setSelectedPage(page);
-                          setIsEditDialogOpen(true);
-                        }}
+                        onClick={() => setSelectedPage(page)}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -466,51 +409,6 @@ export const PageManagement = () => {
                             defaultChecked={selectedPage?.show_in_footer}
                           />
                           <Label htmlFor="show_in_footer">Show in Footer Menu</Label>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="menu_type">Menu Type</Label>
-                          <Select 
-                            name="menu_type" 
-                            defaultValue={selectedPage?.menu_type}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select menu type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="main">Main Menu</SelectItem>
-                              <SelectItem value="submenu">Submenu</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="parent_id">Parent Page</Label>
-                          <Select 
-                            name="parent_id" 
-                            defaultValue={selectedPage?.parent_id || ""}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select parent page" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="">None</SelectItem>
-                              {getMainPages()
-                                .filter(p => p.id !== selectedPage?.id)
-                                .map(page => (
-                                  <SelectItem key={page.id} value={page.id}>
-                                    {page.title}
-                                  </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="menu_order">Menu Order</Label>
-                          <Input
-                            id="menu_order"
-                            name="menu_order"
-                            type="number"
-                            defaultValue={selectedPage?.menu_order.toString()}
-                          />
                         </div>
                         <Button type="submit" className="w-full">
                           Save Changes

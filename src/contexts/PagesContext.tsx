@@ -2,15 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Page = {
-  id: string;
   slug: string;
   title: string;
   is_published: boolean;
   show_in_header: boolean;
   show_in_footer: boolean;
-  menu_type: 'main' | 'submenu';
-  parent_id: string | null;
-  menu_order: number;
 }
 
 type PagesContextType = {
@@ -32,7 +28,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: pages, error } = await supabase
           .from('pages')
-          .select('id, slug, title, is_published, show_in_header, show_in_footer, menu_type, parent_id, menu_order')
+          .select('slug, title, is_published, show_in_header, show_in_footer')
           .order('created_at');
 
         if (error) {
@@ -40,13 +36,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Transform the data to ensure menu_type is correctly typed
-        const typedPages: Page[] = (pages || []).map(page => ({
-          ...page,
-          menu_type: page.menu_type as 'main' | 'submenu'
-        }));
-
-        setPublishedPages(typedPages);
+        setPublishedPages(pages || []);
       } catch (error) {
         console.error('Error:', error);
       } finally {

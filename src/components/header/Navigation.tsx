@@ -1,19 +1,11 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
-import { ChevronDown } from "lucide-react";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 
 export const Navigation = () => {
   const { publishedPages, isLoading } = usePages();
 
+  // Define technical pages that should not appear in the menu
   const technicalPages = [
     'login',
     'register',
@@ -24,77 +16,38 @@ export const Navigation = () => {
     'admin'
   ];
 
-  const mainMenuItems = publishedPages
-    .filter(page => 
-      page.is_published && 
-      !technicalPages.includes(page.slug) &&
-      page.show_in_header &&
-      page.menu_type === 'main' &&
-      !page.parent_id
-    )
-    .sort((a, b) => a.menu_order - b.menu_order);
-
-  const getSubmenuItems = (parentId: string) => {
-    return publishedPages
+  const navItems = [
+    ...publishedPages
       .filter(page => 
         page.is_published && 
         !technicalPages.includes(page.slug) &&
-        page.show_in_header &&
-        page.menu_type === 'submenu' &&
-        page.parent_id === parentId
+        page.show_in_header
       )
-      .sort((a, b) => a.menu_order - b.menu_order);
-  };
+      .map(page => ({
+        name: page.title,
+        path: page.slug === 'index' ? '/' : `/${page.slug}`
+      }))
+  ];
 
   if (isLoading) {
-    return null;
+    return null; // Or a loading skeleton
   }
 
   return (
-    <NavigationMenu className="hidden md:flex items-center ml-auto mr-8">
-      <NavigationMenuList>
-        {mainMenuItems.map((item) => {
-          const submenuItems = getSubmenuItems(item.id);
-          
-          if (submenuItems.length > 0) {
-            return (
-              <NavigationMenuItem key={item.id}>
-                <NavigationMenuTrigger className="text-gray-600 hover:text-primary transition-colors text-sm tracking-[0.15em] uppercase font-light">
-                  {item.title}
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="p-4 w-[200px] space-y-2">
-                    {submenuItems.map((subItem) => (
-                      <li key={subItem.id}>
-                        <Link 
-                          to={subItem.slug === 'index' ? '/' : `/${subItem.slug}`}
-                          className="block text-sm text-gray-600 hover:text-primary transition-colors py-2"
-                        >
-                          {subItem.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            );
-          }
-
-          return (
-            <NavigationMenuItem key={item.id}>
-              <Link to={item.slug === 'index' ? '/' : `/${item.slug}`}>
-                <motion.span
-                  className="text-gray-600 hover:text-primary transition-colors text-sm tracking-[0.15em] uppercase font-light cursor-pointer px-4 py-2 block"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {item.title}
-                </motion.span>
-              </Link>
-            </NavigationMenuItem>
-          );
-        })}
-      </NavigationMenuList>
-    </NavigationMenu>
+    <nav className="hidden md:flex items-center space-x-12 ml-auto mr-8">
+      {navItems.map((item) => (
+        <motion.div key={item.name}>
+          <Link to={item.path}>
+            <motion.span
+              className="text-gray-600 hover:text-primary transition-colors text-sm tracking-[0.15em] uppercase font-light cursor-pointer"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {item.name}
+            </motion.span>
+          </Link>
+        </motion.div>
+      ))}
+    </nav>
   );
 };
