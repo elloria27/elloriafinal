@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { PreferencesForm } from "@/components/profile/PreferencesForm";
+import { Loader2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [marketingEmails, setMarketingEmails] = useState(false);
-  const [language, setLanguage] = useState("en");
-  const [currency, setCurrency] = useState("USD");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [changingPassword, setChangingPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email_notifications: false,
+    marketing_emails: false,
+    language: "en",
+    currency: "USD",
+  });
 
   useEffect(() => {
     fetchProfile();
@@ -27,14 +27,16 @@ export default function Settings() {
 
   const fetchProfile = async () => {
     try {
-      console.log("Fetching profile for settings...");
+      console.log("Checking auth session...");
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session?.user) {
-        console.log("No authenticated user found in settings");
+        console.log("No authenticated user found");
+        toast.error("Please sign in to view settings");
         return;
       }
 
-      console.log("User found in settings:", session.user.id);
+      console.log("Fetching profile for user:", session.user.id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -42,176 +44,165 @@ export default function Settings() {
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching profile in settings:", error);
-        throw error;
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile settings");
+        return;
       }
 
       if (data) {
-        console.log("Profile data fetched in settings:", data);
+        console.log("Profile loaded:", data);
         setProfile(data);
-        setEmailNotifications(data.email_notifications || false);
-        setMarketingEmails(data.marketing_emails || false);
-        setLanguage(data.language || "en");
-        setCurrency(data.currency || "USD");
+        setFormData({
+          email_notifications: data.email_notifications || false,
+          marketing_emails: data.marketing_emails || false,
+          language: data.language || "en",
+          currency: data.currency || "USD",
+        });
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error in fetchProfile:", error);
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSetting = async (setting: 'email_notifications' | 'marketing_emails' | 'language' | 'currency', value: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
     try {
-      console.log(`Updating setting ${setting} to:`, value);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log("No authenticated user found while updating settings");
         toast.error("You must be logged in to update settings");
         return;
       }
 
+      console.log("Updating settings for user:", user.id);
       const { error } = await supabase
         .from("profiles")
-        .update({ [setting]: value })
+        .update({
+          email_notifications: formData.email_notifications,
+          marketing_emails: formData.marketing_emails,
+          language: formData.language,
+          currency: formData.currency,
+        })
         .eq("id", user.id);
 
-      if (error) {
-        console.error("Error updating settings:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Setting updated successfully");
-      setProfile(prev => prev ? { ...prev, [setting]: value } : null);
+      console.log("Settings updated successfully");
       toast.success("Settings updated successfully");
     } catch (error) {
       console.error("Error updating settings:", error);
       toast.error("Failed to update settings");
-    }
-  };
-
-  const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.error("New passwords don't match");
-      return;
-    }
-
-    try {
-      setChangingPassword(true);
-      console.log("Changing password...");
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) {
-        console.error("Error changing password:", error);
-        throw error;
-      }
-
-      console.log("Password updated successfully");
-      toast.success("Password updated successfully");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error) {
-      console.error("Error changing password:", error);
-      toast.error("Failed to update password");
     } finally {
-      setChangingPassword(false);
+      setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Please sign in to view settings</p>
+      </div>
+    );
   }
 
   return (
-    <main className="flex-1 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          <h2 className="text-xl font-semibold">Preferences</h2>
-          <PreferencesForm
-            language={language}
-            setLanguage={(value) => {
-              setLanguage(value);
-              updateSetting("language", value);
-            }}
-            currency={currency}
-            setCurrency={(value) => {
-              setCurrency(value);
-              updateSetting("currency", value);
-            }}
-          />
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          <h2 className="text-xl font-semibold">Notifications</h2>
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Notifications</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="notifications">Email Notifications</Label>
-                <p className="text-sm text-gray-500">
-                  Receive email notifications about your account activity.
+                <Label>Email Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive email notifications about your account
                 </p>
               </div>
               <Switch
-                id="notifications"
-                checked={emailNotifications}
-                onCheckedChange={(checked) => {
-                  setEmailNotifications(checked);
-                  updateSetting("email_notifications", checked);
-                }}
+                checked={formData.email_notifications}
+                onCheckedChange={(checked) =>
+                  setFormData(prev => ({ ...prev, email_notifications: checked }))
+                }
               />
             </div>
+            
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="marketing">Marketing Communications</Label>
-                <p className="text-sm text-gray-500">
-                  Receive updates about new products and features.
+                <Label>Marketing Emails</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive updates about new products and features
                 </p>
               </div>
               <Switch
-                id="marketing"
-                checked={marketingEmails}
-                onCheckedChange={(checked) => {
-                  setMarketingEmails(checked);
-                  updateSetting("marketing_emails", checked);
-                }}
+                checked={formData.marketing_emails}
+                onCheckedChange={(checked) =>
+                  setFormData(prev => ({ ...prev, marketing_emails: checked }))
+                }
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          <h2 className="text-xl font-semibold">Change Password</h2>
-          <div className="space-y-4">
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Preferences</h2>
+          <div className="grid gap-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <Label>Language</Label>
+              <select
+                className="w-full p-2 border rounded-md"
+                value={formData.language}
+                onChange={(e) =>
+                  setFormData(prev => ({ ...prev, language: e.target.value }))
+                }
+              >
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="uk">Ukrainian</option>
+              </select>
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
+              <Label>Currency</Label>
+              <select
+                className="w-full p-2 border rounded-md"
+                value={formData.currency}
+                onChange={(e) =>
+                  setFormData(prev => ({ ...prev, currency: e.target.value }))
+                }
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="UAH">UAH (₴)</option>
+              </select>
             </div>
-            <Button
-              onClick={handlePasswordChange}
-              disabled={changingPassword || !newPassword || !confirmPassword}
-            >
-              {changingPassword ? "Updating..." : "Update Password"}
-            </Button>
           </div>
         </div>
-      </div>
-    </main>
+
+        <Button type="submit" disabled={saving}>
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Changes"
+          )}
+        </Button>
+      </form>
+    </div>
   );
 }
