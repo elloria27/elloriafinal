@@ -8,7 +8,7 @@
 main {
   flex: 1 0 auto;
   width: 100%;
-  padding-top: 5rem;
+  padding-top: 4rem;
   display: flex;
   flex-direction: column;
 }
