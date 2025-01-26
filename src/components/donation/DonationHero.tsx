@@ -21,13 +21,22 @@ export const DonationHero = () => {
           className="max-w-3xl mx-auto text-center"
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
-            Empowering Women,{" "}
-            <span className="text-primary">Changing Lives</span>
+            Join Us in Supporting{" "}
+            <span className="text-primary">Women and Children in Need</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-800 mb-8">
-            Join us in our mission to provide essential feminine care products to women
-            and girls in need. Together, we can make a difference.
+            Your contribution helps provide essential hygiene products and support to
+            those who need it most.
           </p>
+          <button
+            onClick={() => {
+              const form = document.querySelector("#donation-form");
+              form?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Donate Now
+          </button>
         </motion.div>
       </div>
     </section>

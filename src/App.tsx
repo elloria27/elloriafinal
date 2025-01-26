@@ -23,6 +23,7 @@ import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
 import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
+import Donation from "@/pages/Donation";
 
 import "./App.css";
 
@@ -128,6 +129,11 @@ function AppRoutes() {
       <Route path="/terms" element={
         <ProtectedRoute slug="terms">
           <Terms />
+        </ProtectedRoute>
+      } />
+      <Route path="/donation" element={
+        <ProtectedRoute slug="donation">
+          <Donation />
         </ProtectedRoute>
       } />
     </Routes>
