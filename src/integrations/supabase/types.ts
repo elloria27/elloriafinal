@@ -137,7 +137,10 @@ export type Database = {
           created_at: string | null
           id: string
           is_published: boolean | null
+          menu_order: number | null
+          menu_type: string | null
           page_template: string | null
+          parent_id: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
@@ -150,7 +153,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_published?: boolean | null
+          menu_order?: number | null
+          menu_type?: string | null
           page_template?: string | null
+          parent_id?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug: string
@@ -163,14 +169,25 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_published?: boolean | null
+          menu_order?: number | null
+          menu_type?: string | null
           page_template?: string | null
+          parent_id?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug?: string
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -317,7 +334,10 @@ export type Database = {
           created_at: string | null
           id: string
           is_published: boolean | null
+          menu_order: number | null
+          menu_type: string | null
           page_template: string | null
+          parent_id: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
