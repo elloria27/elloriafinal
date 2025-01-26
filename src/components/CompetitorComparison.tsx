@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Shield, Leaf, Heart, Sparkles } from "lucide-react";
 import { CompetitorComparisonContent } from "@/types/content-blocks";
+import { Link } from "react-router-dom";
 
 const iconComponents = {
   Shield,
@@ -50,6 +51,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
   const title = content?.title || "Why Choose Elloria?";
   const subtitle = content?.subtitle || "Experience the difference in every detail";
   const buttonText = content?.buttonText || "Experience the Elloria Difference";
+  const buttonLink = content?.buttonLink || "/shop";
 
   return (
     <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
@@ -158,12 +160,14 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
           transition={{ duration: 0.6 }}
           className="text-center mt-12"
         >
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {buttonText}
-          </Button>
+          <Link to={buttonLink}>
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {buttonText}
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

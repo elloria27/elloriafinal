@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, CompetitorComparisonContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -12,7 +12,7 @@ interface PropertyEditorProps {
   onUpdate: (id: string, content: BlockContent) => void;
 }
 
-const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkles", "Recycle", "Package", "Factory"];
+const availableIcons = ["Shield", "Leaf", "Heart", "Sparkles"];
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
@@ -33,18 +33,27 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const addMetric = () => {
-    if (!content || !('metrics' in content)) return;
-    
-    const newMetric = {
-      category: "New Category",
-      elloria: 100,
-      competitors: 50,
-      icon: "Shield",
-      description: "Description"
-    };
-    
-    const metrics = [...((content as CompetitorComparisonContent).metrics || []), newMetric];
-    handleChange('metrics', metrics);
+    if (!content || !('metrics' in content)) {
+      const newMetric = {
+        category: "New Category",
+        elloria: 90,
+        competitors: 70,
+        icon: "Shield",
+        description: "Description"
+      };
+      handleChange('metrics', [newMetric]);
+    } else {
+      const metrics = [...((content as CompetitorComparisonContent).metrics || [])];
+      const newMetric = {
+        category: "New Category",
+        elloria: 90,
+        competitors: 70,
+        icon: "Shield",
+        description: "Description"
+      };
+      metrics.push(newMetric);
+      handleChange('metrics', metrics);
+    }
   };
 
   const removeMetric = (index: number) => {
@@ -92,11 +101,19 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 placeholder="Enter button text"
               />
             </div>
+            <div>
+              <Label>Button Link</Label>
+              <Input
+                value={getContentValue('buttonLink')}
+                onChange={(e) => handleChange('buttonLink', e.target.value)}
+                placeholder="Enter button link (e.g., /shop)"
+              />
+            </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Comparison Metrics</Label>
-                <Button onClick={addMetric} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={addMetric} size="sm" className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
                   Add Metric
                 </Button>
               </div>
