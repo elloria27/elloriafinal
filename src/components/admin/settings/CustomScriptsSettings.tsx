@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import { Tables, Json } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
 
 type SiteSettings = Tables<"site_settings">;
 
@@ -19,7 +19,7 @@ interface Script {
 export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) => {
   const [scripts, setScripts] = useState<Script[]>(() => {
     try {
-      const existingScripts = settings?.custom_scripts;
+      const existingScripts = settings?.custom_scripts || [];
       if (Array.isArray(existingScripts)) {
         return existingScripts.map((script: any) => ({
           id: script.id || crypto.randomUUID(),
@@ -43,17 +43,14 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
       name: "",
       content: ""
     };
-    console.log("Adding new script:", newScript);
     setScripts([...scripts, newScript]);
   };
 
   const removeScript = (id: string) => {
-    console.log("Removing script with id:", id);
     setScripts(scripts.filter((script) => script.id !== id));
   };
 
   const updateScript = (id: string, field: keyof Script, value: string) => {
-    console.log("Updating script:", { id, field, value });
     setScripts(
       scripts.map((script) =>
         script.id === id ? { ...script, [field]: value } : script
@@ -64,29 +61,23 @@ export const CustomScriptsSettings = ({ settings }: { settings: SiteSettings }) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Starting to save scripts...");
 
     try {
-      // Convert Script[] to Json type for Supabase
-      const scriptsForSaving = scripts.map(({ id, name, content }) => ({
+      const scriptsToSave = scripts.map(({ id, name, content }) => ({
         id,
         name,
-        content,
-      })) as Json;
+        content
+      }));
 
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scriptsForSaving,
+          custom_scripts: scriptsToSave
         })
         .eq("id", settings.id);
 
-      if (error) {
-        console.error("Error saving scripts:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Scripts saved successfully");
       toast.success("Custom scripts updated successfully");
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
     } catch (error) {

@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Settings2, Globe, DollarSign, Search, UserPlus, Code } from "lucide-react";
+import { Settings2, Globe, Search, UserPlus, Code } from "lucide-react";
 import { GeneralSettings } from "@/components/admin/settings/GeneralSettings";
 import { LocalizationSettings } from "@/components/admin/settings/LocalizationSettings";
 import { SearchSettings } from "@/components/admin/settings/SearchSettings";
@@ -12,7 +11,7 @@ import { RegistrationSettings } from "@/components/admin/settings/RegistrationSe
 import { CustomScriptsSettings } from "@/components/admin/settings/CustomScriptsSettings";
 
 const Settings = () => {
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading, error } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
       console.log("Fetching site settings...");
@@ -32,7 +31,15 @@ const Settings = () => {
     },
   });
 
-  if (isLoading) {
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-red-500">Error loading settings. Please try again.</div>
+      </div>
+    );
+  }
+
+  if (isLoading || !settings) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -41,7 +48,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center gap-2">
         <Settings2 className="h-6 w-6" />
         <h2 className="text-2xl font-bold">Site Settings</h2>
