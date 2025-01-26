@@ -31,24 +31,40 @@ export default function Settings() {
       }
 
       console.log("Current user ID:", session.user.id);
-      console.log("Current user email:", session.user.email);
 
-      const { data: profileData, error } = await supabase
+      // Check if user is admin
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (roleError) {
+        console.error("Error checking user role:", roleError);
+        toast.error("Error loading user role");
+        return;
+      }
+
+      if (roleData.role !== 'admin') {
+        console.log("User is not an admin");
+        toast.error("Admin access required");
+        return;
+      }
+
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .maybeSingle();
 
-      console.log("Profile query response:", { profileData, error });
-
-      if (error) {
-        console.error("Error fetching profile:", error);
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
         toast.error("Failed to load profile");
         return;
       }
 
       if (!profileData) {
-        console.log("No profile found, creating new profile");
+        console.log("Creating new admin profile");
         const { data: newProfile, error: createError } = await supabase
           .from("profiles")
           .insert([
