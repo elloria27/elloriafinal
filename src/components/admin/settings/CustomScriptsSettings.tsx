@@ -16,7 +16,7 @@ interface Script {
 
 export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
   const [scripts, setScripts] = useState<Script[]>(
-    (Array.isArray(settings?.custom_scripts) ? settings.custom_scripts : []) as Script[]
+    (settings?.custom_scripts ? JSON.parse(JSON.stringify(settings.custom_scripts)) : []) as Script[]
   );
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -45,20 +45,19 @@ export const CustomScriptsSettings = ({ settings }: { settings: any }) => {
     setIsLoading(true);
 
     try {
-      const scriptsJson = scripts.map(({ id, name, content }) => ({
-        id,
-        name,
-        content,
-      }));
-
+      console.log("Saving scripts:", scripts);
+      
       const { error } = await supabase
         .from("site_settings")
         .update({
-          custom_scripts: scriptsJson,
+          custom_scripts: scripts,
         })
         .eq("id", settings.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving scripts:", error);
+        throw error;
+      }
 
       toast.success("Custom scripts updated successfully");
       queryClient.invalidateQueries({ queryKey: ["site-settings"] });
