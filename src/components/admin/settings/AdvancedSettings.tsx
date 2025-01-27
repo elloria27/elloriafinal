@@ -99,7 +99,7 @@ export const AdvancedSettings = () => {
       const { error: updateError } = await supabase
         .from('site_settings')
         .update({ favicon_url: publicUrl })
-        .eq('id', 1);
+        .eq('id', '1'); // Convert number to string here
 
       if (updateError) throw updateError;
 
