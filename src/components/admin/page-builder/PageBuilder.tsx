@@ -6,6 +6,7 @@ import { ContentBlock, BlockContent, BlockType } from "@/types/content-blocks";
 import { PreviewPane } from "./PreviewPane";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
+import { Database } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
   pageId: string;
@@ -70,7 +71,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       }));
 
       // Prepare the data for Supabase update
-      const updateData = updatedBlocks.map(block => ({
+      const updateData: Database['public']['Tables']['content_blocks']['Update'][] = updatedBlocks.map(block => ({
         id: block.id,
         type: block.type,
         content: block.content,
@@ -116,7 +117,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleAddBlock = async (type: BlockType) => {
     try {
-      const newBlock = {
+      const newBlockData: Database['public']['Tables']['content_blocks']['Insert'] = {
         page_id: pageId,
         type,
         content: {},
@@ -125,7 +126,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       const { data, error } = await supabase
         .from('content_blocks')
-        .insert([newBlock])
+        .insert([newBlockData])
         .select()
         .single();
 
