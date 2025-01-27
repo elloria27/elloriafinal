@@ -11,7 +11,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
   const handleButtonClick = () => {
     if (content?.buttonUrl) {
-      window.location.href = content.buttonUrl;
+      window.location.href = String(content.buttonUrl);
     }
   };
 
