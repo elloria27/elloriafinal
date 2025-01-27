@@ -76,16 +76,6 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
       );
     }
 
-    if (fileType === 'application/pdf') {
-      return (
-        <iframe
-          src={previewUrl}
-          title="PDF preview"
-          className="w-full h-[70vh]"
-        />
-      );
-    }
-
     return (
       <div className="text-center py-8">
         Preview not available for this file type

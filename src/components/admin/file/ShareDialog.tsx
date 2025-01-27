@@ -23,56 +23,33 @@ interface ShareDialogProps {
 }
 
 export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
-  const [accessLevel, setAccessLevel] = useState<string>("public");
+  const [accessLevel, setAccessLevel] = useState<string>("view");
   const [shareLink, setShareLink] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateShareLink = async () => {
-    if (!fileName) {
-      console.error('No file name provided');
-      toast.error("No file selected");
-      return;
-    }
+    if (!fileName) return;
 
     try {
       setIsGenerating(true);
-      console.log('Starting share link generation...');
-      
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        console.error('Error getting user:', userError);
-        toast.error("Authentication error");
-        return;
-      }
-
-      const userId = userData.user?.id;
-      console.log('Current user ID:', userId);
-      
       const shareToken = crypto.randomUUID();
-      console.log('Generated share token:', shareToken);
-      
-      const { error: insertError } = await supabase
+
+      const { error } = await supabase
         .from('file_shares')
         .insert({
           file_path: fileName,
           access_level: accessLevel,
           share_token: shareToken,
-          created_by: userId
+          created_by: (await supabase.auth.getUser()).data.user?.id,
         });
 
-      if (insertError) {
-        console.error('Error creating share:', insertError);
-        toast.error("Failed to generate share link");
-        return;
-      }
+      if (error) throw error;
 
       const link = `${window.location.origin}/shared/${shareToken}`;
-      console.log('Generated link:', link);
       setShareLink(link);
       toast.success("Share link generated successfully");
     } catch (error) {
-      console.error('Unexpected error generating share link:', error);
+      console.error('Error generating share link:', error);
       toast.error("Failed to generate share link");
     } finally {
       setIsGenerating(false);
@@ -91,7 +68,7 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
 
   return (
     <Dialog open={!!fileName} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Share File</DialogTitle>
         </DialogHeader>
@@ -103,8 +80,6 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="public">Public Access</SelectItem>
-                <SelectItem value="authenticated">Authenticated Users Only</SelectItem>
                 <SelectItem value="view">View Only</SelectItem>
                 <SelectItem value="download">Download</SelectItem>
                 <SelectItem value="edit">Edit</SelectItem>
@@ -113,12 +88,7 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
           </div>
 
           <div className="flex gap-2">
-            <Input 
-              value={shareLink} 
-              readOnly 
-              placeholder="Generate a share link"
-              className="flex-1"
-            />
+            <Input value={shareLink} readOnly placeholder="Generate a share link" />
             {!shareLink ? (
               <Button onClick={generateShareLink} disabled={isGenerating}>
                 Generate
