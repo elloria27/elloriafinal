@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Globe, Mail, Search, Shield, Users } from "lucide-react";
+import { Loader2, Globe, Mail, Search, Shield, Users, Settings, Upload, ToggleLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
@@ -97,11 +97,18 @@ export default function SiteSettings() {
 
       console.log('Settings loaded:', data);
       
-      // Transform the data to match our expected types
+      // Transform the data to match our expected types and provide defaults
       setSettings({
         ...data,
         custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
-        homepage_slug: data.homepage_slug || ''
+        homepage_slug: data.homepage_slug || '',
+        maintenance_mode: data.maintenance_mode || false,
+        contact_email: data.contact_email || '',
+        google_analytics_id: data.google_analytics_id || '',
+        enable_cookie_consent: data.enable_cookie_consent || false,
+        enable_https_redirect: data.enable_https_redirect || false,
+        max_upload_size: data.max_upload_size || 10,
+        enable_user_avatars: data.enable_user_avatars || false
       });
     } catch (error) {
       console.error('Error loading settings:', error);
