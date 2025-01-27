@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +13,8 @@ import {
   Image,
   MessageSquare
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 import { UserManagement } from "@/components/admin/UserManagement";
@@ -21,6 +25,40 @@ import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 
 const Admin = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          toast.error("Please login to access admin panel");
+          navigate("/login?redirectTo=/admin");
+          return;
+        }
+
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (roleError || !roleData || roleData.role !== 'admin') {
+          toast.error("Access denied - Admin privileges required");
+          navigate("/");
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking admin access:', error);
+        toast.error("Error verifying admin access");
+        navigate("/");
+      }
+    };
+
+    checkAdminAccess();
+  }, [navigate]);
+
   return (
     <div className="container mx-auto py-8">
       <Tabs defaultValue="dashboard" className="w-full">
