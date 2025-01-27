@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, BlockType } from "@/types/content-blocks";
 import { PreviewPane } from "./PreviewPane";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
@@ -27,22 +26,22 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     setSelectedBlock(block);
   };
 
-  const handleBlockUpdate = async (updatedBlock: ContentBlock) => {
+  const handleBlockUpdate = async (blockId: string, content: BlockContent) => {
     try {
-      console.log('Updating block:', updatedBlock);
+      console.log('Updating block:', blockId, content);
       
       const { error } = await supabase
         .from('content_blocks')
         .update({
-          content: updatedBlock.content,
+          content,
           updated_at: new Date().toISOString()
         })
-        .eq('id', updatedBlock.id);
+        .eq('id', blockId);
 
       if (error) throw error;
 
       setBlocks(blocks.map(block => 
-        block.id === updatedBlock.id ? updatedBlock : block
+        block.id === blockId ? { ...block, content } : block
       ));
       
       toast.success("Block updated successfully");
@@ -70,16 +69,19 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         order_index: index
       }));
 
+      // Prepare the data for Supabase update
+      const updateData = updatedBlocks.map(block => ({
+        id: block.id,
+        type: block.type,
+        content: block.content,
+        order_index: block.order_index,
+        updated_at: new Date().toISOString()
+      }));
+
       // Update database
       const { error } = await supabase
         .from('content_blocks')
-        .upsert(
-          updatedBlocks.map(block => ({
-            id: block.id,
-            order_index: block.order_index,
-            updated_at: new Date().toISOString()
-          }))
-        );
+        .upsert(updateData);
 
       if (error) throw error;
 
@@ -112,7 +114,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleAddBlock = async (type: string) => {
+  const handleAddBlock = async (type: BlockType) => {
     try {
       const newBlock = {
         page_id: pageId,
@@ -153,7 +155,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         />
 
         <ComponentPicker
-          isOpen={isComponentPickerOpen}
+          open={isComponentPickerOpen}
           onClose={() => setIsComponentPickerOpen(false)}
           onSelect={handleAddBlock}
         />
