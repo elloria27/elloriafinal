@@ -6,25 +6,26 @@ interface BlogPreviewProps {
   content?: BlogPreviewContent;
 }
 
-const articles = [
-  {
-    title: "Introducing Our Ultra-Thin Maxi Pads Collection",
-    category: "Product Launch",
-    image: "/lovable-uploads/3780f868-91c7-4512-bc4c-6af150baf90d.png"
-  },
-  {
-    title: "The Perfect Pad for Your Daily Routine",
-    category: "Lifestyle",
-    image: "/lovable-uploads/724f13b7-0a36-4896-b19a-e51981befdd3.png"
-  },
-  {
-    title: "Understanding Our Advanced Protection Technology",
-    category: "Education",
-    image: "/lovable-uploads/bf7261ba-df57-413d-b280-3b4b56528e73.png"
-  }
-];
-
 export const BlogPreview = ({ content }: BlogPreviewProps) => {
+  // Use content from props, or fallback to default values
+  const articles = content?.articles || [
+    {
+      title: "Introducing Our Ultra-Thin Maxi Pads Collection",
+      category: "Product Launch",
+      image: "/lovable-uploads/3780f868-91c7-4512-bc4c-6af150baf90d.png"
+    },
+    {
+      title: "The Perfect Pad for Your Daily Routine",
+      category: "Lifestyle",
+      image: "/lovable-uploads/724f13b7-0a36-4896-b19a-e51981befdd3.png"
+    },
+    {
+      title: "Understanding Our Advanced Protection Technology",
+      category: "Education",
+      image: "/lovable-uploads/bf7261ba-df57-413d-b280-3b4b56528e73.png"
+    }
+  ];
+
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">
@@ -36,10 +37,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Latest Articles
+            {content?.title || "Latest Articles"}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover tips, guides, and insights about feminine hygiene and comfort
+            {content?.subtitle || "Discover tips, guides, and insights about feminine hygiene and comfort"}
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
