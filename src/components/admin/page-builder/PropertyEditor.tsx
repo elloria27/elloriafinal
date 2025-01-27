@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -164,6 +164,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     const testimonials = getTestimonials();
     const newTestimonials = testimonials.filter((_, i) => i !== index);
     handleChange('testimonials', newTestimonials);
+  };
+
+  const getBlogArticles = () => {
+    if (!content || !('articles' in content)) {
+      return [];
+    }
+    const blogContent = content as BlogPreviewContent;
+    return Array.isArray(blogContent.articles) ? blogContent.articles : [];
   };
 
   const renderFields = () => {
@@ -839,7 +847,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Articles</Label>
                 <Button 
                   onClick={() => {
-                    const currentArticles = content.articles || [];
+                    const currentArticles = getBlogArticles();
                     handleChange('articles', [...currentArticles, {
                       title: "New Article",
                       category: "Category",
@@ -853,7 +861,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {(content.articles || []).map((article: any, index: number) => (
+              {getBlogArticles().map((article, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Article {index + 1}</Label>
@@ -861,7 +869,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newArticles = [...(content.articles || [])];
+                        const newArticles = getBlogArticles();
                         newArticles.splice(index, 1);
                         handleChange('articles', newArticles);
                       }}
@@ -875,7 +883,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={article.title}
                       onChange={(e) => {
-                        const newArticles = [...(content.articles || [])];
+                        const newArticles = getBlogArticles();
                         newArticles[index] = { ...newArticles[index], title: e.target.value };
                         handleChange('articles', newArticles);
                       }}
@@ -888,7 +896,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={article.category}
                       onChange={(e) => {
-                        const newArticles = [...(content.articles || [])];
+                        const newArticles = getBlogArticles();
                         newArticles[index] = { ...newArticles[index], category: e.target.value };
                         handleChange('articles', newArticles);
                       }}
@@ -901,7 +909,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={article.image}
                       onChange={(e) => {
-                        const newArticles = [...(content.articles || [])];
+                        const newArticles = getBlogArticles();
                         newArticles[index] = { ...newArticles[index], image: e.target.value };
                         handleChange('articles', newArticles);
                       }}
