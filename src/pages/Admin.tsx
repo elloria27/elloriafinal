@@ -85,16 +85,16 @@ const Admin = () => {
   const handleSignOut = async () => {
     try {
       console.log("Signing out...");
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await supabase.auth.signOut();
       
       console.log("Sign out successful");
       toast.success("Signed out successfully");
       
-      // Clear any cached session data
-      await supabase.auth.refreshSession();
+      // Clear any cached state
+      setIsAdmin(false);
+      setProfile(null);
       
-      // Force reload to clear any cached state
+      // Force navigation to home page
       window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);

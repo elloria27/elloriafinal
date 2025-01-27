@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: error.message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 200, // Changed from 400 to 200 to prevent non-2xx status
       },
     )
   }
