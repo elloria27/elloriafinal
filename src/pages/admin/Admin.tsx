@@ -12,14 +12,14 @@ import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { Button } from "@/components/ui/button";
 import { 
   LogOut, 
-  LayoutDashboard, 
-  Package, 
+  LayoutGrid, 
+  Package2, 
   Users, 
   FileText, 
-  ShoppingCart, 
-  Settings, 
   Files,
-  Image 
+  Image,
+  Settings2,
+  ShoppingCart
 } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
@@ -118,12 +118,12 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
-      <div className="container mx-auto px-2 py-4 md:px-4 md:py-8">
-        <div className="flex flex-col gap-4 md:gap-6">
-          <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex justify-between items-center">
-              <h1 className="text-xl md:text-3xl font-bold text-gray-800">
+              <h1 className="text-2xl font-semibold text-gray-900">
                 Hello, {profile?.full_name || 'Admin'} 👋
               </h1>
               <Button 
@@ -132,50 +132,50 @@ const Admin = () => {
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden md:inline">Sign Out</span>
+                Sign Out
               </Button>
             </div>
           </div>
         
-          <Tabs defaultValue="dashboard" className="space-y-4 md:space-y-6">
-            <div className="w-full overflow-x-auto pb-2">
-              <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 gap-1">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <LayoutDashboard className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Dashboard</span>
+          <Tabs defaultValue="dashboard" className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-2">
+              <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 gap-2">
+                <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 py-3">
+                  <LayoutGrid className="h-5 w-5" />
+                  <span className="text-xs">Dashboard</span>
                 </TabsTrigger>
-                <TabsTrigger value="products" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <Package className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Products</span>
+                <TabsTrigger value="products" className="flex flex-col items-center gap-1 py-3">
+                  <Package2 className="h-5 w-5" />
+                  <span className="text-xs">Products</span>
                 </TabsTrigger>
-                <TabsTrigger value="orders" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Orders</span>
+                <TabsTrigger value="orders" className="flex flex-col items-center gap-1 py-3">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="text-xs">Orders</span>
                 </TabsTrigger>
-                <TabsTrigger value="users" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <Users className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Users</span>
+                <TabsTrigger value="users" className="flex flex-col items-center gap-1 py-3">
+                  <Users className="h-5 w-5" />
+                  <span className="text-xs">Users</span>
                 </TabsTrigger>
-                <TabsTrigger value="pages" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <FileText className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Pages</span>
+                <TabsTrigger value="pages" className="flex flex-col items-center gap-1 py-3">
+                  <FileText className="h-5 w-5" />
+                  <span className="text-xs">Pages</span>
                 </TabsTrigger>
-                <TabsTrigger value="files" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <Files className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Files</span>
+                <TabsTrigger value="files" className="flex flex-col items-center gap-1 py-3">
+                  <Files className="h-5 w-5" />
+                  <span className="text-xs">Files</span>
                 </TabsTrigger>
-                <TabsTrigger value="media" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <Image className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Media</span>
+                <TabsTrigger value="media" className="flex flex-col items-center gap-1 py-3">
+                  <Image className="h-5 w-5" />
+                  <span className="text-xs">Media</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
-                  <Settings className="h-4 w-4 md:h-5 md:w-5" />
-                  <span className="hidden md:inline">Settings</span>
+                <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
+                  <Settings2 className="h-5 w-5" />
+                  <span className="text-xs">Settings</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-4 md:p-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
               <TabsContent value="dashboard">
                 <Dashboard />
               </TabsContent>
