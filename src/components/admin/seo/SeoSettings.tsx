@@ -51,18 +51,19 @@ export const SeoSettings = () => {
 
   const fetchPages = async () => {
     try {
-      console.log('Fetching pages for SEO management...');
-      const { data, error } = await supabase
-        .from('pages')
-        .select('id, title, slug, allow_indexing, meta_title, meta_description, meta_keywords, canonical_url, og_title, og_description, og_image, updated_at')
-        .order('title');
+      console.log('Fetching pages for SEO management using admin_fetch_all_pages...');
+      const { data, error } = await supabase.rpc('admin_fetch_all_pages');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching pages:', error);
+        toast.error("Error loading pages");
+        return;
+      }
 
       console.log('Pages fetched:', data);
       setPages(data || []);
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error('Error in fetchPages:', error);
       toast.error("Error loading pages");
     } finally {
       setLoading(false);
