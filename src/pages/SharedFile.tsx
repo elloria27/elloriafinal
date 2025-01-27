@@ -121,11 +121,21 @@ export default function SharedFile() {
 
     if (fileType === 'application/pdf') {
       return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto overflow-x-auto">
           <Document
             file={previewUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             className="flex flex-col items-center"
+            loading={
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+            error={
+              <div className="text-center py-4 text-red-500">
+                Failed to load PDF. Please try downloading the file instead.
+              </div>
+            }
           >
             {Array.from(new Array(numPages), (el, index) => (
               <Page 
@@ -133,6 +143,8 @@ export default function SharedFile() {
                 pageNumber={index + 1}
                 className="mb-4 shadow-lg"
                 width={Math.min(window.innerWidth - 48, 800)}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
               />
             ))}
           </Document>
@@ -187,27 +199,27 @@ export default function SharedFile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 pt-20 px-4 md:px-8">
       <div className="container mx-auto max-w-6xl">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h1 className="text-xl font-semibold mb-6 break-all">
-            {fileData.file_path.split('/').pop()}
-          </h1>
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <h1 className="text-xl font-semibold break-all">
+              {fileData.file_path.split('/').pop()}
+            </h1>
+            
+            {fileData.access_level === 'download' && (
+              <Button 
+                onClick={handleDownload}
+                className="w-full md:w-auto flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download File
+              </Button>
+            )}
+          </div>
           
           <div className="space-y-6">
             {renderPreview()}
-            
-            {fileData.access_level === 'download' && (
-              <div className="flex justify-center mt-4">
-                <Button 
-                  onClick={handleDownload}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download File
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
