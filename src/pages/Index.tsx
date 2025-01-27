@@ -38,7 +38,8 @@ const Index = () => {
         const { data: settingsData, error: settingsError } = await supabase
           .from('site_settings')
           .select('homepage_slug')
-          .maybeSingle(); // Changed from .single() to .maybeSingle()
+          .limit(1)
+          .maybeSingle();
 
         if (settingsError) {
           console.error('Error fetching homepage slug:', settingsError);
@@ -46,7 +47,7 @@ const Index = () => {
           return;
         }
 
-        // If no settings found, use 'index' as default homepage
+        // If no settings found or no homepage_slug set, use 'index' as default
         const homepageSlug = settingsData?.homepage_slug || 'index';
         console.log('Homepage slug:', homepageSlug);
 
@@ -55,11 +56,17 @@ const Index = () => {
           .from('pages')
           .select('id')
           .eq('slug', homepageSlug)
-          .single();
+          .maybeSingle();
 
         if (pageError) {
           console.error('Error fetching page:', pageError);
           toast.error("Error loading page content");
+          return;
+        }
+
+        if (!pageData) {
+          console.log('No page found with slug:', homepageSlug);
+          setBlocks([]);
           return;
         }
 
