@@ -10,8 +10,8 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, Files } from "lucide-react";
-import Dashboard from "./Dashboard";
-import SiteSettings from "./SiteSettings";
+import Dashboard from "@/pages/admin/Dashboard";
+import SiteSettings from "@/pages/admin/SiteSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
