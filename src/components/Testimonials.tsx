@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { TestimonialsContent } from "@/types/content-blocks";
+
+interface TestimonialsProps {
+  content?: TestimonialsContent;
+}
 
 const testimonials = [
   {
@@ -22,7 +27,7 @@ const testimonials = [
   }
 ];
 
-export const Testimonials = () => {
+export const Testimonials = ({ content }: TestimonialsProps) => {
   return (
     <section className="py-20 bg-secondary/10">
       <div className="container px-4">

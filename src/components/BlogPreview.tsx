@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { BlogPreviewContent } from "@/types/content-blocks";
+
+interface BlogPreviewProps {
+  content?: BlogPreviewContent;
+}
 
 const articles = [
   {
@@ -19,7 +24,7 @@ const articles = [
   }
 ];
 
-export const BlogPreview = () => {
+export const BlogPreview = ({ content }: BlogPreviewProps) => {
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">

@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Shield, Leaf, Heart, Sparkles } from "lucide-react";
+import { BlockContent } from "@/types/content-blocks";
+
+interface CompetitorComparisonProps {
+  content?: BlockContent;
+}
 
 const metrics = [
   {
@@ -33,7 +38,7 @@ const metrics = [
   }
 ];
 
-export const CompetitorComparison = () => {
+export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => {
   return (
     <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
       <div className="container px-4 max-w-4xl mx-auto">

@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail } from "lucide-react";
+import { NewsletterContent } from "@/types/content-blocks";
 
-export const Newsletter = () => {
+interface NewsletterProps {
+  content?: NewsletterContent;
+}
+
+export const Newsletter = ({ content }: NewsletterProps) => {
   const [email, setEmail] = useState("");
   const { toast } = useToast();
 
