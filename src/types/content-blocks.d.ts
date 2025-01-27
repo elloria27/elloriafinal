@@ -194,7 +194,8 @@ export type BlockType =
   | "about_hero_section"
   | "about_story"
   | "about_sustainability"
-  | "about_mission";
+  | "about_mission"
+  | "about_customer_impact";
 
 export interface ContentBlock {
   id: string;
