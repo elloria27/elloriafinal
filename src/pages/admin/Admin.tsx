@@ -8,8 +8,9 @@ import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
+import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Image } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 
@@ -107,7 +108,7 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-7 gap-1">
+            <TabsList className="w-full grid grid-cols-8 gap-1">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="hidden md:inline">Dashboard</span>
@@ -131,6 +132,10 @@ const Admin = () => {
               <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
                 <FolderIcon className="h-5 w-5" />
                 <span className="hidden md:inline">Files</span>
+              </TabsTrigger>
+              <TabsTrigger value="media" className="flex items-center gap-2 py-3 px-4">
+                <Image className="h-5 w-5" />
+                <span className="hidden md:inline">Media</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
                 <Settings className="h-5 w-5" />
@@ -162,6 +167,10 @@ const Admin = () => {
 
             <TabsContent value="files">
               <FileManagement />
+            </TabsContent>
+
+            <TabsContent value="media">
+              <MediaLibrary />
             </TabsContent>
 
             <TabsContent value="settings">
