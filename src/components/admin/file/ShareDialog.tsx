@@ -33,6 +33,9 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
     try {
       setIsGenerating(true);
       const shareToken = crypto.randomUUID();
+      
+      console.log('Generating share link for file:', fileName);
+      console.log('Access level:', accessLevel);
 
       const { error } = await supabase
         .from('file_shares')
@@ -43,9 +46,13 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
           created_by: (await supabase.auth.getUser()).data.user?.id,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating share:', error);
+        throw error;
+      }
 
       const link = `${window.location.origin}/shared/${shareToken}`;
+      console.log('Generated link:', link);
       setShareLink(link);
       toast.success("Share link generated successfully");
     } catch (error) {
@@ -68,7 +75,7 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
 
   return (
     <Dialog open={!!fileName} onOpenChange={() => onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share File</DialogTitle>
         </DialogHeader>
@@ -90,7 +97,12 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
           </div>
 
           <div className="flex gap-2">
-            <Input value={shareLink} readOnly placeholder="Generate a share link" />
+            <Input 
+              value={shareLink} 
+              readOnly 
+              placeholder="Generate a share link"
+              className="flex-1"
+            />
             {!shareLink ? (
               <Button onClick={generateShareLink} disabled={isGenerating}>
                 Generate

@@ -86,11 +86,11 @@ export default function SharedFile() {
 
   if (!fileInfo || !canAccessFile()) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           Shared File Not Found or Access Denied
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-center">
           This file may have been removed, the link has expired, or you don't have permission to access it.
         </p>
       </div>
@@ -98,24 +98,24 @@ export default function SharedFile() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 mt-20">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Shared File</h1>
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">Shared File</h1>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-lg font-medium">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <p className="text-base md:text-lg font-medium break-all">
                 {fileInfo.file_path.split('-').slice(1).join('-')}
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {fileInfo.access_level !== 'none' && (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setPreviewFile(fileInfo.file_path)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 w-full md:w-auto"
                     >
                       <Eye className="h-4 w-4" />
                       Preview
@@ -125,7 +125,7 @@ export default function SharedFile() {
                         variant="outline"
                         size="sm"
                         onClick={handleDownload}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full md:w-auto"
                       >
                         <Download className="h-4 w-4" />
                         Download
