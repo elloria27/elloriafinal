@@ -37,9 +37,11 @@ const SiteSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [pages, setPages] = useState<{ id: string; title: string; slug: string }[]>([]);
 
   useEffect(() => {
     loadSettings();
+    loadPages();
   }, []);
 
   const loadSettings = async () => {
@@ -59,6 +61,21 @@ const SiteSettings = () => {
       toast.error("Error loading site settings");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pages')
+        .select('id, title, slug');
+
+      if (error) throw error;
+
+      setPages(data);
+    } catch (error) {
+      console.error('Error loading pages:', error);
+      toast.error("Error loading pages");
     }
   };
 
@@ -306,6 +323,25 @@ const SiteSettings = () => {
                     onCheckedChange={(checked) => setSettings({ ...settings, enable_user_avatars: checked })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="homepage_slug">Homepage</Label>
+                <Select 
+                  value={settings.homepage_slug || ''}
+                  onValueChange={(value) => setSettings({ ...settings, homepage_slug: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select homepage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pages?.map((page) => (
+                      <SelectItem key={page.id} value={page.slug}>
+                        {page.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
