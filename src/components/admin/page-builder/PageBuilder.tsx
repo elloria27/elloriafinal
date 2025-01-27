@@ -332,13 +332,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       {selectedBlock && (
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
-            block={selectedBlock}
-            onUpdate={handleUpdateBlock}
-            onDelete={handleDeleteBlock}
-            onMoveUp={(id) => handleMoveBlock(id, 'up')}
-            onMoveDown={(id) => handleMoveBlock(id, 'down')}
-            isFirst={blocks.indexOf(selectedBlock) === 0}
-            isLast={blocks.indexOf(selectedBlock) === blocks.length - 1}
+            selectedBlock={selectedBlock}
+            onUpdateBlock={(block) => handleUpdateBlock(block.id, block.content)}
+            onMoveBlock={handleMoveBlock}
+            onDeleteBlock={handleDeleteBlock}
           />
         </div>
       )}

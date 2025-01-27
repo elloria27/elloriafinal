@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
 import { ArrowUp, ArrowDown, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 interface PropertyEditorProps {
   selectedBlock: ContentBlock;
@@ -20,7 +21,7 @@ export const PropertyEditor = ({
   onMoveBlock,
   onDeleteBlock,
 }: PropertyEditorProps) => {
-  const [newFeature, setNewFeature] = useState({
+  const [newFeature, setNewFeature] = useState<FeatureItem>({
     icon: "",
     title: "",
     description: "",
@@ -47,7 +48,7 @@ export const PropertyEditor = ({
   };
 
   const handleFeatureChange = (index: number, key: string, value: string) => {
-    const features = [...(selectedBlock.content.features || [])];
+    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
     features[index] = { ...features[index], [key]: value };
     handleContentChange("features", features);
   };
@@ -58,20 +59,20 @@ export const PropertyEditor = ({
       return;
     }
 
-    const features = [...(selectedBlock.content.features || [])];
+    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
     features.push(newFeature);
     handleContentChange("features", features);
     setNewFeature({ icon: "", title: "", description: "", detail: "" });
   };
 
   const handleRemoveFeature = (index: number) => {
-    const features = [...(selectedBlock.content.features || [])];
+    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
     features.splice(index, 1);
     handleContentChange("features", features);
   };
 
   const handleMetricChange = (index: number, key: string, value: string | number) => {
-    const metrics = [...(selectedBlock.content.metrics || [])];
+    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
     metrics[index] = { ...metrics[index], [key]: value };
     handleContentChange("metrics", metrics);
   };
@@ -82,7 +83,7 @@ export const PropertyEditor = ({
       return;
     }
 
-    const metrics = [...(selectedBlock.content.metrics || [])];
+    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
     metrics.push(newMetric);
     handleContentChange("metrics", metrics);
     setNewMetric({
@@ -95,7 +96,7 @@ export const PropertyEditor = ({
   };
 
   const handleRemoveMetric = (index: number) => {
-    const metrics = [...(selectedBlock.content.metrics || [])];
+    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
     metrics.splice(index, 1);
     handleContentChange("metrics", metrics);
   };
@@ -157,187 +158,195 @@ export const PropertyEditor = ({
     </>
   );
 
-  const renderFeaturesList = () => (
-    <div className="space-y-6">
-      <h3 className="font-semibold">Features</h3>
-      {(selectedBlock.content.features || []).map((feature: any, index: number) => (
-        <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={() => handleRemoveFeature(index)}
-          >
-            <X className="w-4 h-4" />
-          </Button>
+  const renderFeaturesList = () => {
+    const features = (selectedBlock.content.features || []) as FeatureItem[];
+    
+    return (
+      <div className="space-y-6">
+        <h3 className="font-semibold">Features</h3>
+        {features.map((feature: FeatureItem, index: number) => (
+          <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => handleRemoveFeature(index)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <div>
+              <Label>Icon</Label>
+              <Input
+                value={feature.icon}
+                onChange={(e) => handleFeatureChange(index, "icon", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={feature.title}
+                onChange={(e) => handleFeatureChange(index, "title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={feature.description}
+                onChange={(e) => handleFeatureChange(index, "description", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Detail</Label>
+              <Textarea
+                value={feature.detail || ""}
+                onChange={(e) => handleFeatureChange(index, "detail", e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
+          <h4 className="font-medium">Add New Feature</h4>
           <div>
             <Label>Icon</Label>
             <Input
-              value={feature.icon}
-              onChange={(e) => handleFeatureChange(index, "icon", e.target.value)}
+              value={newFeature.icon}
+              onChange={(e) => setNewFeature({ ...newFeature, icon: e.target.value })}
             />
           </div>
           <div>
             <Label>Title</Label>
             <Input
-              value={feature.title}
-              onChange={(e) => handleFeatureChange(index, "title", e.target.value)}
+              value={newFeature.title}
+              onChange={(e) => setNewFeature({ ...newFeature, title: e.target.value })}
             />
           </div>
           <div>
             <Label>Description</Label>
             <Textarea
-              value={feature.description}
-              onChange={(e) => handleFeatureChange(index, "description", e.target.value)}
+              value={newFeature.description}
+              onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
             />
           </div>
           <div>
             <Label>Detail</Label>
             <Textarea
-              value={feature.detail || ""}
-              onChange={(e) => handleFeatureChange(index, "detail", e.target.value)}
+              value={newFeature.detail}
+              onChange={(e) => setNewFeature({ ...newFeature, detail: e.target.value })}
             />
           </div>
-        </div>
-      ))}
-
-      <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
-        <h4 className="font-medium">Add New Feature</h4>
-        <div>
-          <Label>Icon</Label>
-          <Input
-            value={newFeature.icon}
-            onChange={(e) => setNewFeature({ ...newFeature, icon: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label>Title</Label>
-          <Input
-            value={newFeature.title}
-            onChange={(e) => setNewFeature({ ...newFeature, title: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label>Description</Label>
-          <Textarea
-            value={newFeature.description}
-            onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label>Detail</Label>
-          <Textarea
-            value={newFeature.detail}
-            onChange={(e) => setNewFeature({ ...newFeature, detail: e.target.value })}
-          />
-        </div>
-        <Button onClick={handleAddFeature} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Feature
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderMetricsList = () => (
-    <div className="space-y-6">
-      <h3 className="font-semibold">Comparison Metrics</h3>
-      {(selectedBlock.content.metrics || []).map((metric: any, index: number) => (
-        <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={() => handleRemoveMetric(index)}
-          >
-            <X className="w-4 h-4" />
+          <Button onClick={handleAddFeature} className="w-full">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Feature
           </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMetricsList = () => {
+    const metrics = (selectedBlock.content.metrics || []) as any[];
+    
+    return (
+      <div className="space-y-6">
+        <h3 className="font-semibold">Comparison Metrics</h3>
+        {metrics.map((metric: any, index: number) => (
+          <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => handleRemoveMetric(index)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <div>
+              <Label>Category</Label>
+              <Input
+                value={metric.category}
+                onChange={(e) => handleMetricChange(index, "category", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Elloria Score</Label>
+              <Input
+                type="number"
+                value={metric.elloria}
+                onChange={(e) => handleMetricChange(index, "elloria", parseInt(e.target.value))}
+              />
+            </div>
+            <div>
+              <Label>Competitors Score</Label>
+              <Input
+                type="number"
+                value={metric.competitors}
+                onChange={(e) => handleMetricChange(index, "competitors", parseInt(e.target.value))}
+              />
+            </div>
+            <div>
+              <Label>Icon</Label>
+              <Input
+                value={metric.icon}
+                onChange={(e) => handleMetricChange(index, "icon", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={metric.description}
+                onChange={(e) => handleMetricChange(index, "description", e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
+          <h4 className="font-medium">Add New Metric</h4>
           <div>
             <Label>Category</Label>
             <Input
-              value={metric.category}
-              onChange={(e) => handleMetricChange(index, "category", e.target.value)}
+              value={newMetric.category}
+              onChange={(e) => setNewMetric({ ...newMetric, category: e.target.value })}
             />
           </div>
           <div>
             <Label>Elloria Score</Label>
             <Input
               type="number"
-              value={metric.elloria}
-              onChange={(e) => handleMetricChange(index, "elloria", parseInt(e.target.value))}
+              value={newMetric.elloria}
+              onChange={(e) => setNewMetric({ ...newMetric, elloria: parseInt(e.target.value) })}
             />
           </div>
           <div>
             <Label>Competitors Score</Label>
             <Input
               type="number"
-              value={metric.competitors}
-              onChange={(e) => handleMetricChange(index, "competitors", parseInt(e.target.value))}
+              value={newMetric.competitors}
+              onChange={(e) => setNewMetric({ ...newMetric, competitors: parseInt(e.target.value) })}
             />
           </div>
           <div>
             <Label>Icon</Label>
             <Input
-              value={metric.icon}
-              onChange={(e) => handleMetricChange(index, "icon", e.target.value)}
+              value={newMetric.icon}
+              onChange={(e) => setNewMetric({ ...newMetric, icon: e.target.value })}
             />
           </div>
           <div>
             <Label>Description</Label>
             <Textarea
-              value={metric.description}
-              onChange={(e) => handleMetricChange(index, "description", e.target.value)}
+              value={newMetric.description}
+              onChange={(e) => setNewMetric({ ...newMetric, description: e.target.value })}
             />
           </div>
+          <Button onClick={handleAddMetric} className="w-full">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Metric
+          </Button>
         </div>
-      ))}
-
-      <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
-        <h4 className="font-medium">Add New Metric</h4>
-        <div>
-          <Label>Category</Label>
-          <Input
-            value={newMetric.category}
-            onChange={(e) => setNewMetric({ ...newMetric, category: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label>Elloria Score</Label>
-          <Input
-            type="number"
-            value={newMetric.elloria}
-            onChange={(e) => setNewMetric({ ...newMetric, elloria: parseInt(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label>Competitors Score</Label>
-          <Input
-            type="number"
-            value={newMetric.competitors}
-            onChange={(e) => setNewMetric({ ...newMetric, competitors: parseInt(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label>Icon</Label>
-          <Input
-            value={newMetric.icon}
-            onChange={(e) => setNewMetric({ ...newMetric, icon: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label>Description</Label>
-          <Textarea
-            value={newMetric.description}
-            onChange={(e) => setNewMetric({ ...newMetric, description: e.target.value })}
-          />
-        </div>
-        <Button onClick={handleAddMetric} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Metric
-        </Button>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderBlockProperties = () => {
     switch (selectedBlock.type) {
@@ -350,11 +359,13 @@ export const PropertyEditor = ({
       case "testimonials":
       case "blog_preview":
       case "newsletter":
+      case "competitor_comparison":
         return (
           <>
             {renderBasicFields()}
             {(selectedBlock.type === "features" || 
-              selectedBlock.type === "game_changer") && renderFeaturesList()}
+              selectedBlock.type === "game_changer" || 
+              selectedBlock.type === "store_brands") && renderFeaturesList()}
             {selectedBlock.type === "competitor_comparison" && renderMetricsList()}
           </>
         );
