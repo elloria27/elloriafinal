@@ -13,7 +13,8 @@ import {
   ShoppingBag,
   Newspaper,
   Store,
-  Users
+  Users,
+  Layout
 } from "lucide-react";
 
 interface ComponentPickerProps {
@@ -23,7 +24,7 @@ interface ComponentPickerProps {
 }
 
 const components = [
-  { type: 'about_hero_section', icon: LayoutTemplate, label: 'About Hero Section' },
+  { type: 'about_hero_section', icon: Layout, label: 'About Hero Section' },
   { type: 'hero', icon: LayoutTemplate, label: 'Hero Section' },
   { type: 'heading', icon: Type, label: 'Heading' },
   { type: 'text', icon: Type, label: 'Text Block' },
