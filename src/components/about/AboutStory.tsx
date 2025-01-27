@@ -80,6 +80,34 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     ]
   } = storyContent;
 
+  // Function to ensure video URL is in embed format
+  const getEmbedUrl = (url: string) => {
+    console.log("Processing video URL:", url);
+    
+    // Handle YouTube URLs
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      // If it's already an embed URL, return as is
+      if (url.includes('embed')) {
+        return url;
+      }
+      
+      // Extract video ID from various YouTube URL formats
+      let videoId = '';
+      if (url.includes('v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      }
+      
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    // Return original URL if no conversion needed or possible
+    return url;
+  };
+
   console.log("Rendering AboutStory with content:", storyContent);
 
   return (
@@ -97,7 +125,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
           <div className="aspect-video w-full">
             <iframe
               className="w-full h-full rounded-3xl shadow-2xl"
-              src={videoUrl}
+              src={getEmbedUrl(videoUrl)}
               title="Our Journey Video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
