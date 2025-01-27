@@ -12,7 +12,13 @@ export type BlockType =
   | 'blog_preview'
   | 'store_brands'
   | 'about_story'
-  | 'about_mission';
+  | 'about_mission'
+  | 'about_hero_section'
+  | 'about_sustainability'
+  | 'game_changer'
+  | 'sustainability'
+  | 'product_carousel'
+  | 'competitor_comparison';
 
 export interface AboutMissionContent {
   title?: string;
@@ -33,12 +39,14 @@ export interface HeroContent {
   image?: string;
   buttonText?: string;
   buttonLink?: string;
+  backgroundImage?: string;
 }
 
 export interface HeadingContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   alignment?: 'left' | 'center' | 'right';
+  title?: string;
 }
 
 export interface TextContent {
@@ -57,6 +65,7 @@ export interface VideoContent {
   title?: string;
   autoplay?: boolean;
   controls?: boolean;
+  videoUrl?: string;
 }
 
 export interface ButtonContent {
@@ -68,6 +77,7 @@ export interface ButtonContent {
 
 export interface FeaturesContent {
   title?: string;
+  subtitle?: string;
   description?: string;
   features?: {
     icon?: string;
@@ -76,8 +86,14 @@ export interface FeaturesContent {
   }[];
 }
 
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
 export interface TestimonialsContent {
   title?: string;
+  subtitle?: string;
+  description?: string;
   testimonials?: {
     text: string;
     author: string;
@@ -101,13 +117,26 @@ export interface ProductGalleryContent {
 
 export interface BlogPreviewContent {
   title?: string;
+  subtitle?: string;
   description?: string;
-  posts?: string[];
+  buttonText?: string;
+  buttonUrl?: string;
+  articles?: {
+    title: string;
+    category: string;
+    image: string;
+  }[];
 }
 
 export interface StoreBrandsContent {
   title?: string;
+  subtitle?: string;
   description?: string;
+  features?: {
+    title: string;
+    description: string;
+    detail?: string;
+  }[];
   brands?: {
     name: string;
     logo: string;
@@ -127,6 +156,59 @@ export interface AboutStoryContent {
   }[];
 }
 
+export interface GameChangerContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+    detail?: string;
+  }[];
+}
+
+export interface SustainabilityContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  stats?: {
+    icon?: string;
+    value?: string;
+    label?: string;
+    description?: string;
+  }[];
+  timelineItems?: string[];
+}
+
+export interface ProductCarouselContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  products?: {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+  }[];
+}
+
+export interface CompetitorComparisonContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  metrics?: {
+    category: string;
+    elloria: number;
+    competitors: number;
+    icon: string;
+    description: string;
+  }[];
+}
+
 export type BlockContent =
   | HeroContent
   | HeadingContent
@@ -141,7 +223,11 @@ export type BlockContent =
   | BlogPreviewContent
   | StoreBrandsContent
   | AboutStoryContent
-  | AboutMissionContent;
+  | AboutMissionContent
+  | GameChangerContent
+  | SustainabilityContent
+  | ProductCarouselContent
+  | CompetitorComparisonContent;
 
 export interface ContentBlock {
   id: string;
@@ -151,15 +237,4 @@ export interface ContentBlock {
   page_id?: string;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface SustainabilityContent {
-  title?: string;
-  description?: string;
-  stats?: {
-    icon?: string;
-    value?: string;
-    description?: string;
-  }[];
-  timelineItems?: string[];
 }
