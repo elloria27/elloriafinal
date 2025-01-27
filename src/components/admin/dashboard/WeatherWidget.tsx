@@ -23,22 +23,33 @@ export const WeatherWidget = () => {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // First get user's location
-        console.log('Fetching location data...');
-        const locationResponse = await fetch('https://ipapi.co/json/');
-        if (!locationResponse.ok) {
-          throw new Error(`Location API error: ${locationResponse.statusText}`);
-        }
-        const locationData = await locationResponse.json();
-        console.log('Location data:', locationData);
+        // Default coordinates (New York) in case location service fails
+        let latitude = 40.7128;
+        let longitude = -74.0060;
+        let city = "New York";
 
-        if (!locationData.latitude || !locationData.longitude) {
-          throw new Error('Location coordinates not available');
+        try {
+          console.log('Fetching location data...');
+          const locationResponse = await fetch('https://ipapi.co/json/');
+          if (locationResponse.ok) {
+            const locationData = await locationResponse.json();
+            console.log('Location data:', locationData);
+
+            if (locationData.latitude && locationData.longitude) {
+              latitude = locationData.latitude;
+              longitude = locationData.longitude;
+              city = locationData.city || city;
+            }
+          } else {
+            console.warn('Using default location due to API error');
+          }
+        } catch (err) {
+          console.warn('Location service unavailable, using default location:', err);
         }
         
-        // Then get weather data from OpenMeteo
+        // Get weather data from OpenMeteo
         console.log('Fetching weather data...');
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
         console.log('Weather URL:', weatherUrl);
         
         const weatherResponse = await fetch(weatherUrl);
@@ -64,7 +75,7 @@ export const WeatherWidget = () => {
           temp: Math.round(weatherData.current.temperature_2m),
           condition: currentCondition,
           windSpeed: Math.round(weatherData.current.wind_speed_10m || 0),
-          city: locationData.city || 'Unknown location',
+          city: city,
           forecast: weatherData.daily.time.slice(0, 5).map((date: string, index: number) => ({
             date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
             temp: Math.round(weatherData.daily.temperature_2m_max[index]),

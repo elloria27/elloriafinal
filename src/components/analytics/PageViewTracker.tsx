@@ -17,9 +17,19 @@ export const PageViewTracker = () => {
       try {
         console.log('Tracking page view:', location.pathname);
         
-        // Get visitor's country using ipapi.co (free service)
-        const response = await fetch('https://ipapi.co/json/');
-        const locationData = await response.json();
+        let locationData = { country_name: null, city: null };
+        
+        try {
+          // Try to get visitor's location, but don't block if it fails
+          const response = await fetch('https://ipapi.co/json/');
+          if (response.ok) {
+            locationData = await response.json();
+          } else {
+            console.warn('Could not fetch location data, continuing without location');
+          }
+        } catch (err) {
+          console.warn('Location service unavailable:', err);
+        }
         
         const { error } = await supabase
           .from('page_views')
