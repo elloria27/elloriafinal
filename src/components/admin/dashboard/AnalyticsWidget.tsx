@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Globe, Clock, ChartLine } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -39,32 +39,19 @@ export const AnalyticsWidget = () => {
 
         // Get top countries
         const { data: countriesData, error: countriesError } = await supabase
-          .from('page_views')
-          .select('country, count(*)')
-          .not('country', 'is', null)
-          .group('country')
-          .order('count', { ascending: false })
-          .limit(3);
+          .rpc('get_top_countries', { limit_count: 3 });
 
         if (countriesError) throw countriesError;
 
         // Get top pages
         const { data: pagesData, error: pagesError } = await supabase
-          .from('page_views')
-          .select('page_path, count(*)')
-          .group('page_path')
-          .order('count', { ascending: false })
-          .limit(3);
+          .rpc('get_top_pages', { limit_count: 3 });
 
         if (pagesError) throw pagesError;
 
         // Get views over time (last 7 days)
         const { data: timeData, error: timeError } = await supabase
-          .from('page_views')
-          .select('created_at, count(*)')
-          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .group('created_at::date')
-          .order('created_at::date');
+          .rpc('get_daily_views', { days_back: 7 });
 
         if (timeError) throw timeError;
 
@@ -83,7 +70,7 @@ export const AnalyticsWidget = () => {
             views: parseInt(item.count)
           })) || [],
           viewsOverTime: timeData?.map(item => ({
-            date: new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' }),
+            date: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
             views: parseInt(item.count)
           })) || []
         };
