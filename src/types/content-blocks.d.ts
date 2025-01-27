@@ -173,7 +173,8 @@ export type BlockType =
   | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison"
-  | "about_story";
+  | "about_hero_section"
+  | "about_story";  // Added this type
 
 export interface ContentBlock {
   id: string;

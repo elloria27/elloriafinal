@@ -59,7 +59,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                 .insert({
                   id: block.id,
                   page_id: pageId,
-                  type: block.type,
+                  type: block.type as BlockType,
                   content: block.content as Json,
                   order_index: index
                 })
