@@ -6,6 +6,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "@/pages/Index";
 import Shop from "@/pages/Shop";
