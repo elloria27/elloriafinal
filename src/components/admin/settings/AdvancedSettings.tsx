@@ -12,7 +12,7 @@ export const AdvancedSettings = () => {
   const handleDatabaseExport = async () => {
     try {
       console.log('Exporting database...');
-      const tables = ['products', 'orders', 'profiles', 'pages', 'site_settings'];
+      const tables = ['products', 'orders', 'profiles', 'pages', 'site_settings'] as const;
       const exportData: Record<string, any> = {};
 
       for (const table of tables) {
@@ -52,13 +52,16 @@ export const AdvancedSettings = () => {
       reader.onload = async (e) => {
         try {
           const importData = JSON.parse(e.target?.result as string);
+          const tables = ['products', 'orders', 'profiles', 'pages', 'site_settings'] as const;
           
-          for (const [table, records] of Object.entries(importData)) {
-            const { error } = await supabase
-              .from(table)
-              .upsert(records as any[]);
+          for (const table of tables) {
+            if (importData[table]) {
+              const { error } = await supabase
+                .from(table)
+                .upsert(importData[table]);
 
-            if (error) throw error;
+              if (error) throw error;
+            }
           }
 
           toast.success("Database imported successfully");
@@ -104,9 +107,9 @@ export const AdvancedSettings = () => {
       
       // Update favicon in the document
       const favicon = document.querySelector("link[rel*='icon']") || document.createElement('link');
-      favicon.type = 'image/x-icon';
-      favicon.rel = 'shortcut icon';
-      favicon.href = publicUrl;
+      (favicon as HTMLLinkElement).type = 'image/x-icon';
+      (favicon as HTMLLinkElement).rel = 'shortcut icon';
+      (favicon as HTMLLinkElement).href = publicUrl;
       document.getElementsByTagName('head')[0].appendChild(favicon);
     } catch (error) {
       console.error('Error uploading favicon:', error);
