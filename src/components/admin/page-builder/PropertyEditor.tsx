@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -111,6 +111,59 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       icon: String(metric.icon || 'Shield'),
       description: String(metric.description || '')
     }));
+  };
+
+  const getTestimonials = () => {
+    if (!content || !('testimonials' in content)) {
+      return [];
+    }
+
+    const testimonials = content.testimonials;
+    if (!Array.isArray(testimonials)) {
+      return [];
+    }
+
+    return testimonials.map(testimonial => {
+      if (typeof testimonial === 'object' && testimonial !== null) {
+        return {
+          name: String(testimonial.name || ''),
+          rating: Number(testimonial.rating || 5),
+          text: String(testimonial.text || ''),
+          source: String(testimonial.source || '')
+        };
+      }
+      return {
+        name: '',
+        rating: 5,
+        text: '',
+        source: ''
+      };
+    });
+  };
+
+  const handleTestimonialChange = (index: number, field: keyof TestimonialsContent['testimonials'][0], value: string | number) => {
+    const testimonials = getTestimonials();
+    const newTestimonials = [...testimonials];
+    newTestimonials[index] = { ...newTestimonials[index], [field]: value };
+    handleChange('testimonials', newTestimonials);
+  };
+
+  const addTestimonial = () => {
+    const newTestimonial = {
+      name: "New Customer",
+      rating: 5,
+      text: "Enter testimonial text",
+      source: "Verified Purchase"
+    };
+    
+    const testimonials = getTestimonials();
+    handleChange('testimonials', [...testimonials, newTestimonial]);
+  };
+
+  const removeTestimonial = (index: number) => {
+    const testimonials = getTestimonials();
+    const newTestimonials = testimonials.filter((_, i) => i !== index);
+    handleChange('testimonials', newTestimonials);
   };
 
   const renderFields = () => {
@@ -689,15 +742,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <div className="flex justify-between items-center">
                 <Label>Testimonials</Label>
                 <Button 
-                  onClick={() => {
-                    const currentTestimonials = content.testimonials || [];
-                    handleChange('testimonials', [...currentTestimonials, {
-                      name: "New Customer",
-                      rating: 5,
-                      text: "Enter testimonial text",
-                      source: "Verified Purchase"
-                    }]);
-                  }} 
+                  onClick={addTestimonial} 
                   size="sm"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -705,32 +750,24 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {(content.testimonials || []).map((testimonial: any, index: number) => (
+              {getTestimonials().map((testimonial, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Testimonial {index + 1}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => {
-                        const newTestimonials = [...(content.testimonials || [])];
-                        newTestimonials.splice(index, 1);
-                        handleChange('testimonials', newTestimonials);
-                      }}
+                      onClick={() => removeTestimonial(index)}
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
                   
                   <div>
-                    <Label>Name</Label>
+                    <Label>Customer Name</Label>
                     <Input
                       value={testimonial.name}
-                      onChange={(e) => {
-                        const newTestimonials = [...(content.testimonials || [])];
-                        newTestimonials[index] = { ...newTestimonials[index], name: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
+                      onChange={(e) => handleTestimonialChange(index, 'name', e.target.value)}
                       placeholder="Enter customer name"
                     />
                   </div>
@@ -742,14 +779,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       min="1"
                       max="5"
                       value={testimonial.rating}
-                      onChange={(e) => {
-                        const newTestimonials = [...(content.testimonials || [])];
-                        newTestimonials[index] = { 
-                          ...newTestimonials[index], 
-                          rating: Math.min(5, Math.max(1, parseInt(e.target.value) || 1))
-                        };
-                        handleChange('testimonials', newTestimonials);
-                      }}
+                      onChange={(e) => handleTestimonialChange(index, 'rating', parseInt(e.target.value) || 5)}
                     />
                   </div>
 
@@ -757,11 +787,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Text</Label>
                     <Textarea
                       value={testimonial.text}
-                      onChange={(e) => {
-                        const newTestimonials = [...(content.testimonials || [])];
-                        newTestimonials[index] = { ...newTestimonials[index], text: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
+                      onChange={(e) => handleTestimonialChange(index, 'text', e.target.value)}
                       placeholder="Enter testimonial text"
                     />
                   </div>
@@ -770,11 +796,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Source</Label>
                     <Input
                       value={testimonial.source}
-                      onChange={(e) => {
-                        const newTestimonials = [...(content.testimonials || [])];
-                        newTestimonials[index] = { ...newTestimonials[index], source: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
+                      onChange={(e) => handleTestimonialChange(index, 'source', e.target.value)}
                       placeholder="Enter source (e.g., Verified Purchase, Instagram)"
                     />
                   </div>
