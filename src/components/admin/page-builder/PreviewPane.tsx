@@ -1,6 +1,7 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
+import { AboutStory } from "@/components/about/AboutStory";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -79,6 +80,11 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                 >
                   {getContentValue(block.content, 'text') || 'Button'}
                 </button>
+              );
+
+            case 'about_story':
+              return (
+                <AboutStory content={block.content} />
               );
 
             default:
