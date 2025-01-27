@@ -17,6 +17,12 @@ interface PropertyEditorProps {
   isLast?: boolean;
 }
 
+interface TimelineItem {
+  year: string;
+  title: string;
+  description: string;
+}
+
 export const PropertyEditor = ({ 
   block, 
   onUpdate, 
@@ -67,26 +73,44 @@ export const PropertyEditor = ({
     onUpdate(block.id, newContent);
   };
 
-  const handleTimelineChange = (index: number, field: string, value: string) => {
-    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
-    timeline[index] = { ...timeline[index], [field]: value };
-    handleChange('timeline', timeline);
+  const getTimelineItems = (): TimelineItem[] => {
+    if (!content || !('timeline' in content)) {
+      return [];
+    }
+    const timeline = content.timeline;
+    if (!Array.isArray(timeline)) {
+      return [];
+    }
+    return timeline.map(item => ({
+      year: String(item.year || ''),
+      title: String(item.title || ''),
+      description: String(item.description || '')
+    }));
+  };
+
+  const handleTimelineChange = (index: number, field: keyof TimelineItem, value: string) => {
+    const timeline = getTimelineItems();
+    const newTimeline = [...timeline];
+    newTimeline[index] = { ...newTimeline[index], [field]: value };
+    handleChange('timeline', newTimeline);
   };
 
   const addTimelineItem = () => {
-    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
-    timeline.push({
+    const timeline = getTimelineItems();
+    const newTimeline = [...timeline];
+    newTimeline.push({
       year: new Date().getFullYear().toString(),
       title: "New Milestone",
       description: "Description of the milestone"
     });
-    handleChange('timeline', timeline);
+    handleChange('timeline', newTimeline);
   };
 
   const removeTimelineItem = (index: number) => {
-    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
-    timeline.splice(index, 1);
-    handleChange('timeline', timeline);
+    const timeline = getTimelineItems();
+    const newTimeline = [...timeline];
+    newTimeline.splice(index, 1);
+    handleChange('timeline', newTimeline);
   };
 
   const addArticle = () => {
@@ -191,7 +215,7 @@ export const PropertyEditor = ({
                 </Button>
               </div>
               
-              {Array.isArray(content.timeline) && content.timeline.map((item: any, index: number) => (
+              {getTimelineItems().map((item, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Milestone {index + 1}</Label>
@@ -207,7 +231,7 @@ export const PropertyEditor = ({
                   <div>
                     <Label>Year</Label>
                     <Input
-                      value={item.year || ''}
+                      value={item.year}
                       onChange={(e) => handleTimelineChange(index, 'year', e.target.value)}
                       placeholder="Enter year"
                     />
@@ -216,7 +240,7 @@ export const PropertyEditor = ({
                   <div>
                     <Label>Title</Label>
                     <Input
-                      value={item.title || ''}
+                      value={item.title}
                       onChange={(e) => handleTimelineChange(index, 'title', e.target.value)}
                       placeholder="Enter milestone title"
                     />
@@ -225,7 +249,7 @@ export const PropertyEditor = ({
                   <div>
                     <Label>Description</Label>
                     <Textarea
-                      value={item.description || ''}
+                      value={item.description}
                       onChange={(e) => handleTimelineChange(index, 'description', e.target.value)}
                       placeholder="Enter milestone description"
                     />
