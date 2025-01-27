@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
+import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 
 type SiteSettings = {
   id: string;
@@ -283,36 +284,7 @@ export default function SiteSettings() {
         </TabsContent>
 
         <TabsContent value="advanced">
-          <Card>
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>
-                Advanced configuration options
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="custom_scripts">Custom Scripts</Label>
-                <textarea
-                  id="custom_scripts"
-                  className="w-full min-h-[100px] p-2 border rounded"
-                  value={JSON.stringify(settings.custom_scripts, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      setSettings({ ...settings, custom_scripts: parsed });
-                    } catch (error) {
-                      // Allow invalid JSON while typing
-                      console.log('Invalid JSON, waiting for valid input');
-                    }
-                  }}
-                />
-                <p className="text-sm text-gray-500">
-                  Enter custom scripts in JSON format
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AdvancedSettings />
         </TabsContent>
       </Tabs>
     </div>
