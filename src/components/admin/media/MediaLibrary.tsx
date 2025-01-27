@@ -49,12 +49,19 @@ export const MediaLibrary = () => {
       setUploading(true);
       console.log('Uploading file:', file.name);
 
-      // Generate a unique filename
+      // Generate a unique filename with sanitization
       const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${timestamp}-${file.name.replace(/[^\x00-\x7F]/g, '')}`;
+      const sanitizedName = file.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '-');
+      const fileName = `${timestamp}-${sanitizedName}`;
 
       console.log('Generated filename:', fileName);
+
+      // Check user authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("You must be logged in to upload files");
+        return;
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('files')
