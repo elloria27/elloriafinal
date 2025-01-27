@@ -1,12 +1,7 @@
 import { motion } from "framer-motion";
 import { Leaf, Sparkles, Heart } from "lucide-react";
-import { AboutMissionContent } from "@/types/content-blocks";
 
-interface AboutMissionProps {
-  content?: AboutMissionContent;
-}
-
-const defaultValues = [
+const values = [
   {
     icon: <Leaf className="w-8 h-8" />,
     title: "Sustainability",
@@ -27,20 +22,7 @@ const defaultValues = [
   }
 ];
 
-export const AboutMission = ({ content }: AboutMissionProps) => {
-  console.log("AboutMission content received:", content);
-
-  const finalContent = {
-    title: content?.title || "Our Mission & Values",
-    subtitle: content?.subtitle || "We're committed to creating innovative solutions that prioritize both women's comfort and environmental sustainability.",
-    description: content?.description || "",
-    values: content?.values ? content.values.map((value, index) => ({
-      ...value,
-      icon: defaultValues[index]?.icon || <Leaf className="w-8 h-8" />,
-      color: defaultValues[index]?.color || "bg-accent-green"
-    })) : defaultValues
-  };
-
+export const AboutMission = () => {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
       <div className="container px-4">
@@ -51,19 +33,15 @@ export const AboutMission = ({ content }: AboutMissionProps) => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">{finalContent.title}</h2>
+          <h2 className="text-4xl font-bold mb-4">Our Mission & Values</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {finalContent.subtitle}
+            We're committed to creating innovative solutions that prioritize both 
+            women's comfort and environmental sustainability.
           </p>
-          {finalContent.description && (
-            <p className="text-gray-600 max-w-2xl mx-auto mt-4">
-              {finalContent.description}
-            </p>
-          )}
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {finalContent.values.map((value, index) => (
+          {values.map((value, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
