@@ -8,9 +8,30 @@ interface PreviewPaneProps {
   onSelectBlock: (block: ContentBlock) => void;
 }
 
+interface TimelineItem {
+  year: string;
+  title: string;
+  description: string;
+}
+
 export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   const getContentValue = (content: BlockContent, key: string): any => {
     return (content as any)[key];
+  };
+
+  const getTimelineItems = (content: BlockContent): TimelineItem[] => {
+    if (!content || !('timeline' in content)) {
+      return [];
+    }
+    const timeline = content.timeline;
+    if (!Array.isArray(timeline)) {
+      return [];
+    }
+    return timeline.map(item => ({
+      year: String(item.year || ''),
+      title: String(item.title || ''),
+      description: String(item.description || '')
+    }));
   };
 
   const renderBlock = (block: ContentBlock) => {
@@ -30,60 +51,50 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         {(() => {
           switch (block.type) {
             case 'about_story':
-              const timeline = Array.isArray(block.content.timeline) 
-                ? block.content.timeline 
-                : [];
-              
               return (
-                <section className="py-24 bg-white">
-                  <div className="container px-4">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                      className="max-w-6xl mx-auto text-center mb-24"
-                    >
-                      <h2 className="text-4xl font-bold mb-4">
-                        {getContentValue(block.content, 'title') || 'Our Journey'}
+                <div className="py-12 bg-white">
+                  <div className="container px-4 mx-auto">
+                    <div className="max-w-4xl mx-auto text-center mb-16">
+                      <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                        {getContentValue(block.content, 'title') || 'Our Story'}
                       </h2>
-                      <p className="text-gray-600 mb-12">
-                        {getContentValue(block.content, 'subtitle') || 'Milestones that shaped who we are today'}
+                      <p className="text-gray-600 mb-8">
+                        {getContentValue(block.content, 'subtitle') || 'Our journey through the years'}
                       </p>
-                      <div className="aspect-video w-full">
-                        <iframe
-                          className="w-full h-full rounded-3xl shadow-2xl"
-                          src={getContentValue(block.content, 'videoUrl') || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}
-                          title="Our Journey Video"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    </motion.div>
-                    <div className="max-w-4xl mx-auto">
-                      <div className="space-y-12">
-                        {timeline.map((item: any, index: number) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: index * 0.1 }}
-                            className={`flex ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-center gap-8`}
-                          >
-                            <div className="w-32 flex-shrink-0 text-center">
-                              <span className="text-3xl font-bold text-primary">{item.year}</span>
-                            </div>
-                            <div className={`flex-1 p-6 bg-gray-50 rounded-lg shadow-sm ${index % 2 === 0 ? 'text-left' : 'text-right'}`}>
-                              <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                              <p className="text-gray-600">{item.description}</p>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
+                      {getContentValue(block.content, 'videoUrl') && (
+                        <div className="aspect-video w-full mb-12">
+                          <iframe
+                            className="w-full h-full rounded-lg shadow-lg"
+                            src={getContentValue(block.content, 'videoUrl')}
+                            title="Company Story Video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-12">
+                      {getTimelineItems(block.content).map((item, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6 }}
+                          className={`flex ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-center gap-8`}
+                        >
+                          <div className="w-32 flex-shrink-0 text-center">
+                            <span className="text-3xl font-bold text-primary">{item.year}</span>
+                          </div>
+                          <div className={`flex-1 p-6 bg-gray-50 rounded-lg shadow-sm ${index % 2 === 0 ? 'text-left' : 'text-right'}`}>
+                            <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                            <p className="text-gray-600">{item.description}</p>
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
-                </section>
+                </div>
               );
 
             case 'heading':
