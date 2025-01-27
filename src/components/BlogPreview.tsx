@@ -9,6 +9,12 @@ interface BlogPreviewProps {
 export const BlogPreview = ({ content }: BlogPreviewProps) => {
   const articles = content?.articles || [];
 
+  const handleButtonClick = () => {
+    if (content?.buttonUrl) {
+      window.location.href = content.buttonUrl;
+    }
+  };
+
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">
@@ -59,7 +65,12 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary text-primary hover:bg-primary/10"
+            onClick={handleButtonClick}
+          >
             {String(content?.buttonText || "View All Articles")}
           </Button>
         </motion.div>
