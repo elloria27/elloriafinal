@@ -69,11 +69,12 @@ export interface StoreBrandsContent extends BaseBlockContent {
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
+  statsTitle?: string;
   stats?: {
     icon: string;
-    value: string;
-    label: string;
+    title: string;
     description: string;
+    color: string;
   }[];
   timelineItems?: string[];
 }
@@ -180,8 +181,7 @@ export type BlockType =
   | "game_changer"
   | "competitor_comparison"
   | "about_hero_section"
-  | "about_story"
-  | "about_sustainability";
+  | "about_story";
 
 export interface ContentBlock {
   id: string;

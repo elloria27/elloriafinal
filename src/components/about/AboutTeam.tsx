@@ -1,20 +1,6 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
 
-interface TeamMember {
-  name: string;
-  role: string;
-  quote: string;
-  image: string;
-}
-
-interface TeamContent {
-  team: TeamMember[];
-}
-
-const defaultTeam = [
+const team = [
   {
     name: "Sarah Johnson",
     role: "Founder & CEO",
@@ -36,46 +22,6 @@ const defaultTeam = [
 ];
 
 export const AboutTeam = () => {
-  const [team, setTeam] = useState<TeamMember[]>(defaultTeam);
-
-  useEffect(() => {
-    const fetchTeamContent = async () => {
-      try {
-        console.log("Fetching team content...");
-        const { data: blocks, error } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('type', 'about_team')
-          .single();
-
-        if (error) {
-          console.error("Error fetching team content:", error);
-          return;
-        }
-
-        console.log("Fetched content block:", blocks);
-
-        // Safely type check and cast the content
-        const content = blocks?.content as { team?: unknown[] };
-        
-        if (content?.team && Array.isArray(content.team)) {
-          const processedTeam = content.team.map((member: any) => ({
-            name: member.name || "Team Member",
-            role: member.role || "Role",
-            quote: member.quote || "Quote",
-            image: member.image || "/placeholder.svg"
-          }));
-          console.log("Processed team data:", processedTeam);
-          setTeam(processedTeam.length > 0 ? processedTeam : defaultTeam);
-        }
-      } catch (error) {
-        console.error("Error in fetchTeamContent:", error);
-      }
-    };
-
-    fetchTeamContent();
-  }, []);
-
   return (
     <section className="py-20 bg-gradient-to-r from-accent-purple/10 to-accent-peach/10">
       <div className="container px-4">
