@@ -10,17 +10,7 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { Button } from "@/components/ui/button";
-import { 
-  LogOut, 
-  LayoutGrid, 
-  Package2, 
-  Users, 
-  FileText, 
-  Files,
-  Image,
-  Settings2,
-  ShoppingCart
-} from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Image } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 
@@ -28,13 +18,12 @@ const Admin = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        console.log("Checking authentication status...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('Checking session status:', session ? 'Session exists' : 'No session');
         
         if (sessionError) {
           console.error('Session error:', sessionError);
@@ -45,20 +34,6 @@ const Admin = () => {
           console.log('No active session, redirecting to login');
           navigate("/login?redirectTo=/admin");
           return;
-        }
-
-        // Fetch user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          console.log('Profile data:', profileData);
-          setProfile(profileData);
         }
 
         const { data: roleData, error: roleError } = await supabase
@@ -95,7 +70,6 @@ const Admin = () => {
 
   const handleSignOut = async () => {
     try {
-      console.log("Signing out...");
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
       navigate("/");
@@ -119,97 +93,91 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Hello, {profile?.full_name || 'Admin'} 👋
-              </h1>
-              <Button 
-                variant="outline"
-                onClick={handleSignOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        
-          <Tabs defaultValue="dashboard" className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-2">
-              <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 gap-2">
-                <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 py-3">
-                  <LayoutGrid className="h-5 w-5" />
-                  <span className="text-xs">Dashboard</span>
-                </TabsTrigger>
-                <TabsTrigger value="products" className="flex flex-col items-center gap-1 py-3">
-                  <Package2 className="h-5 w-5" />
-                  <span className="text-xs">Products</span>
-                </TabsTrigger>
-                <TabsTrigger value="orders" className="flex flex-col items-center gap-1 py-3">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="text-xs">Orders</span>
-                </TabsTrigger>
-                <TabsTrigger value="users" className="flex flex-col items-center gap-1 py-3">
-                  <Users className="h-5 w-5" />
-                  <span className="text-xs">Users</span>
-                </TabsTrigger>
-                <TabsTrigger value="pages" className="flex flex-col items-center gap-1 py-3">
-                  <FileText className="h-5 w-5" />
-                  <span className="text-xs">Pages</span>
-                </TabsTrigger>
-                <TabsTrigger value="files" className="flex flex-col items-center gap-1 py-3">
-                  <Files className="h-5 w-5" />
-                  <span className="text-xs">Files</span>
-                </TabsTrigger>
-                <TabsTrigger value="media" className="flex flex-col items-center gap-1 py-3">
-                  <Image className="h-5 w-5" />
-                  <span className="text-xs">Media</span>
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
-                  <Settings2 className="h-5 w-5" />
-                  <span className="text-xs">Settings</span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <TabsContent value="dashboard">
-                <Dashboard />
-              </TabsContent>
-
-              <TabsContent value="products">
-                <ProductManagement />
-              </TabsContent>
-
-              <TabsContent value="orders">
-                <OrderManagement />
-              </TabsContent>
-
-              <TabsContent value="users">
-                <UserManagement />
-              </TabsContent>
-
-              <TabsContent value="pages">
-                <PageManagement />
-              </TabsContent>
-
-              <TabsContent value="files">
-                <FileManagement />
-              </TabsContent>
-
-              <TabsContent value="media">
-                <MediaLibrary />
-              </TabsContent>
-
-              <TabsContent value="settings">
-                <SiteSettings />
-              </TabsContent>
-            </div>
-          </Tabs>
+      <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+          <Button 
+            variant="outline"
+            onClick={handleSignOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
+        
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <div className="w-full overflow-x-auto pb-2">
+            <TabsList className="w-full grid grid-cols-8 gap-1">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
+                <LayoutDashboard className="h-5 w-5" />
+                <span className="hidden md:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
+                <Package className="h-5 w-5" />
+                <span className="hidden md:inline">Products</span>
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="hidden md:inline">Orders</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
+                <Users className="h-5 w-5" />
+                <span className="hidden md:inline">Users</span>
+              </TabsTrigger>
+              <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
+                <FileText className="h-5 w-5" />
+                <span className="hidden md:inline">Pages</span>
+              </TabsTrigger>
+              <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
+                <FolderIcon className="h-5 w-5" />
+                <span className="hidden md:inline">Files</span>
+              </TabsTrigger>
+              <TabsTrigger value="media" className="flex items-center gap-2 py-3 px-4">
+                <Image className="h-5 w-5" />
+                <span className="hidden md:inline">Media</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
+                <Settings className="h-5 w-5" />
+                <span className="hidden md:inline">Settings</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-4 md:p-6">
+            <TabsContent value="dashboard">
+              <Dashboard />
+            </TabsContent>
+
+            <TabsContent value="products">
+              <ProductManagement />
+            </TabsContent>
+
+            <TabsContent value="orders">
+              <OrderManagement />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+
+            <TabsContent value="pages">
+              <PageManagement />
+            </TabsContent>
+
+            <TabsContent value="files">
+              <FileManagement />
+            </TabsContent>
+
+            <TabsContent value="media">
+              <MediaLibrary />
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <SiteSettings />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
