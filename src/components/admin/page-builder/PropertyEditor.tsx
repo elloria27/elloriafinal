@@ -94,6 +94,25 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     return Array.isArray(sustainabilityContent.timelineItems) ? sustainabilityContent.timelineItems : [];
   };
 
+  const getMetrics = () => {
+    if (!content || !('metrics' in content)) {
+      return [];
+    }
+
+    const metrics = (content as CompetitorComparisonContent).metrics;
+    if (!Array.isArray(metrics)) {
+      return [];
+    }
+
+    return metrics.map(metric => ({
+      category: String(metric.category || ''),
+      elloria: Number(metric.elloria || 0),
+      competitors: Number(metric.competitors || 0),
+      icon: String(metric.icon || 'Shield'),
+      description: String(metric.description || '')
+    }));
+  };
+
   const renderFields = () => {
     console.log('Rendering fields for block type:', block.type);
     console.log('Current content:', content);
@@ -530,7 +549,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Metrics</Label>
                 <Button 
                   onClick={() => {
-                    const currentMetrics = content.metrics || [];
+                    const currentMetrics = getMetrics();
                     handleChange('metrics', [...currentMetrics, {
                       category: "New Metric",
                       elloria: 90,
@@ -546,7 +565,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {(content.metrics || []).map((metric: any, index: number) => (
+              {getMetrics().map((metric, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Metric {index + 1}</Label>
@@ -554,7 +573,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics.splice(index, 1);
                         handleChange('metrics', newMetrics);
                       }}
@@ -568,7 +587,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={metric.category}
                       onChange={(e) => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics[index] = { ...newMetrics[index], category: e.target.value };
                         handleChange('metrics', newMetrics);
                       }}
@@ -581,7 +600,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Textarea
                       value={metric.description}
                       onChange={(e) => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics[index] = { ...newMetrics[index], description: e.target.value };
                         handleChange('metrics', newMetrics);
                       }}
@@ -594,7 +613,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={metric.icon}
                       onValueChange={(value) => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics[index] = { ...newMetrics[index], icon: value };
                         handleChange('metrics', newMetrics);
                       }}
@@ -620,7 +639,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       max="100"
                       value={metric.elloria}
                       onChange={(e) => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics[index] = { ...newMetrics[index], elloria: parseInt(e.target.value) || 0 };
                         handleChange('metrics', newMetrics);
                       }}
@@ -635,7 +654,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       max="100"
                       value={metric.competitors}
                       onChange={(e) => {
-                        const newMetrics = [...(content.metrics || [])];
+                        const newMetrics = [...getMetrics()];
                         newMetrics[index] = { ...newMetrics[index], competitors: parseInt(e.target.value) || 0 };
                         handleChange('metrics', newMetrics);
                       }}
