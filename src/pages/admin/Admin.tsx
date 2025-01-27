@@ -10,7 +10,7 @@ import {
   Package, 
   FileText, 
   Upload,
-  Image,
+  Camera,
   MessageSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,7 +85,7 @@ const Admin = () => {
               <span className="hidden sm:inline">Files</span>
             </TabsTrigger>
             <TabsTrigger value="media" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
+              <Camera className="h-4 w-4" />
               <span className="hidden sm:inline">Media</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
