@@ -69,12 +69,11 @@ export interface StoreBrandsContent extends BaseBlockContent {
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  statsTitle?: string;
   stats?: {
     icon: string;
-    title: string;
+    value: string;
+    label: string;
     description: string;
-    color: string;
   }[];
   timelineItems?: string[];
 }
@@ -126,6 +125,35 @@ export interface CompetitorComparisonContent extends BaseBlockContent {
   buttonUrl?: string;
 }
 
+export interface AboutStoryContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  videoUrl?: string;
+  timeline?: {
+    year: string;
+    title: string;
+    description: string;
+  }[];
+}
+
+export interface AboutHeroSectionContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface AboutMissionContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  image?: string;
+  values?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -141,7 +169,10 @@ export type BlockContent =
   | BlogPreviewContent
   | NewsletterContent
   | ProductCarouselContent
-  | CompetitorComparisonContent;
+  | CompetitorComparisonContent
+  | AboutStoryContent
+  | AboutHeroSectionContent
+  | AboutMissionContent;
 
 export type BlockType = 
   | "heading" 
@@ -160,7 +191,11 @@ export type BlockType =
   | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
-  | "competitor_comparison";
+  | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_sustainability"
+  | "about_mission";
 
 export interface ContentBlock {
   id: string;

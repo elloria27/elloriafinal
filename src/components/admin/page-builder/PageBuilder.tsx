@@ -8,7 +8,10 @@ import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
-import { Json } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type Json = Database['public']['Tables']['content_blocks']['Row']['content'];
 
 interface PageBuilderProps {
   pageId: string;
@@ -59,8 +62,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                 .insert({
                   id: block.id,
                   page_id: pageId,
-                  type: block.type,
-                  content: block.content as Json,
+                  type: block.type as Database['public']['Enums']['content_block_type'],
+                  content: block.content,
                   order_index: index
                 })
                 .select()
@@ -136,7 +139,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         .insert({
           id: newBlock.id,
           page_id: pageId,
-          type: blockType,
+          type: blockType as Database['public']['Enums']['content_block_type'],
           content: defaultContent,
           order_index: blocks.length,
         });
@@ -158,7 +161,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content: content as Json })
+        .update({ 
+          content: content,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', blockId);
 
       if (error) throw error;

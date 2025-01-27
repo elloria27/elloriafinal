@@ -31,34 +31,43 @@ export const PageViewTracker = () => {
           console.error('Error tracking page view:', error);
         }
 
-        // Try to get location data in the background
-        try {
-          const response = await fetch('https://ipapi.co/json/', { 
-            signal: AbortSignal.timeout(3000) // Timeout after 3 seconds
-          });
-          
-          if (response.ok) {
-            const locationData = await response.json();
-            
-            // Update the page view with location data
-            if (locationData.country_name || locationData.city) {
-              const { error: updateError } = await supabase
-                .from('page_views')
-                .update({
-                  country: locationData.country_name,
-                  city: locationData.city
-                })
-                .eq('page_path', location.pathname)
-                .eq('session_id', sessionId);
+        // Try to get location data using the browser's Geolocation API instead
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                // Use reverse geocoding with a more reliable service
+                const response = await fetch(
+                  `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`,
+                  { signal: AbortSignal.timeout(3000) }
+                );
 
-              if (updateError) {
-                console.warn('Could not update location data:', updateError);
+                if (response.ok) {
+                  const locationData = await response.json();
+                  
+                  // Update the page view with location data
+                  const { error: updateError } = await supabase
+                    .from('page_views')
+                    .update({
+                      country: locationData.countryName,
+                      city: locationData.city
+                    })
+                    .eq('page_path', location.pathname)
+                    .eq('session_id', sessionId);
+
+                  if (updateError) {
+                    console.warn('Could not update location data:', updateError);
+                  }
+                }
+              } catch (locationError) {
+                console.warn('Location service unavailable:', locationError);
               }
-            }
-          }
-        } catch (locationError) {
-          // Just log the location error but don't let it affect the page view tracking
-          console.warn('Location service unavailable:', locationError);
+            },
+            (error) => {
+              console.warn('Geolocation permission denied:', error);
+            },
+            { timeout: 5000, enableHighAccuracy: false }
+          );
         }
       } catch (err) {
         console.error('Error tracking page view:', err);

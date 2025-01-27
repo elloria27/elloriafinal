@@ -1,48 +1,21 @@
 import { motion } from "framer-motion";
 
-const timeline = [
-  {
-    year: "2019",
-    title: "Our Journey Begins",
-    description: "Founded with a vision to revolutionize feminine care through innovation and understanding"
-  },
-  {
-    year: "2020",
-    title: "Eco Innovation",
-    description: "Launched our first line of biodegradable products, setting new industry standards"
-  },
-  {
-    year: "2021",
-    title: "Global Impact",
-    description: "Expanded to 50+ countries, touching lives of millions of women worldwide"
-  },
-  {
-    year: "2022",
-    title: "Sustainability Award",
-    description: "Recognized globally for our commitment to environmental responsibility"
-  },
-  {
-    year: "2023",
-    title: "Community First",
-    description: "Provided essential products to over 1 million women in underserved communities"
-  }
-];
+interface TimelineItem {
+  year: string;
+  title: string;
+  description: string;
+}
 
-export const AboutTimeline = () => {
+interface AboutTimelineProps {
+  timeline: TimelineItem[];
+}
+
+export const AboutTimeline = ({ timeline }: AboutTimelineProps) => {
+  console.log("AboutTimeline timeline:", timeline); // Додаємо лог для відстеження даних
+
   return (
     <section className="py-20">
       <div className="container px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
-          <p className="text-gray-600">Milestones that shaped who we are today</p>
-        </motion.div>
-
         <div className="max-w-4xl mx-auto">
           {timeline.map((item, index) => (
             <motion.div

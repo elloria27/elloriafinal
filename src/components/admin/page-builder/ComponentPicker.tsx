@@ -6,13 +6,15 @@ import {
   Type, 
   Image, 
   Video, 
-  Square, // Replacing ButtonIcon with Square for button icon
+  Square,
   LayoutGrid,
   MessageSquareQuote,
   Mail,
   ShoppingBag,
   Newspaper,
-  Store
+  Store,
+  History,
+  BookOpen // Added for AboutMission
 } from "lucide-react";
 
 interface ComponentPickerProps {
@@ -33,7 +35,9 @@ const components = [
   { type: 'newsletter', icon: Mail, label: 'Newsletter' },
   { type: 'product_gallery', icon: ShoppingBag, label: 'Product Gallery' },
   { type: 'blog_preview', icon: Newspaper, label: 'Blog Preview' },
-  { type: 'store_brands', icon: Store, label: 'Store Brands' }
+  { type: 'store_brands', icon: Store, label: 'Store Brands' },
+  { type: 'about_story', icon: History, label: 'About Story' },
+  { type: 'about_mission', icon: BookOpen, label: 'About Mission' } // Added new component
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
