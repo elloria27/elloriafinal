@@ -11,6 +11,8 @@ interface AboutTimelineProps {
 }
 
 export const AboutTimeline = ({ timeline }: AboutTimelineProps) => {
+  console.log("AboutTimeline timeline:", timeline); // Додаємо лог для відстеження даних
+
   return (
     <section className="py-20">
       <div className="container px-4">

@@ -7,6 +7,8 @@ interface AboutStoryProps {
 }
 
 export const AboutStory = ({ content = {} }: AboutStoryProps) => {
+  console.log("AboutStory content:", content); // Додаємо лог для відстеження даних
+
   const {
     title = "Our Journey",
     subtitle = "Milestones that shaped who we are today",
@@ -62,7 +64,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
             />
           </div>
         </motion.div>
-        <AboutTimeline timeline={timeline} />
+        <AboutTimeline timeline={Array.isArray(timeline) ? timeline : []} />
       </div>
     </section>
   );
