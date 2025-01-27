@@ -8,12 +8,14 @@ import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
-import { Json } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
 }
+
+type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -54,15 +56,17 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           console.log('No blocks in DB, using initial blocks:', initialBlocks);
           const savedBlocks = await Promise.all(
             initialBlocks.map(async (block, index) => {
+              const insertData: Partial<ContentBlockType> = {
+                id: block.id,
+                page_id: pageId,
+                type: block.type,
+                content: block.content,
+                order_index: index
+              };
+
               const { data, error: insertError } = await supabase
                 .from('content_blocks')
-                .insert({
-                  id: block.id,
-                  page_id: pageId,
-                  type: block.type,
-                  content: block.content as Json,
-                  order_index: index
-                })
+                .insert(insertData)
                 .select()
                 .single();
 
@@ -131,15 +135,17 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
     try {
       console.log('Adding new block:', newBlock);
+      const insertData: Partial<ContentBlockType> = {
+        id: newBlock.id,
+        page_id: pageId,
+        type: blockType,
+        content: defaultContent,
+        order_index: blocks.length,
+      };
+
       const { error } = await supabase
         .from('content_blocks')
-        .insert({
-          id: newBlock.id,
-          page_id: pageId,
-          type: blockType,
-          content: defaultContent,
-          order_index: blocks.length,
-        });
+        .insert(insertData);
 
       if (error) throw error;
 
