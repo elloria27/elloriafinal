@@ -456,6 +456,159 @@ export const PropertyEditor = ({
           </div>
         );
 
+      case 'about_sustainability':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Sustainability Section Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Statistics</Label>
+                <Button 
+                  onClick={() => {
+                    const stats = Array.isArray(content.stats) ? content.stats : [];
+                    handleChange('stats', [...stats, {
+                      icon: "Leaf",
+                      value: "New Value",
+                      label: "New Stat",
+                      description: "Description"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Statistic
+                </Button>
+              </div>
+              
+              {Array.isArray(content.stats) && content.stats.map((stat, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Statistic {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
+                        newStats.splice(index, 1);
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Icon</Label>
+                    <select
+                      value={stat.icon}
+                      onChange={(e) => {
+                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
+                        newStats[index] = { ...newStats[index], icon: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      className="w-full border rounded-md p-2"
+                    >
+                      <option value="Leaf">Leaf</option>
+                      <option value="Recycle">Recycle</option>
+                      <option value="TreePine">Tree</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Value</Label>
+                    <Input
+                      value={stat.value}
+                      onChange={(e) => {
+                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
+                        newStats[index] = { ...newStats[index], value: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter statistic value"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Label</Label>
+                    <Input
+                      value={stat.label}
+                      onChange={(e) => {
+                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
+                        newStats[index] = { ...newStats[index], label: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter statistic label"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={stat.description}
+                      onChange={(e) => {
+                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
+                        newStats[index] = { ...newStats[index], description: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter statistic description"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">

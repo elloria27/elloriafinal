@@ -69,12 +69,11 @@ export interface StoreBrandsContent extends BaseBlockContent {
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  statsTitle?: string;
   stats?: {
     icon: string;
-    title: string;
+    value: string;
+    label: string;
     description: string;
-    color: string;
   }[];
   timelineItems?: string[];
 }
