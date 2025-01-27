@@ -29,8 +29,8 @@ type SiteSettings = {
   updated_at: string;
   homepage_slug: string;
   maintenance_mode: boolean;
-  contact_email: string;
-  google_analytics_id: string;
+  contact_email: string | null;
+  google_analytics_id: string | null;
   enable_cookie_consent: boolean;
   enable_https_redirect: boolean;
   max_upload_size: number;
@@ -96,20 +96,7 @@ export default function SiteSettings() {
       if (error) throw error;
 
       console.log('Settings loaded:', data);
-      
-      // Transform the data to match our expected types and provide defaults
-      setSettings({
-        ...data,
-        custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
-        homepage_slug: data.homepage_slug || '',
-        maintenance_mode: data.maintenance_mode || false,
-        contact_email: data.contact_email || '',
-        google_analytics_id: data.google_analytics_id || '',
-        enable_cookie_consent: data.enable_cookie_consent || false,
-        enable_https_redirect: data.enable_https_redirect || false,
-        max_upload_size: data.max_upload_size || 10,
-        enable_user_avatars: data.enable_user_avatars || false
-      });
+      setSettings(data as SiteSettings);
     } catch (error) {
       console.error('Error loading settings:', error);
       toast.error("Error loading site settings");
@@ -161,7 +148,7 @@ export default function SiteSettings() {
           max_upload_size: settings.max_upload_size,
           enable_user_avatars: settings.enable_user_avatars
         })
-        .eq('id', '1');
+        .eq('id', settings.id);
 
       if (error) throw error;
 
@@ -394,4 +381,3 @@ export default function SiteSettings() {
       </Tabs>
     </div>
   );
-}
