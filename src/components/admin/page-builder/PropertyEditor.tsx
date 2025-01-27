@@ -151,11 +151,16 @@ export const PropertyEditor = ({
     
     const newStats = [...content.stats];
     if (!newStats[index]) {
-      newStats[index] = {};
+      newStats[index] = {
+        icon: "Leaf",
+        value: "",
+        label: "",
+        description: ""
+      };
     }
     
     newStats[index] = {
-      ...newStats[index],
+      ...(typeof newStats[index] === 'object' ? newStats[index] : {}),
       [field]: value
     };
     
