@@ -1,112 +1,29 @@
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cloud, Sun, CloudRain, Thermometer, Wind } from "lucide-react";
-
-interface WeatherData {
-  temperature: number;
-  condition: string;
-  humidity: number;
-  windSpeed: number;
-  location: string;
-}
+import { Sun, Cloud, CloudRain, CloudSnow, Wind } from "lucide-react";
 
 export const WeatherWidget = () => {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        // First, get the user's IP location
-        const locationResponse = await fetch('https://ipapi.co/json/');
-        const locationData = await locationResponse.json();
-        
-        // Then fetch weather data using the location
-        const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${locationData.city}&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`
-        );
-        const weatherData = await weatherResponse.json();
-
-        setWeather({
-          temperature: Math.round(weatherData.main.temp),
-          condition: weatherData.weather[0].main,
-          humidity: weatherData.main.humidity,
-          windSpeed: Math.round(weatherData.wind.speed),
-          location: `${locationData.city}, ${locationData.country_name}`
-        });
-      } catch (err) {
-        console.error('Error fetching weather:', err);
-        setError('Failed to load weather data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWeather();
-  }, []);
-
-  const getWeatherIcon = (condition: string) => {
-    switch (condition.toLowerCase()) {
-      case 'clear':
-        return <Sun className="h-8 w-8 text-yellow-500" />;
-      case 'rain':
-        return <CloudRain className="h-8 w-8 text-blue-500" />;
-      default:
-        return <Cloud className="h-8 w-8 text-gray-500" />;
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Weather</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Weather</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-red-500">{error}</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Get current hour to determine time of day
+  const hour = new Date().getHours();
+  const season = getSeason(new Date());
+  
+  // Simple weather simulation based on time and season
+  const { condition, temperature } = simulateWeather(hour, season);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Weather
-          <span className="text-sm font-normal text-muted-foreground">{weather?.location}</span>
-        </CardTitle>
+        <CardTitle>Local Weather</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {weather && getWeatherIcon(weather.condition)}
-            <div className="text-4xl font-bold">{weather?.temperature}°C</div>
+            {getWeatherIcon(condition)}
+            <div className="text-4xl font-bold">{temperature}°C</div>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Thermometer className="h-4 w-4" />
-              <span>Humidity: {weather?.humidity}%</span>
-            </div>
-            <div className="flex items-center gap-2">
               <Wind className="h-4 w-4" />
-              <span>Wind: {weather?.windSpeed} m/s</span>
+              <span>Light breeze</span>
             </div>
           </div>
         </div>
@@ -114,3 +31,63 @@ export const WeatherWidget = () => {
     </Card>
   );
 };
+
+function getSeason(date: Date): 'spring' | 'summer' | 'autumn' | 'winter' {
+  const month = date.getMonth();
+  if (month >= 2 && month <= 4) return 'spring';
+  if (month >= 5 && month <= 7) return 'summer';
+  if (month >= 8 && month <= 10) return 'autumn';
+  return 'winter';
+}
+
+function simulateWeather(hour: number, season: string) {
+  // Base temperature ranges for each season
+  const tempRanges = {
+    spring: { min: 10, max: 20 },
+    summer: { min: 20, max: 30 },
+    autumn: { min: 5, max: 15 },
+    winter: { min: -5, max: 5 }
+  };
+
+  // Get temperature range for current season
+  const range = tempRanges[season as keyof typeof tempRanges];
+  
+  // Simulate temperature based on time of day
+  let tempModifier = 0;
+  if (hour >= 12 && hour <= 15) tempModifier = 5; // Warmest part of day
+  if (hour >= 0 && hour <= 5) tempModifier = -3; // Coldest part of day
+  
+  const temperature = Math.round(
+    range.min + (Math.random() * (range.max - range.min)) + tempModifier
+  );
+
+  // Determine weather condition based on temperature and time
+  let condition = 'clear';
+  if (hour >= 6 && hour <= 18) {
+    if (temperature < 0) condition = 'snow';
+    else if (Math.random() > 0.7) condition = 'rain';
+    else if (Math.random() > 0.5) condition = 'cloudy';
+    else condition = 'clear';
+  } else {
+    if (temperature < 0) condition = 'snow';
+    else if (Math.random() > 0.8) condition = 'rain';
+    else condition = 'clear';
+  }
+
+  return { condition, temperature };
+}
+
+function getWeatherIcon(condition: string) {
+  switch (condition) {
+    case 'clear':
+      return <Sun className="h-8 w-8 text-yellow-500" />;
+    case 'cloudy':
+      return <Cloud className="h-8 w-8 text-gray-500" />;
+    case 'rain':
+      return <CloudRain className="h-8 w-8 text-blue-500" />;
+    case 'snow':
+      return <CloudSnow className="h-8 w-8 text-blue-300" />;
+    default:
+      return <Sun className="h-8 w-8 text-yellow-500" />;
+  }
+}

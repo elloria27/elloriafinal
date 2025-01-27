@@ -37,19 +37,19 @@ export const AnalyticsWidget = () => {
 
         if (viewsError) throw viewsError;
 
-        // Get top countries
+        // Get top countries using the RPC function
         const { data: countriesData, error: countriesError } = await supabase
           .rpc('get_top_countries', { limit_count: 3 });
 
         if (countriesError) throw countriesError;
 
-        // Get top pages
+        // Get top pages using the RPC function
         const { data: pagesData, error: pagesError } = await supabase
           .rpc('get_top_pages', { limit_count: 3 });
 
         if (pagesError) throw pagesError;
 
-        // Get views over time (last 7 days)
+        // Get views over time using the RPC function
         const { data: timeData, error: timeError } = await supabase
           .rpc('get_daily_views', { days_back: 7 });
 
@@ -63,15 +63,15 @@ export const AnalyticsWidget = () => {
           averageTimeOnSite: `${avgTimeMinutes}m`,
           topCountries: countriesData?.map(item => ({
             country: item.country || 'Unknown',
-            visits: parseInt(item.count)
+            visits: parseInt(item.count.toString())
           })) || [],
           topPages: pagesData?.map(item => ({
             page: item.page_path,
-            views: parseInt(item.count)
+            views: parseInt(item.count.toString())
           })) || [],
           viewsOverTime: timeData?.map(item => ({
             date: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
-            views: parseInt(item.count)
+            views: parseInt(item.count.toString())
           })) || []
         };
 

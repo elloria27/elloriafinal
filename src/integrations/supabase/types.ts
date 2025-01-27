@@ -461,6 +461,33 @@ export type Database = {
           updated_at: string | null
         }[]
       }
+      get_daily_views: {
+        Args: {
+          days_back: number
+        }
+        Returns: {
+          date: string
+          count: number
+        }[]
+      }
+      get_top_countries: {
+        Args: {
+          limit_count: number
+        }
+        Returns: {
+          country: string
+          count: number
+        }[]
+      }
+      get_top_pages: {
+        Args: {
+          limit_count: number
+        }
+        Returns: {
+          page_path: string
+          count: number
+        }[]
+      }
       is_admin: {
         Args: {
           user_id: string
