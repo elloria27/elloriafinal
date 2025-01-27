@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -107,7 +107,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }));
 
     try {
-      // Update order_index in database
       const updatePromises = updatedBlocks.map(block => 
         supabase
           .from('content_blocks')
@@ -121,6 +120,36 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     } catch (error) {
       console.error('Error updating block order:', error);
       toast.error("Failed to update block order");
+    }
+  };
+
+  const handleDeleteBlock = async (blockId: string) => {
+    try {
+      console.log('Deleting block:', blockId);
+      const { error } = await supabase
+        .from('content_blocks')
+        .delete()
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setBlocks(prevBlocks => {
+        const updatedBlocks = prevBlocks.filter(block => block.id !== blockId);
+        // Update order_index for remaining blocks
+        return updatedBlocks.map((block, index) => ({
+          ...block,
+          order_index: index
+        }));
+      });
+
+      if (selectedBlock?.id === blockId) {
+        setSelectedBlock(null);
+      }
+
+      toast.success("Block deleted successfully");
+    } catch (error) {
+      console.error('Error deleting block:', error);
+      toast.error("Failed to delete block");
     }
   };
 
@@ -252,12 +281,23 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={`p-3 bg-white rounded-lg shadow cursor-pointer ${
+                        className={`p-3 bg-white rounded-lg shadow cursor-pointer group ${
                           selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
                         }`}
-                        onClick={() => setSelectedBlock(block)}
                       >
-                        {block.type}
+                        <div className="flex items-center justify-between">
+                          <span onClick={() => setSelectedBlock(block)}>
+                            {block.type}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteBlock(block.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </Draggable>
