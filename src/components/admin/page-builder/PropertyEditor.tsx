@@ -34,7 +34,6 @@ export const PropertyEditor = ({
 }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
-  // Синхронізуємо локальний стан з пропсами при зміні блоку
   useEffect(() => {
     console.log("Block content updated:", block.content);
     setContent(block.content);
@@ -86,6 +85,56 @@ export const PropertyEditor = ({
     const newTimeline = [...timeline];
     newTimeline.splice(index, 1);
     handleChange('timeline', newTimeline);
+  };
+
+  const getBlogArticles = () => {
+    if (!content || !('articles' in content)) {
+      return [];
+    }
+
+    const articles = content.articles;
+    if (!Array.isArray(articles)) {
+      return [];
+    }
+
+    return articles.map(article => {
+      if (typeof article === 'object' && article !== null) {
+        return {
+          title: String(article.title || ''),
+          category: String(article.category || ''),
+          image: String(article.image || '')
+        };
+      }
+      return {
+        title: '',
+        category: '',
+        image: ''
+      };
+    });
+  };
+
+  const handleArticleChange = (index: number, field: keyof BlogPreviewContent['articles'][0], value: string) => {
+    const articles = getBlogArticles();
+    const newArticles = [...articles];
+    newArticles[index] = { ...newArticles[index], [field]: value };
+    handleChange('articles', newArticles);
+  };
+
+  const addArticle = () => {
+    const newArticle = {
+      title: "New Article",
+      category: "Category",
+      image: "/placeholder.svg"
+    };
+    
+    const articles = getBlogArticles();
+    handleChange('articles', [...articles, newArticle]);
+  };
+
+  const removeArticle = (index: number) => {
+    const articles = getBlogArticles();
+    const newArticles = articles.filter((_, i) => i !== index);
+    handleChange('articles', newArticles);
   };
 
   const handleDelete = () => {
