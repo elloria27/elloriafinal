@@ -180,7 +180,8 @@ export type BlockType =
   | "game_changer"
   | "competitor_comparison"
   | "about_hero_section"
-  | "about_story";
+  | "about_story"
+  | "about_sustainability";
 
 export interface ContentBlock {
   id: string;

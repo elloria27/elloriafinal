@@ -144,6 +144,16 @@ export const PropertyEditor = ({
     }
   };
 
+  const handleStatsChange = (index: number, field: string, value: string) => {
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    const newStats = [...stats];
+    newStats[index] = { 
+      ...newStats[index], 
+      [field]: value 
+    };
+    handleChange('stats', newStats);
+  };
+
   const renderFields = () => {
     console.log('Rendering fields for block type:', block.type);
     console.log('Current content:', content);
@@ -517,12 +527,15 @@ export const PropertyEditor = ({
                 <Button 
                   onClick={() => {
                     const stats = Array.isArray(content.stats) ? content.stats : [];
-                    handleChange('stats', [...stats, {
-                      icon: "Leaf",
-                      value: "New Value",
-                      label: "New Stat",
-                      description: "Description"
-                    }]);
+                    handleChange('stats', [
+                      ...stats,
+                      {
+                        icon: "Leaf",
+                        value: "New Value",
+                        label: "New Stat",
+                        description: "Description"
+                      }
+                    ]);
                   }} 
                   size="sm"
                 >
@@ -539,8 +552,9 @@ export const PropertyEditor = ({
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
-                        newStats.splice(index, 1);
+                        const newStats = Array.isArray(content.stats) ? 
+                          content.stats.filter((_, i) => i !== index) : 
+                          [];
                         handleChange('stats', newStats);
                       }}
                     >
@@ -552,11 +566,7 @@ export const PropertyEditor = ({
                     <Label>Icon</Label>
                     <select
                       value={stat.icon}
-                      onChange={(e) => {
-                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
-                        newStats[index] = { ...newStats[index], icon: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
+                      onChange={(e) => handleStatsChange(index, 'icon', e.target.value)}
                       className="w-full border rounded-md p-2"
                     >
                       <option value="Leaf">Leaf</option>
@@ -569,11 +579,7 @@ export const PropertyEditor = ({
                     <Label>Value</Label>
                     <Input
                       value={stat.value}
-                      onChange={(e) => {
-                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
-                        newStats[index] = { ...newStats[index], value: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
+                      onChange={(e) => handleStatsChange(index, 'value', e.target.value)}
                       placeholder="Enter statistic value"
                     />
                   </div>
@@ -582,11 +588,7 @@ export const PropertyEditor = ({
                     <Label>Label</Label>
                     <Input
                       value={stat.label}
-                      onChange={(e) => {
-                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
-                        newStats[index] = { ...newStats[index], label: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
+                      onChange={(e) => handleStatsChange(index, 'label', e.target.value)}
                       placeholder="Enter statistic label"
                     />
                   </div>
@@ -595,11 +597,7 @@ export const PropertyEditor = ({
                     <Label>Description</Label>
                     <Textarea
                       value={stat.description}
-                      onChange={(e) => {
-                        const newStats = Array.isArray(content.stats) ? [...content.stats] : [];
-                        newStats[index] = { ...newStats[index], description: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
+                      onChange={(e) => handleStatsChange(index, 'description', e.target.value)}
                       placeholder="Enter statistic description"
                     />
                   </div>
