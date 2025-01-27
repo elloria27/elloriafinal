@@ -10,8 +10,8 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, Files } from "lucide-react";
-import Dashboard from "@/pages/admin/Dashboard";
-import SiteSettings from "@/pages/admin/SiteSettings";
+import Dashboard from "./Dashboard";
+import SiteSettings from "./SiteSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,72 +20,77 @@ const Admin = () => {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
-      try {
-        console.log("Checking authentication status...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          throw sessionError;
-        }
-
-        if (!session) {
-          console.log('No active session, redirecting to login');
-          navigate("/login?redirectTo=/admin");
-          return;
-        }
-
-        // Fetch user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          console.log('Profile data:', profileData);
-          setProfile(profileData);
-        }
-
-        const { data: roleData, error: roleError } = await supabase
-          .rpc('is_admin', {
-            user_id: session.user.id
-          });
-
-        if (roleError) {
-          console.error('Error checking admin role:', roleError);
-          throw roleError;
-        }
-
-        if (!roleData) {
-          console.log('User is not an admin, access denied');
-          toast.error("Unauthorized access - Admin privileges required");
-          navigate("/");
-          return;
-        }
-
-        setIsAdmin(true);
-        toast.success("Welcome to Admin Panel");
-
-      } catch (error) {
-        console.error('Admin access check failed:', error);
-        toast.error("Error verifying admin access");
-        navigate("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     checkAdminAccess();
   }, [navigate]);
 
+  const checkAdminAccess = async () => {
+    try {
+      console.log("Checking authentication status...");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw sessionError;
+      }
+
+      if (!session) {
+        console.log('No active session, redirecting to login');
+        navigate("/login?redirectTo=/admin");
+        return;
+      }
+
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else {
+        console.log('Profile data:', profileData);
+        setProfile(profileData);
+      }
+
+      const { data: roleData, error: roleError } = await supabase
+        .rpc('is_admin', {
+          user_id: session.user.id
+        });
+
+      if (roleError) {
+        console.error('Error checking admin role:', roleError);
+        throw roleError;
+      }
+
+      if (!roleData) {
+        console.log('User is not an admin, access denied');
+        toast.error("Unauthorized access - Admin privileges required");
+        navigate("/");
+        return;
+      }
+
+      setIsAdmin(true);
+      toast.success("Welcome to Admin Panel");
+
+    } catch (error) {
+      console.error('Admin access check failed:', error);
+      toast.error("Error verifying admin access");
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      console.log("Signing out...");
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      console.log("Sign out successful");
       toast.success("Signed out successfully");
+      setIsAdmin(false);
       navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
