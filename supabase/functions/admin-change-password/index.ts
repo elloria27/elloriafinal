@@ -13,9 +13,16 @@ Deno.serve(async (req) => {
   try {
     console.log('Starting password change process...')
     
-    const supabase = createClient(
+    // Initialize Supabase client with service role key for admin operations
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
     const { userId, newPassword } = await req.json()
@@ -25,13 +32,13 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
     if (authError) {
       console.error('Auth error:', authError)
       throw authError
     }
 
-    const { data: roles } = await supabase
+    const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user?.id)
@@ -45,7 +52,7 @@ Deno.serve(async (req) => {
     console.log('Admin verification successful')
 
     // Update the user's password using admin API
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
+    const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
       { password: newPassword }
     )
@@ -55,7 +62,7 @@ Deno.serve(async (req) => {
       throw updateError
     }
 
-    console.log('Password updated successfully')
+    console.log('Password updated successfully:', data)
 
     return new Response(
       JSON.stringify({ message: 'Password updated successfully' }),
