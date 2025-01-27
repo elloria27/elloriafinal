@@ -21,6 +21,7 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
       if (!fileName) return;
 
       try {
+        console.log('Loading preview for:', fileName);
         const { data: fileData, error: downloadError } = await supabase.storage
           .from('files')
           .download(fileName);
@@ -33,6 +34,7 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
         const url = URL.createObjectURL(fileData);
         setPreviewUrl(url);
         setFileType(fileData.type);
+        console.log('File type:', fileData.type);
 
         return () => {
           if (url) URL.revokeObjectURL(url);
@@ -60,7 +62,7 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
 
     if (fileType?.startsWith('video/')) {
       return (
-        <video controls className="max-w-full max-h-[70vh]">
+        <video controls className="max-w-full max-h-[70vh] w-full">
           <source src={previewUrl} type={fileType} />
           Your browser does not support the video tag.
         </video>
@@ -85,11 +87,13 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
 
   return (
     <Dialog open={!!fileName} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="w-[95vw] max-w-4xl mx-auto">
         <DialogHeader>
-          <DialogTitle>File Preview</DialogTitle>
+          <DialogTitle className="text-xl font-semibold break-words">
+            {fileName}
+          </DialogTitle>
         </DialogHeader>
-        <div className="mt-4">
+        <div className="mt-4 overflow-x-auto">
           {renderPreview()}
         </div>
       </DialogContent>

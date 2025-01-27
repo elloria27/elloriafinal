@@ -32,7 +32,15 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
 
     try {
       setIsGenerating(true);
+      console.log('Generating share link for:', fileName);
+      console.log('Access level:', accessLevel);
+      
       const shareToken = crypto.randomUUID();
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+
+      console.log('User ID:', userId);
+      console.log('Share token:', shareToken);
 
       const { error } = await supabase
         .from('file_shares')
@@ -40,10 +48,13 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
           file_path: fileName,
           access_level: accessLevel,
           share_token: shareToken,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: userId,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting share record:', error);
+        throw error;
+      }
 
       const link = `${window.location.origin}/shared/${shareToken}`;
       setShareLink(link);
@@ -68,15 +79,17 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
 
   return (
     <Dialog open={!!fileName} onOpenChange={() => onClose()}>
-      <DialogContent>
+      <DialogContent className="w-full max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle>Share File</DialogTitle>
+          <DialogTitle className="text-xl font-semibold break-words">
+            Share File: {fileName}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Access Level</label>
             <Select value={accessLevel} onValueChange={setAccessLevel}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -87,14 +100,26 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
             </Select>
           </div>
 
-          <div className="flex gap-2">
-            <Input value={shareLink} readOnly placeholder="Generate a share link" />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input 
+              value={shareLink} 
+              readOnly 
+              placeholder="Generate a share link"
+              className="flex-1 min-w-0 break-all"
+            />
             {!shareLink ? (
-              <Button onClick={generateShareLink} disabled={isGenerating}>
+              <Button 
+                onClick={generateShareLink} 
+                disabled={isGenerating}
+                className="whitespace-nowrap"
+              >
                 Generate
               </Button>
             ) : (
-              <Button onClick={copyToClipboard}>
+              <Button 
+                onClick={copyToClipboard}
+                className="whitespace-nowrap"
+              >
                 Copy
               </Button>
             )}
