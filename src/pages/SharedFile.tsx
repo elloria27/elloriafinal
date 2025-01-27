@@ -9,7 +9,7 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 export default function SharedFile() {
   const { token } = useParams();
@@ -57,7 +57,7 @@ export default function SharedFile() {
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
         setFileType(file.type);
-        console.log('File loaded successfully:', file.type);
+        console.log('File loaded successfully. Type:', file.type);
 
       } catch (error) {
         console.error('Error in loadSharedFile:', error);
@@ -100,6 +100,7 @@ export default function SharedFile() {
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    console.log('PDF loaded successfully with', numPages, 'pages');
     setNumPages(numPages);
     setPdfError(null);
   };
@@ -126,7 +127,11 @@ export default function SharedFile() {
       );
     }
 
-    if (fileType === 'application/pdf') {
+    console.log('Rendering preview for file type:', fileType);
+
+    // Handle PDF files
+    if (fileType === 'application/pdf' || fileType === 'pdf' || fileData.file_path.toLowerCase().endsWith('.pdf')) {
+      console.log('Rendering PDF preview');
       return (
         <div className="max-w-4xl mx-auto overflow-x-auto pdf-container">
           <Document
@@ -164,6 +169,7 @@ export default function SharedFile() {
       );
     }
 
+    // Handle images
     if (fileType.startsWith('image/')) {
       return (
         <img
@@ -174,6 +180,7 @@ export default function SharedFile() {
       );
     }
 
+    // Handle videos
     if (fileType.startsWith('video/')) {
       return (
         <video controls className="max-w-full max-h-[70vh] w-full rounded-lg shadow-lg">
@@ -183,6 +190,7 @@ export default function SharedFile() {
       );
     }
 
+    // Handle audio
     if (fileType.startsWith('audio/')) {
       return (
         <audio controls className="w-full">
@@ -192,6 +200,7 @@ export default function SharedFile() {
       );
     }
 
+    // Default case for unsupported file types
     return (
       <div className="text-center py-8">
         <p className="mb-4 text-gray-600">Preview not available for this file type</p>
