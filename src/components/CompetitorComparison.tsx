@@ -56,6 +56,12 @@ const getIcon = (iconName: string) => {
 export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => {
   const metrics = content?.metrics || defaultMetrics;
   
+  const handleButtonClick = () => {
+    if (content?.buttonUrl) {
+      window.location.href = content.buttonUrl;
+    }
+  };
+
   return (
     <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
       <div className="container px-4 max-w-4xl mx-auto">
@@ -163,7 +169,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
           <Button 
             size="lg"
             className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => content?.buttonUrl && window.location.href = content.buttonUrl}
+            onClick={handleButtonClick}
           >
             {content?.buttonText || "Experience the Elloria Difference"}
           </Button>
