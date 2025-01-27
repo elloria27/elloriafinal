@@ -20,10 +20,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {content?.title || "Latest Articles"}
+            {String(content?.title || "Latest Articles")}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {content?.subtitle || "Discover tips, guides, and insights about feminine hygiene and comfort"}
+            {String(content?.subtitle || "Discover tips, guides, and insights about feminine hygiene and comfort")}
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -38,16 +38,16 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
             >
               <div className="relative overflow-hidden rounded-lg mb-4">
                 <img
-                  src={article.image}
-                  alt={article.title}
+                  src={String(article.image)}
+                  alt={String(article.title)}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm">
-                  {article.category}
+                  {String(article.category)}
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                {article.title}
+                {String(article.title)}
               </h3>
             </motion.div>
           ))}
@@ -60,7 +60,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           className="text-center mt-12"
         >
           <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-            {content?.buttonText || "View All Articles"}
+            {String(content?.buttonText || "View All Articles")}
           </Button>
         </motion.div>
       </div>

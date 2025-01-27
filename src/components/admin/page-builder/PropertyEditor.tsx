@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, BlogPreviewContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -11,8 +10,6 @@ interface PropertyEditorProps {
   block: ContentBlock;
   onUpdate: (id: string, content: BlockContent) => void;
 }
-
-const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkles", "Recycle", "Package", "Factory"];
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
@@ -85,7 +82,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Enter section title"
               />
@@ -93,7 +90,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
                 placeholder="Enter section subtitle"
               />
@@ -101,7 +98,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Button Text</Label>
               <Input
-                value={content.buttonText || ''}
+                value={String(content.buttonText || '')}
                 onChange={(e) => handleChange('buttonText', e.target.value)}
                 placeholder="Enter button text"
               />
