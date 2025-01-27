@@ -308,6 +308,7 @@ export type Database = {
           default_language: Database["public"]["Enums"]["supported_language"]
           enable_registration: boolean
           enable_search_indexing: boolean
+          homepage_slug: string | null
           id: string
           meta_description: string | null
           meta_keywords: string | null
@@ -321,6 +322,7 @@ export type Database = {
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_registration?: boolean
           enable_search_indexing?: boolean
+          homepage_slug?: string | null
           id?: string
           meta_description?: string | null
           meta_keywords?: string | null
@@ -334,6 +336,7 @@ export type Database = {
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_registration?: boolean
           enable_search_indexing?: boolean
+          homepage_slug?: string | null
           id?: string
           meta_description?: string | null
           meta_keywords?: string | null
