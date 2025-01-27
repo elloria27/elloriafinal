@@ -160,7 +160,13 @@ export type BlockType =
   | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
-  | "competitor_comparison";
+  | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact";
 
 export interface ContentBlock {
   id: string;
@@ -179,3 +185,4 @@ export interface FeaturesProps {
 export interface HeroProps {
   content?: HeroContent;
 }
+
