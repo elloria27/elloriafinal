@@ -1,7 +1,6 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -42,7 +41,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         <Button
           variant="ghost"
           size="sm"
-          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
           onClick={() => onSelectBlock(block)}
         >
           <Edit2 className="h-4 w-4" />
@@ -52,37 +51,35 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
           switch (block.type) {
             case 'about_story':
               return (
-                <div className="p-6 bg-white rounded-lg border border-gray-200">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">
-                        {getContentValue(block.content, 'title') || 'Our Story'}
-                      </h3>
-                      <p className="text-gray-600">
-                        {getContentValue(block.content, 'subtitle') || 'Our journey through the years'}
+                <div className="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">
+                      {getContentValue(block.content, 'title') || 'Our Story'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {getContentValue(block.content, 'subtitle') || 'Our journey through the years'}
+                    </p>
+                  </div>
+                  
+                  {getContentValue(block.content, 'videoUrl') && (
+                    <div className="bg-gray-50 rounded p-3">
+                      <p className="text-sm text-gray-600">
+                        Video URL: {getContentValue(block.content, 'videoUrl')}
                       </p>
                     </div>
-                    
-                    {getContentValue(block.content, 'videoUrl') && (
-                      <div className="aspect-video w-full">
-                        <div className="bg-gray-100 rounded p-2 text-sm text-gray-600">
-                          Video URL: {getContentValue(block.content, 'videoUrl')}
-                        </div>
-                      </div>
-                    )}
+                  )}
 
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm text-gray-700">Timeline Milestones:</h4>
-                      {getTimelineItems(block.content).map((item, index) => (
-                        <div key={index} className="bg-gray-50 p-3 rounded">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold">{item.year}</span>
-                            <span className="text-sm text-gray-600">{item.title}</span>
-                          </div>
-                          <p className="text-sm text-gray-600">{item.description}</p>
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Timeline Milestones:</h4>
+                    {getTimelineItems(block.content).map((item, index) => (
+                      <div key={index} className="bg-gray-50 p-3 rounded">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-semibold text-primary">{item.year}</span>
+                          <span className="text-gray-900">{item.title}</span>
                         </div>
-                      ))}
-                    </div>
+                        <p className="text-sm text-gray-600">{item.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -169,7 +166,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {blocks.length > 0 ? (
         blocks.map((block) => renderBlock(block))
       ) : (
