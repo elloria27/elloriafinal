@@ -12,8 +12,8 @@ import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
 import { 
   ContentBlock, 
-  BlockContent, 
-  HeroContent, 
+  BlockContent,
+  HeroContent,
   FeaturesContent,
   GameChangerContent,
   StoreBrandsContent,
@@ -23,6 +23,7 @@ import {
   BlogPreviewContent,
   NewsletterContent
 } from "@/types/content-blocks";
+import { toast } from "sonner";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -31,6 +32,8 @@ const Index = () => {
   useEffect(() => {
     const fetchHomePageContent = async () => {
       try {
+        console.log('Fetching homepage content...');
+        
         // First, get the homepage slug from site settings
         const { data: settingsData, error: settingsError } = await supabase
           .from('site_settings')
@@ -39,13 +42,17 @@ const Index = () => {
 
         if (settingsError) {
           console.error('Error fetching homepage slug:', settingsError);
+          toast.error("Error loading homepage content");
           return;
         }
 
         if (!settingsData?.homepage_slug) {
           console.error('No homepage slug found in settings');
+          toast.error("Homepage not configured");
           return;
         }
+
+        console.log('Homepage slug:', settingsData.homepage_slug);
 
         // Then fetch the page content using the slug
         const { data: pageData, error: pageError } = await supabase
@@ -56,8 +63,11 @@ const Index = () => {
 
         if (pageError) {
           console.error('Error fetching page:', pageError);
+          toast.error("Error loading page content");
           return;
         }
+
+        console.log('Page ID:', pageData.id);
 
         // Finally, fetch the content blocks for this page
         const { data: blocksData, error: blocksError } = await supabase
@@ -68,17 +78,22 @@ const Index = () => {
 
         if (blocksError) {
           console.error('Error fetching content blocks:', blocksError);
+          toast.error("Error loading page content");
           return;
         }
 
-        console.log('Fetched content blocks:', blocksData);
-        // Cast the data to ContentBlock[] type
-        setBlocks(blocksData?.map(block => ({
+        console.log('Content blocks:', blocksData);
+
+        // Transform the blocks data to match ContentBlock type
+        const transformedBlocks = blocksData?.map(block => ({
           ...block,
           content: block.content as BlockContent
-        })) || []);
+        })) || [];
+
+        setBlocks(transformedBlocks);
       } catch (error) {
         console.error('Error:', error);
+        toast.error("Error loading page content");
       } finally {
         setLoading(false);
       }
@@ -119,7 +134,7 @@ const Index = () => {
       case 'product_carousel':
         return <ProductCarousel content={block.content as ProductCarouselContent} />;
       case 'competitor_comparison':
-        return <CompetitorComparison content={block.content} />;
+        return <CompetitorComparison content={block.content as BlockContent} />;
       case 'testimonials':
         return <Testimonials content={block.content as TestimonialsContent} />;
       case 'blog_preview':
