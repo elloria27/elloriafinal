@@ -23,7 +23,7 @@ interface ShareDialogProps {
 }
 
 export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
-  const [accessLevel, setAccessLevel] = useState<string>("view");
+  const [accessLevel, setAccessLevel] = useState<string>("public");
   const [shareLink, setShareLink] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -80,6 +80,8 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="public">Public Access</SelectItem>
+                <SelectItem value="authenticated">Authenticated Users Only</SelectItem>
                 <SelectItem value="view">View Only</SelectItem>
                 <SelectItem value="download">Download</SelectItem>
                 <SelectItem value="edit">Edit</SelectItem>

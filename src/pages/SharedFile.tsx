@@ -66,6 +66,16 @@ export default function SharedFile() {
     }
   };
 
+  const canAccessFile = () => {
+    if (!fileInfo) return false;
+    if (fileInfo.access_level === 'public') return true;
+    
+    const user = supabase.auth.getUser();
+    if (fileInfo.access_level === 'authenticated') return !!user;
+    
+    return true; // For other access levels, we'll handle permissions in the specific actions
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -74,14 +84,14 @@ export default function SharedFile() {
     );
   }
 
-  if (!fileInfo) {
+  if (!fileInfo || !canAccessFile()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Shared File Not Found
+          Shared File Not Found or Access Denied
         </h1>
         <p className="text-gray-600">
-          This file may have been removed or the link has expired.
+          This file may have been removed, the link has expired, or you don't have permission to access it.
         </p>
       </div>
     );
@@ -110,7 +120,7 @@ export default function SharedFile() {
                       <Eye className="h-4 w-4" />
                       Preview
                     </Button>
-                    {fileInfo.access_level === 'download' && (
+                    {(fileInfo.access_level === 'download' || fileInfo.access_level === 'edit') && (
                       <Button
                         variant="outline"
                         size="sm"
