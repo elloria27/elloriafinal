@@ -28,7 +28,10 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateShareLink = async () => {
-    if (!fileName) return;
+    if (!fileName) {
+      console.error('No file name provided');
+      return;
+    }
 
     try {
       setIsGenerating(true);
@@ -37,18 +40,24 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
       console.log('Generating share link for file:', fileName);
       console.log('Access level:', accessLevel);
 
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+
+      console.log('Current user ID:', userId);
+
       const { error } = await supabase
         .from('file_shares')
         .insert({
           file_path: fileName,
           access_level: accessLevel,
           share_token: shareToken,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: userId,
         });
 
       if (error) {
         console.error('Error creating share:', error);
-        throw error;
+        toast.error("Failed to generate share link");
+        return;
       }
 
       const link = `${window.location.origin}/shared/${shareToken}`;
