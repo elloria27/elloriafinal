@@ -132,6 +132,8 @@ export type Database = {
       }
       pages: {
         Row: {
+          allow_indexing: boolean | null
+          canonical_url: string | null
           content: Json
           content_blocks: Json[] | null
           created_at: string | null
@@ -139,6 +141,12 @@ export type Database = {
           is_published: boolean | null
           menu_order: number | null
           menu_type: string | null
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
           page_template: string | null
           parent_id: string | null
           show_in_footer: boolean | null
@@ -148,6 +156,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allow_indexing?: boolean | null
+          canonical_url?: string | null
           content?: Json
           content_blocks?: Json[] | null
           created_at?: string | null
@@ -155,6 +165,12 @@ export type Database = {
           is_published?: boolean | null
           menu_order?: number | null
           menu_type?: string | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
           page_template?: string | null
           parent_id?: string | null
           show_in_footer?: boolean | null
@@ -164,6 +180,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allow_indexing?: boolean | null
+          canonical_url?: string | null
           content?: Json
           content_blocks?: Json[] | null
           created_at?: string | null
@@ -171,6 +189,12 @@ export type Database = {
           is_published?: boolean | null
           menu_order?: number | null
           menu_type?: string | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
           page_template?: string | null
           parent_id?: string | null
           show_in_footer?: boolean | null
@@ -374,6 +398,8 @@ export type Database = {
       admin_fetch_all_pages: {
         Args: Record<PropertyKey, never>
         Returns: {
+          allow_indexing: boolean | null
+          canonical_url: string | null
           content: Json
           content_blocks: Json[] | null
           created_at: string | null
@@ -381,6 +407,12 @@ export type Database = {
           is_published: boolean | null
           menu_order: number | null
           menu_type: string | null
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
           page_template: string | null
           parent_id: string | null
           show_in_footer: boolean | null

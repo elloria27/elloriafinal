@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 
 type SiteSettings = {
   id: string;
@@ -278,42 +279,7 @@ export default function SiteSettings() {
         </TabsContent>
 
         <TabsContent value="seo">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO Settings</CardTitle>
-              <CardDescription>
-                Search engine optimization settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="meta_description">Meta Description</Label>
-                <Input
-                  id="meta_description"
-                  value={settings.meta_description || ''}
-                  onChange={(e) => setSettings({ ...settings, meta_description: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="meta_keywords">Meta Keywords</Label>
-                <Input
-                  id="meta_keywords"
-                  value={settings.meta_keywords || ''}
-                  onChange={(e) => setSettings({ ...settings, meta_keywords: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="enable_search_indexing"
-                  checked={settings.enable_search_indexing}
-                  onCheckedChange={(checked) => setSettings({ ...settings, enable_search_indexing: checked })}
-                />
-                <Label htmlFor="enable_search_indexing">Enable Search Engine Indexing</Label>
-              </div>
-            </CardContent>
-          </Card>
+          <SeoSettings />
         </TabsContent>
 
         <TabsContent value="advanced">
@@ -351,4 +317,4 @@ export default function SiteSettings() {
       </Tabs>
     </div>
   );
-};
+}
