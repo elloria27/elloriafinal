@@ -1,64 +1,30 @@
-import { motion } from "framer-motion";
-import { Leaf, Sparkles, Heart } from "lucide-react";
+import { AboutMissionContent } from "@/types/content-blocks";
 
-const values = [
-  {
-    icon: <Leaf className="w-8 h-8" />,
-    title: "Sustainability",
-    description: "72% recyclable materials and eco-friendly production processes that protect our planet.",
-    color: "bg-accent-green"
-  },
-  {
-    icon: <Sparkles className="w-8 h-8" />,
-    title: "Innovation",
-    description: "Advanced absorption technology for unmatched comfort and protection.",
-    color: "bg-accent-purple"
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: "Empowerment",
-    description: "Dedicated to improving women's lives and health globally through better care.",
-    color: "bg-accent-peach"
+interface AboutMissionProps {
+  content?: AboutMissionContent;
+}
+
+export const AboutMission = ({ content }: AboutMissionProps) => {
+  if (!content) {
+    return null;
   }
-];
 
-export const AboutMission = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
-      <div className="container px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold mb-4">Our Mission & Values</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            We're committed to creating innovative solutions that prioritize both 
-            women's comfort and environmental sustainability.
-          </p>
-        </motion.div>
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4">{content.title || 'Our Mission'}</h2>
+          <p className="text-xl text-gray-600 mb-8">{content.subtitle || 'Making a difference through sustainable innovation'}</p>
+          <p className="text-gray-600">{content.description || 'Description of our mission and values'}</p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {values.map((value, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              className={`${value.color}/20 p-8 rounded-2xl hover:shadow-xl transition-all duration-300`}
-            >
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                className="text-primary mb-6"
-              >
-                {value.icon}
-              </motion.div>
-              <h3 className="text-2xl font-bold mb-4">{value.title}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          {(content.values || []).map((value, index) => (
+            <div key={index} className="text-center p-6">
+              <div className="text-4xl mb-4">{value.icon}</div>
+              <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
               <p className="text-gray-600">{value.description}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

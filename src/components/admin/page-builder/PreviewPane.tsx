@@ -83,7 +83,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
               );
 
             case 'about_mission':
-              return <AboutMission content={block.content} />;
+              return <AboutMission content={block.content as any} />;
 
             default:
               return (
