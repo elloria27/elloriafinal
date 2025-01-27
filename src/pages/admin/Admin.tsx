@@ -118,12 +118,12 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
-        <div className="flex flex-col gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
+    <div className="min-h-screen bg-gray-50 pt-16 md:pt-20">
+      <div className="container mx-auto px-2 py-4 md:px-4 md:py-8">
+        <div className="flex flex-col gap-4 md:gap-6">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-800">
                 Hello, {profile?.full_name || 'Admin'} 👋
               </h1>
               <Button 
@@ -132,44 +132,44 @@ const Admin = () => {
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                <span className="hidden md:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         
-          <Tabs defaultValue="dashboard" className="space-y-6">
+          <Tabs defaultValue="dashboard" className="space-y-4 md:space-y-6">
             <div className="w-full overflow-x-auto pb-2">
-              <TabsList className="w-full grid grid-cols-8 gap-1">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
-                  <LayoutDashboard className="h-5 w-5" />
+              <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 gap-1">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <LayoutDashboard className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Dashboard</span>
                 </TabsTrigger>
-                <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
-                  <Package className="h-5 w-5" />
+                <TabsTrigger value="products" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <Package className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Products</span>
                 </TabsTrigger>
-                <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
-                  <ShoppingCart className="h-5 w-5" />
+                <TabsTrigger value="orders" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Orders</span>
                 </TabsTrigger>
-                <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
-                  <Users className="h-5 w-5" />
+                <TabsTrigger value="users" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <Users className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Users</span>
                 </TabsTrigger>
-                <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
-                  <FileText className="h-5 w-5" />
+                <TabsTrigger value="pages" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <FileText className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Pages</span>
                 </TabsTrigger>
-                <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
-                  <Files className="h-5 w-5" />
+                <TabsTrigger value="files" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <Files className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Files</span>
                 </TabsTrigger>
-                <TabsTrigger value="media" className="flex items-center gap-2 py-3 px-4">
-                  <Image className="h-5 w-5" />
+                <TabsTrigger value="media" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <Image className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Media</span>
                 </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
-                  <Settings className="h-5 w-5" />
+                <TabsTrigger value="settings" className="flex items-center gap-2 py-2 md:py-3 px-3 md:px-4">
+                  <Settings className="h-4 w-4 md:h-5 md:w-5" />
                   <span className="hidden md:inline">Settings</span>
                 </TabsTrigger>
               </TabsList>
