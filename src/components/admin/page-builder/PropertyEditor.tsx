@@ -572,6 +572,7 @@ export const PropertyEditor = ({
           <div className="text-gray-500 italic">
             No editable properties for this component type.
           </div>
+        );
     }
   };
 
