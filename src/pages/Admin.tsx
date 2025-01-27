@@ -9,8 +9,8 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings } from "lucide-react";
-import Dashboard from "./admin/Dashboard";
-import SiteSettings from "./admin/SiteSettings";
+import Dashboard from "./Dashboard";
+import SiteSettings from "./SiteSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -45,6 +45,7 @@ const Admin = () => {
         if (profileError) {
           console.error('Error fetching profile:', profileError);
         } else {
+          console.log('Profile data:', profileData);
           setProfile(profileData);
         }
 
@@ -104,85 +105,82 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
-            <Button 
-              variant="outline"
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-          {profile && (
-            <div className="bg-white p-4 rounded-lg shadow">
-              <p className="text-lg text-gray-700">
-                Welcome, {profile.full_name || 'Admin'}! 👋
-              </p>
+        <div className="flex flex-col gap-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                Hello, {profile?.full_name || 'Admin'} 👋
+              </h1>
+              <Button 
+                variant="outline"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
             </div>
-          )}
-        </div>
+          </div>
         
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-6 gap-1">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
-                <LayoutDashboard className="h-5 w-5" />
-                <span className="hidden md:inline">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
-                <Package className="h-5 w-5" />
-                <span className="hidden md:inline">Products</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="hidden md:inline">Orders</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
-                <Users className="h-5 w-5" />
-                <span className="hidden md:inline">Users</span>
-              </TabsTrigger>
-              <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
-                <FileText className="h-5 w-5" />
-                <span className="hidden md:inline">Pages</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
-                <Settings className="h-5 w-5" />
-                <span className="hidden md:inline">Settings</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <Tabs defaultValue="dashboard" className="space-y-6">
+            <div className="w-full overflow-x-auto pb-2">
+              <TabsList className="w-full grid grid-cols-6 gap-1">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span className="hidden md:inline">Dashboard</span>
+                </TabsTrigger>
+                <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
+                  <Package className="h-5 w-5" />
+                  <span className="hidden md:inline">Products</span>
+                </TabsTrigger>
+                <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="hidden md:inline">Orders</span>
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
+                  <Users className="h-5 w-5" />
+                  <span className="hidden md:inline">Users</span>
+                </TabsTrigger>
+                <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
+                  <FileText className="h-5 w-5" />
+                  <span className="hidden md:inline">Pages</span>
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
+                  <Settings className="h-5 w-5" />
+                  <span className="hidden md:inline">Settings</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          <div className="bg-white rounded-lg shadow p-4 md:p-6">
-            <TabsContent value="dashboard">
-              <Dashboard />
-            </TabsContent>
+            <div className="bg-white rounded-lg shadow p-4 md:p-6">
+              <TabsContent value="dashboard">
+                <Dashboard />
+              </TabsContent>
 
-            <TabsContent value="products">
-              <ProductManagement />
-            </TabsContent>
+              <TabsContent value="products">
+                <ProductManagement />
+              </TabsContent>
 
-            <TabsContent value="orders">
-              <OrderManagement />
-            </TabsContent>
+              <TabsContent value="orders">
+                <OrderManagement />
+              </TabsContent>
 
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
+              <TabsContent value="users">
+                <UserManagement />
+              </TabsContent>
 
-            <TabsContent value="pages">
-              <PageManagement />
-            </TabsContent>
+              <TabsContent value="pages">
+                <PageManagement />
+              </TabsContent>
 
-            <TabsContent value="settings">
-              <SiteSettings />
-            </TabsContent>
-          </div>
-        </Tabs>
+              <TabsContent value="settings">
+                <SiteSettings />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
