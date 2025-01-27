@@ -6,19 +6,13 @@ import {
   Type, 
   Image, 
   Video, 
-  Square,
+  Square, // Replacing ButtonIcon with Square for button icon
   LayoutGrid,
   MessageSquareQuote,
   Mail,
   ShoppingBag,
   Newspaper,
-  Store,
-  Building2,
-  History,
-  Target,
-  Leaf,
-  Users,
-  HeartHandshake
+  Store
 } from "lucide-react";
 
 interface ComponentPickerProps {
@@ -39,13 +33,7 @@ const components = [
   { type: 'newsletter', icon: Mail, label: 'Newsletter' },
   { type: 'product_gallery', icon: ShoppingBag, label: 'Product Gallery' },
   { type: 'blog_preview', icon: Newspaper, label: 'Blog Preview' },
-  { type: 'store_brands', icon: Store, label: 'Store Brands' },
-  { type: 'about_hero_section', icon: Building2, label: 'About Hero Section' },
-  { type: 'about_story', icon: History, label: 'About Story' },
-  { type: 'about_mission', icon: Target, label: 'About Mission' },
-  { type: 'about_sustainability', icon: Leaf, label: 'About Sustainability' },
-  { type: 'about_team', icon: Users, label: 'About Team' },
-  { type: 'about_customer_impact', icon: HeartHandshake, label: 'About Customer Impact' }
+  { type: 'store_brands', icon: Store, label: 'Store Brands' }
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {

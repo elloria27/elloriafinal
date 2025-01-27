@@ -590,12 +590,6 @@ export type Database = {
         | "product_carousel"
         | "testimonials"
         | "newsletter"
-        | "about_hero_section"
-        | "about_story"
-        | "about_mission"
-        | "about_sustainability"
-        | "about_team"
-        | "about_customer_impact"
       content_block_type:
         | "heading"
         | "text"

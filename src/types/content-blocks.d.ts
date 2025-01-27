@@ -11,31 +11,6 @@ export interface FeatureItem {
   detail?: string;
 }
 
-export type BlockType = 
-  | "heading" 
-  | "text" 
-  | "image" 
-  | "video" 
-  | "button" 
-  | "hero" 
-  | "features" 
-  | "testimonials" 
-  | "newsletter" 
-  | "product_gallery" 
-  | "blog_preview" 
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel"
-  | "elevating_essentials"
-  | "game_changer"
-  | "competitor_comparison"
-  | "about_hero_section"
-  | "about_story"
-  | "about_mission"
-  | "about_sustainability"
-  | "about_team"
-  | "about_customer_impact";
-
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -93,7 +68,6 @@ export interface StoreBrandsContent extends BaseBlockContent {
 
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
-  subtitle?: string;
   description?: string;
   statsTitle?: string;
   stats?: {
@@ -152,77 +126,6 @@ export interface CompetitorComparisonContent extends BaseBlockContent {
   buttonUrl?: string;
 }
 
-export interface AboutHeroSectionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  image?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-}
-
-export interface AboutStoryContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  image?: string;
-  timeline?: string[];
-}
-
-export interface AboutMissionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  values?: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
-export interface AboutSustainabilityContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  stats?: {
-    value: string;
-    label: string;
-  }[];
-  initiatives?: {
-    title: string;
-    description: string;
-    icon: string;
-  }[];
-}
-
-export interface AboutTeamContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  members?: {
-    name: string;
-    role: string;
-    image: string;
-    bio?: string;
-  }[];
-}
-
-export interface AboutCustomerImpactContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  testimonials?: {
-    name: string;
-    company: string;
-    content: string;
-    image?: string;
-  }[];
-  stats?: {
-    value: string;
-    label: string;
-  }[];
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -238,13 +141,26 @@ export type BlockContent =
   | BlogPreviewContent
   | NewsletterContent
   | ProductCarouselContent
-  | CompetitorComparisonContent
-  | AboutHeroSectionContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent;
+  | CompetitorComparisonContent;
+
+export type BlockType = 
+  | "heading" 
+  | "text" 
+  | "image" 
+  | "video" 
+  | "button" 
+  | "hero" 
+  | "features" 
+  | "testimonials" 
+  | "newsletter" 
+  | "blog_preview" 
+  | "store_brands"
+  | "sustainability"
+  | "product_carousel"
+  | "product_gallery"
+  | "elevating_essentials"
+  | "game_changer"
+  | "competitor_comparison";
 
 export interface ContentBlock {
   id: string;
@@ -258,4 +174,8 @@ export interface ContentBlock {
 
 export interface FeaturesProps {
   content?: FeaturesContent;
+}
+
+export interface HeroProps {
+  content?: HeroContent;
 }
