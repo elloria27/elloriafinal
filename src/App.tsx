@@ -85,8 +85,39 @@ function HomeRoute() {
     return <Index />;
   }
 
-  console.log('Redirecting to homepage:', homepageSlug);
-  return <Navigate to={`/${homepageSlug}`} replace />;
+  // Find the component that matches the homepage slug
+  const pageComponent = (() => {
+    console.log('Finding component for slug:', homepageSlug);
+    switch (homepageSlug) {
+      case 'shop':
+        return <Shop />;
+      case 'about':
+        return <About />;
+      case 'blog':
+        return <Blog />;
+      case 'contact':
+        return <Contact />;
+      case 'sustainability':
+        return <Sustainability />;
+      case 'for-business':
+        return <ForBusiness />;
+      case 'bulk-orders':
+        return <BulkOrders />;
+      case 'custom-solutions':
+        return <CustomSolutions />;
+      case 'sustainability-program':
+        return <SustainabilityProgram />;
+      case 'terms':
+        return <Terms />;
+      case 'donation':
+        return <Donation />;
+      default:
+        console.log('No matching component found, using Index');
+        return <Index />;
+    }
+  })();
+
+  return pageComponent;
 }
 
 function AppRoutes() {
