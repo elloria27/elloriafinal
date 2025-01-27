@@ -108,38 +108,38 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-8 gap-1">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
+            <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 gap-1">
+              <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
-                <span className="hidden md:inline">Dashboard</span>
+                <span className="hidden md:inline text-xs">Dashboard</span>
               </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="products" className="flex flex-col items-center gap-1 py-3 px-4">
                 <Package className="h-5 w-5" />
-                <span className="hidden md:inline">Products</span>
+                <span className="hidden md:inline text-xs">Products</span>
               </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="orders" className="flex flex-col items-center gap-1 py-3 px-4">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="hidden md:inline">Orders</span>
+                <span className="hidden md:inline text-xs">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="users" className="flex flex-col items-center gap-1 py-3 px-4">
                 <Users className="h-5 w-5" />
-                <span className="hidden md:inline">Users</span>
+                <span className="hidden md:inline text-xs">Users</span>
               </TabsTrigger>
-              <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="pages" className="flex flex-col items-center gap-1 py-3 px-4">
                 <FileText className="h-5 w-5" />
-                <span className="hidden md:inline">Pages</span>
+                <span className="hidden md:inline text-xs">Pages</span>
               </TabsTrigger>
-              <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="files" className="flex flex-col items-center gap-1 py-3 px-4">
                 <FolderIcon className="h-5 w-5" />
-                <span className="hidden md:inline">Files</span>
+                <span className="hidden md:inline text-xs">Files</span>
               </TabsTrigger>
-              <TabsTrigger value="media" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="media" className="flex flex-col items-center gap-1 py-3 px-4">
                 <Image className="h-5 w-5" />
-                <span className="hidden md:inline">Media</span>
+                <span className="hidden md:inline text-xs">Media</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3 px-4">
                 <Settings className="h-5 w-5" />
-                <span className="hidden md:inline">Settings</span>
+                <span className="hidden md:inline text-xs">Settings</span>
               </TabsTrigger>
             </TabsList>
           </div>
