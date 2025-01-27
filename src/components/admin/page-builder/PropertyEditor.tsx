@@ -95,11 +95,11 @@ export const PropertyEditor = ({
     console.log('Current content:', content);
 
     switch (block.type) {
-      case 'blog_preview':
+      case 'about_hero_section':
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Blog Preview Settings</h3>
+              <h3 className="text-lg font-semibold">About Hero Section Settings</h3>
               <div className="flex gap-2">
                 {!isFirst && onMoveUp && (
                   <Button
@@ -149,6 +149,22 @@ export const PropertyEditor = ({
               />
             </div>
             <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Image URL</Label>
+              <Input
+                value={String(content.image || '')}
+                onChange={(e) => handleChange('image', e.target.value)}
+                placeholder="Enter image URL"
+              />
+            </div>
+            <div>
               <Label>Button Text</Label>
               <Input
                 value={String(content.buttonText || '')}
@@ -164,56 +180,389 @@ export const PropertyEditor = ({
                 placeholder="Enter button URL"
               />
             </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Articles</Label>
-                <Button onClick={addArticle} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Article
+          </div>
+        );
+
+      case 'about_story':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">About Story Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              
-              {getBlogArticles().map((article, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Article {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeArticle(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={article.title}
-                      onChange={(e) => handleArticleChange(index, 'title', e.target.value)}
-                      placeholder="Enter article title"
-                    />
-                  </div>
+            </div>
 
-                  <div>
-                    <Label>Category</Label>
-                    <Input
-                      value={article.category}
-                      onChange={(e) => handleArticleChange(index, 'category', e.target.value)}
-                      placeholder="Enter article category"
-                    />
-                  </div>
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Image URL</Label>
+              <Input
+                value={String(content.image || '')}
+                onChange={(e) => handleChange('image', e.target.value)}
+                placeholder="Enter image URL"
+              />
+            </div>
+            <div>
+              <Label>Timeline</Label>
+              <Input
+                value={String(content.timeline || '')}
+                onChange={(e) => handleChange('timeline', e.target.value)}
+                placeholder="Enter timeline items (comma separated)"
+              />
+            </div>
+          </div>
+        );
 
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={article.image}
-                      onChange={(e) => handleArticleChange(index, 'image', e.target.value)}
-                      placeholder="Enter article image URL"
-                    />
-                  </div>
-                </div>
-              ))}
+      case 'about_mission':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">About Mission Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Values</Label>
+              <Input
+                value={String(content.values || '')}
+                onChange={(e) => handleChange('values', e.target.value)}
+                placeholder="Enter values (comma separated)"
+              />
+            </div>
+          </div>
+        );
+
+      case 'about_sustainability':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">About Sustainability Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Stats</Label>
+              <Input
+                value={String(content.stats || '')}
+                onChange={(e) => handleChange('stats', e.target.value)}
+                placeholder="Enter stats (comma separated)"
+              />
+            </div>
+            <div>
+              <Label>Initiatives</Label>
+              <Input
+                value={String(content.initiatives || '')}
+                onChange={(e) => handleChange('initiatives', e.target.value)}
+                placeholder="Enter initiatives (comma separated)"
+              />
+            </div>
+          </div>
+        );
+
+      case 'about_team':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">About Team Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Members</Label>
+              <Input
+                value={String(content.members || '')}
+                onChange={(e) => handleChange('members', e.target.value)}
+                placeholder="Enter team members (comma separated)"
+              />
+            </div>
+          </div>
+        );
+
+      case 'about_customer_impact':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">About Customer Impact Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter description"
+              />
+            </div>
+            <div>
+              <Label>Testimonials</Label>
+              <Input
+                value={String(content.testimonials || '')}
+                onChange={(e) => handleChange('testimonials', e.target.value)}
+                placeholder="Enter testimonials (comma separated)"
+              />
+            </div>
+            <div>
+              <Label>Stats</Label>
+              <Input
+                value={String(content.stats || '')}
+                onChange={(e) => handleChange('stats', e.target.value)}
+                placeholder="Enter stats (comma separated)"
+              />
             </div>
           </div>
         );
@@ -223,7 +572,6 @@ export const PropertyEditor = ({
           <div className="text-gray-500 italic">
             No editable properties for this component type.
           </div>
-        );
     }
   };
 
