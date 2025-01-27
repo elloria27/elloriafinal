@@ -42,6 +42,9 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     region: typedAddress.region,
     country: typedAddress.country,
     phone: typedAddress.phone,
+    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
+    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
+    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
   };
 };
 
@@ -125,9 +128,8 @@ export const OrderManagement = () => {
               full_name: order.profiles?.full_name || 'Guest',
               email: order.profiles?.email || 'Anonymous Order'
             } : {
-              // For anonymous orders, use shipping address information
-              full_name: `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest',
-              email: order.shipping_address.email || 'Anonymous Order'
+              full_name: `${validateShippingAddress(order.shipping_address).first_name || ''} ${validateShippingAddress(order.shipping_address).last_name || ''}`.trim() || 'Guest',
+              email: validateShippingAddress(order.shipping_address).email || 'Anonymous Order'
             }
           };
           return validatedOrder;
