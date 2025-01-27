@@ -1,4 +1,4 @@
-import { User, FileText, Clock, Settings, X, LogOut, LayoutGrid, Package, ShoppingCart } from "lucide-react";
+import { User, FileText, Clock, Settings, X, LogOut } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   SidebarGroup,
@@ -14,29 +14,19 @@ import { toast } from "sonner";
 
 const menuItems = [
   {
-    title: "Dashboard",
-    icon: LayoutGrid,
-    path: "/dashboard",
-  },
-  {
-    title: "Products",
-    icon: Package,
-    path: "/products",
-  },
-  {
-    title: "Orders",
-    icon: ShoppingCart,
-    path: "/orders",
-  },
-  {
     title: "Profile",
     icon: User,
     path: "/profile",
   },
   {
-    title: "Files",
+    title: "Invoices",
     icon: FileText,
-    path: "/profile/files",
+    path: "/profile/invoices",
+  },
+  {
+    title: "Recent Activity",
+    icon: Clock,
+    path: "/profile/activity",
   },
   {
     title: "Settings",
