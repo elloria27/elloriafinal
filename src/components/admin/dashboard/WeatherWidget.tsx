@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sun, Cloud, CloudRain, CloudSnow, Wind, Loader2 } from "lucide-react";
+import { Sun, Cloud, CloudRain, CloudSnow, Wind, Loader2, MapPin } from "lucide-react";
 
 interface WeatherData {
   temp: number;
   condition: string;
   windSpeed: number;
+  city: string;
   forecast: Array<{
     date: string;
     temp: number;
@@ -24,12 +25,14 @@ export const WeatherWidget = () => {
         // First get user's location
         const locationResponse = await fetch('https://ipapi.co/json/');
         const locationData = await locationResponse.json();
+        console.log('Location data:', locationData);
         
         // Then get weather data from OpenMeteo (free, no API key needed)
         const weatherResponse = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,weather_code&timezone=auto`
         );
         const weatherData = await weatherResponse.json();
+        console.log('Weather data:', weatherData);
 
         // Convert weather code to our condition format
         const getCondition = (code: number) => {
@@ -47,15 +50,16 @@ export const WeatherWidget = () => {
           temp: Math.round(weatherData.current.temperature_2m),
           condition: currentCondition,
           windSpeed: 5, // This API doesn't provide wind speed in free tier
+          city: locationData.city || 'Unknown location',
           forecast: weatherData.daily.time.slice(0, 5).map((date: string, index: number) => ({
-            date: new Date(date).toLocaleDateString('uk-UA', { weekday: 'short' }),
+            date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
             temp: Math.round(weatherData.daily.temperature_2m_max[index]),
             condition: getCondition(weatherData.daily.weather_code[index])
           }))
         });
       } catch (err) {
         console.error('Error fetching weather:', err);
-        setError('Помилка завантаження погоди');
+        setError('Error loading weather data');
       } finally {
         setLoading(false);
       }
@@ -83,7 +87,7 @@ export const WeatherWidget = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Погода</CardTitle>
+          <CardTitle>Weather</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -96,7 +100,7 @@ export const WeatherWidget = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Погода</CardTitle>
+          <CardTitle>Weather</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-red-500">{error}</div>
@@ -110,7 +114,7 @@ export const WeatherWidget = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Погода</CardTitle>
+        <CardTitle>Weather</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -121,8 +125,12 @@ export const WeatherWidget = () => {
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>{weather.city}</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <Wind className="h-4 w-4" />
-                <span>Вітер {weather.windSpeed} м/с</span>
+                <span>Wind {weather.windSpeed} m/s</span>
               </div>
             </div>
           </div>
