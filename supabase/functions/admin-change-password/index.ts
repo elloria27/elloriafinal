@@ -44,15 +44,15 @@ Deno.serve(async (req) => {
 
     console.log('Admin verification successful')
 
-    // Update the user's password
-    const { error } = await supabase.auth.admin.updateUserById(
+    // Update the user's password using admin API
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
       userId,
       { password: newPassword }
     )
 
-    if (error) {
-      console.error('Password update error:', error)
-      throw error
+    if (updateError) {
+      console.error('Password update error:', updateError)
+      throw updateError
     }
 
     console.log('Password updated successfully')
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: error.message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200, // Changed from 400 to 200 to prevent non-2xx status
+        status: 200, // Keep 200 to prevent non-2xx status
       },
     )
   }
