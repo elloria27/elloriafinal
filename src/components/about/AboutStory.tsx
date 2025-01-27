@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AboutTimeline } from "./AboutTimeline";
-import { AboutStoryContent } from "@/types/content-blocks";
+import { AboutStoryContent, ContentBlock } from "@/types/content-blocks";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,12 +30,12 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
 
         if (pages?.content_blocks) {
           const storyBlock = pages.content_blocks.find(
-            (block: any) => block.type === 'about_story'
+            (block: ContentBlock) => block.type === 'about_story'
           );
 
           console.log("Found story block:", storyBlock);
 
-          if (storyBlock?.content) {
+          if (storyBlock && 'content' in storyBlock) {
             setStoryContent(storyBlock.content as AboutStoryContent);
           }
         }
