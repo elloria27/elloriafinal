@@ -1,13 +1,61 @@
 import { motion } from "framer-motion";
 import { Leaf, Recycle, TreePine } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { SustainabilityContent } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface AboutSustainabilityProps {
   content?: SustainabilityContent;
 }
 
-export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
-  console.log("AboutSustainability content received:", content);
+export ({ content: propContent }: AboutSustainabilityProps) => {
+  const [content, setContent] = useState<SustainabilityContent | null>(null);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const { data: blocks, error } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('type', 'about_sustainability')
+          .single();
+
+        if (error) {
+          console.error("Error fetching sustainability content:", error);
+          return;
+        }
+
+        console.log("Fetched sustainability block:", blocks);
+
+        // Safely type check and cast the content
+        const blockContent = blocks?.content as { stats?: unknown[] };
+        
+        if (blockContent) {
+          setContent({
+            title: (blockContent as any).title || "Our Commitment to Sustainability",
+            description: (blockContent as any).description || 
+              "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
+            stats: blockContent.stats?.map((stat: any) => ({
+              icon: stat.icon || "Leaf",
+              value: stat.value || "0",
+              label: stat.label || "Stat",
+              description: stat.description || "Description"
+            })) || defaultStats
+          });
+        }
+      } catch (error) {
+        console.error("Error in fetchContent:", error);
+      }
+    };
+
+    // If content is provided via props, use that instead of fetching
+    if (propContent) {
+      setContent(propContent);
+    } else {
+      fetchContent();
+    }
+  }, [propContent]);
 
   const defaultStats = [
     {
@@ -43,18 +91,12 @@ export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
     }
   };
 
-  // Ensure stats are properly formatted and logged
-  const processedStats = content?.stats && Array.isArray(content.stats) && content.stats.length > 0
-    ? content.stats.map(stat => ({
-        icon: stat.icon || "Leaf",
-        value: stat.value || "0",
-        label: stat.label || "Stat",
-        description: stat.description || "Description"
-      }))
-    : defaultStats;
-
-  console.log("Content received in AboutSustainability:", content);
-  console.log("Processed stats:", processedStats);
+  // Use content from state, falling back to default values
+  const displayContent = content || {
+    title: "Our Commitment to Sustainability",
+    description: "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
+    stats: defaultStats
+  };
 
   return (
     <section className="py-20 bg-gradient-to-b from-white to-accent-purple/5">
@@ -67,16 +109,15 @@ export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold mb-4">
-            {content?.title || "Our Commitment to Sustainability"}
+            {displayContent.title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {content?.description || 
-              "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do."}
+            {displayContent.description}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {processedStats.map((stat, index) => (
+          {displayContent.stats.map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
