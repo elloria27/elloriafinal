@@ -497,6 +497,156 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case 'competitor_comparison':
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Metrics</Label>
+                <Button 
+                  onClick={() => {
+                    const currentMetrics = content.metrics || [];
+                    handleChange('metrics', [...currentMetrics, {
+                      category: "New Metric",
+                      elloria: 90,
+                      competitors: 70,
+                      icon: "Shield",
+                      description: "Enter description"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Metric
+                </Button>
+              </div>
+              
+              {(content.metrics || []).map((metric: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Metric {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics.splice(index, 1);
+                        handleChange('metrics', newMetrics);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Category</Label>
+                    <Input
+                      value={metric.category}
+                      onChange={(e) => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics[index] = { ...newMetrics[index], category: e.target.value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                      placeholder="Enter category name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={metric.description}
+                      onChange={(e) => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics[index] = { ...newMetrics[index], description: e.target.value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                      placeholder="Enter metric description"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={metric.icon}
+                      onValueChange={(value) => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics[index] = { ...newMetrics[index], icon: value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Shield', 'Leaf', 'Heart', 'Sparkles'].map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Elloria Score (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={metric.elloria}
+                      onChange={(e) => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics[index] = { ...newMetrics[index], elloria: parseInt(e.target.value) || 0 };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Competitors Score (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={metric.competitors}
+                      onChange={(e) => {
+                        const newMetrics = [...(content.metrics || [])];
+                        newMetrics[index] = { ...newMetrics[index], competitors: parseInt(e.target.value) || 0 };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">

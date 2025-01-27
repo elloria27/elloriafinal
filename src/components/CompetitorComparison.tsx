@@ -1,44 +1,61 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Shield, Leaf, Heart, Sparkles } from "lucide-react";
-import { BlockContent } from "@/types/content-blocks";
+import { CompetitorComparisonContent } from "@/types/content-blocks";
 
 interface CompetitorComparisonProps {
-  content?: BlockContent;
+  content?: CompetitorComparisonContent;
 }
 
-const metrics = [
+const defaultMetrics = [
   {
     category: "Absorption Capacity",
     elloria: 95,
     competitors: 82,
-    icon: <Shield className="w-5 h-5" />,
+    icon: "Shield",
     description: "Superior protection for complete confidence"
   },
   {
     category: "Eco-friendliness",
     elloria: 90,
     competitors: 63,
-    icon: <Leaf className="w-5 h-5" />,
+    icon: "Leaf",
     description: "Sustainable materials and production"
   },
   {
     category: "Comfort and Fit",
     elloria: 98,
     competitors: 77,
-    icon: <Heart className="w-5 h-5" />,
+    icon: "Heart",
     description: "Designed for ultimate comfort"
   },
   {
     category: "Value for Money",
     elloria: 92,
     competitors: 71,
-    icon: <Sparkles className="w-5 h-5" />,
+    icon: "Sparkles",
     description: "Premium quality at fair prices"
   }
 ];
 
+const getIcon = (iconName: string) => {
+  switch (iconName) {
+    case "Shield":
+      return <Shield className="w-5 h-5" />;
+    case "Leaf":
+      return <Leaf className="w-5 h-5" />;
+    case "Heart":
+      return <Heart className="w-5 h-5" />;
+    case "Sparkles":
+      return <Sparkles className="w-5 h-5" />;
+    default:
+      return <Shield className="w-5 h-5" />;
+  }
+};
+
 export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => {
+  const metrics = content?.metrics || defaultMetrics;
+  
   return (
     <section className="py-24 bg-gradient-to-b from-white via-accent-purple/10 to-white">
       <div className="container px-4 max-w-4xl mx-auto">
@@ -50,10 +67,10 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-primary">
-            Why Choose Elloria?
+            {content?.title || "Why Choose Elloria?"}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Experience the difference in every detail
+            {content?.subtitle || "Experience the difference in every detail"}
           </p>
         </motion.div>
 
@@ -69,7 +86,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
             >
               <div className="flex items-start gap-6">
                 <div className="bg-primary/10 p-3 rounded-xl">
-                  {metric.icon}
+                  {getIcon(metric.icon)}
                 </div>
                 <div className="flex-1 space-y-4">
                   <div>
@@ -147,7 +164,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
             size="lg"
             className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            Experience the Elloria Difference
+            {content?.buttonText || "Experience the Elloria Difference"}
           </Button>
         </motion.div>
       </div>
