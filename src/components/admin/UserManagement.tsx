@@ -200,11 +200,25 @@ export const UserManagement = () => {
     try {
       console.log('Changing password for user:', userId);
       
+      if (!newPassword) {
+        toast.error("Password cannot be empty");
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        toast.error("Password must be at least 6 characters long");
+        return;
+      }
+      
       const { error } = await supabase.functions.invoke('admin-change-password', {
         body: { userId, newPassword }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error changing password:', error);
+        toast.error(error.message || "Failed to update password");
+        return;
+      }
 
       toast.success("Password updated successfully");
       setIsPasswordDialogOpen(false);
