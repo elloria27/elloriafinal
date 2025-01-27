@@ -20,7 +20,12 @@ export type BlockType =
   | 'product_carousel'
   | 'competitor_comparison';
 
-export interface AboutMissionContent {
+// Base interface for all content types to ensure JSON compatibility
+interface BaseContent {
+  [key: string]: any;
+}
+
+export interface AboutMissionContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -32,7 +37,7 @@ export interface AboutMissionContent {
   }[];
 }
 
-export interface HeroContent {
+export interface HeroContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -42,25 +47,30 @@ export interface HeroContent {
   backgroundImage?: string;
 }
 
-export interface HeadingContent {
+export interface HeadingContent extends BaseContent {
   text?: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   alignment?: 'left' | 'center' | 'right';
-  title?: string;
 }
 
-export interface TextContent {
+export interface TextContent extends BaseContent {
   text?: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
   alignment?: 'left' | 'center' | 'right';
 }
 
-export interface ImageContent {
+export interface ImageContent extends BaseContent {
   url?: string;
   alt?: string;
   caption?: string;
 }
 
-export interface VideoContent {
+export interface VideoContent extends BaseContent {
   url?: string;
   title?: string;
   autoplay?: boolean;
@@ -68,17 +78,22 @@ export interface VideoContent {
   videoUrl?: string;
 }
 
-export interface ButtonContent {
+export interface ButtonContent extends BaseContent {
   text?: string;
   link?: string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
+  buttonText?: string;
+  buttonUrl?: string;
 }
 
-export interface FeaturesContent {
+export interface FeaturesContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  backgroundImage?: string;
   features?: {
     icon?: string;
     title: string;
@@ -90,7 +105,7 @@ export interface FeaturesProps {
   content?: FeaturesContent;
 }
 
-export interface TestimonialsContent {
+export interface TestimonialsContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -102,20 +117,22 @@ export interface TestimonialsContent {
   }[];
 }
 
-export interface NewsletterContent {
+export interface NewsletterContent extends BaseContent {
   title?: string;
+  subtitle?: string;
   description?: string;
   buttonText?: string;
   image?: string;
 }
 
-export interface ProductGalleryContent {
+export interface ProductGalleryContent extends BaseContent {
   title?: string;
+  subtitle?: string;
   description?: string;
   products?: string[];
 }
 
-export interface BlogPreviewContent {
+export interface BlogPreviewContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -128,7 +145,7 @@ export interface BlogPreviewContent {
   }[];
 }
 
-export interface StoreBrandsContent {
+export interface StoreBrandsContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -144,7 +161,7 @@ export interface StoreBrandsContent {
   }[];
 }
 
-export interface AboutStoryContent {
+export interface AboutStoryContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -156,7 +173,7 @@ export interface AboutStoryContent {
   }[];
 }
 
-export interface GameChangerContent {
+export interface GameChangerContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -168,7 +185,7 @@ export interface GameChangerContent {
   }[];
 }
 
-export interface SustainabilityContent {
+export interface SustainabilityContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -181,7 +198,7 @@ export interface SustainabilityContent {
   timelineItems?: string[];
 }
 
-export interface ProductCarouselContent {
+export interface ProductCarouselContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
@@ -194,7 +211,7 @@ export interface ProductCarouselContent {
   }[];
 }
 
-export interface CompetitorComparisonContent {
+export interface CompetitorComparisonContent extends BaseContent {
   title?: string;
   subtitle?: string;
   description?: string;
