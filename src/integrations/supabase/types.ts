@@ -615,6 +615,7 @@ export type Database = {
         | "game_changer"
         | "competitor_comparison"
         | "about_hero_section"
+        | "about_story"
       page_view_type: "page_view" | "exit"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"

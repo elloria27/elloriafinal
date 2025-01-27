@@ -174,7 +174,7 @@ export type BlockType =
   | "game_changer"
   | "competitor_comparison"
   | "about_hero_section"
-  | "about_story";  // Added this type
+  | "about_story";
 
 export interface ContentBlock {
   id: string;
@@ -193,3 +193,4 @@ export interface FeaturesProps {
 export interface HeroProps {
   content?: HeroContent;
 }
+
