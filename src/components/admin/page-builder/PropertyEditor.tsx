@@ -5,6 +5,7 @@ import { ContentBlock, BlockContent, BlogPreviewContent } from "@/types/content-
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, MoveUp, MoveDown } from "lucide-react";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -66,6 +67,28 @@ export const PropertyEditor = ({
     onUpdate(block.id, newContent);
   };
 
+  const handleTimelineChange = (index: number, field: string, value: string) => {
+    const timeline = [...(content.timeline || [])];
+    timeline[index] = { ...timeline[index], [field]: value };
+    handleChange('timeline', timeline);
+  };
+
+  const addTimelineItem = () => {
+    const timeline = [...(content.timeline || [])];
+    timeline.push({
+      year: new Date().getFullYear().toString(),
+      title: "New Milestone",
+      description: "Description of the milestone"
+    });
+    handleChange('timeline', timeline);
+  };
+
+  const removeTimelineItem = (index: number) => {
+    const timeline = [...(content.timeline || [])];
+    timeline.splice(index, 1);
+    handleChange('timeline', timeline);
+  };
+
   const addArticle = () => {
     const newArticle = {
       title: "New Article",
@@ -95,6 +118,124 @@ export const PropertyEditor = ({
     console.log('Current content:', content);
 
     switch (block.type) {
+      case 'about_story':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Story Section Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={String(content.videoUrl || '')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+                placeholder="Enter video URL (e.g., YouTube embed URL)"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Timeline</Label>
+                <Button onClick={addTimelineItem} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Milestone
+                </Button>
+              </div>
+              
+              {(content.timeline || []).map((item: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Milestone {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeTimelineItem(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Year</Label>
+                    <Input
+                      value={item.year || ''}
+                      onChange={(e) => handleTimelineChange(index, 'year', e.target.value)}
+                      placeholder="Enter year"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={item.title || ''}
+                      onChange={(e) => handleTimelineChange(index, 'title', e.target.value)}
+                      placeholder="Enter milestone title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={item.description || ''}
+                      onChange={(e) => handleTimelineChange(index, 'description', e.target.value)}
+                      placeholder="Enter milestone description"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       case 'blog_preview':
         return (
           <div className="space-y-6">

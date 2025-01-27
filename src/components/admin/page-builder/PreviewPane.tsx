@@ -1,7 +1,7 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
-import { AboutStory } from "@/components/about/AboutStory";
+import { motion } from "framer-motion";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -29,6 +29,59 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
 
         {(() => {
           switch (block.type) {
+            case 'about_story':
+              return (
+                <section className="py-24 bg-white">
+                  <div className="container px-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6 }}
+                      className="max-w-6xl mx-auto text-center mb-24"
+                    >
+                      <h2 className="text-4xl font-bold mb-4">
+                        {getContentValue(block.content, 'title') || 'Our Journey'}
+                      </h2>
+                      <p className="text-gray-600 mb-12">
+                        {getContentValue(block.content, 'subtitle') || 'Milestones that shaped who we are today'}
+                      </p>
+                      <div className="aspect-video w-full">
+                        <iframe
+                          className="w-full h-full rounded-3xl shadow-2xl"
+                          src={getContentValue(block.content, 'videoUrl') || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}
+                          title="Our Journey Video"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    </motion.div>
+                    <div className="max-w-4xl mx-auto">
+                      <div className="space-y-12">
+                        {(block.content.timeline || []).map((item: any, index: number) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            className={`flex ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-center gap-8`}
+                          >
+                            <div className="w-32 flex-shrink-0 text-center">
+                              <span className="text-3xl font-bold text-primary">{item.year}</span>
+                            </div>
+                            <div className={`flex-1 p-6 bg-gray-50 rounded-lg shadow-sm ${index % 2 === 0 ? 'text-left' : 'text-right'}`}>
+                              <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                              <p className="text-gray-600">{item.description}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              );
+
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
               return (
@@ -80,11 +133,6 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                 >
                   {getContentValue(block.content, 'text') || 'Button'}
                 </button>
-              );
-
-            case 'about_story':
-              return (
-                <AboutStory content={block.content} />
               );
 
             default:
