@@ -6,15 +6,13 @@ import {
   Type, 
   Image, 
   Video, 
-  Square,
+  Square, // Replacing ButtonIcon with Square for button icon
   LayoutGrid,
   MessageSquareQuote,
   Mail,
   ShoppingBag,
   Newspaper,
-  Store,
-  Users,
-  Layout
+  Store
 } from "lucide-react";
 
 interface ComponentPickerProps {
@@ -24,7 +22,6 @@ interface ComponentPickerProps {
 }
 
 const components = [
-  { type: 'about_hero_section', icon: Layout, label: 'About Hero Section' },
   { type: 'hero', icon: LayoutTemplate, label: 'Hero Section' },
   { type: 'heading', icon: Type, label: 'Heading' },
   { type: 'text', icon: Type, label: 'Text Block' },

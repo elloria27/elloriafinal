@@ -1,95 +1,95 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { format } from "date-fns";
 
-type Order = Tables<"orders", never>;
-type Profile = Tables<"profiles", never>;
+type Review = Tables<"reviews">;
+type Order = Tables<"orders">;
 
-export const Activity = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+type ActivityItem = {
+  type: 'review' | 'order';
+  date: string;
+  data: Review | Order;
+};
+
+export default function Activity() {
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
+    async function fetchActivity() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Fetch reviews
+        const { data: reviews } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        // Fetch orders
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        // Combine and sort activities
+        const allActivities: ActivityItem[] = [
+          ...(reviews?.map(review => ({
+            type: 'review' as const,
+            date: review.created_at,
+            data: review
+          })) || []),
+          ...(orders?.map(order => ({
+            type: 'order' as const,
+            date: order.created_at,
+            data: order
+          })) || [])
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        setActivities(allActivities);
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchActivity();
   }, []);
 
-  const fetchOrders = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error("Please sign in to view your activity");
-        return;
-      }
-
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setOrders(orders || []);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error("Failed to load activity");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return <div>Loading activity...</div>;
-  }
-
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Recent Activity</h2>
-      
-      {orders.length === 0 ? (
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-gray-500">No recent activity</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <Card key={order.id}>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Order #{order.order_number}
-                </CardTitle>
-                <div className="text-sm text-gray-500">
-                  {order.created_at && format(new Date(order.created_at), 'PPP')}
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold mb-6">Recent Activity</h1>
+      <div className="bg-white rounded-lg shadow-sm divide-y">
+        {loading ? (
+          <div className="p-6">Loading...</div>
+        ) : activities.length === 0 ? (
+          <div className="p-6 text-gray-500">No recent activity.</div>
+        ) : (
+          activities.map((activity, index) => (
+            <div key={index} className="p-6 hover:bg-gray-50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">
+                    {activity.type === 'review' ? (
+                      `Wrote a review (${(activity.data as Review).rating} stars)`
+                    ) : (
+                      `Placed order #${(activity.data as Order).order_number}`
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(activity.date), 'PPP')}
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="font-medium">{order.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Amount:</span>
-                    <span className="font-medium">
-                      ${order.total_amount.toFixed(2)}
-                    </span>
-                  </div>
-                  <Button variant="outline" className="w-full mt-4">
-                    View Order Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
-};
+}

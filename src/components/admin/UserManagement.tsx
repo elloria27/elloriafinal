@@ -112,7 +112,7 @@ export const UserManagement = () => {
       console.log('Updating user role:', { userId, newRole });
       const { error } = await supabase
         .from('user_roles')
-        .update({ role: newRole, user_id: userId })
+        .update({ role: newRole })
         .eq('user_id', userId);
 
       if (error) throw error;
