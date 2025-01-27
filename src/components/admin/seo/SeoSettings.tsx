@@ -97,44 +97,33 @@ export const SeoSettings = () => {
       toast.success("SEO settings updated successfully");
       setIsEditDialogOpen(false);
       await fetchPages();
-      await generateRobotsTxt();
     } catch (error) {
       console.error('Error updating SEO settings:', error);
       toast.error("Failed to update SEO settings");
     }
   };
 
-  const generateRobotsTxt = async () => {
+  const generateRobotsTxt = () => {
     try {
       console.log('Generating robots.txt content...');
       let robotsTxtContent = "User-agent: *\n";
       
-      // Add global settings
-      const { data: siteSettings } = await supabase
-        .from('site_settings')
-        .select('enable_search_indexing')
-        .single();
+      // Add specific page rules
+      pages.forEach(page => {
+        if (!page.allow_indexing) {
+          robotsTxtContent += `Disallow: /${page.slug}\n`;
+        }
+      });
 
-      if (siteSettings?.enable_search_indexing === false) {
-        robotsTxtContent += "Disallow: /\n";
-      } else {
-        // Add specific page rules
-        pages.forEach(page => {
-          if (!page.allow_indexing) {
-            robotsTxtContent += `Disallow: /${page.slug}\n`;
-          }
-        });
+      // Add common paths to disallow
+      robotsTxtContent += "\n# Admin and system paths\n";
+      robotsTxtContent += "Disallow: /admin\n";
+      robotsTxtContent += "Disallow: /api/\n";
+      robotsTxtContent += "Disallow: /auth/\n";
 
-        // Add common paths to disallow
-        robotsTxtContent += "\n# Admin and system paths\n";
-        robotsTxtContent += "Disallow: /admin\n";
-        robotsTxtContent += "Disallow: /api/\n";
-        robotsTxtContent += "Disallow: /auth/\n";
-
-        // Add sitemap reference if exists
-        robotsTxtContent += "\n# Sitemap\n";
-        robotsTxtContent += "Sitemap: /sitemap.xml\n";
-      }
+      // Add sitemap reference if exists
+      robotsTxtContent += "\n# Sitemap\n";
+      robotsTxtContent += "Sitemap: /sitemap.xml\n";
 
       // Create a Blob and download the robots.txt file
       const blob = new Blob([robotsTxtContent], { type: 'text/plain' });
@@ -160,7 +149,7 @@ export const SeoSettings = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto px-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -215,7 +204,7 @@ export const SeoSettings = () => {
                           <Search className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Edit SEO Settings - {page.title}</DialogTitle>
                         </DialogHeader>
