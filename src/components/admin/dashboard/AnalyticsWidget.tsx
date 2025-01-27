@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AnalyticsData {
   pageViews: number;
@@ -27,33 +28,68 @@ export const AnalyticsWidget = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        // Here we would normally fetch from a real analytics API
-        // For now, using mock data
-        const mockData: AnalyticsData = {
-          pageViews: 15234,
-          averageTimeOnSite: "3m 45s",
-          topCountries: [
-            { country: "United States", visits: 5230 },
-            { country: "United Kingdom", visits: 3150 },
-            { country: "Germany", visits: 2840 }
-          ],
-          topPages: [
-            { page: "/home", views: 4500 },
-            { page: "/products", views: 3200 },
-            { page: "/about", views: 2100 }
-          ],
-          viewsOverTime: [
-            { date: "Mon", views: 4000 },
-            { date: "Tue", views: 3000 },
-            { date: "Wed", views: 5000 },
-            { date: "Thu", views: 2780 },
-            { date: "Fri", views: 1890 },
-            { date: "Sat", views: 2390 },
-            { date: "Sun", views: 3490 }
-          ]
+        console.log('Fetching analytics data...');
+        
+        // Get total page views
+        const { count: totalViews, error: viewsError } = await supabase
+          .from('page_views')
+          .select('*', { count: 'exact', head: true });
+
+        if (viewsError) throw viewsError;
+
+        // Get top countries
+        const { data: countriesData, error: countriesError } = await supabase
+          .from('page_views')
+          .select('country, count(*)')
+          .not('country', 'is', null)
+          .group('country')
+          .order('count', { ascending: false })
+          .limit(3);
+
+        if (countriesError) throw countriesError;
+
+        // Get top pages
+        const { data: pagesData, error: pagesError } = await supabase
+          .from('page_views')
+          .select('page_path, count(*)')
+          .group('page_path')
+          .order('count', { ascending: false })
+          .limit(3);
+
+        if (pagesError) throw pagesError;
+
+        // Get views over time (last 7 days)
+        const { data: timeData, error: timeError } = await supabase
+          .from('page_views')
+          .select('created_at, count(*)')
+          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .group('created_at::date')
+          .order('created_at::date');
+
+        if (timeError) throw timeError;
+
+        // Calculate average time on site (simplified version)
+        const avgTimeMinutes = 3; // This would need session tracking for accurate calculation
+
+        const analyticsData: AnalyticsData = {
+          pageViews: totalViews || 0,
+          averageTimeOnSite: `${avgTimeMinutes}m`,
+          topCountries: countriesData?.map(item => ({
+            country: item.country || 'Unknown',
+            visits: parseInt(item.count)
+          })) || [],
+          topPages: pagesData?.map(item => ({
+            page: item.page_path,
+            views: parseInt(item.count)
+          })) || [],
+          viewsOverTime: timeData?.map(item => ({
+            date: new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'short' }),
+            views: parseInt(item.count)
+          })) || []
         };
 
-        setAnalytics(mockData);
+        console.log('Analytics data:', analyticsData);
+        setAnalytics(analyticsData);
       } catch (err) {
         console.error('Error fetching analytics:', err);
         setError('Failed to load analytics data');
@@ -63,6 +99,23 @@ export const AnalyticsWidget = () => {
     };
 
     fetchAnalytics();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('analytics-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'page_views' },
+        () => {
+          console.log('Page views updated, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {

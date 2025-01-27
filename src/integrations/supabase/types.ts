@@ -130,6 +130,45 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          id: string
+          page_path: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+          view_type: Database["public"]["Enums"]["page_view_type"] | null
+          visitor_ip: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          page_path: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+          view_type?: Database["public"]["Enums"]["page_view_type"] | null
+          visitor_ip?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          page_path?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+          view_type?: Database["public"]["Enums"]["page_view_type"] | null
+          visitor_ip?: string | null
+        }
+        Relationships: []
+      }
       pages: {
         Row: {
           allow_indexing: boolean | null
@@ -458,6 +497,7 @@ export type Database = {
         | "elevating_essentials"
         | "game_changer"
         | "competitor_comparison"
+      page_view_type: "page_view" | "exit"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
       user_role: "admin" | "client"

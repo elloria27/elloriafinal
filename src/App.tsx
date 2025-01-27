@@ -3,6 +3,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { PagesProvider, usePages } from "@/contexts/PagesContext";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useEffect, useState } from "react";
@@ -27,7 +28,26 @@ import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
 import Donation from "@/pages/Donation";
 
-import "./App.css";
+function App() {
+  return (
+    <PagesProvider>
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <PageViewTracker />
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1">
+              <AppRoutes />
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </Router>
+      </CartProvider>
+    </PagesProvider>
+  );
+}
 
 const ProtectedRoute = ({ children, slug }: { children: React.ReactNode; slug: string }) => {
   const { publishedPages, isLoading } = usePages();
@@ -143,26 +163,6 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
     </Routes>
-  );
-}
-
-function App() {
-  return (
-    <PagesProvider>
-      <CartProvider>
-        <Router>
-          <ScrollToTop />
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-1">
-              <AppRoutes />
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </Router>
-      </CartProvider>
-    </PagesProvider>
   );
 }
 
