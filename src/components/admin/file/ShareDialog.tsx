@@ -40,9 +40,6 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
 
-      console.log('User ID:', userId);
-      console.log('Share token:', shareToken);
-
       const { error } = await supabase
         .from('file_shares')
         .insert({
@@ -80,12 +77,12 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
 
   return (
     <Dialog open={!!fileName} onOpenChange={() => onClose()}>
-      <DialogContent className="w-full max-w-md mx-auto">
+      <DialogContent className="w-full max-w-lg mx-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold break-words">
+          <DialogTitle className="text-xl font-semibold">
             Share File
           </DialogTitle>
-          <p className="text-sm text-gray-500 break-words mt-1">
+          <p className="text-sm text-gray-500 break-all mt-1">
             {fileName}
           </p>
         </DialogHeader>
@@ -96,7 +93,7 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
               Access Level
               <span className="text-xs text-gray-500 flex items-center gap-1">
                 <Info className="h-3 w-3" />
-                Available to both logged-in and anonymous users
+                Choose who can access this file
               </span>
             </label>
             <Select value={accessLevel} onValueChange={setAccessLevel}>

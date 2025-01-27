@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export default function SharedFile() {
   const { token } = useParams();
@@ -17,13 +17,13 @@ export default function SharedFile() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [numPages, setNumPages] = useState<number | null>(null);
 
   useEffect(() => {
     const loadSharedFile = async () => {
       try {
         console.log('Loading shared file with token:', token);
         
-        // Отримуємо інформацію про shared file
         const { data: shareData, error: shareError } = await supabase
           .from('file_shares')
           .select('*')
@@ -43,7 +43,6 @@ export default function SharedFile() {
 
         setFileData(shareData);
         
-        // Завантажуємо файл
         const { data: file, error: downloadError } = await supabase.storage
           .from('files')
           .download(shareData.file_path);
@@ -99,6 +98,10 @@ export default function SharedFile() {
     }
   };
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
+
   const renderPreview = () => {
     if (loading) {
       return (
@@ -116,19 +119,40 @@ export default function SharedFile() {
       );
     }
 
+    if (fileType === 'application/pdf') {
+      return (
+        <div className="max-w-4xl mx-auto">
+          <Document
+            file={previewUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            className="flex flex-col items-center"
+          >
+            {Array.from(new Array(numPages), (el, index) => (
+              <Page 
+                key={`page_${index + 1}`} 
+                pageNumber={index + 1}
+                className="mb-4 shadow-lg"
+                width={Math.min(window.innerWidth - 48, 800)}
+              />
+            ))}
+          </Document>
+        </div>
+      );
+    }
+
     if (fileType.startsWith('image/')) {
       return (
         <img
           src={previewUrl}
           alt="Shared file preview"
-          className="max-w-full max-h-[70vh] object-contain mx-auto"
+          className="max-w-full max-h-[70vh] object-contain mx-auto rounded-lg shadow-lg"
         />
       );
     }
 
     if (fileType.startsWith('video/')) {
       return (
-        <video controls className="max-w-full max-h-[70vh] w-full">
+        <video controls className="max-w-full max-h-[70vh] w-full rounded-lg shadow-lg">
           <source src={previewUrl} type={fileType} />
           Your browser does not support the video tag.
         </video>
@@ -144,45 +168,49 @@ export default function SharedFile() {
       );
     }
 
-    // For PDFs and other documents, show download button
     return (
       <div className="text-center py-8">
         <p className="mb-4 text-gray-600">Preview not available for this file type</p>
-        <Button onClick={handleDownload} className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          Download to view
-        </Button>
       </div>
     );
   };
 
+  if (!fileData || !previewUrl) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">File Not Found</h1>
+          <p className="text-gray-600">This share link may have expired or been removed.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 pt-8 px-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            <h1 className="text-xl font-semibold mb-6 break-words">
-              {fileData?.file_path.split('/').pop()}
-            </h1>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="container mx-auto max-w-6xl">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h1 className="text-xl font-semibold mb-6 break-all">
+            {fileData.file_path.split('/').pop()}
+          </h1>
+          
+          <div className="space-y-6">
+            {renderPreview()}
             
-            <div className="space-y-6">
-              {renderPreview()}
-              
-              {fileData?.access_level !== 'view' && (
-                <div className="flex justify-center mt-4">
-                  <Button 
-                    onClick={handleDownload}
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download File
-                  </Button>
-                </div>
-              )}
-            </div>
+            {fileData.access_level === 'download' && (
+              <div className="flex justify-center mt-4">
+                <Button 
+                  onClick={handleDownload}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download File
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
