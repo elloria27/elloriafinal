@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
@@ -153,65 +152,49 @@ const Checkout = () => {
 
       console.log('Customer details:', customerDetails);
 
-      // Generate order number first
+      // Generate order number
       const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
       console.log('Generated order number:', orderNumber);
+
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
       
-      const orderDetails = {
-        items,
-        subtotal: subtotalInCurrentCurrency,
-        taxes,
-        shipping: selectedShippingOption,
-        total,
-        currency: country === "US" ? "USD" : "CAD",
-        customerDetails,
-        orderId: orderNumber
+      // Prepare order data
+      const orderData = {
+        user_id: userId || null,
+        profile_id: userId || null,
+        order_number: orderNumber,
+        total_amount: total,
+        status: 'pending',
+        items: items,
+        shipping_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone
+        },
+        billing_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone
+        }
       };
 
-      console.log('Order details:', orderDetails);
+      console.log('Saving order to database:', orderData);
 
-      // If user is logged in, update their profile
-      if (user) {
-        console.log('Updating user profile');
-        const fullName = `${customerDetails.firstName} ${customerDetails.lastName}`;
-        await updateProfile('full_name', fullName);
-        await updateProfile('phone_number', customerDetails.phone);
-        await updateProfile('address', customerDetails.address);
-        await updateProfile('country', customerDetails.country);
-        await updateProfile('region', customerDetails.region);
+      // Save order to Supabase
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert(orderData);
+
+      if (orderError) {
+        console.error('Error saving order:', orderError);
+        throw new Error('Failed to save order');
       }
 
-      // Save order to Supabase if user is logged in
-      if (user) {
-        console.log('Saving order to Supabase');
-        const { error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            user_id: user.id,
-            profile_id: user.id, // Add profile_id here
-            order_number: orderNumber,
-            total_amount: total,
-            status: 'pending',
-            items: items,
-            shipping_address: {
-              address: customerDetails.address,
-              country: customerDetails.country,
-              region: customerDetails.region,
-              phone: customerDetails.phone
-            },
-            billing_address: {
-              address: customerDetails.address,
-              country: customerDetails.country,
-              region: customerDetails.region,
-              phone: customerDetails.phone
-            }
-          });
-
-        if (orderError) {
-          console.error('Error saving order:', orderError);
-          throw new Error('Failed to save order');
-        }
-      }
+      console.log('Order saved successfully');
 
       // Send order confirmation email
       console.log('Sending order confirmation email');
@@ -228,15 +211,23 @@ const Checkout = () => {
         }
       });
 
-      console.log('Email result:', emailResult);
-
       if (emailResult.error) {
         console.error('Error sending email:', emailResult.error);
-        throw new Error('Failed to send order confirmation email');
+        // Don't throw error here, continue with order success
+        toast.error('Order placed but confirmation email failed to send');
+      } else {
+        console.log('Email sent successfully');
       }
 
-      console.log('Order processed successfully');
-      localStorage.setItem('lastOrder', JSON.stringify(orderDetails));
+      // Store order details and redirect
+      localStorage.setItem('lastOrder', JSON.stringify({
+        orderNumber,
+        customerDetails,
+        items,
+        total,
+        shipping: selectedShippingOption
+      }));
+
       clearCart();
       navigate("/order-success");
     } catch (error: any) {

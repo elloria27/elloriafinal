@@ -90,11 +90,11 @@ export type Database = {
           id: string
           items: Json
           order_number: string
-          profile_id: string
+          profile_id: string | null
           shipping_address: Json
           status: string
           total_amount: number
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           billing_address: Json
@@ -102,11 +102,11 @@ export type Database = {
           id?: string
           items: Json
           order_number: string
-          profile_id: string
+          profile_id?: string | null
           shipping_address: Json
           status: string
           total_amount: number
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           billing_address?: Json
@@ -114,11 +114,11 @@ export type Database = {
           id?: string
           items?: Json
           order_number?: string
-          profile_id?: string
+          profile_id?: string | null
           shipping_address?: Json
           status?: string
           total_amount?: number
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

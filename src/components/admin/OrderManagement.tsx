@@ -92,7 +92,7 @@ export const OrderManagement = () => {
         .from("orders")
         .select(`
           *,
-          profiles:profiles!inner (
+          profiles:profiles!left (
             id,
             full_name,
             email
@@ -110,10 +110,6 @@ export const OrderManagement = () => {
 
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
-          if (!order.profiles?.email) {
-            console.warn(`No email found for order ${order.id}, profile:`, order.profiles);
-          }
-          
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -125,9 +121,12 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            profile: {
-              full_name: order.profiles?.full_name || 'N/A',
-              email: order.profiles?.email || 'N/A'
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || 'Anonymous Order'
+            } : {
+              full_name: 'Guest',
+              email: 'Anonymous Order'
             }
           };
           return validatedOrder;
