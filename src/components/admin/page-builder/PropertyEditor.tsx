@@ -543,6 +543,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 placeholder="Enter button text"
               />
             </div>
+            <div>
+              <Label>Button URL</Label>
+              <Input
+                value={getContentValue('buttonUrl')}
+                onChange={(e) => handleChange('buttonUrl', e.target.value)}
+                placeholder="Enter button URL"
+              />
+            </div>
             
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -684,3 +692,4 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
+

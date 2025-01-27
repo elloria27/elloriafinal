@@ -123,6 +123,7 @@ export interface CompetitorComparisonContent extends BaseBlockContent {
     description: string;
   }[];
   buttonText?: string;
+  buttonUrl?: string;
 }
 
 export type BlockContent = 

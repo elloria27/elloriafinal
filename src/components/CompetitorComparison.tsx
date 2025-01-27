@@ -163,6 +163,7 @@ export const CompetitorComparison = ({ content }: CompetitorComparisonProps) => 
           <Button 
             size="lg"
             className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => content?.buttonUrl && window.location.href = content.buttonUrl}
           >
             {content?.buttonText || "Experience the Elloria Difference"}
           </Button>
