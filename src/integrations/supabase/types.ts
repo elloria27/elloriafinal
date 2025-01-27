@@ -614,6 +614,7 @@ export type Database = {
         | "elevating_essentials"
         | "game_changer"
         | "competitor_comparison"
+        | "about_hero_section"
       page_view_type: "page_view" | "exit"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
