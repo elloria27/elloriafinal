@@ -12,6 +12,27 @@ interface AboutSustainabilityProps {
 export const AboutSustainability = ({ content: propContent }: AboutSustainabilityProps) => {
   const [content, setContent] = useState<SustainabilityContent | null>(null);
 
+  const defaultStats = [
+    {
+      icon: "Leaf",
+      value: "72%",
+      label: "Recyclable Materials",
+      description: "Our products are made with eco-friendly, biodegradable materials"
+    },
+    {
+      icon: "Recycle",
+      value: "85%",
+      label: "Packaging Reduction",
+      description: "Minimized packaging waste through innovative design"
+    },
+    {
+      icon: "TreePine",
+      value: "50K+",
+      label: "Trees Planted",
+      description: "Contributing to global reforestation efforts"
+    }
+  ];
+
   useEffect(() => {
     const fetchContent = async () => {
       try {
@@ -56,27 +77,6 @@ export const AboutSustainability = ({ content: propContent }: AboutSustainabilit
       fetchContent();
     }
   }, [propContent]);
-
-  const defaultStats = [
-    {
-      icon: "Leaf",
-      value: "72%",
-      label: "Recyclable Materials",
-      description: "Our products are made with eco-friendly, biodegradable materials"
-    },
-    {
-      icon: "Recycle",
-      value: "85%",
-      label: "Packaging Reduction",
-      description: "Minimized packaging waste through innovative design"
-    },
-    {
-      icon: "TreePine",
-      value: "50K+",
-      label: "Trees Planted",
-      description: "Contributing to global reforestation efforts"
-    }
-  ];
 
   const renderIcon = (iconName: string) => {
     switch (iconName) {
