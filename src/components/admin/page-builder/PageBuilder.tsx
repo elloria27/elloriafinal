@@ -11,6 +11,7 @@ import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 
 type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type Json = Database['public']['Tables']['content_blocks']['Row']['content'];
 
 interface PageBuilderProps {
   pageId: string;
