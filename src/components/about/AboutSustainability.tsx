@@ -43,11 +43,17 @@ export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
     }
   };
 
-  // Ensure stats are properly formatted
-  const processedStats = content?.stats && Array.isArray(content.stats) 
-    ? content.stats 
+  // Ensure stats are properly formatted and logged
+  const processedStats = content?.stats && Array.isArray(content.stats) && content.stats.length > 0
+    ? content.stats.map(stat => ({
+        icon: stat.icon || "Leaf",
+        value: stat.value || "0",
+        label: stat.label || "Stat",
+        description: stat.description || "Description"
+      }))
     : defaultStats;
 
+  console.log("Content received in AboutSustainability:", content);
   console.log("Processed stats:", processedStats);
 
   return (
