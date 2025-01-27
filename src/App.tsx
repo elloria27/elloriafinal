@@ -27,6 +27,7 @@ import Blog from "@/pages/Blog";
 import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
 import Donation from "@/pages/Donation";
+import SharedFile from "@/pages/SharedFile";
 
 function App() {
   return (
@@ -72,6 +73,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomeRoute />} />
+      <Route path="/shared/:token" element={<SharedFile />} />
       <Route path="/shop" element={
         <ProtectedRoute slug="shop">
           <Shop />

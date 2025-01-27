@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Info } from "lucide-react";
 
 interface ShareDialogProps {
   fileName: string | null;
@@ -82,47 +83,59 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
       <DialogContent className="w-full max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold break-words">
-            Share File: {fileName}
+            Share File
           </DialogTitle>
+          <p className="text-sm text-gray-500 break-words mt-1">
+            {fileName}
+          </p>
         </DialogHeader>
+        
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Access Level</label>
+            <label className="text-sm font-medium flex items-center gap-2">
+              Access Level
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                Available to both logged-in and anonymous users
+              </span>
+            </label>
             <Select value={accessLevel} onValueChange={setAccessLevel}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="view">View Only</SelectItem>
-                <SelectItem value="download">Download</SelectItem>
-                <SelectItem value="edit">Edit</SelectItem>
+                <SelectItem value="download">Allow Download</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input 
-              value={shareLink} 
-              readOnly 
-              placeholder="Generate a share link"
-              className="flex-1 min-w-0 break-all"
-            />
-            {!shareLink ? (
-              <Button 
-                onClick={generateShareLink} 
-                disabled={isGenerating}
-                className="whitespace-nowrap"
-              >
-                Generate
-              </Button>
-            ) : (
-              <Button 
-                onClick={copyToClipboard}
-                className="whitespace-nowrap"
-              >
-                Copy
-              </Button>
-            )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Share Link</label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Input 
+                value={shareLink} 
+                readOnly 
+                placeholder="Generate a share link"
+                className="flex-1 min-w-0 font-mono text-sm"
+              />
+              {!shareLink ? (
+                <Button 
+                  onClick={generateShareLink} 
+                  disabled={isGenerating}
+                  className="whitespace-nowrap"
+                >
+                  Generate Link
+                </Button>
+              ) : (
+                <Button 
+                  onClick={copyToClipboard}
+                  className="whitespace-nowrap"
+                >
+                  Copy Link
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
