@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
 
-type Profile = Tables<"profiles", "Row">;
+type Profile = Tables<"profiles">;
 
 export default function Settings() {
   const navigate = useNavigate();

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-type Profile = Tables<"profiles", "Row">;
+type Profile = Tables<"profiles">;
 
 export const MainProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
