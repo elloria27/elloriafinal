@@ -233,6 +233,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
       case 'features':
       case 'elevating_essentials':
+      case 'game_changer':
         return (
           <div className="space-y-6">
             <div>
@@ -311,6 +312,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       value={feature.description}
                       onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
                       placeholder="Enter feature description"
+                    />
+                  </div>
+                  <div>
+                    <Label>Detail</Label>
+                    <Textarea
+                      value={feature.detail}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
+                      placeholder="Enter feature detail"
                     />
                   </div>
                 </div>
@@ -818,7 +827,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">
-        Edit {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
+        Edit {block.type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
       </h3>
       {renderFields()}
     </div>
