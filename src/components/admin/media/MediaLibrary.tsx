@@ -49,12 +49,19 @@ export const MediaLibrary = () => {
       setUploading(true);
       console.log('Uploading file:', file.name);
 
+      // Generate a unique filename
+      const timestamp = Date.now();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${timestamp}-${file.name.replace(/[^\x00-\x7F]/g, '')}`;
+
+      console.log('Generated filename:', fileName);
 
       const { error: uploadError } = await supabase.storage
         .from('files')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Error uploading file:', uploadError);
