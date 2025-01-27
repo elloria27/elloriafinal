@@ -27,45 +27,45 @@ const Index = () => {
         const { data: settings, error: settingsError } = await supabase
           .from('site_settings')
           .select('homepage_slug')
-          .single();
+          .maybeSingle();
 
         if (settingsError) {
           console.error('Error fetching site settings:', settingsError);
           throw settingsError;
         }
 
-        console.log('Homepage slug from settings:', settings.homepage_slug);
+        const homepageSlug = settings?.homepage_slug || 'home';
+        console.log('Homepage slug:', homepageSlug);
 
-        // Get the page ID for the homepage
-        const { data: pages, error: pageError } = await supabase
+        // Get the page content for the homepage
+        const { data: page, error: pageError } = await supabase
           .from('pages')
-          .select('id')
-          .eq('slug', settings.homepage_slug || 'index')
-          .single();
+          .select('content_blocks')
+          .eq('slug', homepageSlug)
+          .maybeSingle();
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
           throw pageError;
         }
 
-        console.log('Fetching content blocks for page:', pages.id);
-
-        const { data: contentBlocks, error: blocksError } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pages.id)
-          .order('order_index');
-
-        if (blocksError) {
-          console.error('Error fetching content blocks:', blocksError);
-          throw blocksError;
+        if (!page) {
+          console.error('Home page not found');
+          toast.error('Home page content not found');
+          return;
         }
 
-        console.log('Content blocks fetched:', contentBlocks);
+        console.log('Home page content blocks:', page.content_blocks);
         
-        const typedBlocks: ContentBlock[] = (contentBlocks || []).map(block => ({
-          ...block,
-          content: block.content as BlockContent
+        // Transform the content blocks to ensure proper typing
+        const typedBlocks: ContentBlock[] = (page.content_blocks || []).map((block: any) => ({
+          id: block.id || crypto.randomUUID(),
+          type: block.type as BlockType,
+          content: block.content as BlockContent,
+          order_index: block.order_index || 0,
+          page_id: block.page_id,
+          created_at: block.created_at,
+          updated_at: block.updated_at
         }));
         
         setBlocks(typedBlocks);
@@ -79,18 +79,18 @@ const Index = () => {
 
     fetchHomePageContent();
 
-    // Subscribe to content_blocks changes
+    // Subscribe to pages changes
     const channel = supabase
-      .channel('content_blocks_changes')
+      .channel('pages_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'content_blocks'
+          table: 'pages'
         },
         () => {
-          console.log('Content blocks changed, refreshing...');
+          console.log('Pages changed, refreshing...');
           fetchHomePageContent();
         }
       )
