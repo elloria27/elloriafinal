@@ -17,8 +17,6 @@ import {
   ShoppingCart, 
   Settings,
   FolderIcon,
-  ChevronLeft,
-  ChevronRight
 } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
@@ -29,7 +27,6 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -115,64 +112,48 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div 
-        className={cn(
-          "bg-white h-screen shadow-lg transition-all duration-300 flex flex-col relative",
-          isSidebarCollapsed ? "w-[60px]" : "w-[240px]"
-        )}
-      >
-        {/* Collapse button */}
-        <button
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          className="absolute -right-3 top-6 bg-white rounded-full p-1 shadow-md hover:bg-gray-50 transition-colors"
-        >
-          {isSidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
-
-        <div className="p-4 border-b flex items-center">
-          {!isSidebarCollapsed && <h2 className="font-bold text-xl">Admin</h2>}
+      {/* Navigation Tabs */}
+      <div className="w-full max-w-[1400px] mx-auto px-6 py-6">
+        <div className="bg-white rounded-lg shadow-sm mb-6">
+          <div className="border-b">
+            <div className="flex items-center justify-between px-6 py-4">
+              <h1 className="text-2xl font-semibold text-gray-900">Admin Panel</h1>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleSignOut}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+            <div className="flex items-center gap-1 px-4">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors relative",
+                    activeTab === item.id
+                      ? "text-primary"
+                      : "text-gray-600 hover:text-gray-900",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                  {activeTab === item.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        
-        <div className="flex-1 py-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-colors",
-                activeTab === item.id && "bg-blue-50 text-blue-600",
-                isSidebarCollapsed ? "justify-center" : "justify-start gap-3"
-              )}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!isSidebarCollapsed && <span>{item.label}</span>}
-            </button>
-          ))}
-        </div>
 
-        <div className="p-4 border-t">
-          <Button 
-            variant="ghost" 
-            onClick={handleSignOut}
-            className={cn(
-              "w-full",
-              isSidebarCollapsed ? "px-2" : "px-4"
-            )}
-          >
-            <LogOut className="h-5 w-5" />
-            {!isSidebarCollapsed && <span className="ml-2">Sign Out</span>}
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Content Area */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
           {activeTab === "dashboard" && <Dashboard />}
           {activeTab === "products" && <ProductManagement />}
           {activeTab === "orders" && <OrderManagement />}
