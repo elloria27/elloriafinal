@@ -42,26 +42,29 @@ export default function MainProfile() {
     return <div>No profile found.</div>;
   }
 
+  // Split full name into first and last name
+  const [firstName = '', lastName = ''] = profile.full_name?.split(' ') || ['', ''];
+
   return (
     <div className="p-8">
       <ProfileHeader 
-        firstName={profile.first_name || ''}
-        lastName={profile.last_name || ''}
+        firstName={firstName}
+        lastName={lastName}
         email={profile.email || null}
-        phoneNumber={profile.phone || ''}
+        phoneNumber={profile.phone_number || ''}
         address={profile.address || ''}
         country={profile.country || ''}
-        region={profile.state || ''}
-        language={profile.preferences?.language || 'en'}
-        currency={profile.preferences?.currency || 'USD'}
+        region={profile.region || ''}
+        language={profile.language || 'en'}
+        currency={profile.currency || 'USD'}
       />
       <PersonalInfoForm 
-        firstName={profile.first_name || ''}
+        firstName={firstName}
         setFirstName={() => {}}
-        lastName={profile.last_name || ''}
+        lastName={lastName}
         setLastName={() => {}}
         email={profile.email || null}
-        phoneNumber={profile.phone || ''}
+        phoneNumber={profile.phone_number || ''}
         setPhoneNumber={() => {}}
         address={profile.address || ''}
         setAddress={() => {}}
