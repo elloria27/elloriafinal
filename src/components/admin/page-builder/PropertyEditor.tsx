@@ -815,6 +815,105 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case 'blog_preview':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Articles</Label>
+                <Button 
+                  onClick={() => {
+                    const currentArticles = content.articles || [];
+                    handleChange('articles', [...currentArticles, {
+                      title: "New Article",
+                      category: "Category",
+                      image: "/placeholder.svg"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Article
+                </Button>
+              </div>
+              
+              {(content.articles || []).map((article: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Article {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newArticles = [...(content.articles || [])];
+                        newArticles.splice(index, 1);
+                        handleChange('articles', newArticles);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={article.title}
+                      onChange={(e) => {
+                        const newArticles = [...(content.articles || [])];
+                        newArticles[index] = { ...newArticles[index], title: e.target.value };
+                        handleChange('articles', newArticles);
+                      }}
+                      placeholder="Enter article title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Category</Label>
+                    <Input
+                      value={article.category}
+                      onChange={(e) => {
+                        const newArticles = [...(content.articles || [])];
+                        newArticles[index] = { ...newArticles[index], category: e.target.value };
+                        handleChange('articles', newArticles);
+                      }}
+                      placeholder="Enter article category"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Image URL</Label>
+                    <Input
+                      value={article.image}
+                      onChange={(e) => {
+                        const newArticles = [...(content.articles || [])];
+                        newArticles[index] = { ...newArticles[index], image: e.target.value };
+                        handleChange('articles', newArticles);
+                      }}
+                      placeholder="Enter article image URL"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">
