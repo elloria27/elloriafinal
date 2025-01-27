@@ -1,4 +1,4 @@
-import { User, FileText, Clock, Settings, X, LogOut } from "lucide-react";
+import { User, FileText, Clock, Settings, X, LogOut, LayoutGrid, Package, ShoppingCart } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   SidebarGroup,
@@ -14,19 +14,29 @@ import { toast } from "sonner";
 
 const menuItems = [
   {
+    title: "Dashboard",
+    icon: LayoutGrid,
+    path: "/dashboard",
+  },
+  {
+    title: "Products",
+    icon: Package,
+    path: "/products",
+  },
+  {
+    title: "Orders",
+    icon: ShoppingCart,
+    path: "/orders",
+  },
+  {
     title: "Profile",
     icon: User,
     path: "/profile",
   },
   {
-    title: "Invoices",
+    title: "Files",
     icon: FileText,
-    path: "/profile/invoices",
-  },
-  {
-    title: "Recent Activity",
-    icon: Clock,
-    path: "/profile/activity",
+    path: "/profile/files",
   },
   {
     title: "Settings",
@@ -75,7 +85,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
       )}
       <div className="flex-1">
         <SidebarGroup>
-          <SidebarGroupLabel className="mt-6">Account</SidebarGroupLabel>
+          <SidebarGroupLabel className="mt-6">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -90,7 +100,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
                       }`}
                       onClick={onClose}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>

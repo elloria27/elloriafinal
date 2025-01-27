@@ -39,24 +39,27 @@ export const FileList = ({
     <div className="space-y-4">
       {files.map((file) => (
         <Card key={file.id} className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <Checkbox
                 checked={selectedFiles.includes(file.name)}
                 onCheckedChange={() => onFileSelect(file.name)}
               />
-              <FileIcon className="h-8 w-8 text-primary" />
-              <div>
-                <p className="font-medium">{file.name.split('-').slice(1).join('-')}</p>
+              <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="font-medium truncate">
+                  {file.name.split('-').slice(1).join('-')}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {formatFileSize(file.metadata?.size || 0)}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-12 sm:ml-0">
               <Button
                 variant="outline"
                 size="icon"
+                className="h-8 w-8"
                 onClick={() => setPreviewFile(file.name)}
               >
                 <Eye className="h-4 w-4" />
@@ -64,6 +67,7 @@ export const FileList = ({
               <Button
                 variant="outline"
                 size="icon"
+                className="h-8 w-8"
                 onClick={() => onFileDownload(file.name)}
               >
                 <Download className="h-4 w-4" />
@@ -71,6 +75,7 @@ export const FileList = ({
               <Button
                 variant="outline"
                 size="icon"
+                className="h-8 w-8"
                 onClick={() => setShareFile(file.name)}
               >
                 <Share2 className="h-4 w-4" />
@@ -78,6 +83,7 @@ export const FileList = ({
               <Button
                 variant="outline"
                 size="icon"
+                className="h-8 w-8"
                 onClick={() => onFileDelete(file.name)}
               >
                 <Trash2 className="h-4 w-4" />
