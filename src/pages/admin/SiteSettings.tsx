@@ -9,11 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Globe, Mail, Search, Shield, Users, Settings, Upload, ToggleLeft } from "lucide-react";
+import { Loader2, Globe, Mail } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
-import { Textarea } from "@/components/ui/textarea";
 
 type SiteSettings = {
   id: string;
@@ -381,3 +380,4 @@ export default function SiteSettings() {
       </Tabs>
     </div>
   );
+}
