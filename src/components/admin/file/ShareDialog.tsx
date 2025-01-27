@@ -30,32 +30,39 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
   const generateShareLink = async () => {
     if (!fileName) {
       console.error('No file name provided');
+      toast.error("No file selected");
       return;
     }
 
     try {
       setIsGenerating(true);
-      const shareToken = crypto.randomUUID();
+      console.log('Starting share link generation...');
       
-      console.log('Generating share link for file:', fileName);
-      console.log('Access level:', accessLevel);
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+        toast.error("Authentication error");
+        return;
+      }
 
-      const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
-
       console.log('Current user ID:', userId);
-
-      const { error } = await supabase
+      
+      const shareToken = crypto.randomUUID();
+      console.log('Generated share token:', shareToken);
+      
+      const { error: insertError } = await supabase
         .from('file_shares')
         .insert({
           file_path: fileName,
           access_level: accessLevel,
           share_token: shareToken,
-          created_by: userId,
+          created_by: userId
         });
 
-      if (error) {
-        console.error('Error creating share:', error);
+      if (insertError) {
+        console.error('Error creating share:', insertError);
         toast.error("Failed to generate share link");
         return;
       }
@@ -65,7 +72,7 @@ export const ShareDialog = ({ fileName, onClose }: ShareDialogProps) => {
       setShareLink(link);
       toast.success("Share link generated successfully");
     } catch (error) {
-      console.error('Error generating share link:', error);
+      console.error('Unexpected error generating share link:', error);
       toast.error("Failed to generate share link");
     } finally {
       setIsGenerating(false);
