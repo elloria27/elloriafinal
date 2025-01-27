@@ -16,6 +16,7 @@ interface PageBuilderProps {
 }
 
 type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -56,10 +57,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           console.log('No blocks in DB, using initial blocks:', initialBlocks);
           const savedBlocks = await Promise.all(
             initialBlocks.map(async (block, index) => {
-              const insertData: Partial<ContentBlockType> = {
+              const insertData: ContentBlockInsert = {
                 id: block.id,
                 page_id: pageId,
-                type: block.type,
+                type: block.type as Database['public']['Enums']['content_block_type'],
                 content: block.content,
                 order_index: index
               };
@@ -135,12 +136,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
     try {
       console.log('Adding new block:', newBlock);
-      const insertData: Partial<ContentBlockType> = {
+      const insertData: ContentBlockInsert = {
         id: newBlock.id,
         page_id: pageId,
-        type: blockType,
+        type: blockType as Database['public']['Enums']['content_block_type'],
         content: defaultContent,
-        order_index: blocks.length,
+        order_index: blocks.length
       };
 
       const { error } = await supabase
@@ -164,7 +165,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content: content as Json })
+        .update({ content })
         .eq('id', blockId);
 
       if (error) throw error;
@@ -194,14 +195,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       const blocksForStorage = blocks.map(block => ({
         id: block.id,
         type: block.type,
-        content: block.content as Json,
+        content: block.content,
         order_index: block.order_index
       }));
 
       const { error } = await supabase
         .from('pages')
         .update({
-          content_blocks: blocksForStorage as Json[],
+          content_blocks: blocksForStorage,
           updated_at: new Date().toISOString()
         })
         .eq('id', pageId);
