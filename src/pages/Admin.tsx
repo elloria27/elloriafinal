@@ -16,12 +16,13 @@ const Admin = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
+        console.log("Checking authentication status...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log('Checking session status:', session ? 'Session exists' : 'No session');
         
         if (sessionError) {
           console.error('Session error:', sessionError);
@@ -32,6 +33,19 @@ const Admin = () => {
           console.log('No active session, redirecting to login');
           navigate("/login?redirectTo=/admin");
           return;
+        }
+
+        // Fetch user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          setProfile(profileData);
         }
 
         const { data: roleData, error: roleError } = await supabase
@@ -92,16 +106,25 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
-          <Button 
-            variant="outline"
-            onClick={handleSignOut}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+            <Button 
+              variant="outline"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+          {profile && (
+            <div className="bg-white p-4 rounded-lg shadow">
+              <p className="text-lg text-gray-700">
+                Welcome, {profile.full_name || 'Admin'}! 👋
+              </p>
+            </div>
+          )}
         </div>
         
         <Tabs defaultValue="dashboard" className="space-y-6">
