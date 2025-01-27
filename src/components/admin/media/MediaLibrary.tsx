@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { FileObject } from "@supabase/storage-js";
-import { Upload, Download, Trash2, Search, Image, File } from "lucide-react";
+import { Upload, Download, Trash2, Search, Image, File, Copy, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const MediaLibrary = () => {
@@ -15,6 +15,7 @@ export const MediaLibrary = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFile, setSelectedFile] = useState<FileObject | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchFiles();
@@ -63,10 +64,10 @@ export const MediaLibrary = () => {
         return;
       }
 
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('files')
         .upload(fileName, file, {
-          cacheControl: '3600',
+          contentType: file.type,
           upsert: false
         });
 
@@ -76,8 +77,23 @@ export const MediaLibrary = () => {
         return;
       }
 
-      console.log('File uploaded successfully');
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('files')
+        .getPublicUrl(fileName);
+
+      console.log('File uploaded successfully. Public URL:', publicUrl);
       toast.success("File uploaded successfully");
+      
+      // Show the URL in a toast that stays longer
+      toast.message("File URL (click to copy)", {
+        duration: 10000,
+        action: {
+          label: "Copy URL",
+          onClick: () => handleCopyUrl(publicUrl)
+        },
+      });
+
       fetchFiles();
     } catch (error) {
       console.error('Error in handleFileUpload:', error);
@@ -115,43 +131,21 @@ export const MediaLibrary = () => {
 
   const handleFileSelect = async (file: FileObject) => {
     setSelectedFile(file);
-    if (file.metadata?.mimetype?.startsWith('image/')) {
-      const { data } = await supabase.storage
-        .from('files')
-        .getPublicUrl(file.name);
-      setPreviewUrl(data.publicUrl);
-    } else {
-      setPreviewUrl(null);
-    }
+    const { data: { publicUrl } } = supabase.storage
+      .from('files')
+      .getPublicUrl(file.name);
+    setPreviewUrl(publicUrl);
   };
 
-  const handleFileDownload = async (fileName: string) => {
+  const handleCopyUrl = async (url: string) => {
     try {
-      console.log('Downloading file:', fileName);
-      const { data, error } = await supabase.storage
-        .from('files')
-        .download(fileName);
-
-      if (error) {
-        console.error('Error downloading file:', error);
-        toast.error("Failed to download file");
-        return;
-      }
-
-      const url = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName.split('-').slice(1).join('-');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      console.log('File downloaded successfully');
-      toast.success("File downloaded successfully");
+      await navigator.clipboard.writeText(url);
+      setCopiedUrl(url);
+      toast.success("URL copied to clipboard");
+      setTimeout(() => setCopiedUrl(null), 2000);
     } catch (error) {
-      console.error('Error in handleFileDownload:', error);
-      toast.error("Failed to download file");
+      console.error('Error copying URL:', error);
+      toast.error("Failed to copy URL");
     }
   };
 
@@ -211,59 +205,81 @@ export const MediaLibrary = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredFiles.map((file) => (
-          <Card
-            key={file.id}
-            className={`p-4 cursor-pointer hover:shadow-lg transition-shadow ${
-              selectedFile?.id === file.id ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => handleFileSelect(file)}
-          >
-            <div className="space-y-4">
-              <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                {file.metadata?.mimetype?.startsWith('image/') ? (
-                  <img
-                    src={`${supabase.storage.from('files').getPublicUrl(file.name).data.publicUrl}`}
-                    alt={file.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  getFileIcon(file)
-                )}
+        {filteredFiles.map((file) => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('files')
+            .getPublicUrl(file.name);
+            
+          return (
+            <Card
+              key={file.id}
+              className={`p-4 cursor-pointer hover:shadow-lg transition-shadow ${
+                selectedFile?.id === file.id ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => handleFileSelect(file)}
+            >
+              <div className="space-y-4">
+                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                  {file.metadata?.mimetype?.startsWith('image/') ? (
+                    <img
+                      src={publicUrl}
+                      alt={file.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    getFileIcon(file)
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium truncate text-sm">
+                    {file.name.split('-').slice(1).join('-')}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(file.metadata?.size / 1024).toFixed(2)} KB
+                  </p>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyUrl(publicUrl);
+                    }}
+                  >
+                    {copiedUrl === publicUrl ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(publicUrl, '_blank');
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFileDelete(file.name);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="font-medium truncate text-sm">
-                  {file.name.split('-').slice(1).join('-')}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {(file.metadata?.size / 1024).toFixed(2)} KB
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFileDownload(file.name);
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFileDelete(file.name);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
@@ -273,10 +289,31 @@ export const MediaLibrary = () => {
           </DialogHeader>
           {selectedFile && (
             <div className="space-y-4">
-              {previewUrl ? (
+              {previewUrl && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input 
+                      value={previewUrl} 
+                      readOnly 
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => handleCopyUrl(previewUrl)}
+                    >
+                      {copiedUrl === previewUrl ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {selectedFile.metadata?.mimetype?.startsWith('image/') ? (
                 <div className="aspect-video">
                   <img
-                    src={previewUrl}
+                    src={previewUrl!}
                     alt={selectedFile.name}
                     className="w-full h-full object-contain"
                   />
