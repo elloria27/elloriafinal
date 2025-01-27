@@ -2,19 +2,17 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, Download, Trash2, FileIcon } from "lucide-react";
-import { FileObject as SupabaseFileObject } from "@supabase/storage-js";
-
-interface FileObject extends SupabaseFileObject {
-  size: number;
-}
+import { Upload } from "lucide-react";
+import { FileObject } from "@supabase/storage-js";
+import { FileList } from "./file/FileList";
+import { BulkShareDialog } from "./file/BulkShareDialog";
 
 export const FileManagement = () => {
   const [files, setFiles] = useState<FileObject[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
   useEffect(() => {
     fetchFiles();
@@ -31,14 +29,8 @@ export const FileManagement = () => {
         return;
       }
 
-      // Transform the data to include required properties
-      const transformedData = data.map(file => ({
-        ...file,
-        size: file.metadata?.size || 0
-      }));
-
-      console.log('Files fetched successfully:', transformedData);
-      setFiles(transformedData);
+      console.log('Files fetched successfully:', data);
+      setFiles(data);
     } catch (error) {
       console.error('Error in fetchFiles:', error);
       toast.error("Failed to fetch files");
@@ -92,7 +84,7 @@ export const FileManagement = () => {
       const url = window.URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName.split('-').slice(1).join('-'); // Remove timestamp prefix
+      link.download = fileName.split('-').slice(1).join('-');
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -128,12 +120,12 @@ export const FileManagement = () => {
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const handleFileSelect = (fileName: string) => {
+    setSelectedFiles(prev => 
+      prev.includes(fileName)
+        ? prev.filter(f => f !== fileName)
+        : [...prev, fileName]
+    );
   };
 
   if (loading) {
@@ -148,66 +140,51 @@ export const FileManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">File Management</h2>
-        <div className="relative">
-          <Input
-            type="file"
-            onChange={handleFileUpload}
-            className="hidden"
-            id="file-upload"
-            disabled={uploading}
-          />
-          <Button
-            asChild
-            variant="outline"
-            className="flex items-center gap-2"
-            disabled={uploading}
-          >
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <Upload className="h-4 w-4" />
-              Upload File
-            </label>
-          </Button>
+        <div className="flex gap-4">
+          {selectedFiles.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setSelectedFiles([])}
+            >
+              Clear Selection ({selectedFiles.length})
+            </Button>
+          )}
+          <div className="relative">
+            <Input
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
+              disabled={uploading}
+            />
+            <Button
+              asChild
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled={uploading}
+            >
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <Upload className="h-4 w-4" />
+                Upload File
+              </label>
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {files.map((file) => (
-          <Card key={file.id} className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FileIcon className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="font-medium">{file.name.split('-').slice(1).join('-')}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatFileSize(file.size)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleFileDownload(file.name)}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleFileDelete(file.name)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
-        {files.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            No files uploaded yet
-          </div>
-        )}
-      </div>
+      <FileList
+        files={files}
+        selectedFiles={selectedFiles}
+        onFileSelect={handleFileSelect}
+        onFileDownload={handleFileDownload}
+        onFileDelete={handleFileDelete}
+        onShare={() => {}}
+      />
+
+      <BulkShareDialog
+        fileNames={selectedFiles}
+        onClose={() => setSelectedFiles([])}
+      />
     </div>
   );
 };

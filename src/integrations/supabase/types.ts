@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bulk_file_shares: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          file_paths: string[]
+          id: string
+          share_token: string
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          file_paths: string[]
+          id?: string
+          share_token: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          file_paths?: string[]
+          id?: string
+          share_token?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string | null
@@ -82,6 +112,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      file_shares: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          file_path: string
+          id: string
+          share_token: string
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          file_path: string
+          id?: string
+          share_token: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          file_path?: string
+          id?: string
+          share_token?: string
+        }
+        Relationships: []
       }
       orders: {
         Row: {
