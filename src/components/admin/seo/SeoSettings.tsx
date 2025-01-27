@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Globe, Bot, Search, Info } from "lucide-react";
+import { Globe, Bot, Search, FileDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Page {
@@ -36,6 +36,7 @@ interface Page {
   og_title: string | null;
   og_description: string | null;
   og_image: string | null;
+  updated_at: string;
 }
 
 export const SeoSettings = () => {
@@ -53,7 +54,7 @@ export const SeoSettings = () => {
       console.log('Fetching pages for SEO management...');
       const { data, error } = await supabase
         .from('pages')
-        .select('id, title, slug, allow_indexing, meta_title, meta_description, meta_keywords, canonical_url, og_title, og_description, og_image')
+        .select('id, title, slug, allow_indexing, meta_title, meta_description, meta_keywords, canonical_url, og_title, og_description, og_image, updated_at')
         .order('title');
 
       if (error) throw error;
@@ -144,6 +145,54 @@ export const SeoSettings = () => {
     }
   };
 
+  const generateSitemapXml = () => {
+    try {
+      console.log('Generating sitemap.xml content...');
+      const baseUrl = window.location.origin;
+      
+      let sitemapContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      sitemapContent += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+      // Add homepage
+      sitemapContent += '  <url>\n';
+      sitemapContent += `    <loc>${baseUrl}</loc>\n`;
+      sitemapContent += '    <changefreq>daily</changefreq>\n';
+      sitemapContent += '    <priority>1.0</priority>\n';
+      sitemapContent += '  </url>\n';
+
+      // Add pages
+      pages.forEach(page => {
+        if (page.allow_indexing) {
+          sitemapContent += '  <url>\n';
+          sitemapContent += `    <loc>${baseUrl}/${page.slug}</loc>\n`;
+          sitemapContent += `    <lastmod>${new Date(page.updated_at).toISOString()}</lastmod>\n`;
+          sitemapContent += '    <changefreq>weekly</changefreq>\n';
+          sitemapContent += '    <priority>0.8</priority>\n';
+          sitemapContent += '  </url>\n';
+        }
+      });
+
+      sitemapContent += '</urlset>';
+
+      // Create a Blob and download the sitemap.xml file
+      const blob = new Blob([sitemapContent], { type: 'application/xml' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      console.log('sitemap.xml generated successfully');
+      toast.success("sitemap.xml file generated successfully");
+    } catch (error) {
+      console.error('Error generating sitemap.xml:', error);
+      toast.error("Error generating sitemap.xml file");
+    }
+  };
+
   if (loading) {
     return <div>Loading SEO settings...</div>;
   }
@@ -161,10 +210,14 @@ export const SeoSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-4 mb-4">
             <Button onClick={generateRobotsTxt} className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
               Generate robots.txt
+            </Button>
+            <Button onClick={generateSitemapXml} className="flex items-center gap-2">
+              <FileDown className="h-4 w-4" />
+              Generate sitemap.xml
             </Button>
           </div>
 
