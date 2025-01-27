@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Database, Tables } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
 import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 
@@ -38,10 +38,35 @@ export default function MainProfile() {
     return <div>Loading...</div>;
   }
 
+  if (!profile) {
+    return <div>No profile found.</div>;
+  }
+
   return (
     <div className="p-8">
-      <ProfileHeader profile={profile} />
-      <PersonalInfoForm profile={profile} />
+      <ProfileHeader 
+        firstName={profile.full_name?.split(' ')[0] || ''}
+        lastName={profile.full_name?.split(' ')[1] || ''}
+        email={profile.email || null}
+        phoneNumber={profile.phone_number || ''}
+        address={profile.address || ''}
+        country={profile.country || ''}
+        region={profile.region || ''}
+        language={profile.language}
+        currency={profile.currency}
+      />
+      <PersonalInfoForm 
+        firstName={profile.full_name?.split(' ')[0] || ''}
+        setFirstName={() => {}}
+        lastName={profile.full_name?.split(' ')[1] || ''}
+        setLastName={() => {}}
+        email={profile.email || null}
+        phoneNumber={profile.phone_number || ''}
+        setPhoneNumber={() => {}}
+        address={profile.address || ''}
+        setAddress={() => {}}
+        loading={loading}
+      />
     </div>
   );
 }

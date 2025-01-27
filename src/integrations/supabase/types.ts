@@ -255,6 +255,12 @@ export type Database = {
         ]
       }
     }
+    Enums: {
+      supported_language: 'en' | 'fr' | 'uk'
+      supported_currency: 'USD' | 'EUR' | 'UAH' | 'CAD'
+      user_role: 'admin' | 'client'
+      page_view_type: 'page_view' | 'scroll_depth' | 'click'
+    }
   }
 }
 
