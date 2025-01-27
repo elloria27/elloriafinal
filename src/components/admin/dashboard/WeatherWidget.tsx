@@ -21,34 +21,11 @@ export const WeatherWidget = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchWeather = async (latitude: number, longitude: number) => {
       try {
-        // Default coordinates (New York) in case location service fails
-        let latitude = 40.7128;
-        let longitude = -74.0060;
-        let city = "New York";
-
-        try {
-          console.log('Fetching location data...');
-          const locationResponse = await fetch('https://ipapi.co/json/');
-          if (locationResponse.ok) {
-            const locationData = await locationResponse.json();
-            console.log('Location data:', locationData);
-
-            if (locationData.latitude && locationData.longitude) {
-              latitude = locationData.latitude;
-              longitude = locationData.longitude;
-              city = locationData.city || city;
-            }
-          } else {
-            console.warn('Using default location due to API error');
-          }
-        } catch (err) {
-          console.warn('Location service unavailable, using default location:', err);
-        }
+        console.log('Fetching weather data for coordinates:', { latitude, longitude });
         
         // Get weather data from OpenMeteo
-        console.log('Fetching weather data...');
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
         console.log('Weather URL:', weatherUrl);
         
@@ -58,6 +35,19 @@ export const WeatherWidget = () => {
         }
         const weatherData = await weatherResponse.json();
         console.log('Weather data:', weatherData);
+
+        // Try to get city name using reverse geocoding
+        let city = "Unknown location";
+        try {
+          const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+          const geocodeResponse = await fetch(geocodeUrl);
+          if (geocodeResponse.ok) {
+            const geocodeData = await geocodeResponse.json();
+            city = geocodeData.city || geocodeData.locality || "Unknown location";
+          }
+        } catch (err) {
+          console.warn('Could not fetch city name:', err);
+        }
 
         // Convert weather code to our condition format
         const getCondition = (code: number) => {
@@ -94,7 +84,26 @@ export const WeatherWidget = () => {
       }
     };
 
-    fetchWeather();
+    // Get user's location using browser's Geolocation API
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Got user location:', position.coords);
+          fetchWeather(position.coords.latitude, position.coords.longitude);
+        },
+        (err) => {
+          console.error('Geolocation error:', err);
+          // Fallback to New York coordinates if geolocation fails
+          toast.error('Could not get your location. Showing weather for New York.');
+          fetchWeather(40.7128, -74.0060);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      console.warn('Geolocation not supported');
+      toast.error('Geolocation is not supported by your browser. Showing weather for New York.');
+      fetchWeather(40.7128, -74.0060);
+    }
   }, []);
 
   const getWeatherIcon = (condition: string) => {
