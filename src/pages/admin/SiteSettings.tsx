@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Globe, Mail } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
-import { SeoSettings } from "@/components/admin/seo/SeoSettings";
-import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 
 type SiteSettings = {
   id: string;
@@ -36,53 +33,14 @@ type SiteSettings = {
   enable_user_avatars: boolean;
 }
 
-export default function SiteSettings() {
-  const navigate = useNavigate();
+const SiteSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
 
   useEffect(() => {
-    checkAdminAndLoadData();
+    loadSettings();
   }, []);
-
-  const checkAdminAndLoadData = async () => {
-    try {
-      console.log('Checking admin status...');
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('No session found');
-        toast.error("Please sign in to access admin settings");
-        navigate("/login");
-        return;
-      }
-
-      const { data: isAdmin } = await supabase.rpc('is_admin', {
-        user_id: session.user.id
-      });
-
-      if (!isAdmin) {
-        console.log('User is not an admin');
-        toast.error("Admin access required");
-        navigate("/");
-        return;
-      }
-
-      console.log('Admin access confirmed, loading data...');
-      await Promise.all([
-        loadSettings(),
-        loadPages()
-      ]);
-
-    } catch (error) {
-      console.error('Error in admin check:', error);
-      toast.error("Error checking admin access");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadSettings = async () => {
     try {
@@ -99,24 +57,8 @@ export default function SiteSettings() {
     } catch (error) {
       console.error('Error loading settings:', error);
       toast.error("Error loading site settings");
-    }
-  };
-
-  const loadPages = async () => {
-    try {
-      console.log('Loading pages...');
-      const { data, error } = await supabase
-        .from('pages')
-        .select('id, title, slug')
-        .eq('is_published', true);
-
-      if (error) throw error;
-
-      console.log('Pages loaded:', data);
-      setPages(data || []);
-    } catch (error) {
-      console.error('Error loading pages:', error);
-      toast.error("Error loading pages");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -163,7 +105,7 @@ export default function SiteSettings() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[200px]">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -199,7 +141,6 @@ export default function SiteSettings() {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
@@ -370,14 +311,51 @@ export default function SiteSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="seo">
-          <SeoSettings />
-        </TabsContent>
-
         <TabsContent value="advanced">
-          <AdvancedSettings />
+          <Card>
+            <CardHeader>
+              <CardTitle>Advanced Settings</CardTitle>
+              <CardDescription>
+                Configure advanced website settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="meta_description">Meta Description</Label>
+                <Input
+                  id="meta_description"
+                  value={settings.meta_description || ''}
+                  onChange={(e) => setSettings({ ...settings, meta_description: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta_keywords">Meta Keywords</Label>
+                <Input
+                  id="meta_keywords"
+                  value={settings.meta_keywords || ''}
+                  onChange={(e) => setSettings({ ...settings, meta_keywords: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between space-x-2">
+                <div className="space-y-0.5">
+                  <Label>Search Engine Indexing</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow search engines to index your website
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.enable_search_indexing}
+                  onCheckedChange={(checked) => setSettings({ ...settings, enable_search_indexing: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
   );
-}
+};
+
+export default SiteSettings;
