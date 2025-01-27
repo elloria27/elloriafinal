@@ -10,7 +10,7 @@ import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, HeroContent, FeaturesContent } from "@/types/content-blocks";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -60,7 +60,11 @@ const Index = () => {
         }
 
         console.log('Fetched content blocks:', blocksData);
-        setBlocks(blocksData || []);
+        // Cast the data to ContentBlock[] type
+        setBlocks(blocksData?.map(block => ({
+          ...block,
+          content: block.content as BlockContent
+        })) || []);
       } catch (error) {
         console.error('Error:', error);
       } finally {
@@ -89,29 +93,27 @@ const Index = () => {
   }, []);
 
   const renderBlock = (block: ContentBlock) => {
-    const content = block.content;
-    
     switch (block.type) {
       case 'hero':
-        return <Hero content={content} />;
+        return <Hero content={block.content as HeroContent} />;
       case 'features':
-        return <Features content={content} />;
+        return <Features content={block.content as FeaturesContent} />;
       case 'game_changer':
-        return <GameChanger content={content} />;
+        return <GameChanger content={block.content} />;
       case 'store_brands':
-        return <StoreBrands content={content} />;
+        return <StoreBrands content={block.content} />;
       case 'sustainability':
-        return <Sustainability content={content} />;
+        return <Sustainability content={block.content} />;
       case 'product_carousel':
-        return <ProductCarousel content={content} />;
+        return <ProductCarousel content={block.content} />;
       case 'competitor_comparison':
-        return <CompetitorComparison content={content} />;
+        return <CompetitorComparison content={block.content} />;
       case 'testimonials':
-        return <Testimonials content={content} />;
+        return <Testimonials content={block.content} />;
       case 'blog_preview':
-        return <BlogPreview content={content} />;
+        return <BlogPreview content={block.content} />;
       case 'newsletter':
-        return <Newsletter content={content} />;
+        return <Newsletter content={block.content} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
