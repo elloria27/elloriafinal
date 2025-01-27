@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
-type Review = Tables<"reviews">;
-type Order = Tables<"orders">;
+type Review = Tables<"reviews", "Row">;
+type Order = Tables<"orders", "Row">;
 
 type ActivityItem = {
   type: 'review' | 'order';

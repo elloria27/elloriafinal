@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { PreferencesForm } from "@/components/profile/PreferencesForm";
 import { Tables } from "@/integrations/supabase/types";
 
-type Profile = Tables<"profiles">;
+type Profile = Tables<"profiles", "Row">;
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);

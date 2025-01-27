@@ -465,7 +465,7 @@ export type Database = {
           max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
-          site_title: string
+          site_title?: string
           updated_at?: string
         }
         Update: {
@@ -488,7 +488,7 @@ export type Database = {
           meta_description?: string | null
           meta_keywords?: string | null
           site_title?: string
-          updated_at?: string;
+          updated_at?: string
         }
         Relationships: []
       }
@@ -509,7 +509,7 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
-          user_id: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -614,7 +614,6 @@ export type Database = {
         | "elevating_essentials"
         | "game_changer"
         | "competitor_comparison"
-        | "about_hero_section"
       page_view_type: "page_view" | "exit"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
@@ -635,7 +634,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -647,10 +646,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
