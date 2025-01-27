@@ -38,7 +38,7 @@ const Index = () => {
         const { data: settingsData, error: settingsError } = await supabase
           .from('site_settings')
           .select('homepage_slug')
-          .single();
+          .maybeSingle(); // Changed from .single() to .maybeSingle()
 
         if (settingsError) {
           console.error('Error fetching homepage slug:', settingsError);
@@ -46,19 +46,15 @@ const Index = () => {
           return;
         }
 
-        if (!settingsData?.homepage_slug) {
-          console.error('No homepage slug found in settings');
-          toast.error("Homepage not configured");
-          return;
-        }
-
-        console.log('Homepage slug:', settingsData.homepage_slug);
+        // If no settings found, use 'index' as default homepage
+        const homepageSlug = settingsData?.homepage_slug || 'index';
+        console.log('Homepage slug:', homepageSlug);
 
         // Then fetch the page content using the slug
         const { data: pageData, error: pageError } = await supabase
           .from('pages')
           .select('id')
-          .eq('slug', settingsData.homepage_slug)
+          .eq('slug', homepageSlug)
           .single();
 
         if (pageError) {
