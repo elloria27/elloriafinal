@@ -45,23 +45,23 @@ export default function MainProfile() {
   return (
     <div className="p-8">
       <ProfileHeader 
-        firstName={profile.full_name?.split(' ')[0] || ''}
-        lastName={profile.full_name?.split(' ')[1] || ''}
+        firstName={profile.first_name || ''}
+        lastName={profile.last_name || ''}
         email={profile.email || null}
-        phoneNumber={profile.phone_number || ''}
+        phoneNumber={profile.phone || ''}
         address={profile.address || ''}
         country={profile.country || ''}
-        region={profile.region || ''}
-        language={profile.language}
-        currency={profile.currency}
+        region={profile.state || ''}
+        language={profile.preferences?.language || 'en'}
+        currency={profile.preferences?.currency || 'USD'}
       />
       <PersonalInfoForm 
-        firstName={profile.full_name?.split(' ')[0] || ''}
+        firstName={profile.first_name || ''}
         setFirstName={() => {}}
-        lastName={profile.full_name?.split(' ')[1] || ''}
+        lastName={profile.last_name || ''}
         setLastName={() => {}}
         email={profile.email || null}
-        phoneNumber={profile.phone_number || ''}
+        phoneNumber={profile.phone || ''}
         setPhoneNumber={() => {}}
         address={profile.address || ''}
         setAddress={() => {}}
