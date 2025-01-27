@@ -49,6 +49,45 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
 
         {(() => {
           switch (block.type) {
+            case 'about_mission':
+              return (
+                <div className="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">
+                      {getContentValue(block.content, 'title') || 'Our Mission'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {getContentValue(block.content, 'subtitle') || 'Our company values and goals'}
+                    </p>
+                    <p className="text-gray-700">
+                      {getContentValue(block.content, 'description') || 'Mission description'}
+                    </p>
+                  </div>
+                  
+                  {getContentValue(block.content, 'image') && (
+                    <img 
+                      src={getContentValue(block.content, 'image')}
+                      alt="Mission"
+                      className="w-full h-auto rounded-lg"
+                    />
+                  )}
+
+                  {getContentValue(block.content, 'values') && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {getContentValue(block.content, 'values').map((value: any, index: number) => (
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-primary">{value.icon}</span>
+                            <h4 className="font-medium">{value.title}</h4>
+                          </div>
+                          <p className="text-sm text-gray-600">{value.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+
             case 'about_story':
               return (
                 <div className="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
