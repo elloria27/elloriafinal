@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 interface TeamMember {
   name: string;
@@ -54,10 +55,11 @@ export const AboutTeam = () => {
 
         console.log("Fetched content block:", blocks);
 
-        const content = blocks?.content as TeamContent;
+        // Safely type check and cast the content
+        const content = blocks?.content as { team?: unknown[] };
         
         if (content?.team && Array.isArray(content.team)) {
-          const processedTeam = content.team.map((member) => ({
+          const processedTeam = content.team.map((member: any) => ({
             name: member.name || "Team Member",
             role: member.role || "Role",
             quote: member.quote || "Quote",
