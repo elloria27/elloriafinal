@@ -17,20 +17,7 @@ export const PageViewTracker = () => {
       try {
         console.log('Tracking page view:', location.pathname);
         
-        let locationData = { country_name: null, city: null };
-        
-        try {
-          // Try to get visitor's location, but don't block if it fails
-          const response = await fetch('https://ipapi.co/json/');
-          if (response.ok) {
-            locationData = await response.json();
-          } else {
-            console.warn('Could not fetch location data, continuing without location');
-          }
-        } catch (err) {
-          console.warn('Location service unavailable:', err);
-        }
-        
+        // Insert page view without waiting for location data
         const { error } = await supabase
           .from('page_views')
           .insert({
@@ -38,12 +25,40 @@ export const PageViewTracker = () => {
             session_id: sessionId,
             referrer: document.referrer,
             user_agent: navigator.userAgent,
-            country: locationData.country_name,
-            city: locationData.city
           });
 
         if (error) {
           console.error('Error tracking page view:', error);
+        }
+
+        // Try to get location data in the background
+        try {
+          const response = await fetch('https://ipapi.co/json/', { 
+            signal: AbortSignal.timeout(3000) // Timeout after 3 seconds
+          });
+          
+          if (response.ok) {
+            const locationData = await response.json();
+            
+            // Update the page view with location data
+            if (locationData.country_name || locationData.city) {
+              const { error: updateError } = await supabase
+                .from('page_views')
+                .update({
+                  country: locationData.country_name,
+                  city: locationData.city
+                })
+                .eq('page_path', location.pathname)
+                .eq('session_id', sessionId);
+
+              if (updateError) {
+                console.warn('Could not update location data:', updateError);
+              }
+            }
+          }
+        } catch (locationError) {
+          // Just log the location error but don't let it affect the page view tracking
+          console.warn('Location service unavailable:', locationError);
         }
       } catch (err) {
         console.error('Error tracking page view:', err);
