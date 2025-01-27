@@ -180,6 +180,60 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
+  const handleDeleteBlock = async (blockId: string) => {
+    try {
+      const { error } = await supabase
+        .from('content_blocks')
+        .delete()
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setBlocks(prevBlocks => prevBlocks.filter(block => block.id !== blockId));
+      if (selectedBlock?.id === blockId) {
+        setSelectedBlock(null);
+      }
+      toast.success("Block deleted successfully");
+    } catch (error) {
+      console.error('Error deleting block:', error);
+      toast.error("Failed to delete block");
+    }
+  };
+
+  const handleMoveBlock = async (blockId: string, direction: 'up' | 'down') => {
+    const currentIndex = blocks.findIndex(block => block.id === blockId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= blocks.length) return;
+
+    const newBlocks = [...blocks];
+    const [movedBlock] = newBlocks.splice(currentIndex, 1);
+    newBlocks.splice(newIndex, 0, movedBlock);
+
+    // Update order_index for all blocks
+    const updatedBlocks = newBlocks.map((block, index) => ({
+      ...block,
+      order_index: index,
+    }));
+
+    try {
+      const updatePromises = updatedBlocks.map(block => 
+        supabase
+          .from('content_blocks')
+          .update({ order_index: block.order_index })
+          .eq('id', block.id)
+      );
+
+      await Promise.all(updatePromises);
+      setBlocks(updatedBlocks);
+      toast.success(`Block moved ${direction}`);
+    } catch (error) {
+      console.error('Error moving block:', error);
+      toast.error(`Failed to move block ${direction}`);
+    }
+  };
+
   const handleSaveLayout = async () => {
     try {
       console.log('Saving layout for page:', pageId);
@@ -274,6 +328,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           <PropertyEditor
             block={selectedBlock}
             onUpdate={handleUpdateBlock}
+            onDelete={handleDeleteBlock}
+            onMoveUp={(id) => handleMoveBlock(id, 'up')}
+            onMoveDown={(id) => handleMoveBlock(id, 'down')}
+            isFirst={blocks.indexOf(selectedBlock) === 0}
+            isLast={blocks.indexOf(selectedBlock) === blocks.length - 1}
           />
         </div>
       )}

@@ -3,22 +3,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContentBlock, BlockContent, BlogPreviewContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MoveUp, MoveDown } from "lucide-react";
+import { toast } from "sonner";
 
 interface PropertyEditorProps {
   block: ContentBlock;
   onUpdate: (id: string, content: BlockContent) => void;
+  onDelete?: (id: string) => void;
+  onMoveUp?: (id: string) => void;
+  onMoveDown?: (id: string) => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
-export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
+export const PropertyEditor = ({ 
+  block, 
+  onUpdate, 
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast 
+}: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
-
-  const handleChange = (key: string, value: any) => {
-    console.log('Updating content:', key, value);
-    const newContent = { ...content, [key]: value };
-    setContent(newContent);
-    onUpdate(block.id, newContent);
-  };
 
   const getBlogArticles = () => {
     if (!content || !('articles' in content)) {
@@ -53,6 +60,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     handleChange('articles', newArticles);
   };
 
+  const handleChange = (key: string, value: any) => {
+    const newContent = { ...content, [key]: value };
+    setContent(newContent);
+    onUpdate(block.id, newContent);
+  };
+
   const addArticle = () => {
     const newArticle = {
       title: "New Article",
@@ -70,6 +83,13 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     handleChange('articles', newArticles);
   };
 
+  const handleDelete = () => {
+    if (onDelete && window.confirm("Are you sure you want to delete this block?")) {
+      onDelete(block.id);
+      toast.success("Block deleted successfully");
+    }
+  };
+
   const renderFields = () => {
     console.log('Rendering fields for block type:', block.type);
     console.log('Current content:', content);
@@ -78,6 +98,40 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       case 'blog_preview':
         return (
           <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Blog Preview Settings</h3>
+              <div className="flex gap-2">
+                {!isFirst && onMoveUp && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveUp(block.id)}
+                    title="Move Up"
+                  >
+                    <MoveUp className="h-4 w-4" />
+                  </Button>
+                )}
+                {!isLast && onMoveDown && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onMoveDown(block.id)}
+                    title="Move Down"
+                  >
+                    <MoveDown className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  title="Delete Block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
             <div>
               <Label>Title</Label>
               <Input
@@ -175,9 +229,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">
-        Edit {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
-      </h3>
       {renderFields()}
     </div>
   );
