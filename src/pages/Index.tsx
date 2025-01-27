@@ -10,7 +10,19 @@ import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
-import { ContentBlock, BlockContent, HeroContent, FeaturesContent } from "@/types/content-blocks";
+import { 
+  ContentBlock, 
+  BlockContent, 
+  HeroContent, 
+  FeaturesContent,
+  GameChangerContent,
+  StoreBrandsContent,
+  SustainabilityContent,
+  ProductCarouselContent,
+  TestimonialsContent,
+  BlogPreviewContent,
+  NewsletterContent
+} from "@/types/content-blocks";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -99,21 +111,21 @@ const Index = () => {
       case 'features':
         return <Features content={block.content as FeaturesContent} />;
       case 'game_changer':
-        return <GameChanger content={block.content} />;
+        return <GameChanger content={block.content as GameChangerContent} />;
       case 'store_brands':
-        return <StoreBrands content={block.content} />;
+        return <StoreBrands content={block.content as StoreBrandsContent} />;
       case 'sustainability':
-        return <Sustainability content={block.content} />;
+        return <Sustainability content={block.content as SustainabilityContent} />;
       case 'product_carousel':
-        return <ProductCarousel content={block.content} />;
+        return <ProductCarousel content={block.content as ProductCarouselContent} />;
       case 'competitor_comparison':
         return <CompetitorComparison content={block.content} />;
       case 'testimonials':
-        return <Testimonials content={block.content} />;
+        return <Testimonials content={block.content as TestimonialsContent} />;
       case 'blog_preview':
-        return <BlogPreview content={block.content} />;
+        return <BlogPreview content={block.content as BlogPreviewContent} />;
       case 'newsletter':
-        return <Newsletter content={block.content} />;
+        return <Newsletter content={block.content as NewsletterContent} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
