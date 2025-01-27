@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { ContentBlock, BlockContent, BlockType } from "@/types/content-blocks";
-import { PreviewPane } from "./PreviewPane";
+import { Plus, Save } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
+import { PreviewPane } from "./PreviewPane";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
@@ -13,37 +15,170 @@ interface PageBuilderProps {
   initialBlocks: ContentBlock[];
 }
 
+type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
+
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
-  const [blocks, setBlocks] = useState<ContentBlock[]>(initialBlocks);
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
-  const [isComponentPickerOpen, setIsComponentPickerOpen] = useState(false);
+  const [showComponentPicker, setShowComponentPicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('PageBuilder mounted with blocks:', initialBlocks);
-  }, [initialBlocks]);
+    const initializeBlocks = async () => {
+      console.log('Initializing blocks for page:', pageId);
+      try {
+        const { data: dbBlocks, error } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageId)
+          .order('order_index');
 
-  const handleBlockSelect = (block: ContentBlock) => {
-    console.log('Selected block:', block);
-    setSelectedBlock(block);
+        if (error) {
+          console.error('Error fetching blocks from DB:', error);
+          throw error;
+        }
+
+        console.log('Blocks from DB:', dbBlocks);
+
+        if (dbBlocks && dbBlocks.length > 0) {
+          const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
+            id: block.id,
+            type: block.type as BlockType,
+            content: block.content as BlockContent,
+            order_index: block.order_index,
+            page_id: block.page_id,
+            created_at: block.created_at,
+            updated_at: block.updated_at
+          }));
+          console.log('Setting blocks from DB:', transformedBlocks);
+          setBlocks(transformedBlocks);
+        } else if (initialBlocks && initialBlocks.length > 0) {
+          console.log('No blocks in DB, using initial blocks:', initialBlocks);
+          const savedBlocks = await Promise.all(
+            initialBlocks.map(async (block, index) => {
+              const insertData: ContentBlockInsert = {
+                id: block.id,
+                page_id: pageId,
+                type: block.type as Database['public']['Enums']['content_block_type'],
+                content: block.content,
+                order_index: index
+              };
+
+              const { data, error: insertError } = await supabase
+                .from('content_blocks')
+                .insert(insertData)
+                .select()
+                .single();
+
+              if (insertError) {
+                console.error('Error saving initial block to DB:', insertError);
+                throw insertError;
+              }
+
+              return block;
+            })
+          );
+
+          console.log('Saved initial blocks to DB:', savedBlocks);
+          setBlocks(initialBlocks);
+        }
+      } catch (error) {
+        console.error('Error initializing blocks:', error);
+        toast.error("Failed to initialize page content");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeBlocks();
+  }, [pageId, initialBlocks]);
+
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(blocks);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedBlocks = items.map((block, index) => ({
+      ...block,
+      order_index: index,
+    }));
+
+    try {
+      // Update order_index in database
+      const updatePromises = updatedBlocks.map(block => 
+        supabase
+          .from('content_blocks')
+          .update({ order_index: block.order_index })
+          .eq('id', block.id)
+      );
+
+      await Promise.all(updatePromises);
+      setBlocks(updatedBlocks);
+      toast.success("Block order updated successfully");
+    } catch (error) {
+      console.error('Error updating block order:', error);
+      toast.error("Failed to update block order");
+    }
   };
 
-  const handleBlockUpdate = async (blockId: string, content: BlockContent) => {
+  const handleAddBlock = async (blockType: BlockType) => {
+    const defaultContent: BlockContent = {};
+    
+    const newBlock: ContentBlock = {
+      id: crypto.randomUUID(),
+      type: blockType,
+      content: defaultContent,
+      order_index: blocks.length,
+    };
+
     try {
-      console.log('Updating block:', blockId, content);
-      
+      console.log('Adding new block:', newBlock);
+      const insertData: ContentBlockInsert = {
+        id: newBlock.id,
+        page_id: pageId,
+        type: blockType as Database['public']['Enums']['content_block_type'],
+        content: defaultContent,
+        order_index: blocks.length
+      };
+
       const { error } = await supabase
         .from('content_blocks')
-        .update({
-          content,
-          updated_at: new Date().toISOString()
-        })
+        .insert(insertData);
+
+      if (error) throw error;
+
+      setBlocks(prevBlocks => [...prevBlocks, newBlock]);
+      setShowComponentPicker(false);
+      setSelectedBlock(newBlock);
+      toast.success("Block added successfully");
+    } catch (error) {
+      console.error('Error adding block:', error);
+      toast.error("Failed to add block");
+    }
+  };
+
+  const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
+    try {
+      console.log('Updating block:', blockId, content);
+      const { error } = await supabase
+        .from('content_blocks')
+        .update({ content })
         .eq('id', blockId);
 
       if (error) throw error;
 
-      setBlocks(blocks.map(block => 
-        block.id === blockId ? { ...block, content } : block
-      ));
+      setBlocks(prevBlocks => 
+        prevBlocks.map(block => 
+          block.id === blockId ? { ...block, content } : block
+        )
+      );
+      
+      setSelectedBlock(prev => 
+        prev?.id === blockId ? { ...prev, content } : prev
+      );
       
       toast.success("Block updated successfully");
     } catch (error) {
@@ -52,124 +187,117 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleMoveBlock = async (blockId: string, direction: 'up' | 'down') => {
+  const handleSaveLayout = async () => {
     try {
-      const currentIndex = blocks.findIndex(block => block.id === blockId);
-      if (currentIndex === -1) return;
+      console.log('Saving layout for page:', pageId);
+      console.log('Blocks to save:', blocks);
 
-      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-      if (newIndex < 0 || newIndex >= blocks.length) return;
-
-      const newBlocks = [...blocks];
-      const [movedBlock] = newBlocks.splice(currentIndex, 1);
-      newBlocks.splice(newIndex, 0, movedBlock);
-
-      // Update order_index for affected blocks
-      const updatedBlocks = newBlocks.map((block, index) => ({
-        ...block,
-        order_index: index
-      }));
-
-      // Prepare the data for Supabase update
-      const updateData: Database['public']['Tables']['content_blocks']['Update'][] = updatedBlocks.map(block => ({
+      const blocksForStorage = blocks.map(block => ({
         id: block.id,
         type: block.type,
         content: block.content,
-        order_index: block.order_index,
-        updated_at: new Date().toISOString()
+        order_index: block.order_index
       }));
 
-      // Update database
       const { error } = await supabase
-        .from('content_blocks')
-        .upsert(updateData);
+        .from('pages')
+        .update({
+          content_blocks: blocksForStorage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', pageId);
 
       if (error) throw error;
-
-      setBlocks(updatedBlocks);
-      toast.success(`Block moved ${direction}`);
+      toast.success("Layout saved successfully");
     } catch (error) {
-      console.error('Error moving block:', error);
-      toast.error("Failed to move block");
+      console.error('Error saving layout:', error);
+      toast.error("Failed to save layout");
     }
   };
 
-  const handleDeleteBlock = async (blockId: string) => {
-    try {
-      const { error } = await supabase
-        .from('content_blocks')
-        .delete()
-        .eq('id', blockId);
-
-      if (error) throw error;
-
-      setBlocks(blocks.filter(block => block.id !== blockId));
-      if (selectedBlock?.id === blockId) {
-        setSelectedBlock(null);
-      }
-      
-      toast.success("Block deleted successfully");
-    } catch (error) {
-      console.error('Error deleting block:', error);
-      toast.error("Failed to delete block");
-    }
-  };
-
-  const handleAddBlock = async (type: BlockType) => {
-    try {
-      const newBlockData: Database['public']['Tables']['content_blocks']['Insert'] = {
-        page_id: pageId,
-        type,
-        content: {},
-        order_index: blocks.length
-      };
-
-      const { data, error } = await supabase
-        .from('content_blocks')
-        .insert([newBlockData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setBlocks([...blocks, data as ContentBlock]);
-      setIsComponentPickerOpen(false);
-      toast.success("Block added successfully");
-    } catch (error) {
-      console.error('Error adding block:', error);
-      toast.error("Failed to add block");
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
-        <Button onClick={() => setIsComponentPickerOpen(true)}>
+    <div className="flex h-[calc(100vh-4rem)]">
+      <div className="w-64 bg-gray-100 p-4 border-r">
+        <Button 
+          onClick={() => setShowComponentPicker(true)}
+          className="w-full mb-4"
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add Component
         </Button>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="blocks">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-2"
+              >
+                {blocks.map((block, index) => (
+                  <Draggable 
+                    key={block.id} 
+                    draggableId={block.id} 
+                    index={index}
+                  >
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`p-3 bg-white rounded-lg shadow cursor-pointer ${
+                          selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
+                        }`}
+                        onClick={() => setSelectedBlock(block)}
+                      >
+                        {block.type}
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
 
-        <PreviewPane
-          blocks={blocks}
-          onSelectBlock={handleBlockSelect}
-          onMoveBlock={handleMoveBlock}
-          onDeleteBlock={handleDeleteBlock}
-        />
-
-        <ComponentPicker
-          open={isComponentPickerOpen}
-          onClose={() => setIsComponentPickerOpen(false)}
-          onSelect={handleAddBlock}
+      <div className="flex-1 overflow-auto">
+        <PreviewPane 
+          blocks={blocks} 
+          onSelectBlock={setSelectedBlock}
         />
       </div>
 
-      <div className="lg:col-span-1">
-        {selectedBlock && (
+      {selectedBlock && (
+        <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={handleBlockUpdate}
+            onUpdate={handleUpdateBlock}
           />
-        )}
-      </div>
+        </div>
+      )}
+
+      <ComponentPicker
+        open={showComponentPicker}
+        onClose={() => setShowComponentPicker(false)}
+        onSelect={handleAddBlock}
+      />
+
+      <Button
+        className="fixed bottom-4 right-4"
+        onClick={handleSaveLayout}
+      >
+        <Save className="w-4 h-4 mr-2" />
+        Save Layout
+      </Button>
     </div>
   );
 };
