@@ -15,9 +15,10 @@ import {
   Users, 
   FileText, 
   ShoppingCart, 
-  Settings, 
+  Settings,
   FolderIcon,
-  Menu
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
@@ -115,19 +116,26 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className={cn(
-        "bg-white h-screen shadow-lg transition-all duration-300 flex flex-col",
-        isSidebarCollapsed ? "w-[60px]" : "w-[240px]"
-      )}>
-        <div className="p-4 border-b flex items-center justify-between">
+      <div 
+        className={cn(
+          "bg-white h-screen shadow-lg transition-all duration-300 flex flex-col relative",
+          isSidebarCollapsed ? "w-[60px]" : "w-[240px]"
+        )}
+      >
+        {/* Collapse button */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="absolute -right-3 top-6 bg-white rounded-full p-1 shadow-md hover:bg-gray-50 transition-colors"
+        >
+          {isSidebarCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+
+        <div className="p-4 border-b flex items-center">
           {!isSidebarCollapsed && <h2 className="font-bold text-xl">Admin</h2>}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
         </div>
         
         <div className="flex-1 py-4">
@@ -136,12 +144,12 @@ const Admin = () => {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50",
+                "w-full flex items-center px-4 py-2.5 text-gray-600 hover:bg-gray-50 transition-colors",
                 activeTab === item.id && "bg-blue-50 text-blue-600",
                 isSidebarCollapsed ? "justify-center" : "justify-start gap-3"
               )}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-5 w-5 flex-shrink-0" />
               {!isSidebarCollapsed && <span>{item.label}</span>}
             </button>
           ))}
