@@ -11,6 +11,31 @@ export interface FeatureItem {
   detail?: string;
 }
 
+export type BlockType = 
+  | "heading" 
+  | "text" 
+  | "image" 
+  | "video" 
+  | "button" 
+  | "hero" 
+  | "features" 
+  | "testimonials" 
+  | "newsletter" 
+  | "blog_preview" 
+  | "store_brands"
+  | "sustainability"
+  | "product_carousel"
+  | "product_gallery"
+  | "elevating_essentials"
+  | "game_changer"
+  | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact";
+
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -220,31 +245,6 @@ export type BlockContent =
   | AboutSustainabilityContent
   | AboutTeamContent
   | AboutCustomerImpactContent;
-
-export type BlockType = 
-  | "heading" 
-  | "text" 
-  | "image" 
-  | "video" 
-  | "button" 
-  | "hero" 
-  | "features" 
-  | "testimonials" 
-  | "newsletter" 
-  | "blog_preview" 
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel"
-  | "product_gallery"
-  | "elevating_essentials"
-  | "game_changer"
-  | "competitor_comparison"
-  | "about_hero_section"
-  | "about_story"
-  | "about_mission"
-  | "about_sustainability"
-  | "about_team"
-  | "about_customer_impact";
 
 export interface ContentBlock {
   id: string;
