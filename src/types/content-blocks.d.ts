@@ -1,133 +1,124 @@
-import { Json } from "@/integrations/supabase/types";
+export type BlockType = 
+  | 'hero'
+  | 'heading'
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'button'
+  | 'features'
+  | 'testimonials'
+  | 'newsletter'
+  | 'product_gallery'
+  | 'blog_preview'
+  | 'store_brands'
+  | 'about_story'
+  | 'about_mission';
 
-export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | Json;
+export interface AboutMissionContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  image?: string;
+  values?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
 }
 
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
+export interface HeroContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  image?: string;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
-export interface HeadingBlockContent extends BaseBlockContent {
+export interface HeadingContent {
   text?: string;
-  size?: 'h1' | 'h2' | 'h3' | 'h4';
+  size?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  alignment?: 'left' | 'center' | 'right';
 }
 
-export interface TextBlockContent extends BaseBlockContent {
+export interface TextContent {
   text?: string;
+  alignment?: 'left' | 'center' | 'right';
 }
 
-export interface ImageBlockContent extends BaseBlockContent {
+export interface ImageContent {
   url?: string;
   alt?: string;
+  caption?: string;
 }
 
-export interface VideoBlockContent extends BaseBlockContent {
+export interface VideoContent {
   url?: string;
   title?: string;
+  autoplay?: boolean;
+  controls?: boolean;
 }
 
-export interface ButtonBlockContent extends BaseBlockContent {
+export interface ButtonContent {
   text?: string;
-  url?: string;
+  link?: string;
   variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg';
 }
 
-export interface HeroContent extends BaseBlockContent {
+export interface FeaturesContent {
   title?: string;
-  subtitle?: string;
-  videoUrl?: string;
-}
-
-export interface FeaturesContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
   description?: string;
-  features?: FeatureItem[];
+  features?: {
+    icon?: string;
+    title: string;
+    description: string;
+  }[];
 }
 
-export interface GameChangerContent extends BaseBlockContent {
+export interface TestimonialsContent {
   title?: string;
-  subtitle?: string;
+  testimonials?: {
+    text: string;
+    author: string;
+    role?: string;
+    image?: string;
+  }[];
+}
+
+export interface NewsletterContent {
+  title?: string;
   description?: string;
-  features?: FeatureItem[];
+  buttonText?: string;
+  image?: string;
 }
 
-export interface StoreBrandsContent extends BaseBlockContent {
+export interface ProductGalleryContent {
   title?: string;
-  subtitle?: string;
+  description?: string;
+  products?: string[];
+}
+
+export interface BlogPreviewContent {
+  title?: string;
+  description?: string;
+  posts?: string[];
+}
+
+export interface StoreBrandsContent {
+  title?: string;
+  description?: string;
   brands?: {
     name: string;
     logo: string;
-    link: string;
+    link?: string;
   }[];
 }
 
-export interface SustainabilityContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  stats?: {
-    icon: string;
-    value: string;
-    label: string;
-    description: string;
-  }[];
-  timelineItems?: string[];
-}
-
-export interface TestimonialsContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  testimonials?: {
-    name: string;
-    rating: number;
-    text: string;
-    source: string;
-  }[];
-}
-
-export interface BlogPreviewContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  articles?: {
-    title: string;
-    category: string;
-    image: string;
-  }[];
-}
-
-export interface NewsletterContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  buttonText?: string;
-}
-
-export interface ProductCarouselContent extends BaseBlockContent {
+export interface AboutStoryContent {
   title?: string;
   subtitle?: string;
   description?: string;
-}
-
-export interface CompetitorComparisonContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  metrics?: {
-    category: string;
-    elloria: number;
-    competitors: number;
-    icon: string;
-    description: string;
-  }[];
-  buttonText?: string;
-  buttonUrl?: string;
-}
-
-export interface AboutStoryContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
   videoUrl?: string;
   timeline?: {
     year: string;
@@ -136,81 +127,39 @@ export interface AboutStoryContent extends BaseBlockContent {
   }[];
 }
 
-export interface AboutHeroSectionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  backgroundImage?: string;
-}
-
-export interface AboutMissionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  image?: string;
-  values?: {
-    title: string;
-    description: string;
-    icon: string;
-  }[];
-}
-
-export type BlockContent = 
-  | HeadingBlockContent 
-  | TextBlockContent 
-  | ImageBlockContent 
-  | VideoBlockContent
-  | ButtonBlockContent
+export type BlockContent =
   | HeroContent
+  | HeadingContent
+  | TextContent
+  | ImageContent
+  | VideoContent
+  | ButtonContent
   | FeaturesContent
-  | GameChangerContent
-  | StoreBrandsContent
-  | SustainabilityContent
   | TestimonialsContent
-  | BlogPreviewContent
   | NewsletterContent
-  | ProductCarouselContent
-  | CompetitorComparisonContent
+  | ProductGalleryContent
+  | BlogPreviewContent
+  | StoreBrandsContent
   | AboutStoryContent
-  | AboutHeroSectionContent
   | AboutMissionContent;
-
-export type BlockType = 
-  | "heading" 
-  | "text" 
-  | "image" 
-  | "video" 
-  | "button" 
-  | "hero" 
-  | "features" 
-  | "testimonials" 
-  | "newsletter" 
-  | "blog_preview" 
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel"
-  | "product_gallery"
-  | "elevating_essentials"
-  | "game_changer"
-  | "competitor_comparison"
-  | "about_hero_section"
-  | "about_story"
-  | "about_sustainability"
-  | "about_mission";
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
   content: BlockContent;
-  order_index: number;
+  order_index?: number;
   page_id?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
+export interface SustainabilityContent {
+  title?: string;
+  description?: string;
+  stats?: {
+    icon?: string;
+    value?: string;
+    description?: string;
+  }[];
+  timelineItems?: string[];
 }
