@@ -5,12 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Upload, Download, Trash2, FileIcon } from "lucide-react";
+import { FileObject as SupabaseFileObject } from "@supabase/storage-js";
 
-interface FileObject {
-  name: string;
+interface FileObject extends SupabaseFileObject {
   size: number;
-  created_at: string;
-  id: string;
 }
 
 export const FileManagement = () => {
@@ -33,8 +31,14 @@ export const FileManagement = () => {
         return;
       }
 
-      console.log('Files fetched successfully:', data);
-      setFiles(data);
+      // Transform the data to include required properties
+      const transformedData = data.map(file => ({
+        ...file,
+        size: file.metadata?.size || 0
+      }));
+
+      console.log('Files fetched successfully:', transformedData);
+      setFiles(transformedData);
     } catch (error) {
       console.error('Error in fetchFiles:', error);
       toast.error("Failed to fetch files");
