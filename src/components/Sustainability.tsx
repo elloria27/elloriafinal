@@ -40,10 +40,22 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ]
   };
 
+  // Map the content from admin panel to our component structure
+  const mapAdminStats = (adminStats: any[]) => {
+    return adminStats.map(stat => ({
+      icon: stat.icon || "Leaf",
+      title: stat.value || "",
+      description: stat.description || "",
+      color: "bg-accent-green" // Default color
+    }));
+  };
+
   // Ensure we're properly handling the content prop
   const finalContent = {
     ...defaultContent,
     ...(content || {}),
+    // If content.stats exists, map it to our expected format
+    stats: content?.stats ? mapAdminStats(content.stats) : defaultContent.stats
   };
   
   console.log("Final content being used:", finalContent);
@@ -69,7 +81,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
         {/* Stats Section */}
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {(finalContent.stats || defaultContent.stats).map((stat, index) => (
+            {finalContent.stats.map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -115,7 +127,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           className="max-w-4xl mx-auto"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            {(finalContent.timelineItems || defaultContent.timelineItems).map((item, index) => (
+            {finalContent.timelineItems.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -128,7 +140,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                   {index + 1}
                 </div>
                 <span className="text-gray-700 font-medium">{item}</span>
-                {index < (finalContent.timelineItems || defaultContent.timelineItems).length - 1 && (
+                {index < finalContent.timelineItems.length - 1 && (
                   <div className="hidden md:block w-12 h-0.5 bg-primary/20" />
                 )}
               </motion.div>
