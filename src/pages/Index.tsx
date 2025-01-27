@@ -1,3 +1,8 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ContentBlock, BlockType, GameChangerContent, HeroContent, BlockContent } from "@/types/content-blocks";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { StoreBrands } from "@/components/StoreBrands";
@@ -7,13 +12,7 @@ import { CompetitorComparison } from "@/components/CompetitorComparison";
 import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
-import { Header } from "@/components/Header";
 import { GameChanger } from "@/components/GameChanger";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockType, GameChangerContent, HeroContent, BlockContent } from "@/types/content-blocks";
-import { toast } from "sonner";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -137,23 +136,20 @@ const Index = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <motion.main 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="flex-grow"
-      >
-        <div className="page-content">
-          {blocks.map((block) => (
-            <div key={block.id}>
-              {renderBlock(block)}
-            </div>
-          ))}
-        </div>
-      </motion.main>
-    </div>
+    <motion.main 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="flex-grow"
+    >
+      <div className="page-content">
+        {blocks.map((block) => (
+          <div key={block.id}>
+            {renderBlock(block)}
+          </div>
+        ))}
+      </div>
+    </motion.main>
   );
 };
 
