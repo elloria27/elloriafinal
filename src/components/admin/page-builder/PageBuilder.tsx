@@ -161,7 +161,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content: content as Json })
+        .update({ 
+          content: content,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', blockId);
 
       if (error) throw error;

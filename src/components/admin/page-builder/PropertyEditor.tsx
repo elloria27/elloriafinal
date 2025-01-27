@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContentBlock, BlockContent, BlogPreviewContent } from "@/types/content-blocks";
@@ -34,40 +34,14 @@ export const PropertyEditor = ({
 }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
 
-  const getBlogArticles = () => {
-    if (!content || !('articles' in content)) {
-      return [];
-    }
-
-    const articles = content.articles;
-    if (!Array.isArray(articles)) {
-      return [];
-    }
-
-    return articles.map(article => {
-      if (typeof article === 'object' && article !== null) {
-        return {
-          title: String(article.title || ''),
-          category: String(article.category || ''),
-          image: String(article.image || '')
-        };
-      }
-      return {
-        title: '',
-        category: '',
-        image: ''
-      };
-    });
-  };
-
-  const handleArticleChange = (index: number, field: keyof BlogPreviewContent['articles'][0], value: string) => {
-    const articles = getBlogArticles();
-    const newArticles = [...articles];
-    newArticles[index] = { ...newArticles[index], [field]: value };
-    handleChange('articles', newArticles);
-  };
+  // Синхронізуємо локальний стан з пропсами при зміні блоку
+  useEffect(() => {
+    console.log("Block content updated:", block.content);
+    setContent(block.content);
+  }, [block.content]);
 
   const handleChange = (key: string, value: any) => {
+    console.log("Handling change for key:", key, "value:", value);
     const newContent = { ...content, [key]: value };
     setContent(newContent);
     onUpdate(block.id, newContent);
@@ -89,6 +63,7 @@ export const PropertyEditor = ({
   };
 
   const handleTimelineChange = (index: number, field: keyof TimelineItem, value: string) => {
+    console.log("Updating timeline item:", index, field, value);
     const timeline = getTimelineItems();
     const newTimeline = [...timeline];
     newTimeline[index] = { ...newTimeline[index], [field]: value };
@@ -111,23 +86,6 @@ export const PropertyEditor = ({
     const newTimeline = [...timeline];
     newTimeline.splice(index, 1);
     handleChange('timeline', newTimeline);
-  };
-
-  const addArticle = () => {
-    const newArticle = {
-      title: "New Article",
-      category: "Category",
-      image: "/placeholder.svg"
-    };
-    
-    const articles = getBlogArticles();
-    handleChange('articles', [...articles, newArticle]);
-  };
-
-  const removeArticle = (index: number) => {
-    const articles = getBlogArticles();
-    const newArticles = articles.filter((_, i) => i !== index);
-    handleChange('articles', newArticles);
   };
 
   const handleDelete = () => {
