@@ -10,7 +10,17 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, Files, Image } from "lucide-react";
+import { 
+  LogOut, 
+  LayoutDashboard, 
+  Package, 
+  Users, 
+  FileText, 
+  ShoppingCart, 
+  Settings, 
+  Files,
+  Image 
+} from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 
