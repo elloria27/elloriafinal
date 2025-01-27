@@ -43,6 +43,13 @@ export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
     }
   };
 
+  // Ensure stats are properly formatted
+  const processedStats = content?.stats && Array.isArray(content.stats) 
+    ? content.stats 
+    : defaultStats;
+
+  console.log("Processed stats:", processedStats);
+
   return (
     <section className="py-20 bg-gradient-to-b from-white to-accent-purple/5">
       <div className="container px-4">
@@ -63,9 +70,9 @@ export const AboutSustainability = ({ content }: AboutSustainabilityProps) => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {(content?.stats || defaultStats).map((stat, index) => (
+          {processedStats.map((stat, index) => (
             <motion.div
-              key={stat.label}
+              key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
