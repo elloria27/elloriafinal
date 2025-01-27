@@ -30,6 +30,10 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
         {(() => {
           switch (block.type) {
             case 'about_story':
+              const timeline = Array.isArray(block.content.timeline) 
+                ? block.content.timeline 
+                : [];
+              
               return (
                 <section className="py-24 bg-white">
                   <div className="container px-4">
@@ -58,7 +62,7 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
                     </motion.div>
                     <div className="max-w-4xl mx-auto">
                       <div className="space-y-12">
-                        {(block.content.timeline || []).map((item: any, index: number) => (
+                        {timeline.map((item: any, index: number) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}

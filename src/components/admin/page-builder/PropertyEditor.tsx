@@ -68,13 +68,13 @@ export const PropertyEditor = ({
   };
 
   const handleTimelineChange = (index: number, field: string, value: string) => {
-    const timeline = [...(content.timeline || [])];
+    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
     timeline[index] = { ...timeline[index], [field]: value };
     handleChange('timeline', timeline);
   };
 
   const addTimelineItem = () => {
-    const timeline = [...(content.timeline || [])];
+    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
     timeline.push({
       year: new Date().getFullYear().toString(),
       title: "New Milestone",
@@ -84,7 +84,7 @@ export const PropertyEditor = ({
   };
 
   const removeTimelineItem = (index: number) => {
-    const timeline = [...(content.timeline || [])];
+    const timeline = Array.isArray(content.timeline) ? [...content.timeline] : [];
     timeline.splice(index, 1);
     handleChange('timeline', timeline);
   };
@@ -191,7 +191,7 @@ export const PropertyEditor = ({
                 </Button>
               </div>
               
-              {(content.timeline || []).map((item: any, index: number) => (
+              {Array.isArray(content.timeline) && content.timeline.map((item: any, index: number) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Milestone {index + 1}</Label>
