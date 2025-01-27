@@ -38,7 +38,7 @@ export const PropertyEditor = ({
 
   const handleContentChange = (
     key: string,
-    value: string | number | boolean | any[]
+    value: string | number | boolean | Json[] | FeatureItem[]
   ) => {
     const updatedContent = {
       ...selectedBlock.content,
