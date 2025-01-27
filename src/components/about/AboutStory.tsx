@@ -29,8 +29,8 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
         console.log("Fetched pages data:", pages);
 
         if (pages?.content_blocks) {
-          // Type assertion to help TypeScript understand the structure
-          const contentBlocks = pages.content_blocks as ContentBlock[];
+          // First cast to unknown, then to ContentBlock[] to satisfy TypeScript
+          const contentBlocks = (pages.content_blocks as unknown) as ContentBlock[];
           const storyBlock = contentBlocks.find(
             (block: ContentBlock) => block.type === 'about_story'
           );
@@ -38,7 +38,6 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
           console.log("Found story block:", storyBlock);
 
           if (storyBlock && 'content' in storyBlock) {
-            // Type assertion to ensure the content is treated as AboutStoryContent
             setStoryContent(storyBlock.content as AboutStoryContent);
           }
         }
