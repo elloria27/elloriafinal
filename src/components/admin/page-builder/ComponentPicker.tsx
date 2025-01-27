@@ -1,93 +1,66 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { BlockType } from "@/types/content-blocks";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  LayoutTemplate, 
+  Type, 
+  Image, 
+  Video, 
+  Square, // Replacing ButtonIcon with Square for button icon
+  LayoutGrid,
+  MessageSquareQuote,
+  Mail,
+  ShoppingBag,
+  Newspaper,
+  Store
+} from "lucide-react";
 
 interface ComponentPickerProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (type: BlockType) => void;
+  onSelect: (type: string) => void;
 }
 
-export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
-  const components: { type: BlockType; label: string }[] = [
-    {
-      type: "heading",
-      label: "Heading"
-    },
-    {
-      type: "text",
-      label: "Text"
-    },
-    {
-      type: "image",
-      label: "Image"
-    },
-    {
-      type: "video",
-      label: "Video"
-    },
-    {
-      type: "button",
-      label: "Button"
-    },
-    {
-      type: "hero",
-      label: "Hero Section"
-    },
-    {
-      type: "features",
-      label: "Features Section"
-    },
-    {
-      type: "testimonials",
-      label: "Testimonials Section"
-    },
-    {
-      type: "newsletter",
-      label: "Newsletter Section"
-    },
-    {
-      type: "blog_preview",
-      label: "Blog Preview Section"
-    },
-    {
-      type: "store_brands",
-      label: "Store Brands Section"
-    },
-    {
-      type: "sustainability",
-      label: "Sustainability Section"
-    },
-    {
-      type: "product_carousel",
-      label: "Product Carousel"
-    },
-    {
-      type: "competitor_comparison",
-      label: "Competitor Comparison"
-    },
-    {
-      type: "about_mission",
-      label: "About Mission Section"
-    }
-  ];
+const components = [
+  { type: 'hero', icon: LayoutTemplate, label: 'Hero Section' },
+  { type: 'heading', icon: Type, label: 'Heading' },
+  { type: 'text', icon: Type, label: 'Text Block' },
+  { type: 'image', icon: Image, label: 'Image' },
+  { type: 'video', icon: Video, label: 'Video' },
+  { type: 'button', icon: Square, label: 'Button' },
+  { type: 'features', icon: LayoutGrid, label: 'Features Grid' },
+  { type: 'testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
+  { type: 'newsletter', icon: Mail, label: 'Newsletter' },
+  { type: 'product_gallery', icon: ShoppingBag, label: 'Product Gallery' },
+  { type: 'blog_preview', icon: Newspaper, label: 'Blog Preview' },
+  { type: 'store_brands', icon: Store, label: 'Store Brands' }
+];
 
+export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <div className="grid grid-cols-2 gap-4">
-          {components.map((component) => (
-            <button
-              key={component.type}
-              className="p-4 border rounded-lg hover:border-primary text-left"
-              onClick={() => {
-                onSelect(component.type);
-                onClose();
-              }}
-            >
-              {component.label}
-            </button>
-          ))}
-        </div>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add Component</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-[300px] pr-4">
+          <div className="grid grid-cols-2 gap-2">
+            {components.map((component) => (
+              <Button
+                key={component.type}
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2"
+                onClick={() => {
+                  onSelect(component.type);
+                  onClose();
+                }}
+              >
+                <component.icon className="h-6 w-6" />
+                <span className="text-sm">{component.label}</span>
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

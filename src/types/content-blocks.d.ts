@@ -126,17 +126,6 @@ export interface CompetitorComparisonContent extends BaseBlockContent {
   buttonUrl?: string;
 }
 
-export interface AboutMissionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  values?: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -152,8 +141,7 @@ export type BlockContent =
   | BlogPreviewContent
   | NewsletterContent
   | ProductCarouselContent
-  | CompetitorComparisonContent
-  | AboutMissionContent;
+  | CompetitorComparisonContent;
 
 export type BlockType = 
   | "heading" 
@@ -172,8 +160,7 @@ export type BlockType =
   | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
-  | "competitor_comparison"
-  | "about_mission";
+  | "competitor_comparison";
 
 export interface ContentBlock {
   id: string;
