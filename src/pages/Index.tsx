@@ -23,30 +23,37 @@ const Index = () => {
       try {
         console.log('Fetching home page content');
         
+        // First get the homepage slug from site settings
+        const { data: settings, error: settingsError } = await supabase
+          .from('site_settings')
+          .select('homepage_slug')
+          .single();
+
+        if (settingsError) {
+          console.error('Error fetching site settings:', settingsError);
+          throw settingsError;
+        }
+
+        console.log('Homepage slug from settings:', settings.homepage_slug);
+
+        // Get the page ID for the homepage
         const { data: pages, error: pageError } = await supabase
           .from('pages')
           .select('id')
-          .eq('slug', 'index');
+          .eq('slug', settings.homepage_slug || 'index')
+          .single();
 
         if (pageError) {
           console.error('Error fetching home page:', pageError);
           throw pageError;
         }
 
-        if (!pages || pages.length === 0) {
-          console.error('Home page not found');
-          toast.error('Home page content not found');
-          setBlocks([]);
-          return;
-        }
-
-        const pageId = pages[0].id;
-        console.log('Fetching content blocks for page:', pageId);
+        console.log('Fetching content blocks for page:', pages.id);
 
         const { data: contentBlocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', pageId)
+          .eq('page_id', pages.id)
           .order('order_index');
 
         if (blocksError) {
@@ -56,7 +63,6 @@ const Index = () => {
 
         console.log('Content blocks fetched:', contentBlocks);
         
-        // Transform the content blocks to ensure proper typing
         const typedBlocks: ContentBlock[] = (contentBlocks || []).map(block => ({
           ...block,
           content: block.content as BlockContent
