@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,29 +8,35 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
 
-type Profile = Tables<"profiles", never>;
+type Profile = Tables<"profiles", "Row">;
 
 export default function Settings() {
-  const { user } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/signin");
-      return;
-    }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        navigate("/login");
+        return;
+      }
+      fetchProfile();
+    };
 
-    fetchProfile();
-  }, [user]);
+    checkAuth();
+  }, [navigate]);
 
   const fetchProfile = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user?.id)
+        .eq("id", session.user.id)
         .single();
 
       if (error) throw error;
@@ -46,28 +51,29 @@ export default function Settings() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
 
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
-        full_name: formData.get("full_name"),
-        email: formData.get("email"),
-        phone_number: formData.get("phone_number"),
-        address: formData.get("address"),
-        country: formData.get("country"),
-        region: formData.get("region"),
-        language: formData.get("language"),
-        currency: formData.get("currency"),
+        full_name: String(formData.get("full_name") || ""),
+        email: String(formData.get("email") || ""),
+        phone_number: String(formData.get("phone_number") || ""),
+        address: String(formData.get("address") || ""),
+        country: String(formData.get("country") || ""),
+        region: String(formData.get("region") || ""),
+        language: String(formData.get("language") || "en"),
+        currency: String(formData.get("currency") || "USD"),
         email_notifications: formData.get("email_notifications") === "on",
         marketing_emails: formData.get("marketing_emails") === "on",
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", user.id);
+        .eq("id", session.user.id);
 
       if (error) throw error;
       toast.success("Profile updated successfully");

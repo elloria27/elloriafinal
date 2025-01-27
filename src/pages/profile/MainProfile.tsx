@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-type Profile = Tables<"profiles", never>;
+type Profile = Tables<"profiles", "Row">;
 
 export const MainProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -51,11 +51,11 @@ export const MainProfile = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
-        full_name: formData.get('full_name'),
-        phone_number: formData.get('phone_number'),
-        address: formData.get('address'),
-        country: formData.get('country'),
-        region: formData.get('region'),
+        full_name: String(formData.get('full_name') || ''),
+        phone_number: String(formData.get('phone_number') || ''),
+        address: String(formData.get('address') || ''),
+        country: String(formData.get('country') || ''),
+        region: String(formData.get('region') || ''),
         updated_at: new Date().toISOString(),
       };
 

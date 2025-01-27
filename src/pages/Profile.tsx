@@ -7,9 +7,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import MainProfile from "./profile/MainProfile";
-import Invoices from "./profile/Invoices";
-import Activity from "./profile/Activity";
+import { MainProfile } from "./profile/MainProfile";
+import { Invoices } from "./profile/Invoices";
+import { Activity } from "./profile/Activity";
 import Settings from "./profile/Settings";
 
 const Profile = () => {
