@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "@/pages/Index";
 import Shop from "@/pages/Shop";
 import About from "@/pages/About";
@@ -42,10 +44,55 @@ const ProtectedRoute = ({ children, slug }: { children: React.ReactNode; slug: s
   return <>{children}</>;
 };
 
+function HomeRoute() {
+  const [loading, setLoading] = useState(true);
+  const [homepageSlug, setHomepageSlug] = useState<string | null>(null);
+  const { publishedPages } = usePages();
+
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        console.log('Fetching site settings for homepage...');
+        const { data: settings, error } = await supabase
+          .from('site_settings')
+          .select('homepage_slug')
+          .single();
+
+        if (error) {
+          console.error('Error fetching site settings:', error);
+          throw error;
+        }
+
+        console.log('Homepage slug from settings:', settings.homepage_slug);
+        setHomepageSlug(settings.homepage_slug);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSiteSettings();
+  }, []);
+
+  if (loading) {
+    return null;
+  }
+
+  // If no homepage is set or the slug doesn't match any published page, show the default Index component
+  if (!homepageSlug || !publishedPages.find(p => p.slug === homepageSlug)) {
+    console.log('Using default Index component');
+    return <Index />;
+  }
+
+  console.log('Redirecting to homepage:', homepageSlug);
+  return <Navigate to={`/${homepageSlug}`} replace />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/shop" element={
         <ProtectedRoute slug="shop">
           <Shop />
