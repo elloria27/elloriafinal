@@ -2,21 +2,33 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon } from "lucide-react";
+import { 
+  LogOut, 
+  LayoutDashboard, 
+  Package, 
+  Users, 
+  FileText, 
+  ShoppingCart, 
+  Settings, 
+  FolderIcon,
+  Menu
+} from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
+import { cn } from "@/lib/utils";
 
 const Admin = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -90,85 +102,77 @@ const Admin = () => {
     return null;
   }
 
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "products", label: "Products", icon: Package },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
+    { id: "users", label: "Users", icon: Users },
+    { id: "pages", label: "Pages", icon: FileText },
+    { id: "files", label: "Files", icon: FolderIcon },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className={cn(
+        "bg-white h-screen shadow-lg transition-all duration-300 flex flex-col",
+        isSidebarCollapsed ? "w-[60px]" : "w-[240px]"
+      )}>
+        <div className="p-4 border-b flex items-center justify-between">
+          {!isSidebarCollapsed && <h2 className="font-bold text-xl">Admin</h2>}
           <Button 
-            variant="outline"
-            onClick={handleSignOut}
-            className="flex items-center gap-2"
+            variant="ghost" 
+            size="icon"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           >
-            <LogOut className="h-4 w-4" />
-            Sign Out
+            <Menu className="h-5 w-5" />
           </Button>
         </div>
         
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-7 gap-1">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
-                <LayoutDashboard className="h-5 w-5" />
-                <span className="hidden md:inline">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
-                <Package className="h-5 w-5" />
-                <span className="hidden md:inline">Products</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="hidden md:inline">Orders</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
-                <Users className="h-5 w-5" />
-                <span className="hidden md:inline">Users</span>
-              </TabsTrigger>
-              <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
-                <FileText className="h-5 w-5" />
-                <span className="hidden md:inline">Pages</span>
-              </TabsTrigger>
-              <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
-                <FolderIcon className="h-5 w-5" />
-                <span className="hidden md:inline">Files</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
-                <Settings className="h-5 w-5" />
-                <span className="hidden md:inline">Settings</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="flex-1 py-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={cn(
+                "w-full flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50",
+                activeTab === item.id && "bg-blue-50 text-blue-600",
+                isSidebarCollapsed ? "justify-center" : "justify-start gap-3"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {!isSidebarCollapsed && <span>{item.label}</span>}
+            </button>
+          ))}
+        </div>
 
-          <div className="bg-white rounded-lg shadow p-4 md:p-6">
-            <TabsContent value="dashboard">
-              <Dashboard />
-            </TabsContent>
+        <div className="p-4 border-t">
+          <Button 
+            variant="ghost" 
+            onClick={handleSignOut}
+            className={cn(
+              "w-full",
+              isSidebarCollapsed ? "px-2" : "px-4"
+            )}
+          >
+            <LogOut className="h-5 w-5" />
+            {!isSidebarCollapsed && <span className="ml-2">Sign Out</span>}
+          </Button>
+        </div>
+      </div>
 
-            <TabsContent value="products">
-              <ProductManagement />
-            </TabsContent>
-
-            <TabsContent value="orders">
-              <OrderManagement />
-            </TabsContent>
-
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
-
-            <TabsContent value="pages">
-              <PageManagement />
-            </TabsContent>
-
-            <TabsContent value="files">
-              <FileManagement />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <SiteSettings />
-            </TabsContent>
-          </div>
-        </Tabs>
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          {activeTab === "dashboard" && <Dashboard />}
+          {activeTab === "products" && <ProductManagement />}
+          {activeTab === "orders" && <OrderManagement />}
+          {activeTab === "users" && <UserManagement />}
+          {activeTab === "pages" && <PageManagement />}
+          {activeTab === "files" && <FileManagement />}
+          {activeTab === "settings" && <SiteSettings />}
+        </div>
       </div>
     </div>
   );
