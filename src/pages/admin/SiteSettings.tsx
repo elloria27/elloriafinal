@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Globe, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
-import type { Database } from "@/integrations/supabase/types";
 
 type SiteSettings = {
   id: string;
@@ -26,25 +27,55 @@ type SiteSettings = {
   created_at: string;
   updated_at: string;
   homepage_slug: string;
-  maintenance_mode: boolean;
-  contact_email: string | null;
-  google_analytics_id: string | null;
-  enable_cookie_consent: boolean;
-  enable_https_redirect: boolean;
-  max_upload_size: number;
-  enable_user_avatars: boolean;
 }
 
-const SiteSettings = () => {
+export default function SiteSettings() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [pages, setPages] = useState<{ id: string; title: string; slug: string }[]>([]);
+  const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
 
   useEffect(() => {
-    loadSettings();
-    loadPages();
+    checkAdminAndLoadData();
   }, []);
+
+  const checkAdminAndLoadData = async () => {
+    try {
+      console.log('Checking admin status...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('No session found');
+        toast.error("Please sign in to access admin settings");
+        navigate("/login");
+        return;
+      }
+
+      const { data: isAdmin } = await supabase.rpc('is_admin', {
+        user_id: session.user.id
+      });
+
+      if (!isAdmin) {
+        console.log('User is not an admin');
+        toast.error("Admin access required");
+        navigate("/");
+        return;
+      }
+
+      console.log('Admin access confirmed, loading data...');
+      await Promise.all([
+        loadSettings(),
+        loadPages()
+      ]);
+
+    } catch (error) {
+      console.error('Error in admin check:', error);
+      toast.error("Error checking admin access");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -57,24 +88,31 @@ const SiteSettings = () => {
       if (error) throw error;
 
       console.log('Settings loaded:', data);
-      setSettings(data as SiteSettings);
+      
+      // Transform the data to match our expected types
+      setSettings({
+        ...data,
+        custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
+        homepage_slug: data.homepage_slug || ''
+      });
     } catch (error) {
       console.error('Error loading settings:', error);
       toast.error("Error loading site settings");
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadPages = async () => {
     try {
+      console.log('Loading pages...');
       const { data, error } = await supabase
         .from('pages')
-        .select('id, title, slug');
+        .select('id, title, slug')
+        .eq('is_published', true);
 
       if (error) throw error;
 
-      setPages(data);
+      console.log('Pages loaded:', data);
+      setPages(data || []);
     } catch (error) {
       console.error('Error loading pages:', error);
       toast.error("Error loading pages");
@@ -99,14 +137,7 @@ const SiteSettings = () => {
           meta_description: settings.meta_description,
           meta_keywords: settings.meta_keywords,
           custom_scripts: settings.custom_scripts,
-          homepage_slug: settings.homepage_slug,
-          maintenance_mode: settings.maintenance_mode,
-          contact_email: settings.contact_email,
-          google_analytics_id: settings.google_analytics_id,
-          enable_cookie_consent: settings.enable_cookie_consent,
-          enable_https_redirect: settings.enable_https_redirect,
-          max_upload_size: settings.max_upload_size,
-          enable_user_avatars: settings.enable_user_avatars
+          homepage_slug: settings.homepage_slug
         })
         .eq('id', settings.id);
 
@@ -124,7 +155,7 @@ const SiteSettings = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[200px]">
+      <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -142,7 +173,10 @@ const SiteSettings = () => {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Site Settings</h1>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button 
+          onClick={handleSave} 
+          disabled={saving}
+        >
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -165,181 +199,81 @@ const SiteSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
-              <CardDescription>Basic settings for your website</CardDescription>
+              <CardDescription>
+                Basic settings for your website
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="site_title">Site Title</Label>
-                  <Input
-                    id="site_title"
-                    value={settings.site_title}
-                    onChange={(e) => setSettings({ ...settings, site_title: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="contact_email">Contact Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="contact_email"
-                      type="email"
-                      className="pl-10"
-                      value={settings.contact_email || ''}
-                      onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
-                      placeholder="admin@example.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="default_language">Default Language</Label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Select 
-                      value={settings.default_language}
-                      onValueChange={(value: Database['public']['Enums']['supported_language']) => 
-                        setSettings({ ...settings, default_language: value })}
-                    >
-                      <SelectTrigger className="pl-10">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="uk">Українська</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="default_currency">Default Currency</Label>
-                  <Select 
-                    value={settings.default_currency}
-                    onValueChange={(value: Database['public']['Enums']['supported_currency']) => 
-                      setSettings({ ...settings, default_currency: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="UAH">UAH (₴)</SelectItem>
-                      <SelectItem value="CAD">CAD ($)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="google_analytics">Google Analytics ID</Label>
-                  <Input
-                    id="google_analytics"
-                    value={settings.google_analytics_id || ''}
-                    onChange={(e) => setSettings({ ...settings, google_analytics_id: e.target.value })}
-                    placeholder="UA-XXXXXXXXX-X"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="max_upload_size">Maximum Upload Size (MB)</Label>
-                  <Input
-                    id="max_upload_size"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={settings.max_upload_size || 10}
-                    onChange={(e) => setSettings({ ...settings, max_upload_size: parseInt(e.target.value) })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>User Registration</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow new users to register on your website
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.enable_registration}
-                    onCheckedChange={(checked) => setSettings({ ...settings, enable_registration: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>Maintenance Mode</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable maintenance mode to temporarily disable the website
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.maintenance_mode || false}
-                    onCheckedChange={(checked) => setSettings({ ...settings, maintenance_mode: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>Cookie Consent</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Show cookie consent banner to comply with GDPR
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.enable_cookie_consent || false}
-                    onCheckedChange={(checked) => setSettings({ ...settings, enable_cookie_consent: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>HTTPS Redirect</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically redirect HTTP to HTTPS
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.enable_https_redirect || false}
-                    onCheckedChange={(checked) => setSettings({ ...settings, enable_https_redirect: checked })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>User Avatars</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow users to upload custom profile pictures
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.enable_user_avatars || false}
-                    onCheckedChange={(checked) => setSettings({ ...settings, enable_user_avatars: checked })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="site_title">Site Title</Label>
+                <Input
+                  id="site_title"
+                  value={settings.site_title}
+                  onChange={(e) => setSettings({ ...settings, site_title: e.target.value })}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="homepage_slug">Homepage</Label>
+                <Label htmlFor="homepage">Homepage</Label>
                 <Select 
-                  value={settings.homepage_slug || ''}
+                  value={settings.homepage_slug} 
                   onValueChange={(value) => setSettings({ ...settings, homepage_slug: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select homepage" />
                   </SelectTrigger>
                   <SelectContent>
-                    {pages?.map((page) => (
+                    {pages.map((page) => (
                       <SelectItem key={page.id} value={page.slug}>
                         {page.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="default_language">Default Language</Label>
+                <Select 
+                  value={settings.default_language}
+                  onValueChange={(value: 'en' | 'fr' | 'uk') => setSettings({ ...settings, default_language: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="fr">Français</SelectItem>
+                    <SelectItem value="uk">Українська</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="default_currency">Default Currency</Label>
+                <Select 
+                  value={settings.default_currency}
+                  onValueChange={(value: 'USD' | 'EUR' | 'UAH' | 'CAD') => setSettings({ ...settings, default_currency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="UAH">UAH (₴)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="enable_registration"
+                  checked={settings.enable_registration}
+                  onCheckedChange={(checked) => setSettings({ ...settings, enable_registration: checked })}
+                />
+                <Label htmlFor="enable_registration">Enable User Registration</Label>
               </div>
             </CardContent>
           </Card>
@@ -355,6 +289,4 @@ const SiteSettings = () => {
       </Tabs>
     </div>
   );
-};
-
-export default SiteSettings;
+}

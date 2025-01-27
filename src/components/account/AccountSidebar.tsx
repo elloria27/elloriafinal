@@ -1,4 +1,4 @@
-import { User, FileText, Clock, Settings, X, LogOut } from "lucide-react";
+import { User, FileText, Clock, Settings, X, LogOut, LayoutGrid, Package, ShoppingCart } from "lucide-react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   SidebarGroup,
@@ -11,23 +11,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
 
-const regularUserMenuItems = [
+const menuItems = [
+  {
+    title: "Dashboard",
+    icon: LayoutGrid,
+    path: "/dashboard",
+  },
+  {
+    title: "Products",
+    icon: Package,
+    path: "/products",
+  },
+  {
+    title: "Orders",
+    icon: ShoppingCart,
+    path: "/orders",
+  },
   {
     title: "Profile",
     icon: User,
     path: "/profile",
   },
   {
-    title: "Invoices",
+    title: "Files",
     icon: FileText,
-    path: "/profile/invoices",
-  },
-  {
-    title: "Recent Activity",
-    icon: Clock,
-    path: "/profile/activity",
+    path: "/profile/files",
   },
   {
     title: "Settings",
@@ -43,28 +52,6 @@ interface AccountSidebarProps {
 export function AccountSidebar({ onClose }: AccountSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkUserRole = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: roles } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
-
-        setIsAdmin(roles?.role === 'admin');
-      } catch (error) {
-        console.error('Error checking user role:', error);
-      }
-    };
-
-    checkUserRole();
-  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -101,7 +88,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
           <SidebarGroupLabel className="mt-6">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {regularUserMenuItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link

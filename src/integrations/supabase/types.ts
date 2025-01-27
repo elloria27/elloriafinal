@@ -425,66 +425,45 @@ export type Database = {
       }
       site_settings: {
         Row: {
-          contact_email: string | null
           created_at: string
           custom_scripts: Json | null
           default_currency: Database["public"]["Enums"]["supported_currency"]
           default_language: Database["public"]["Enums"]["supported_language"]
-          enable_cookie_consent: boolean | null
-          enable_https_redirect: boolean | null
           enable_registration: boolean
           enable_search_indexing: boolean
-          enable_user_avatars: boolean | null
           favicon_url: string | null
-          google_analytics_id: string | null
           homepage_slug: string | null
           id: string
-          maintenance_mode: boolean | null
-          max_upload_size: number | null
           meta_description: string | null
           meta_keywords: string | null
           site_title: string
           updated_at: string
         }
         Insert: {
-          contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
           default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
-          enable_cookie_consent?: boolean | null
-          enable_https_redirect?: boolean | null
           enable_registration?: boolean
           enable_search_indexing?: boolean
-          enable_user_avatars?: boolean | null
           favicon_url?: string | null
-          google_analytics_id?: string | null
           homepage_slug?: string | null
           id?: string
-          maintenance_mode?: boolean | null
-          max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
           site_title?: string
           updated_at?: string
         }
         Update: {
-          contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
           default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
-          enable_cookie_consent?: boolean | null
-          enable_https_redirect?: boolean | null
           enable_registration?: boolean
           enable_search_indexing?: boolean
-          enable_user_avatars?: boolean | null
           favicon_url?: string | null
-          google_analytics_id?: string | null
           homepage_slug?: string | null
           id?: string
-          maintenance_mode?: boolean | null
-          max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
           site_title?: string
