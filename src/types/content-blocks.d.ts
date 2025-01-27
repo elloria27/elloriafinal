@@ -137,6 +137,12 @@ export interface AboutStoryContent extends BaseBlockContent {
   }[];
 }
 
+export interface AboutHeroSectionContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -153,7 +159,8 @@ export type BlockContent =
   | NewsletterContent
   | ProductCarouselContent
   | CompetitorComparisonContent
-  | AboutStoryContent;
+  | AboutStoryContent
+  | AboutHeroSectionContent;
 
 export type BlockType = 
   | "heading" 
@@ -193,4 +200,3 @@ export interface FeaturesProps {
 export interface HeroProps {
   content?: HeroContent;
 }
-
