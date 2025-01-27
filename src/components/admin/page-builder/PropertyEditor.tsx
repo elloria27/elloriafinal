@@ -674,6 +674,116 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case 'testimonials':
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Testimonials</Label>
+                <Button 
+                  onClick={() => {
+                    const currentTestimonials = content.testimonials || [];
+                    handleChange('testimonials', [...currentTestimonials, {
+                      name: "New Customer",
+                      rating: 5,
+                      text: "Enter testimonial text",
+                      source: "Verified Purchase"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </div>
+              
+              {(content.testimonials || []).map((testimonial: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Testimonial {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials.splice(index, 1);
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={testimonial.name}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], name: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Rating (1-5)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={testimonial.rating}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { 
+                          ...newTestimonials[index], 
+                          rating: Math.min(5, Math.max(1, parseInt(e.target.value) || 1))
+                        };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Text</Label>
+                    <Textarea
+                      value={testimonial.text}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], text: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter testimonial text"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Source</Label>
+                    <Input
+                      value={testimonial.source}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], source: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter source (e.g., Verified Purchase, Instagram)"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">
@@ -692,4 +802,3 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
-

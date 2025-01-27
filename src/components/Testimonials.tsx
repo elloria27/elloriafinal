@@ -6,7 +6,7 @@ interface TestimonialsProps {
   content?: TestimonialsContent;
 }
 
-const testimonials = [
+const defaultTestimonials = [
   {
     name: "Sarah M.",
     rating: 5,
@@ -28,6 +28,8 @@ const testimonials = [
 ];
 
 export const Testimonials = ({ content }: TestimonialsProps) => {
+  const testimonials = content?.testimonials || defaultTestimonials;
+
   return (
     <section className="py-20 bg-secondary/10">
       <div className="container px-4">
@@ -38,7 +40,7 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
           transition={{ duration: 0.6 }}
           className="text-3xl md:text-4xl font-bold text-center mb-12"
         >
-          What Our Customers Say
+          {content?.title || "What Our Customers Say"}
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
