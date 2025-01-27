@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Globe, Mail } from "lucide-react";
+import { SeoSettings } from "@/components/admin/seo/SeoSettings";
+import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 import type { Database } from "@/integrations/supabase/types";
 
 type SiteSettings = {
@@ -140,10 +142,7 @@ const SiteSettings = () => {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Site Settings</h1>
-        <Button 
-          onClick={handleSave} 
-          disabled={saving}
-        >
+        <Button onClick={handleSave} disabled={saving}>
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -158,6 +157,7 @@ const SiteSettings = () => {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
@@ -165,9 +165,7 @@ const SiteSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Basic settings for your website
-              </CardDescription>
+              <CardDescription>Basic settings for your website</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -347,47 +345,12 @@ const SiteSettings = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="seo">
+          <SeoSettings />
+        </TabsContent>
+
         <TabsContent value="advanced">
-          <Card>
-            <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>
-                Configure advanced website settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="meta_description">Meta Description</Label>
-                <Input
-                  id="meta_description"
-                  value={settings.meta_description || ''}
-                  onChange={(e) => setSettings({ ...settings, meta_description: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="meta_keywords">Meta Keywords</Label>
-                <Input
-                  id="meta_keywords"
-                  value={settings.meta_keywords || ''}
-                  onChange={(e) => setSettings({ ...settings, meta_keywords: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-0.5">
-                  <Label>Search Engine Indexing</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Allow search engines to index your website
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.enable_search_indexing}
-                  onCheckedChange={(checked) => setSettings({ ...settings, enable_search_indexing: checked })}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <AdvancedSettings />
         </TabsContent>
       </Tabs>
     </div>
