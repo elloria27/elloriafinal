@@ -159,7 +159,7 @@ const Index = () => {
   }
 
   return (
-    <main className="flex-grow">
+    <main className="flex-grow pt-20"> {/* Added pt-20 for header spacing */}
       {blocks.map((block) => (
         <div key={block.id}>
           {renderBlock(block)}

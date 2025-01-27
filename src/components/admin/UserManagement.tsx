@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Key } from "lucide-react";
 
 interface UserData {
   id: string;
@@ -42,7 +42,9 @@ export const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -52,7 +54,6 @@ export const UserManagement = () => {
     try {
       console.log('Starting to fetch users data...');
       
-      // First fetch all users from auth.users through profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -72,7 +73,6 @@ export const UserManagement = () => {
 
       console.log('Profiles fetched successfully:', profiles);
 
-      // Fetch user roles separately
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
@@ -84,10 +84,8 @@ export const UserManagement = () => {
 
       console.log('User roles fetched successfully:', userRoles);
 
-      // Create a map for faster role lookups
       const roleMap = new Map(userRoles?.map(role => [role.user_id, role.role]));
 
-      // Combine profiles with roles
       const usersWithRoles = profiles?.map(profile => ({
         id: profile.id,
         full_name: profile.full_name,
@@ -189,13 +187,31 @@ export const UserManagement = () => {
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       toast.success("User deleted successfully");
       
-      // Refresh the users list to ensure we have the latest data
       await fetchUsers();
     } catch (error) {
       console.error('Error in delete process:', error);
       toast.error("Failed to delete user completely. Please try again.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handlePasswordChange = async (userId: string) => {
+    try {
+      console.log('Changing password for user:', userId);
+      
+      const { error } = await supabase.functions.invoke('admin-change-password', {
+        body: { userId, newPassword }
+      });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully");
+      setIsPasswordDialogOpen(false);
+      setNewPassword("");
+    } catch (error) {
+      console.error('Error changing password:', error);
+      toast.error("Failed to update password");
     }
   };
 
@@ -294,6 +310,47 @@ export const UserManagement = () => {
                         </div>
                         <Button type="submit" className="w-full">
                           Save Changes
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={isPasswordDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
+                    setIsPasswordDialogOpen(open);
+                    if (!open) {
+                      setSelectedUser(null);
+                      setNewPassword("");
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedUser(user)}
+                      >
+                        <Key className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Change Password</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        handlePasswordChange(user.id);
+                      }} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new_password">New Password</Label>
+                          <Input
+                            id="new_password"
+                            name="new_password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full">
+                          Update Password
                         </Button>
                       </form>
                     </DialogContent>
