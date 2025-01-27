@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Admin from "./pages/Admin";
-import SharedFile from "./pages/SharedFile";
+import Home from "@/pages/Index";
+import Login from "@/pages/Login";
+import Admin from "@/pages/Admin";
+import SharedFile from "@/pages/SharedFile";
 
 function App() {
   return (
