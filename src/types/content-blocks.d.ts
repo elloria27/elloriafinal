@@ -142,18 +142,6 @@ export interface AboutHeroSectionContent extends BaseBlockContent {
   backgroundImage?: string;
 }
 
-export interface AboutMissionContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  image?: string;
-  values?: {
-    title: string;
-    description: string;
-    icon: string;
-  }[];
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -171,8 +159,7 @@ export type BlockContent =
   | ProductCarouselContent
   | CompetitorComparisonContent
   | AboutStoryContent
-  | AboutHeroSectionContent
-  | AboutMissionContent;
+  | AboutHeroSectionContent;
 
 export type BlockType = 
   | "heading" 
@@ -194,8 +181,7 @@ export type BlockType =
   | "competitor_comparison"
   | "about_hero_section"
   | "about_story"
-  | "about_sustainability"
-  | "about_mission";
+  | "about_sustainability";
 
 export interface ContentBlock {
   id: string;

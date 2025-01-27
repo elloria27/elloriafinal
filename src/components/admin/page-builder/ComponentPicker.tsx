@@ -13,8 +13,7 @@ import {
   ShoppingBag,
   Newspaper,
   Store,
-  History,
-  BookOpen // Added for AboutMission
+  History
 } from "lucide-react";
 
 interface ComponentPickerProps {
@@ -36,8 +35,7 @@ const components = [
   { type: 'product_gallery', icon: ShoppingBag, label: 'Product Gallery' },
   { type: 'blog_preview', icon: Newspaper, label: 'Blog Preview' },
   { type: 'store_brands', icon: Store, label: 'Store Brands' },
-  { type: 'about_story', icon: History, label: 'About Story' },
-  { type: 'about_mission', icon: BookOpen, label: 'About Mission' } // Added new component
+  { type: 'about_story', icon: History, label: 'About Story' }
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
