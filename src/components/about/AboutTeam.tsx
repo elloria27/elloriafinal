@@ -9,6 +9,10 @@ interface TeamMember {
   image: string;
 }
 
+interface TeamContent {
+  team: TeamMember[];
+}
+
 const defaultTeam = [
   {
     name: "Sarah Johnson",
@@ -50,8 +54,10 @@ export const AboutTeam = () => {
 
         console.log("Fetched content block:", blocks);
 
-        if (blocks?.content?.team && Array.isArray(blocks.content.team)) {
-          const processedTeam = blocks.content.team.map((member: any) => ({
+        const content = blocks?.content as TeamContent;
+        
+        if (content?.team && Array.isArray(content.team)) {
+          const processedTeam = content.team.map((member) => ({
             name: member.name || "Team Member",
             role: member.role || "Role",
             quote: member.quote || "Quote",
