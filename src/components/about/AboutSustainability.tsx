@@ -9,7 +9,7 @@ interface AboutSustainabilityProps {
   content?: SustainabilityContent;
 }
 
-export ({ content: propContent }: AboutSustainabilityProps) => {
+export const AboutSustainability = ({ content: propContent }: AboutSustainabilityProps) => {
   const [content, setContent] = useState<SustainabilityContent | null>(null);
 
   useEffect(() => {
