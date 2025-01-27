@@ -1,12 +1,25 @@
 import { motion } from "framer-motion";
 
-export const AboutHeroSection = () => {
+interface AboutHeroSectionProps {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export const AboutHeroSection = ({ 
+  title = "Our Story",
+  subtitle = "Founded with a vision to revolutionize feminine care through sustainable innovation, Elloria began its journey to create products that care for both women and our planet.",
+  backgroundImage = "/lovable-uploads/ba8d9a77-42de-4ec9-8666-53e795a2673c.png"
+}: AboutHeroSectionProps) => {
   return (
     <section className="relative h-[90vh] overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/30 to-accent-peach/30" />
       <div 
-        className="absolute inset-0 bg-[url('/lovable-uploads/ba8d9a77-42de-4ec9-8666-53e795a2673c.png')] bg-cover bg-center"
-        style={{ backgroundAttachment: 'fixed' }}
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: `url('${backgroundImage}')`,
+          backgroundAttachment: 'fixed' 
+        }}
       />
       <div className="absolute inset-0 bg-black/20" />
       <div className="relative h-full flex items-center justify-center">
@@ -22,7 +35,7 @@ export const AboutHeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Our Story
+            {title}
           </motion.h1>
           <motion.p
             className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto"
@@ -30,8 +43,7 @@ export const AboutHeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Founded with a vision to revolutionize feminine care through sustainable innovation, 
-            Elloria began its journey to create products that care for both women and our planet.
+            {subtitle}
           </motion.p>
         </motion.div>
       </div>
