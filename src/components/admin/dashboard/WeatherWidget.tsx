@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sun, Cloud, CloudRain, CloudSnow, Wind, Loader2, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 interface WeatherData {
   temp: number;
@@ -23,14 +24,27 @@ export const WeatherWidget = () => {
     const fetchWeather = async () => {
       try {
         // First get user's location
+        console.log('Fetching location data...');
         const locationResponse = await fetch('https://ipapi.co/json/');
+        if (!locationResponse.ok) {
+          throw new Error(`Location API error: ${locationResponse.statusText}`);
+        }
         const locationData = await locationResponse.json();
         console.log('Location data:', locationData);
+
+        if (!locationData.latitude || !locationData.longitude) {
+          throw new Error('Location coordinates not available');
+        }
         
-        // Then get weather data from OpenMeteo (free, no API key needed)
-        const weatherResponse = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,weather_code&timezone=auto`
-        );
+        // Then get weather data from OpenMeteo
+        console.log('Fetching weather data...');
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
+        console.log('Weather URL:', weatherUrl);
+        
+        const weatherResponse = await fetch(weatherUrl);
+        if (!weatherResponse.ok) {
+          throw new Error(`Weather API error: ${weatherResponse.statusText}`);
+        }
         const weatherData = await weatherResponse.json();
         console.log('Weather data:', weatherData);
 
@@ -49,7 +63,7 @@ export const WeatherWidget = () => {
         setWeather({
           temp: Math.round(weatherData.current.temperature_2m),
           condition: currentCondition,
-          windSpeed: 5, // This API doesn't provide wind speed in free tier
+          windSpeed: Math.round(weatherData.current.wind_speed_10m || 0),
           city: locationData.city || 'Unknown location',
           forecast: weatherData.daily.time.slice(0, 5).map((date: string, index: number) => ({
             date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
@@ -57,9 +71,13 @@ export const WeatherWidget = () => {
             condition: getCondition(weatherData.daily.weather_code[index])
           }))
         });
+        
+        setError(null);
       } catch (err) {
         console.error('Error fetching weather:', err);
-        setError('Error loading weather data');
+        const errorMessage = err instanceof Error ? err.message : 'Error loading weather data';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
