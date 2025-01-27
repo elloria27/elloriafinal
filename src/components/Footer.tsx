@@ -1,9 +1,15 @@
 import { Facebook, Instagram, Twitter } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
 
 export const Footer = () => {
   const { publishedPages, isLoading } = usePages();
+  const location = useLocation();
+
+  // Don't render footer on admin pages
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   const technicalPages = [
     'login',
