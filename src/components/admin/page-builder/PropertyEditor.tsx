@@ -145,12 +145,20 @@ export const PropertyEditor = ({
   };
 
   const handleStatsChange = (index: number, field: string, value: string) => {
-    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
-    const newStats = [...stats];
-    newStats[index] = { 
-      ...newStats[index], 
-      [field]: value 
+    if (!content.stats || !Array.isArray(content.stats)) {
+      return;
+    }
+    
+    const newStats = [...content.stats];
+    if (!newStats[index]) {
+      newStats[index] = {};
+    }
+    
+    newStats[index] = {
+      ...newStats[index],
+      [field]: value
     };
+    
     handleChange('stats', newStats);
   };
 
