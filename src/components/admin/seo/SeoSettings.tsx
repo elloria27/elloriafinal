@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Globe, Robot, Search, Info } from "lucide-react";
+import { Globe, Bot, Search, Info } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Page {
@@ -76,13 +76,13 @@ export const SeoSettings = () => {
       const formData = new FormData(e.currentTarget);
       const updates = {
         allow_indexing: formData.get('allow_indexing') === 'on',
-        meta_title: formData.get('meta_title'),
-        meta_description: formData.get('meta_description'),
-        meta_keywords: formData.get('meta_keywords'),
-        canonical_url: formData.get('canonical_url'),
-        og_title: formData.get('og_title'),
-        og_description: formData.get('og_description'),
-        og_image: formData.get('og_image'),
+        meta_title: formData.get('meta_title')?.toString() || null,
+        meta_description: formData.get('meta_description')?.toString() || null,
+        meta_keywords: formData.get('meta_keywords')?.toString() || null,
+        canonical_url: formData.get('canonical_url')?.toString() || null,
+        og_title: formData.get('og_title')?.toString() || null,
+        og_description: formData.get('og_description')?.toString() || null,
+        og_image: formData.get('og_image')?.toString() || null,
       };
 
       console.log('Updating SEO settings:', updates);
@@ -174,7 +174,7 @@ export const SeoSettings = () => {
         <CardContent>
           <div className="flex justify-end mb-4">
             <Button onClick={generateRobotsTxt} className="flex items-center gap-2">
-              <Robot className="h-4 w-4" />
+              <Bot className="h-4 w-4" />
               Generate robots.txt
             </Button>
           </div>
