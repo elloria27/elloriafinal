@@ -8,10 +8,7 @@ import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
-import { Database } from "@/integrations/supabase/types";
-
-type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
-type Json = Database['public']['Tables']['content_blocks']['Row']['content'];
+import { Json } from "@/integrations/supabase/types";
 
 interface PageBuilderProps {
   pageId: string;
@@ -62,8 +59,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                 .insert({
                   id: block.id,
                   page_id: pageId,
-                  type: block.type as Database['public']['Enums']['content_block_type'],
-                  content: block.content,
+                  type: block.type,
+                  content: block.content as Json,
                   order_index: index
                 })
                 .select()
@@ -139,7 +136,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         .insert({
           id: newBlock.id,
           page_id: pageId,
-          type: blockType as Database['public']['Enums']['content_block_type'],
+          type: blockType,
           content: defaultContent,
           order_index: blocks.length,
         });
@@ -161,10 +158,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ 
-          content: content,
-          updated_at: new Date().toISOString()
-        })
+        .update({ content: content as Json })
         .eq('id', blockId);
 
       if (error) throw error;
@@ -183,60 +177,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     } catch (error) {
       console.error('Error updating block:', error);
       toast.error("Failed to update block");
-    }
-  };
-
-  const handleDeleteBlock = async (blockId: string) => {
-    try {
-      const { error } = await supabase
-        .from('content_blocks')
-        .delete()
-        .eq('id', blockId);
-
-      if (error) throw error;
-
-      setBlocks(prevBlocks => prevBlocks.filter(block => block.id !== blockId));
-      if (selectedBlock?.id === blockId) {
-        setSelectedBlock(null);
-      }
-      toast.success("Block deleted successfully");
-    } catch (error) {
-      console.error('Error deleting block:', error);
-      toast.error("Failed to delete block");
-    }
-  };
-
-  const handleMoveBlock = async (blockId: string, direction: 'up' | 'down') => {
-    const currentIndex = blocks.findIndex(block => block.id === blockId);
-    if (currentIndex === -1) return;
-
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (newIndex < 0 || newIndex >= blocks.length) return;
-
-    const newBlocks = [...blocks];
-    const [movedBlock] = newBlocks.splice(currentIndex, 1);
-    newBlocks.splice(newIndex, 0, movedBlock);
-
-    // Update order_index for all blocks
-    const updatedBlocks = newBlocks.map((block, index) => ({
-      ...block,
-      order_index: index,
-    }));
-
-    try {
-      const updatePromises = updatedBlocks.map(block => 
-        supabase
-          .from('content_blocks')
-          .update({ order_index: block.order_index })
-          .eq('id', block.id)
-      );
-
-      await Promise.all(updatePromises);
-      setBlocks(updatedBlocks);
-      toast.success(`Block moved ${direction}`);
-    } catch (error) {
-      console.error('Error moving block:', error);
-      toast.error(`Failed to move block ${direction}`);
     }
   };
 
@@ -332,10 +272,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       {selectedBlock && (
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
-            selectedBlock={selectedBlock}
-            onUpdateBlock={(block) => handleUpdateBlock(block.id, block.content)}
-            onMoveBlock={handleMoveBlock}
-            onDeleteBlock={handleDeleteBlock}
+            block={selectedBlock}
+            onUpdate={handleUpdateBlock}
           />
         </div>
       )}

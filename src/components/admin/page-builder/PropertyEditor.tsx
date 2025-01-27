@@ -1,384 +1,826 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
-import { ArrowUp, ArrowDown, Trash2, Plus, X } from "lucide-react";
-import { toast } from "sonner";
-import { Json } from "@/integrations/supabase/types";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent } from "@/types/content-blocks";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
 
 interface PropertyEditorProps {
-  selectedBlock: ContentBlock;
-  onUpdateBlock: (block: ContentBlock) => void;
-  onMoveBlock: (blockId: string, direction: "up" | "down") => void;
-  onDeleteBlock: (blockId: string) => void;
+  block: ContentBlock;
+  onUpdate: (id: string, content: BlockContent) => void;
 }
 
-export const PropertyEditor = ({
-  selectedBlock,
-  onUpdateBlock,
-  onMoveBlock,
-  onDeleteBlock,
-}: PropertyEditorProps) => {
-  const [newFeature, setNewFeature] = useState<FeatureItem>({
-    icon: "",
-    title: "",
-    description: "",
-    detail: ""
-  });
+const availableIcons = ["Shrink", "Shield", "Droplets", "Leaf", "Heart", "Sparkles", "Recycle", "Package", "Factory"];
 
-  const [newMetric, setNewMetric] = useState({
-    category: "",
-    elloria: 0,
-    competitors: 0,
-    icon: "",
-    description: ""
-  });
+export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
+  const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleContentChange = (
-    key: string,
-    value: string | number | boolean | Json[] | FeatureItem[]
-  ) => {
-    const updatedContent = {
-      ...selectedBlock.content,
-      [key]: value,
-    };
-    onUpdateBlock({ ...selectedBlock, content: updatedContent });
+  const handleChange = (key: string, value: any) => {
+    console.log('Updating content:', key, value);
+    const newContent = { ...content, [key]: value };
+    setContent(newContent);
+    onUpdate(block.id, newContent);
   };
 
-  const handleFeatureChange = (index: number, key: string, value: string) => {
-    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
-    features[index] = { ...features[index], [key]: value };
-    handleContentChange("features", features);
-  };
-
-  const handleAddFeature = () => {
-    if (!newFeature.title || !newFeature.description) {
-      toast.error("Please fill in all required fields");
-      return;
+  const getFeatures = (): FeatureItem[] => {
+    if (!content || !('features' in content)) {
+      return [];
     }
 
-    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
-    features.push(newFeature);
-    handleContentChange("features", features);
-    setNewFeature({ icon: "", title: "", description: "", detail: "" });
-  };
-
-  const handleRemoveFeature = (index: number) => {
-    const features = [...(selectedBlock.content.features || [])] as FeatureItem[];
-    features.splice(index, 1);
-    handleContentChange("features", features);
-  };
-
-  const handleMetricChange = (index: number, key: string, value: string | number) => {
-    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
-    metrics[index] = { ...metrics[index], [key]: value };
-    handleContentChange("metrics", metrics);
-  };
-
-  const handleAddMetric = () => {
-    if (!newMetric.category || !newMetric.description) {
-      toast.error("Please fill in all required fields");
-      return;
+    const features = content.features;
+    if (!Array.isArray(features)) {
+      return [];
     }
 
-    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
-    metrics.push(newMetric);
-    handleContentChange("metrics", metrics);
-    setNewMetric({
-      category: "",
-      elloria: 0,
-      competitors: 0,
-      icon: "",
-      description: ""
+    return features.map(feature => {
+      if (typeof feature === 'object' && feature !== null) {
+        return {
+          icon: String(feature.icon || 'Shield'),
+          title: String(feature.title || ''),
+          description: String(feature.description || ''),
+          detail: String(feature.detail || '')
+        };
+      }
+      return {
+        icon: 'Shield',
+        title: '',
+        description: '',
+        detail: ''
+      };
     });
   };
 
-  const handleRemoveMetric = (index: number) => {
-    const metrics = [...(selectedBlock.content.metrics || [])] as any[];
-    metrics.splice(index, 1);
-    handleContentChange("metrics", metrics);
+  const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
+    const features = getFeatures();
+    const newFeatures = [...features];
+    newFeatures[index] = { ...newFeatures[index], [field]: value };
+    handleChange('features', newFeatures);
   };
 
-  const renderControls = () => (
-    <div className="flex justify-between items-center mb-6 pb-4 border-b">
-      <div className="space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onMoveBlock(selectedBlock.id, "up")}
-        >
-          <ArrowUp className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onMoveBlock(selectedBlock.id, "down")}
-        >
-          <ArrowDown className="w-4 h-4" />
-        </Button>
-      </div>
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={() => onDeleteBlock(selectedBlock.id)}
-      >
-        <Trash2 className="w-4 h-4 mr-2" />
-        Delete Block
-      </Button>
-    </div>
-  );
-
-  const renderBasicFields = () => (
-    <>
-      <div className="space-y-4 mb-6">
-        <div>
-          <Label>Title</Label>
-          <Input
-            value={selectedBlock.content.title || ""}
-            onChange={(e) => handleContentChange("title", e.target.value)}
-          />
-        </div>
-        <div>
-          <Label>Subtitle</Label>
-          <Input
-            value={selectedBlock.content.subtitle || ""}
-            onChange={(e) => handleContentChange("subtitle", e.target.value)}
-          />
-        </div>
-        <div>
-          <Label>Description</Label>
-          <Textarea
-            value={selectedBlock.content.description || ""}
-            onChange={(e) => handleContentChange("description", e.target.value)}
-          />
-        </div>
-      </div>
-    </>
-  );
-
-  const renderFeaturesList = () => {
-    const features = (selectedBlock.content.features || []) as FeatureItem[];
+  const addFeature = () => {
+    const newFeature: FeatureItem = {
+      icon: "Shield",
+      title: "New Feature",
+      description: "Feature description",
+      detail: ""
+    };
     
-    return (
-      <div className="space-y-6">
-        <h3 className="font-semibold">Features</h3>
-        {features.map((feature: FeatureItem, index: number) => (
-          <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2"
-              onClick={() => handleRemoveFeature(index)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            <div>
-              <Label>Icon</Label>
-              <Input
-                value={feature.icon}
-                onChange={(e) => handleFeatureChange(index, "icon", e.target.value)}
-              />
-            </div>
+    const features = getFeatures();
+    handleChange('features', [...features, newFeature]);
+  };
+
+  const removeFeature = (index: number) => {
+    const features = getFeatures();
+    const newFeatures = features.filter((_, i) => i !== index);
+    handleChange('features', newFeatures);
+  };
+
+  const getContentValue = (key: string): string => {
+    if (!content) return '';
+    return (content as any)[key]?.toString() || '';
+  };
+
+  const getSustainabilityStats = () => {
+    if (!content || !('stats' in content)) return [];
+    const sustainabilityContent = content as SustainabilityContent;
+    return Array.isArray(sustainabilityContent.stats) ? sustainabilityContent.stats : [];
+  };
+
+  const getTimelineItems = () => {
+    if (!content || !('timelineItems' in content)) return [];
+    const sustainabilityContent = content as SustainabilityContent;
+    return Array.isArray(sustainabilityContent.timelineItems) ? sustainabilityContent.timelineItems : [];
+  };
+
+  const getMetrics = () => {
+    if (!content || !('metrics' in content)) {
+      return [];
+    }
+
+    const metrics = (content as CompetitorComparisonContent).metrics;
+    if (!Array.isArray(metrics)) {
+      return [];
+    }
+
+    return metrics.map(metric => ({
+      category: String(metric.category || ''),
+      elloria: Number(metric.elloria || 0),
+      competitors: Number(metric.competitors || 0),
+      icon: String(metric.icon || 'Shield'),
+      description: String(metric.description || '')
+    }));
+  };
+
+  const getTestimonials = () => {
+    if (!content || !('testimonials' in content)) {
+      return [];
+    }
+
+    const testimonials = content.testimonials;
+    if (!Array.isArray(testimonials)) {
+      return [];
+    }
+
+    return testimonials.map(testimonial => {
+      if (typeof testimonial === 'object' && testimonial !== null) {
+        return {
+          name: String(testimonial.name || ''),
+          rating: Number(testimonial.rating || 5),
+          text: String(testimonial.text || ''),
+          source: String(testimonial.source || '')
+        };
+      }
+      return {
+        name: '',
+        rating: 5,
+        text: '',
+        source: ''
+      };
+    });
+  };
+
+  const handleTestimonialChange = (index: number, field: keyof TestimonialsContent['testimonials'][0], value: string | number) => {
+    const testimonials = getTestimonials();
+    const newTestimonials = [...testimonials];
+    newTestimonials[index] = { ...newTestimonials[index], [field]: value };
+    handleChange('testimonials', newTestimonials);
+  };
+
+  const addTestimonial = () => {
+    const newTestimonial = {
+      name: "New Customer",
+      rating: 5,
+      text: "Enter testimonial text",
+      source: "Verified Purchase"
+    };
+    
+    const testimonials = getTestimonials();
+    handleChange('testimonials', [...testimonials, newTestimonial]);
+  };
+
+  const removeTestimonial = (index: number) => {
+    const testimonials = getTestimonials();
+    const newTestimonials = testimonials.filter((_, i) => i !== index);
+    handleChange('testimonials', newTestimonials);
+  };
+
+  const renderFields = () => {
+    console.log('Rendering fields for block type:', block.type);
+    console.log('Current content:', content);
+
+    switch (block.type) {
+      case 'product_carousel':
+        return (
+          <div className="space-y-4">
             <div>
               <Label>Title</Label>
               <Input
-                value={feature.title}
-                onChange={(e) => handleFeatureChange(index, "title", e.target.value)}
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={feature.description}
-                onChange={(e) => handleFeatureChange(index, "description", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Detail</Label>
-              <Textarea
-                value={feature.detail || ""}
-                onChange={(e) => handleFeatureChange(index, "detail", e.target.value)}
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
               />
             </div>
           </div>
-        ))}
-
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
-          <h4 className="font-medium">Add New Feature</h4>
-          <div>
-            <Label>Icon</Label>
-            <Input
-              value={newFeature.icon}
-              onChange={(e) => setNewFeature({ ...newFeature, icon: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={newFeature.title}
-              onChange={(e) => setNewFeature({ ...newFeature, title: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={newFeature.description}
-              onChange={(e) => setNewFeature({ ...newFeature, description: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label>Detail</Label>
-            <Textarea
-              value={newFeature.detail}
-              onChange={(e) => setNewFeature({ ...newFeature, detail: e.target.value })}
-            />
-          </div>
-          <Button onClick={handleAddFeature} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Feature
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderMetricsList = () => {
-    const metrics = (selectedBlock.content.metrics || []) as any[];
-    
-    return (
-      <div className="space-y-6">
-        <h3 className="font-semibold">Comparison Metrics</h3>
-        {metrics.map((metric: any, index: number) => (
-          <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2"
-              onClick={() => handleRemoveMetric(index)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            <div>
-              <Label>Category</Label>
-              <Input
-                value={metric.category}
-                onChange={(e) => handleMetricChange(index, "category", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Elloria Score</Label>
-              <Input
-                type="number"
-                value={metric.elloria}
-                onChange={(e) => handleMetricChange(index, "elloria", parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Competitors Score</Label>
-              <Input
-                type="number"
-                value={metric.competitors}
-                onChange={(e) => handleMetricChange(index, "competitors", parseInt(e.target.value))}
-              />
-            </div>
-            <div>
-              <Label>Icon</Label>
-              <Input
-                value={metric.icon}
-                onChange={(e) => handleMetricChange(index, "icon", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={metric.description}
-                onChange={(e) => handleMetricChange(index, "description", e.target.value)}
-              />
-            </div>
-          </div>
-        ))}
-
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed">
-          <h4 className="font-medium">Add New Metric</h4>
-          <div>
-            <Label>Category</Label>
-            <Input
-              value={newMetric.category}
-              onChange={(e) => setNewMetric({ ...newMetric, category: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label>Elloria Score</Label>
-            <Input
-              type="number"
-              value={newMetric.elloria}
-              onChange={(e) => setNewMetric({ ...newMetric, elloria: parseInt(e.target.value) })}
-            />
-          </div>
-          <div>
-            <Label>Competitors Score</Label>
-            <Input
-              type="number"
-              value={newMetric.competitors}
-              onChange={(e) => setNewMetric({ ...newMetric, competitors: parseInt(e.target.value) })}
-            />
-          </div>
-          <div>
-            <Label>Icon</Label>
-            <Input
-              value={newMetric.icon}
-              onChange={(e) => setNewMetric({ ...newMetric, icon: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={newMetric.description}
-              onChange={(e) => setNewMetric({ ...newMetric, description: e.target.value })}
-            />
-          </div>
-          <Button onClick={handleAddMetric} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Metric
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderBlockProperties = () => {
-    switch (selectedBlock.type) {
-      case "hero":
-      case "features":
-      case "game_changer":
-      case "store_brands":
-      case "sustainability":
-      case "product_carousel":
-      case "testimonials":
-      case "blog_preview":
-      case "newsletter":
-      case "competitor_comparison":
-        return (
-          <>
-            {renderBasicFields()}
-            {(selectedBlock.type === "features" || 
-              selectedBlock.type === "game_changer" || 
-              selectedBlock.type === "store_brands") && renderFeaturesList()}
-            {selectedBlock.type === "competitor_comparison" && renderMetricsList()}
-          </>
         );
+
+      case 'hero':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={getContentValue('videoUrl')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+                placeholder="Enter video URL"
+              />
+            </div>
+          </div>
+        );
+
+      case 'features':
+      case 'elevating_essentials':
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Features</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Feature
+                </Button>
+              </div>
+              {getFeatures().map((feature, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Feature {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={feature.icon}
+                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableIcons.map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter feature title"
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter feature description"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'store_brands':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Brands</Label>
+                <Button onClick={addFeature} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Brand
+                </Button>
+              </div>
+              {getFeatures().map((feature, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Brand {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={feature.title}
+                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                      placeholder="Enter brand name"
+                    />
+                  </div>
+                  <div>
+                    <Label>Logo URL</Label>
+                    <Input
+                      value={feature.description}
+                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
+                      placeholder="Enter logo URL"
+                    />
+                  </div>
+                  <div>
+                    <Label>Link</Label>
+                    <Input
+                      value={feature.detail || ''}
+                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
+                      placeholder="Enter brand link"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'sustainability':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            
+            {/* Stats Section */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Stats</Label>
+                <Button 
+                  onClick={() => {
+                    const currentStats = getSustainabilityStats();
+                    handleChange('stats', [...currentStats, {
+                      icon: "Recycle",
+                      title: "New Stat Title",
+                      description: "Enter description",
+                      color: "bg-accent-green"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Stat
+                </Button>
+              </div>
+              
+              {getSustainabilityStats().map((stat, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Stat {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats.splice(index, 1);
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={stat.icon}
+                      onValueChange={(value) => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats[index] = { ...newStats[index], icon: value };
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Recycle', 'Package', 'Factory', 'Leaf'].map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={stat.title}
+                      onChange={(e) => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats[index] = { ...newStats[index], title: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={stat.description}
+                      onChange={(e) => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats[index] = { ...newStats[index], description: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat description"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Color</Label>
+                    <Select
+                      value={stat.color}
+                      onValueChange={(value) => {
+                        const newStats = [...getSustainabilityStats()];
+                        newStats[index] = { ...newStats[index], color: value };
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select color" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          { label: 'Green', value: 'bg-accent-green' },
+                          { label: 'Purple', value: 'bg-accent-purple' },
+                          { label: 'Peach', value: 'bg-accent-peach' }
+                        ].map((color) => (
+                          <SelectItem key={color.value} value={color.value}>
+                            {color.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Timeline Items Section */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Timeline Items</Label>
+                <Button 
+                  onClick={() => {
+                    const currentItems = getTimelineItems();
+                    handleChange('timelineItems', [...currentItems, "New Timeline Item"]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Timeline Item
+                </Button>
+              </div>
+              
+              {getTimelineItems().map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={item}
+                    onChange={(e) => {
+                      const newItems = [...getTimelineItems()];
+                      newItems[index] = e.target.value;
+                      handleChange('timelineItems', newItems);
+                    }}
+                    placeholder="Enter timeline item"
+                  />
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const newItems = [...getTimelineItems()];
+                      newItems.splice(index, 1);
+                      handleChange('timelineItems', newItems);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'competitor_comparison':
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+            <div>
+              <Label>Button URL</Label>
+              <Input
+                value={getContentValue('buttonUrl')}
+                onChange={(e) => handleChange('buttonUrl', e.target.value)}
+                placeholder="Enter button URL"
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Metrics</Label>
+                <Button 
+                  onClick={() => {
+                    const currentMetrics = getMetrics();
+                    handleChange('metrics', [...currentMetrics, {
+                      category: "New Metric",
+                      elloria: 90,
+                      competitors: 70,
+                      icon: "Shield",
+                      description: "Enter description"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Metric
+                </Button>
+              </div>
+              
+              {getMetrics().map((metric, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Metric {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics.splice(index, 1);
+                        handleChange('metrics', newMetrics);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Category</Label>
+                    <Input
+                      value={metric.category}
+                      onChange={(e) => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics[index] = { ...newMetrics[index], category: e.target.value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                      placeholder="Enter category name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={metric.description}
+                      onChange={(e) => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics[index] = { ...newMetrics[index], description: e.target.value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                      placeholder="Enter metric description"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={metric.icon}
+                      onValueChange={(value) => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics[index] = { ...newMetrics[index], icon: value };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Shield', 'Leaf', 'Heart', 'Sparkles'].map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Elloria Score (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={metric.elloria}
+                      onChange={(e) => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics[index] = { ...newMetrics[index], elloria: parseInt(e.target.value) || 0 };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Competitors Score (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={metric.competitors}
+                      onChange={(e) => {
+                        const newMetrics = [...getMetrics()];
+                        newMetrics[index] = { ...newMetrics[index], competitors: parseInt(e.target.value) || 0 };
+                        handleChange('metrics', newMetrics);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'testimonials':
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Testimonials</Label>
+                <Button 
+                  onClick={addTestimonial} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </div>
+              
+              {getTestimonials().map((testimonial, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Testimonial {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeTestimonial(index)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Customer Name</Label>
+                    <Input
+                      value={testimonial.name}
+                      onChange={(e) => handleTestimonialChange(index, 'name', e.target.value)}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Rating (1-5)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={testimonial.rating}
+                      onChange={(e) => handleTestimonialChange(index, 'rating', parseInt(e.target.value) || 5)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Text</Label>
+                    <Textarea
+                      value={testimonial.text}
+                      onChange={(e) => handleTestimonialChange(index, 'text', e.target.value)}
+                      placeholder="Enter testimonial text"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Source</Label>
+                    <Input
+                      value={testimonial.source}
+                      onChange={(e) => handleTestimonialChange(index, 'source', e.target.value)}
+                      placeholder="Enter source (e.g., Verified Purchase, Instagram)"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
-        return <p>No editable properties for this component type.</p>;
+        return (
+          <div className="text-gray-500 italic">
+            No editable properties for this component type.
+          </div>
+        );
     }
   };
 
   return (
-    <div className="p-6 border-l overflow-y-auto h-full">
-      <h2 className="text-lg font-semibold mb-6">Edit {selectedBlock.type}</h2>
-      {renderControls()}
-      {renderBlockProperties()}
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold">
+        Edit {block.type.charAt(0).toUpperCase() + block.type.slice(1)}
+      </h3>
+      {renderFields()}
     </div>
   );
 };

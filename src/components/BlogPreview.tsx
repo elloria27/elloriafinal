@@ -6,15 +6,25 @@ interface BlogPreviewProps {
   content?: BlogPreviewContent;
 }
 
+const articles = [
+  {
+    title: "Introducing Our Ultra-Thin Maxi Pads Collection",
+    category: "Product Launch",
+    image: "/lovable-uploads/3780f868-91c7-4512-bc4c-6af150baf90d.png"
+  },
+  {
+    title: "The Perfect Pad for Your Daily Routine",
+    category: "Lifestyle",
+    image: "/lovable-uploads/724f13b7-0a36-4896-b19a-e51981befdd3.png"
+  },
+  {
+    title: "Understanding Our Advanced Protection Technology",
+    category: "Education",
+    image: "/lovable-uploads/bf7261ba-df57-413d-b280-3b4b56528e73.png"
+  }
+];
+
 export const BlogPreview = ({ content }: BlogPreviewProps) => {
-  const articles = content?.articles || [];
-
-  const handleButtonClick = () => {
-    if (content?.buttonUrl) {
-      window.location.href = String(content.buttonUrl);
-    }
-  };
-
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">
@@ -26,10 +36,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            {String(content?.title || "Latest Articles")}
+            Latest Articles
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {String(content?.subtitle || "Discover tips, guides, and insights about feminine hygiene and comfort")}
+            Discover tips, guides, and insights about feminine hygiene and comfort
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -44,16 +54,16 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
             >
               <div className="relative overflow-hidden rounded-lg mb-4">
                 <img
-                  src={String(article.image)}
-                  alt={String(article.title)}
+                  src={article.image}
+                  alt={article.title}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm">
-                  {String(article.category)}
+                  {article.category}
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                {String(article.title)}
+                {article.title}
               </h3>
             </motion.div>
           ))}
@@ -65,13 +75,8 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="border-primary text-primary hover:bg-primary/10"
-            onClick={handleButtonClick}
-          >
-            {String(content?.buttonText || "View All Articles")}
+          <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+            View All Articles
           </Button>
         </motion.div>
       </div>
