@@ -187,3 +187,4 @@ export interface FeaturesProps {
 export interface HeroProps {
   content?: HeroContent;
 }
+
