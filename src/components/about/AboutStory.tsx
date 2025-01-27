@@ -1,13 +1,51 @@
 import { motion } from "framer-motion";
 import { AboutTimeline } from "./AboutTimeline";
 import { AboutStoryContent } from "@/types/content-blocks";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AboutStoryProps {
   content?: AboutStoryContent;
 }
 
 export const AboutStory = ({ content = {} }: AboutStoryProps) => {
-  console.log("AboutStory content:", content); // Додаємо лог для відстеження даних
+  const [storyContent, setStoryContent] = useState<AboutStoryContent>(content);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      console.log("Fetching about story content");
+      try {
+        const { data: pages, error } = await supabase
+          .from('pages')
+          .select('content_blocks')
+          .eq('slug', 'about')
+          .single();
+
+        if (error) {
+          console.error('Error fetching about page:', error);
+          return;
+        }
+
+        console.log("Fetched pages data:", pages);
+
+        if (pages?.content_blocks) {
+          const storyBlock = pages.content_blocks.find(
+            (block: any) => block.type === 'about_story'
+          );
+
+          console.log("Found story block:", storyBlock);
+
+          if (storyBlock?.content) {
+            setStoryContent(storyBlock.content as AboutStoryContent);
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchContent:', error);
+      }
+    };
+
+    fetchContent();
+  }, []);
 
   const {
     title = "Our Journey",
@@ -40,7 +78,9 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
         description: "Provided essential products to over 1 million women in underserved communities"
       }
     ]
-  } = content;
+  } = storyContent;
+
+  console.log("Rendering AboutStory with content:", storyContent);
 
   return (
     <section className="py-24 bg-white">
