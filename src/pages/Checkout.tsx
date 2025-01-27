@@ -172,13 +172,19 @@ const Checkout = () => {
           address: customerDetails.address,
           country: customerDetails.country,
           region: customerDetails.region,
-          phone: customerDetails.phone
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
         },
         billing_address: {
           address: customerDetails.address,
           country: customerDetails.country,
           region: customerDetails.region,
-          phone: customerDetails.phone
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
         }
       };
 

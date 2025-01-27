@@ -1,29 +1,32 @@
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
-export interface ShippingAddress {
+export type ShippingAddress = {
   address: string;
   region: string;
   country: string;
   phone: string;
-}
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+};
 
-export interface OrderItem {
+export type OrderItem = {
   id: string;
   name: string;
   quantity: number;
   price: number;
   image?: string;
-}
+};
 
-export interface OrderProfile {
-  full_name?: string;
-  email?: string;
-}
+export type OrderProfile = {
+  full_name: string;
+  email: string;
+};
 
-export interface OrderData {
+export type OrderData = {
   id: string;
-  user_id?: string;
-  profile_id?: string;
+  user_id: string | null;
+  profile_id: string | null;
   order_number: string;
   total_amount: number;
   status: OrderStatus;
@@ -32,4 +35,4 @@ export interface OrderData {
   items: OrderItem[];
   created_at: string;
   profile?: OrderProfile;
-}
+};

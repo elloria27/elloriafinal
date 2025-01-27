@@ -121,12 +121,13 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || 'Anonymous Order'
+            profile: order.user_id ? {
+              full_name: order.profiles?.full_name || 'Guest',
+              email: order.profiles?.email || 'Anonymous Order'
             } : {
-              full_name: 'Guest',
-              email: 'Anonymous Order'
+              // For anonymous orders, use shipping address information
+              full_name: `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest',
+              email: order.shipping_address.email || 'Anonymous Order'
             }
           };
           return validatedOrder;
