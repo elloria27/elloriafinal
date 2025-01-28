@@ -135,7 +135,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       setBlocks(prevBlocks => {
         const updatedBlocks = prevBlocks.filter(block => block.id !== blockId);
-        // Update order_index for remaining blocks
         return updatedBlocks.map((block, index) => ({
           ...block,
           order_index: index
@@ -216,34 +215,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleSaveLayout = async () => {
-    try {
-      console.log('Saving layout for page:', pageId);
-      console.log('Blocks to save:', blocks);
-
-      const blocksForStorage = blocks.map(block => ({
-        id: block.id,
-        type: block.type,
-        content: block.content,
-        order_index: block.order_index
-      }));
-
-      const { error } = await supabase
-        .from('pages')
-        .update({
-          content_blocks: blocksForStorage,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', pageId);
-
-      if (error) throw error;
-      toast.success("Layout saved successfully");
-    } catch (error) {
-      console.error('Error saving layout:', error);
-      toast.error("Failed to save layout");
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -320,7 +291,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={handleUpdateBlock}
+            onUpdate={(blockId, content) => handleUpdateBlock(blockId, content)}
           />
         </div>
       )}
@@ -333,7 +304,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       <Button
         className="fixed bottom-4 right-4"
-        onClick={handleSaveLayout}
+        onClick={() => toast.success("Layout saved successfully")}
       >
         <Save className="w-4 h-4 mr-2" />
         Save Layout

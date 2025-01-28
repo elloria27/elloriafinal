@@ -1,13 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
-import { PagesProvider, usePages } from "@/contexts/PagesContext";
+import { usePages } from "@/contexts/PagesContext";
 import { Toaster } from "@/components/ui/sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import Index from "@/pages/Index";
 import Shop from "@/pages/Shop";
 import About from "@/pages/About";
@@ -31,22 +29,20 @@ import SharedFile from "@/pages/SharedFile";
 
 function App() {
   return (
-    <PagesProvider>
-      <CartProvider>
-        <Router>
-          <ScrollToTop />
-          <PageViewTracker />
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-1">
-              <AppRoutes />
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </Router>
-      </CartProvider>
-    </PagesProvider>
+    <CartProvider>
+      <Router>
+        <ScrollToTop />
+        <PageViewTracker />
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1">
+            <AppRoutes />
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
+      </Router>
+    </CartProvider>
   );
 }
 

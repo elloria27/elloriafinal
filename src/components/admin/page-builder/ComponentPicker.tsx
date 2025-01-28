@@ -1,12 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BlockType } from "@/types/content-blocks";
 import { 
   LayoutTemplate, 
   Type, 
   Image, 
   Video, 
-  Square, // Replacing ButtonIcon with Square for button icon
+  Square,
   LayoutGrid,
   MessageSquareQuote,
   Mail,
@@ -15,25 +16,25 @@ import {
   Store
 } from "lucide-react";
 
-interface ComponentPickerProps {
+export interface ComponentPickerProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (type: string) => void;
+  onSelect: (type: BlockType) => void;
 }
 
 const components = [
-  { type: 'hero', icon: LayoutTemplate, label: 'Hero Section' },
-  { type: 'heading', icon: Type, label: 'Heading' },
-  { type: 'text', icon: Type, label: 'Text Block' },
-  { type: 'image', icon: Image, label: 'Image' },
-  { type: 'video', icon: Video, label: 'Video' },
-  { type: 'button', icon: Square, label: 'Button' },
-  { type: 'features', icon: LayoutGrid, label: 'Features Grid' },
-  { type: 'testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
-  { type: 'newsletter', icon: Mail, label: 'Newsletter' },
-  { type: 'product_gallery', icon: ShoppingBag, label: 'Product Gallery' },
-  { type: 'blog_preview', icon: Newspaper, label: 'Blog Preview' },
-  { type: 'store_brands', icon: Store, label: 'Store Brands' }
+  { type: 'hero' as BlockType, icon: LayoutTemplate, label: 'Hero Section' },
+  { type: 'heading' as BlockType, icon: Type, label: 'Heading' },
+  { type: 'text' as BlockType, icon: Type, label: 'Text Block' },
+  { type: 'image' as BlockType, icon: Image, label: 'Image' },
+  { type: 'video' as BlockType, icon: Video, label: 'Video' },
+  { type: 'button' as BlockType, icon: Square, label: 'Button' },
+  { type: 'features' as BlockType, icon: LayoutGrid, label: 'Features Grid' },
+  { type: 'testimonials' as BlockType, icon: MessageSquareQuote, label: 'Testimonials' },
+  { type: 'newsletter' as BlockType, icon: Mail, label: 'Newsletter' },
+  { type: 'product_gallery' as BlockType, icon: ShoppingBag, label: 'Product Gallery' },
+  { type: 'blog_preview' as BlockType, icon: Newspaper, label: 'Blog Preview' },
+  { type: 'store_brands' as BlockType, icon: Store, label: 'Store Brands' }
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
