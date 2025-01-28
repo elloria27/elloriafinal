@@ -72,7 +72,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:profiles!blog_posts_author_id_fkey(
+            author:profiles(
               full_name,
               avatar_url
             )
@@ -87,7 +87,7 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            user:profiles!blog_comments_user_id_fkey(
+            user:profiles(
               full_name,
               avatar_url
             )
