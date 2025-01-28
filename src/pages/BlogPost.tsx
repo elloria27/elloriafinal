@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, Calendar, Clock } from "lucide-react";
 
 interface BlogSettings {
   enableComments: boolean;
@@ -180,96 +180,162 @@ const BlogPost = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <h2 className="text-2xl font-semibold mb-4">Post not found</h2>
-        <Button onClick={() => navigate('/blog')}>Return to Blog</Button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Post not found</h2>
+        <Button onClick={() => navigate('/blog')} variant="outline">
+          Return to Blog
+        </Button>
       </div>
     );
   }
 
   return (
     <motion.article
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="py-10 md:py-20"
+      className="py-10 md:py-16"
     >
-      <div className="container px-4 max-w-4xl mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+      <div className="container max-w-4xl mx-auto px-4">
+        {/* Header Section */}
+        <header className="mb-12 text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent"
+          >
             {post.title}
-          </h1>
-          <p className="text-gray-600 mb-4 text-lg">{post.meta_description}</p>
-          <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-            <div className="flex items-center">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarFallback>{post.profiles?.full_name?.[0] || '?'}</AvatarFallback>
-              </Avatar>
-              <span>{post.profiles?.full_name}</span>
-            </div>
-            <span>•</span>
-            <time>{new Date(post.created_at).toLocaleDateString()}</time>
-          </div>
-        </div>
+          </motion.h1>
+          
+          {post.meta_description && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-gray-600 mb-8 text-lg max-w-2xl mx-auto"
+            >
+              {post.meta_description}
+            </motion.p>
+          )}
 
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex items-center justify-center space-x-6 text-sm text-gray-500"
+          >
+            <div className="flex items-center">
+              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/10">
+                <AvatarFallback className="bg-primary/5 text-primary">
+                  {post.profiles?.full_name?.[0] || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-left">
+                <span className="block font-medium text-gray-900">{post.profiles?.full_name}</span>
+                <span className="text-xs text-gray-500">Author</span>
+              </div>
+            </div>
+            <div className="h-4 w-px bg-gray-200" />
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <time className="text-gray-600">
+                {new Date(post.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </time>
+            </div>
+          </motion.div>
+        </header>
+
+        {/* Featured Image */}
         {post.featured_image && (
-          <div className="mb-12 rounded-xl overflow-hidden shadow-2xl">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mb-12 rounded-xl overflow-hidden shadow-xl"
+          >
             <img
               src={post.featured_image}
               alt={post.title}
-              className="w-full h-auto object-cover"
+              className="w-full h-[400px] object-cover"
               onError={(e) => {
                 e.currentTarget.src = '/placeholder.svg';
               }}
             />
-          </div>
+          </motion.div>
         )}
 
-        <div className="prose prose-lg max-w-none">
+        {/* Content */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="prose prose-lg max-w-none"
+        >
           {typeof post.content === 'string' 
             ? post.content 
             : JSON.stringify(post.content)}
-        </div>
+        </motion.div>
 
+        {/* Comments Section */}
         {blogSettings.enableComments && (
-          <div className="mt-16">
-            <div className="flex items-center space-x-2 mb-8">
-              <MessageSquare className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold">Comments</h2>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-16 pt-8 border-t border-gray-100"
+          >
+            <div className="flex items-center space-x-3 mb-8">
+              <MessageSquare className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-semibold text-gray-900">Comments</h2>
             </div>
 
             <div className="space-y-6 mb-8">
               {comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center mb-2">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarFallback>{comment.profiles?.full_name?.[0] || '?'}</AvatarFallback>
+                <motion.div 
+                  key={comment.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gray-50 rounded-lg p-6 shadow-sm"
+                >
+                  <div className="flex items-center mb-4">
+                    <Avatar className="h-8 w-8 mr-3">
+                      <AvatarFallback className="bg-primary/5 text-primary">
+                        {comment.profiles?.full_name?.[0] || '?'}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{comment.profiles?.full_name}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(comment.created_at).toLocaleDateString()}
-                      </p>
+                      <p className="font-medium text-gray-900">{comment.profiles?.full_name}</p>
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <Clock className="h-3 w-3" />
+                        <time>
+                          {new Date(comment.created_at).toLocaleDateString()}
+                        </time>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-gray-700">{comment.content}</p>
-                </div>
+                  <p className="text-gray-700 leading-relaxed">{comment.content}</p>
+                </motion.div>
               ))}
             </div>
 
             <div className="space-y-4">
               <Textarea
-                placeholder="Write a comment..."
+                placeholder="Share your thoughts..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[100px]"
+                className="min-h-[120px] resize-none focus:ring-primary"
               />
               <Button 
                 onClick={handleCommentSubmit}
@@ -286,7 +352,7 @@ const BlogPost = () => {
                 )}
               </Button>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </motion.article>
