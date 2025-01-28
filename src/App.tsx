@@ -22,6 +22,7 @@ import CustomSolutions from "@/pages/CustomSolutions";
 import SustainabilityProgram from "@/pages/SustainabilityProgram";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
 import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
 import Donation from "@/pages/Donation";
@@ -83,6 +84,11 @@ function AppRoutes() {
       <Route path="/blog" element={
         <ProtectedRoute slug="blog">
           <Blog />
+        </ProtectedRoute>
+      } />
+      <Route path="/blog/:id" element={
+        <ProtectedRoute slug="blog">
+          <BlogPost />
         </ProtectedRoute>
       } />
       <Route path="/contact" element={
