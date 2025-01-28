@@ -28,6 +28,7 @@ export const BlogPosts = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -145,6 +146,7 @@ export const BlogPosts = () => {
       setSelectedImage(null);
       setImagePreview("");
       setEditingPost(null);
+      setDialogOpen(false);
       fetchPosts();
     } catch (error) {
       console.error("Error saving post:", error);
@@ -164,6 +166,7 @@ export const BlogPosts = () => {
         `${supabase.storage.from("files").getPublicUrl(post.featured_image).data.publicUrl}`
       );
     }
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -223,7 +226,7 @@ export const BlogPosts = () => {
           </Button>
         </div>
         {!showComments && (
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
