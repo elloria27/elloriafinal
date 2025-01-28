@@ -72,7 +72,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:profiles(
+            author:author_id(
               full_name,
               avatar_url
             )
@@ -87,7 +87,7 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            user:profiles(
+            user:user_id(
               full_name,
               avatar_url
             )
@@ -99,14 +99,14 @@ const BlogPost = () => {
 
         // Type assertion after validating the data structure
         if (postData && postData.author && typeof postData.author.full_name === 'string') {
-          setPost(postData as BlogPost);
+          setPost(postData as unknown as BlogPost);
         }
 
         if (commentsData) {
           const validComments = commentsData.filter(
             comment => comment.user && typeof comment.user.full_name === 'string'
           );
-          setComments(validComments as Comment[]);
+          setComments(validComments as unknown as Comment[]);
         }
 
       } catch (error) {
@@ -155,7 +155,7 @@ const BlogPost = () => {
         .from('blog_comments')
         .select(`
           *,
-          user:profiles(
+          user:user_id(
             full_name,
             avatar_url
           )
@@ -169,7 +169,7 @@ const BlogPost = () => {
         const validComments = freshComments.filter(
           comment => comment.user && typeof comment.user.full_name === 'string'
         );
-        setComments(validComments as Comment[]);
+        setComments(validComments as unknown as Comment[]);
       }
     } catch (error) {
       console.error('Error:', error);
