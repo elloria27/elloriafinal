@@ -13,6 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { Database } from "@/integrations/supabase/types";
+
+type PostStatus = Database["public"]["Enums"]["post_status"];
 
 export const BlogPosts = () => {
   const [posts, setPosts] = useState<any[]>([]);
@@ -96,7 +99,7 @@ export const BlogPosts = () => {
         },
         excerpt,
         featured_image: imagePath,
-        status: "published",
+        status: "published" as PostStatus,
       };
 
       if (editingPost) {
@@ -108,7 +111,10 @@ export const BlogPosts = () => {
         if (error) throw error;
         toast.success("Post updated successfully");
       } else {
-        const { error } = await supabase.from("blog_posts").insert([postData]);
+        const { error } = await supabase
+          .from("blog_posts")
+          .insert([postData]);
+
         if (error) throw error;
         toast.success("Post created successfully");
       }
