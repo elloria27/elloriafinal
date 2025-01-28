@@ -106,42 +106,54 @@ export const BlogPosts = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group cursor-pointer"
+              className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="relative overflow-hidden rounded-xl mb-4 aspect-video">
-                <img
-                  src={post.featured_image || '/placeholder.svg'}
-                  alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+              <div className="relative overflow-hidden rounded-t-xl aspect-[16/9]">
+                {post.featured_image ? (
+                  <img
+                    src={post.featured_image}
+                    alt={post.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400">No image available</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2 mb-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-sm text-gray-600">
-                  {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-sm text-gray-600">
+                    {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}
+                  </div>
+                  <span className="text-gray-400">•</span>
+                  <time className="text-sm text-gray-600">
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </time>
                 </div>
-                <span className="text-gray-400">•</span>
-                <time className="text-sm text-gray-600">
-                  {new Date(post.created_at).toLocaleDateString()}
-                </time>
+                <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-gray-600 mb-4 line-clamp-3">
+                  {post.excerpt || 'Click to read more about this topic...'}
+                </p>
+                <Button
+                  variant="ghost"
+                  className="text-primary hover:text-primary/90 hover:bg-primary/10 p-0 h-auto"
+                  onClick={() => handleReadMore(post.id)}
+                >
+                  Read More <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
               </div>
-              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                {post.title}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {post.excerpt || 'Click to read more about this topic...'}
-              </p>
-              <Button
-                variant="ghost"
-                className="text-primary hover:text-primary/90 hover:bg-primary/10 p-0 h-auto"
-                onClick={() => handleReadMore(post.id)}
-              >
-                Read More <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
             </motion.article>
           ))}
         </div>

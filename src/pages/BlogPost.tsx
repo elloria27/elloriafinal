@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, MessageSquare, Calendar, Clock } from "lucide-react";
+import { Loader2, MessageSquare, Calendar, Clock, User, Heart, Share2, Bookmark } from "lucide-react";
 
 interface BlogSettings {
   enableComments: boolean;
@@ -27,6 +27,7 @@ interface BlogPost {
   meta_description: string | null;
   created_at: string;
   profiles: Profile;
+  view_count: number;
 }
 
 interface Comment {
@@ -45,14 +46,13 @@ const BlogPost = () => {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [blogSettings, setBlogSettings] = useState<BlogSettings>({
-    enableComments: false,
+    enableComments: true,
     moderateComments: false,
   });
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        console.log('Fetching blog post and settings...');
         const { data: settings } = await supabase
           .from('site_settings')
           .select('custom_scripts')
@@ -97,9 +97,6 @@ const BlogPost = () => {
           .order('created_at', { ascending: false });
 
         if (commentsError) throw commentsError;
-
-        console.log('Fetched post:', postData);
-        console.log('Fetched comments:', commentsData);
 
         if (postData) {
           setPost(postData as BlogPost);
@@ -150,7 +147,6 @@ const BlogPost = () => {
       toast.success("Comment added successfully");
       setNewComment("");
 
-      // Refresh comments
       const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
@@ -197,165 +193,179 @@ const BlogPost = () => {
   }
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="py-10 md:py-16"
-    >
-      <div className="container max-w-4xl mx-auto px-4">
-        {/* Header Section */}
-        <header className="mb-12 text-center">
-          <motion.h1 
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative h-[70vh] overflow-hidden"
+      >
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: `url(${post.featured_image || '/placeholder.svg'})`,
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="container px-4 text-center text-white">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-4xl md:text-6xl font-bold mb-6 max-w-4xl mx-auto"
+            >
+              {post.title}
+            </motion.h1>
+            {post.meta_description && (
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto"
+              >
+                {post.meta_description}
+              </motion.p>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="container px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Author and Meta Info */}
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent"
+            transition={{ delay: 0.6 }}
+            className="flex flex-wrap items-center justify-between mb-8 pb-8 border-b"
           >
-            {post.title}
-          </motion.h1>
-          
-          {post.meta_description && (
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-gray-600 mb-8 text-lg max-w-2xl mx-auto"
-            >
-              {post.meta_description}
-            </motion.p>
-          )}
-
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex items-center justify-center space-x-6 text-sm text-gray-500"
-          >
-            <div className="flex items-center">
-              <Avatar className="h-10 w-10 mr-3 border-2 border-primary/10">
-                <AvatarFallback className="bg-primary/5 text-primary">
-                  {post.profiles?.full_name?.[0] || '?'}
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-12 w-12 border-2 border-primary/10">
+                <AvatarFallback className="bg-primary/5">
+                  <User className="h-6 w-6 text-primary" />
                 </AvatarFallback>
               </Avatar>
-              <div className="text-left">
-                <span className="block font-medium text-gray-900">{post.profiles?.full_name}</span>
-                <span className="text-xs text-gray-500">Author</span>
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <time>
+                    {new Date(post.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </time>
+                </div>
               </div>
             </div>
-            <div className="h-4 w-px bg-gray-200" />
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <time className="text-gray-600">
-                {new Date(post.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </time>
-            </div>
-          </motion.div>
-        </header>
-
-        {/* Featured Image */}
-        {post.featured_image && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mb-12 rounded-xl overflow-hidden shadow-xl"
-          >
-            <img
-              src={post.featured_image}
-              alt={post.title}
-              className="w-full h-[400px] object-cover"
-              onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
-              }}
-            />
-          </motion.div>
-        )}
-
-        {/* Content */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="prose prose-lg max-w-none"
-        >
-          {typeof post.content === 'string' 
-            ? post.content 
-            : JSON.stringify(post.content)}
-        </motion.div>
-
-        {/* Comments Section */}
-        {blogSettings.enableComments && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-16 pt-8 border-t border-gray-100"
-          >
-            <div className="flex items-center space-x-3 mb-8">
-              <MessageSquare className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-semibold text-gray-900">Comments</h2>
-            </div>
-
-            <div className="space-y-6 mb-8">
-              {comments.map((comment) => (
-                <motion.div 
-                  key={comment.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-50 rounded-lg p-6 shadow-sm"
-                >
-                  <div className="flex items-center mb-4">
-                    <Avatar className="h-8 w-8 mr-3">
-                      <AvatarFallback className="bg-primary/5 text-primary">
-                        {comment.profiles?.full_name?.[0] || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-gray-900">{comment.profiles?.full_name}</p>
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
-                        <Clock className="h-3 w-3" />
-                        <time>
-                          {new Date(comment.created_at).toLocaleDateString()}
-                        </time>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 leading-relaxed">{comment.content}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Share your thoughts..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[120px] resize-none focus:ring-primary"
-              />
-              <Button 
-                onClick={handleCommentSubmit}
-                disabled={isSubmitting}
-                className="w-full md:w-auto"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Posting...
-                  </>
-                ) : (
-                  'Post Comment'
-                )}
+            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <Heart className="h-4 w-4 mr-2" />
+                <span>Like</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <Share2 className="h-4 w-4 mr-2" />
+                <span>Share</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-600">
+                <Bookmark className="h-4 w-4 mr-2" />
+                <span>Save</span>
               </Button>
             </div>
           </motion.div>
-        )}
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="prose prose-lg max-w-none"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+
+          {/* Comments Section */}
+          {blogSettings.enableComments && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="mt-16 pt-8 border-t"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                  <h2 className="text-2xl font-semib
+                    Comments ({comments.length})
+                  </h2>
+                </div>
+              </div>
+
+              {/* Comment Form */}
+              <div className="mb-8">
+                <Textarea
+                  placeholder="Share your thoughts..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[120px] resize-none focus:ring-primary mb-4"
+                />
+                <Button
+                  onClick={handleCommentSubmit}
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    'Post Comment'
+                  )}
+                </Button>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-6">
+                {comments.map((comment) => (
+                  <motion.div
+                    key={comment.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-50 rounded-xl p-6"
+                  >
+                    <div className="flex items-center mb-4">
+                      <Avatar className="h-10 w-10 mr-3">
+                        <AvatarFallback>
+                          <User className="h-5 w-5" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {comment.profiles?.full_name || comment.profiles?.email || 'Anonymous'}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <time>
+                            {new Date(comment.created_at).toLocaleDateString()}
+                          </time>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">{comment.content}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
-    </motion.article>
+    </div>
   );
 };
 
