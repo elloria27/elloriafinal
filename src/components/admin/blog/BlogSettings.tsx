@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { FileUpload } from "@/components/admin/file/FileUpload";
 
 export const BlogSettings = () => {
   const [settings, setSettings] = useState({
@@ -14,23 +15,148 @@ export const BlogSettings = () => {
     defaultMetaTitle: "",
     defaultMetaDescription: "",
     enableSocialSharing: true,
-    moderateComments: true
+    moderateComments: true,
+    heroTitle: "",
+    heroSubtitle: "",
+    heroBackgroundImage: ""
   });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadBlogSettings();
+  }, []);
+
+  const loadBlogSettings = async () => {
+    try {
+      console.log('Loading blog settings...');
+      const { data, error } = await supabase
+        .from('blog_settings')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      console.log('Blog settings loaded:', data);
+      setSettings(prev => ({
+        ...prev,
+        heroTitle: data.hero_title,
+        heroSubtitle: data.hero_subtitle,
+        heroBackgroundImage: data.hero_background_image || ''
+      }));
+    } catch (error) {
+      console.error('Error loading blog settings:', error);
+      toast.error("Error loading blog settings");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSettingChange = (key: string, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
-
-    // In a real implementation, this would save to the database
-    toast.success("Setting updated successfully");
   };
+
+  const handleSave = async () => {
+    try {
+      console.log('Saving blog settings...');
+      const { error } = await supabase
+        .from('blog_settings')
+        .update({
+          hero_title: settings.heroTitle,
+          hero_subtitle: settings.heroSubtitle,
+          hero_background_image: settings.heroBackgroundImage
+        })
+        .eq('id', 1);
+
+      if (error) throw error;
+
+      toast.success("Settings updated successfully");
+      console.log('Blog settings saved successfully');
+    } catch (error) {
+      console.error('Error saving blog settings:', error);
+      toast.error("Error saving settings");
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `blog-hero/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('files')
+        .getPublicUrl(filePath);
+
+      handleSettingChange('heroBackgroundImage', publicUrl);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error("Error uploading image");
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Blog Settings</h3>
       
+      <Card>
+        <CardHeader>
+          <CardTitle>Hero Section Settings</CardTitle>
+          <CardDescription>Configure your blog's hero section appearance</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="heroTitle">Hero Title</Label>
+            <Input
+              id="heroTitle"
+              value={settings.heroTitle}
+              onChange={(e) => handleSettingChange('heroTitle', e.target.value)}
+              placeholder="Enter hero title"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="heroSubtitle">Hero Subtitle</Label>
+            <Input
+              id="heroSubtitle"
+              value={settings.heroSubtitle}
+              onChange={(e) => handleSettingChange('heroSubtitle', e.target.value)}
+              placeholder="Enter hero subtitle"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Background Image</Label>
+            <div className="mt-2">
+              <FileUpload onUpload={handleImageUpload} />
+            </div>
+            {settings.heroBackgroundImage && (
+              <div className="mt-2">
+                <img 
+                  src={settings.heroBackgroundImage} 
+                  alt="Hero background preview" 
+                  className="max-w-xs rounded-lg shadow-sm"
+                />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
@@ -84,40 +210,12 @@ export const BlogSettings = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>SEO Defaults</CardTitle>
-          <CardDescription>Default meta information for blog posts</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="defaultMetaTitle">Default Meta Title</Label>
-            <Input
-              id="defaultMetaTitle"
-              value={settings.defaultMetaTitle}
-              onChange={(e) => handleSettingChange('defaultMetaTitle', e.target.value)}
-              placeholder="Default title for blog posts"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="defaultMetaDescription">Default Meta Description</Label>
-            <Input
-              id="defaultMetaDescription"
-              value={settings.defaultMetaDescription}
-              onChange={(e) => handleSettingChange('defaultMetaDescription', e.target.value)}
-              placeholder="Default description for blog posts"
-            />
-          </div>
-
-          <Button 
-            onClick={() => toast.success("Settings saved successfully")}
-            className="w-full"
-          >
-            Save Settings
-          </Button>
-        </CardContent>
-      </Card>
+      <Button 
+        onClick={handleSave}
+        className="w-full"
+      >
+        Save Settings
+      </Button>
     </div>
   );
 };

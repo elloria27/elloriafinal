@@ -178,6 +178,33 @@ export type Database = {
           },
         ]
       }
+      blog_settings: {
+        Row: {
+          created_at: string | null
+          hero_background_image: string | null
+          hero_subtitle: string
+          hero_title: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          hero_background_image?: string | null
+          hero_subtitle?: string
+          hero_title?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          hero_background_image?: string | null
+          hero_subtitle?: string
+          hero_title?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bulk_file_shares: {
         Row: {
           access_level: string
