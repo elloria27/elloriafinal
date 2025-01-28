@@ -6,7 +6,7 @@ import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
+import { ContentBlock, BaseBlockContent, ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
 
 interface PageData {
   id: string;
