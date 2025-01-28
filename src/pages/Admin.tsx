@@ -12,10 +12,9 @@ import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/header/Logo";
+import { Menu } from "lucide-react";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -130,14 +129,11 @@ const Admin = () => {
       <div className="flex h-screen">
         {isMobile ? (
           <>
-            <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b z-40 px-4 flex items-center justify-between">
-              <Logo />
+            <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b z-40 px-4 flex items-center justify-end">
               <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
+                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+                  <Menu className="h-5 w-5" />
+                </Button>
                 <SheetContent side="left" className="p-0 w-64">
                   <AdminSidebar profile={profile} />
                 </SheetContent>
@@ -151,9 +147,7 @@ const Admin = () => {
           </>
         ) : (
           <>
-            <div className="w-64 flex-shrink-0">
-              <AdminSidebar profile={profile} />
-            </div>
+            <AdminSidebar profile={profile} />
             <main className="flex-1 overflow-y-auto">
               <div className="container mx-auto py-8">
                 {renderContent()}
