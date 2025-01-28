@@ -13,7 +13,8 @@ import {
   FolderIcon,
   ChevronDown,
   Globe,
-  Building2
+  Building2,
+  ExternalLink
 } from "lucide-react";
 
 interface SidebarItem {
@@ -71,6 +72,15 @@ export const AdminSidebar = () => {
     <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-lg font-semibold">Admin Panel</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2 w-full"
+          onClick={() => window.open("/", "_blank")}
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Go to Website
+        </Button>
       </div>
       
       <nav className="flex-1 overflow-y-auto p-4">

@@ -8,11 +8,10 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,6 +19,8 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();
   
   const currentTab = searchParams.get("tab") || "dashboard";
 
@@ -86,25 +87,11 @@ const Admin = () => {
     checkAdminAccess();
   }, [navigate]);
 
-  const handleSignOut = async () => {
-    try {
-      console.log("Signing out...");
-      await supabase.auth.signOut();
-      
-      console.log("Sign out successful");
-      toast.success("Signed out successfully");
-      
-      // Clear any cached state
-      setIsAdmin(false);
-      setProfile(null);
-      
-      // Force navigation to home page
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out");
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
     }
-  };
+  }, [isMobile]);
 
   if (loading) {
     return (
@@ -144,25 +131,16 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        <AdminSidebar />
+        {(sidebarOpen || !isMobile) && (
+          <div className={cn(
+            "fixed inset-y-0 left-0 z-50 lg:relative",
+            isMobile ? "w-full lg:w-64" : "w-64"
+          )}>
+            <AdminSidebar />
+          </div>
+        )}
         
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white border-b border-gray-200 p-4">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">
-                Hello, {profile?.full_name || 'Admin'} 👋
-              </h1>
-              <Button 
-                variant="outline"
-                onClick={handleSignOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </div>
-          </header>
-
           <main className="flex-1 overflow-y-auto p-6">
             <div className="container mx-auto">
               {renderContent()}
