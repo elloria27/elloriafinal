@@ -67,37 +67,45 @@ const BlogPost = () => {
           }
         }
 
+        // Get blog post with author profile
         const { data: postData, error: postError } = await supabase
           .from('blog_posts')
           .select(`
             *,
-            author:profiles(id, full_name, avatar_url)
+            author:author_id(id, full_name, avatar_url)
           `)
           .eq('id', id)
           .single();
 
         if (postError) throw postError;
 
+        // Get comments with user profiles
         const { data: commentsData, error: commentsError } = await supabase
           .from('blog_comments')
           .select(`
             *,
-            user:profiles(id, full_name, avatar_url)
+            user:user_id(id, full_name, avatar_url)
           `)
           .eq('post_id', id)
           .order('created_at', { ascending: false });
 
         if (commentsError) throw commentsError;
 
-        if (postData && postData.author && typeof postData.author.full_name === 'string') {
-          setPost(postData as unknown as BlogPost);
+        if (postData && postData.author) {
+          setPost({
+            ...postData,
+            author: postData.author as Author
+          });
         }
 
         if (commentsData) {
-          const validComments = commentsData.filter(
-            comment => comment.user && typeof comment.user.full_name === 'string'
-          );
-          setComments(validComments as unknown as Comment[]);
+          const validComments = commentsData
+            .filter(comment => comment.user)
+            .map(comment => ({
+              ...comment,
+              user: comment.user as Author
+            }));
+          setComments(validComments);
         }
 
       } catch (error) {
@@ -141,11 +149,12 @@ const BlogPost = () => {
       toast.success("Comment added successfully");
       setNewComment("");
 
+      // Refresh comments
       const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
           *,
-          user:profiles(id, full_name, avatar_url)
+          user:user_id(id, full_name, avatar_url)
         `)
         .eq('post_id', id)
         .order('created_at', { ascending: false });
@@ -153,10 +162,13 @@ const BlogPost = () => {
       if (commentsError) throw commentsError;
 
       if (freshComments) {
-        const validComments = freshComments.filter(
-          comment => comment.user && typeof comment.user.full_name === 'string'
-        );
-        setComments(validComments as unknown as Comment[]);
+        const validComments = freshComments
+          .filter(comment => comment.user)
+          .map(comment => ({
+            ...comment,
+            user: comment.user as Author
+          }));
+        setComments(validComments);
       }
     } catch (error) {
       console.error('Error:', error);
