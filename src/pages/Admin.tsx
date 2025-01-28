@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
@@ -10,15 +9,19 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, Files, BookOpen } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
+import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 
 const Admin = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  
+  const currentTab = searchParams.get("tab") || "dashboard";
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -115,13 +118,38 @@ const Admin = () => {
     return null;
   }
 
+  const renderContent = () => {
+    switch (currentTab) {
+      case "dashboard":
+        return <Dashboard />;
+      case "products":
+        return <ProductManagement />;
+      case "orders":
+        return <OrderManagement />;
+      case "users":
+        return <UserManagement />;
+      case "pages":
+        return <PageManagement />;
+      case "blog":
+        return <BlogManagement />;
+      case "files":
+        return <FileManagement />;
+      case "settings":
+        return <SiteSettings />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="container mx-auto py-4 px-2 md:px-4 md:py-8">
-        <div className="flex flex-col gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex h-screen">
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="bg-white border-b border-gray-200 p-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              <h1 className="text-2xl font-bold">
                 Hello, {profile?.full_name || 'Admin'} 👋
               </h1>
               <Button 
@@ -133,80 +161,13 @@ const Admin = () => {
                 Sign Out
               </Button>
             </div>
-          </div>
-        
-          <Tabs defaultValue="dashboard" className="space-y-6">
-            <div className="w-full overflow-x-auto pb-2">
-              <TabsList className="w-full grid grid-cols-8 gap-1">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
-                  <LayoutDashboard className="h-5 w-5" />
-                  <span className="hidden md:inline">Dashboard</span>
-                </TabsTrigger>
-                <TabsTrigger value="products" className="flex items-center gap-2 py-3 px-4">
-                  <Package className="h-5 w-5" />
-                  <span className="hidden md:inline">Products</span>
-                </TabsTrigger>
-                <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="hidden md:inline">Orders</span>
-                </TabsTrigger>
-                <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
-                  <Users className="h-5 w-5" />
-                  <span className="hidden md:inline">Users</span>
-                </TabsTrigger>
-                <TabsTrigger value="pages" className="flex items-center gap-2 py-3 px-4">
-                  <FileText className="h-5 w-5" />
-                  <span className="hidden md:inline">Pages</span>
-                </TabsTrigger>
-                <TabsTrigger value="blog" className="flex items-center gap-2 py-3 px-4">
-                  <BookOpen className="h-5 w-5" />
-                  <span className="hidden md:inline">Blog</span>
-                </TabsTrigger>
-                <TabsTrigger value="files" className="flex items-center gap-2 py-3 px-4">
-                  <Files className="h-5 w-5" />
-                  <span className="hidden md:inline">Files</span>
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
-                  <Settings className="h-5 w-5" />
-                  <span className="hidden md:inline">Settings</span>
-                </TabsTrigger>
-              </TabsList>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="container mx-auto">
+              {renderContent()}
             </div>
-
-            <div className="bg-white rounded-lg shadow p-4 md:p-6">
-              <TabsContent value="dashboard">
-                <Dashboard />
-              </TabsContent>
-
-              <TabsContent value="products">
-                <ProductManagement />
-              </TabsContent>
-
-              <TabsContent value="orders">
-                <OrderManagement />
-              </TabsContent>
-
-              <TabsContent value="users">
-                <UserManagement />
-              </TabsContent>
-
-              <TabsContent value="pages">
-                <PageManagement />
-              </TabsContent>
-
-              <TabsContent value="blog">
-                <BlogManagement />
-              </TabsContent>
-
-              <TabsContent value="files">
-                <FileManagement />
-              </TabsContent>
-
-              <TabsContent value="settings">
-                <SiteSettings />
-              </TabsContent>
-            </div>
-          </Tabs>
+          </main>
         </div>
       </div>
     </div>
