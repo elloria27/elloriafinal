@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash, Eye } from "lucide-react";
+import { Editor } from "@tinymce/tinymce-react";
 import {
   Dialog,
   DialogContent,
@@ -116,16 +117,7 @@ export const BlogPosts = () => {
 
       const postData = {
         title,
-        content: {
-          blocks: [
-            {
-              type: "paragraph",
-              data: {
-                text: content
-              }
-            }
-          ]
-        },
+        content: content, // Now storing the HTML content directly
         excerpt,
         featured_image: imagePath,
         status: postStatus as PostStatus,
@@ -168,7 +160,7 @@ export const BlogPosts = () => {
   const handleEdit = (post: any) => {
     setEditingPost(post);
     setTitle(post.title);
-    setContent(post.content?.blocks?.[0]?.data?.text || "");
+    setContent(post.content || "");
     setExcerpt(post.excerpt || "");
     setPostStatus(post.status as PostStatus);
     if (post.featured_image) {
@@ -261,11 +253,22 @@ export const BlogPosts = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">Content</label>
-                  <Textarea
+                  <Editor
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    required
-                    className="min-h-[200px]"
+                    onEditorChange={(newContent) => setContent(newContent)}
+                    init={{
+                      height: 400,
+                      menubar: true,
+                      plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                      ],
+                      toolbar: 'undo redo | blocks | ' +
+                        'bold italic forecolor | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | help',
+                    }}
                   />
                 </div>
 
