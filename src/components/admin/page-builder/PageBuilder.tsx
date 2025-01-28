@@ -53,9 +53,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         // Update selected block if it exists in the new blocks
         if (selectedBlock) {
           const updatedSelectedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
-          if (updatedSelectedBlock) {
-            setSelectedBlock(updatedSelectedBlock);
-          }
+          setSelectedBlock(updatedSelectedBlock || null);
         }
       }
     } catch (error) {
@@ -124,7 +122,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       const updatePromises = updatedBlocks.map(block => 
         supabase
           .from('content_blocks')
-          .update({ order_index: block.order_index })
+          .update({ 
+            order_index: block.order_index,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', block.id)
       );
 
