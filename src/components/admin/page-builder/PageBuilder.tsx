@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -15,7 +15,6 @@ export interface PageBuilderProps {
   initialBlocks: ContentBlock[];
 }
 
-type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
 type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
