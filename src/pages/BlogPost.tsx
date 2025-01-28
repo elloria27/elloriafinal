@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, Calendar, User, Share2 } from "lucide-react";
 
@@ -14,8 +13,8 @@ interface BlogPost {
   id: string;
   title: string;
   content: any;
-  featured_image: string;
-  meta_description: string;
+  featured_image: string | null;
+  meta_description: string | null;
   created_at: string;
   author: {
     full_name: string;
@@ -33,6 +32,11 @@ interface Comment {
   };
 }
 
+interface BlogSettings {
+  enableComments: boolean;
+  moderateComments: boolean;
+}
+
 const BlogPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -40,17 +44,20 @@ const BlogPost = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [settings, setSettings] = useState({ enableComments: false });
+  const [settings, setSettings] = useState<BlogSettings>({ 
+    enableComments: false,
+    moderateComments: false
+  });
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('site_settings')
         .select('custom_scripts')
         .single();
       
       if (data?.custom_scripts?.blog) {
-        setSettings(data.custom_scripts.blog);
+        setSettings(data.custom_scripts.blog as BlogSettings);
       }
     };
 
@@ -60,7 +67,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:author_id (
+            author:profiles!blog_posts_author_id_fkey (
               full_name,
               avatar_url
             )
@@ -75,18 +82,18 @@ const BlogPost = () => {
           return;
         }
 
+        setPost(postData as BlogPost);
+
         // Increment view count
         await supabase.rpc('increment_post_view_count', { post_id: id });
 
-        setPost(postData);
-
         // Fetch comments if enabled
         if (settings.enableComments) {
-          const { data: commentsData } = await supabase
+          const { data: commentsData, error: commentsError } = await supabase
             .from('blog_comments')
             .select(`
               *,
-              user:user_id (
+              user:profiles!blog_comments_user_id_fkey (
                 full_name,
                 avatar_url
               )
@@ -94,7 +101,9 @@ const BlogPost = () => {
             .eq('post_id', id)
             .order('created_at', { ascending: false });
 
-          setComments(commentsData || []);
+          if (!commentsError) {
+            setComments(commentsData as Comment[]);
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -127,13 +136,19 @@ const BlogPost = () => {
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return;
 
-    const { data, error } = await supabase
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      toast.error("Please login to comment");
+      return;
+    }
+
+    const { error } = await supabase
       .from('blog_comments')
       .insert([
         {
           post_id: id,
           content: newComment,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: userData.user.id
         }
       ]);
 
@@ -144,12 +159,13 @@ const BlogPost = () => {
 
     setNewComment("");
     toast.success("Comment posted successfully");
+
     // Refresh comments
     const { data: commentsData } = await supabase
       .from('blog_comments')
       .select(`
         *,
-        user:user_id (
+        user:profiles!blog_comments_user_id_fkey (
           full_name,
           avatar_url
         )
@@ -157,7 +173,9 @@ const BlogPost = () => {
       .eq('post_id', id)
       .order('created_at', { ascending: false });
 
-    setComments(commentsData || []);
+    if (commentsData) {
+      setComments(commentsData as Comment[]);
+    }
   };
 
   if (isLoading) {
@@ -214,7 +232,7 @@ const BlogPost = () => {
             <img
               src={post.featured_image}
               alt={post.title}
-              className="w-full h-auto object-cover"
+              className="w-full h-[400px] object-cover"
             />
           </div>
         )}
@@ -247,7 +265,7 @@ const BlogPost = () => {
 
               <div className="space-y-6">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex space-x-4">
+                  <div key={comment.id} className="flex space-x-4 bg-gray-50 p-4 rounded-lg">
                     <Avatar>
                       <AvatarImage src={comment.user?.avatar_url} />
                       <AvatarFallback>
