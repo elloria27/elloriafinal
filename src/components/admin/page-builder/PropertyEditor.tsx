@@ -922,6 +922,180 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case 'contact_hero':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+          </div>
+        );
+
+      case 'contact_details':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Address</Label>
+              <Input
+                value={getContentValue('address')}
+                onChange={(e) => handleChange('address', e.target.value)}
+                placeholder="Enter address"
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input
+                value={getContentValue('phone')}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input
+                value={getContentValue('email')}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="Enter email address"
+              />
+            </div>
+          </div>
+        );
+
+      case 'contact_form':
+        return (
+          <div className="space-y-4">
+            <div className="text-sm text-gray-500 italic">
+              The contact form settings are managed through the database schema. No additional configuration needed here.
+            </div>
+          </div>
+        );
+
+      case 'contact_faq':
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label>FAQs</Label>
+              <Button 
+                onClick={() => {
+                  const currentFaqs = content.faqs || [];
+                  handleChange('faqs', [...currentFaqs, {
+                    question: "New Question",
+                    answer: "New Answer"
+                  }]);
+                }} 
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add FAQ
+              </Button>
+            </div>
+            
+            {(content.faqs || []).map((faq: any, index: number) => (
+              <div key={index} className="space-y-4 p-4 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <Label>FAQ {index + 1}</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      const newFaqs = [...(content.faqs || [])];
+                      newFaqs.splice(index, 1);
+                      handleChange('faqs', newFaqs);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </Button>
+                </div>
+                
+                <div>
+                  <Label>Question</Label>
+                  <Input
+                    value={faq.question}
+                    onChange={(e) => {
+                      const newFaqs = [...(content.faqs || [])];
+                      newFaqs[index] = { ...newFaqs[index], question: e.target.value };
+                      handleChange('faqs', newFaqs);
+                    }}
+                    placeholder="Enter question"
+                  />
+                </div>
+
+                <div>
+                  <Label>Answer</Label>
+                  <Textarea
+                    value={faq.answer}
+                    onChange={(e) => {
+                      const newFaqs = [...(content.faqs || [])];
+                      newFaqs[index] = { ...newFaqs[index], answer: e.target.value };
+                      handleChange('faqs', newFaqs);
+                    }}
+                    placeholder="Enter answer"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+
+      case 'contact_business':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input
+                value={getContentValue('email')}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="Enter business email"
+              />
+            </div>
+            <div>
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+            <div>
+              <Label>Button Link</Label>
+              <Input
+                value={getContentValue('buttonLink')}
+                onChange={(e) => handleChange('buttonLink', e.target.value)}
+                placeholder="Enter button link"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">
