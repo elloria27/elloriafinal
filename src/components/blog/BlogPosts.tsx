@@ -72,6 +72,12 @@ export const BlogPosts = () => {
     }
   };
 
+  const getImageUrl = (imagePath: string | null) => {
+    if (!imagePath) return '/placeholder.svg';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${supabase.storage.from('files').getPublicUrl(imagePath).data.publicUrl}`;
+  };
+
   if (isLoading) {
     return (
       <div className="py-20 text-center">
@@ -109,21 +115,15 @@ export const BlogPosts = () => {
               className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
             >
               <div className="relative overflow-hidden rounded-t-xl aspect-[16/9]">
-                {post.featured_image ? (
-                  <img
-                    src={post.featured_image}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder.svg';
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">No image available</span>
-                  </div>
-                )}
+                <img
+                  src={getImageUrl(post.featured_image)}
+                  alt={post.title}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
+                />
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-3">

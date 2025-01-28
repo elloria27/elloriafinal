@@ -9,12 +9,16 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
+import { Editor } from "@/components/ui/editor";
 
 export const BlogPosts = () => {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentPost, setCurrentPost] = useState<any>(null);
   const [title, setTitle] = useState("");
+  const [content, setContent] = useState<any>({
+    blocks: []
+  });
   const [excerpt, setExcerpt] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,9 +98,9 @@ export const BlogPosts = () => {
           { 
             title,
             excerpt,
+            content,
             featured_image,
-            status: 'published', // Changed from 'draft' to 'published'
-            content: {},
+            status: 'published',
             author_id: session.session.user.id
           }
         ])
@@ -112,6 +116,7 @@ export const BlogPosts = () => {
       setOpen(false);
       setTitle("");
       setExcerpt("");
+      setContent({ blocks: [] });
       setSelectedImage(null);
       fetchPosts();
     } catch (error) {
@@ -135,6 +140,7 @@ export const BlogPosts = () => {
         .update({ 
           title,
           excerpt,
+          content,
           featured_image,
           updated_at: new Date().toISOString()
         })
@@ -148,6 +154,7 @@ export const BlogPosts = () => {
       setCurrentPost(null);
       setTitle("");
       setExcerpt("");
+      setContent({ blocks: [] });
       setSelectedImage(null);
       fetchPosts();
     } catch (error) {
@@ -177,6 +184,7 @@ export const BlogPosts = () => {
     setCurrentPost(post);
     setTitle(post.title);
     setExcerpt(post.excerpt || '');
+    setContent(post.content || { blocks: [] });
     setEditMode(true);
     setOpen(true);
   };
@@ -199,6 +207,7 @@ export const BlogPosts = () => {
             setCurrentPost(null);
             setTitle("");
             setExcerpt("");
+            setContent({ blocks: [] });
             setSelectedImage(null);
           }
           setOpen(newOpen);
@@ -209,7 +218,7 @@ export const BlogPosts = () => {
               New Post
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[525px]">
+          <DialogContent className="sm:max-w-[725px]">
             <DialogHeader>
               <DialogTitle>{editMode ? 'Edit Post' : 'Create New Post'}</DialogTitle>
             </DialogHeader>
@@ -230,6 +239,13 @@ export const BlogPosts = () => {
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
                   placeholder="Enter post excerpt"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="content">Content</Label>
+                <Editor
+                  value={content}
+                  onChange={setContent}
                 />
               </div>
               <div className="space-y-2">
