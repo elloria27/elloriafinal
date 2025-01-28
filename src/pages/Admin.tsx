@@ -88,18 +88,6 @@ const Admin = () => {
     checkAdminAccess();
   }, [navigate]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
   const renderContent = () => {
     switch (currentTab) {
       case "dashboard":
@@ -123,20 +111,38 @@ const Admin = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
         {isMobile ? (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-80">
-              <AdminSidebar profile={profile} />
-            </SheetContent>
-          </Sheet>
+          <>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="fixed top-4 left-4 z-50"
+            >
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Menu className="h-5 w-5" />
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-80">
+                  <AdminSidebar profile={profile} />
+                </SheetContent>
+              </Sheet>
+            </Button>
+          </>
         ) : (
           <div className="w-64 flex-shrink-0">
             <AdminSidebar profile={profile} />
