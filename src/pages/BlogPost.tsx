@@ -263,30 +263,34 @@ const BlogPost = () => {
           </div>
 
           <div className="prose prose-lg max-w-none mb-12">
-            {post.content?.blocks?.map((block: any, index: number) => {
-              switch (block.type) {
-                case "header":
-                  return <h2 key={index} className="text-2xl font-bold mb-4">{block.data.text}</h2>;
-                case "paragraph":
-                  return <p key={index} className="mb-4">{block.data.text}</p>;
-                case "list":
-                  return block.data.style === "ordered" ? (
-                    <ol key={index} className="list-decimal pl-6 mb-4">
-                      {block.data.items.map((item: string, i: number) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <ul key={index} className="list-disc pl-6 mb-4">
-                      {block.data.items.map((item: string, i: number) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ul>
-                  );
-                default:
-                  return null;
-              }
-            })}
+            {typeof post?.content === 'string' ? (
+              <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            ) : (
+              post?.content?.blocks?.map((block: any, index: number) => {
+                switch (block.type) {
+                  case "header":
+                    return <h2 key={index} className="text-2xl font-bold mb-4">{block.data.text}</h2>;
+                  case "paragraph":
+                    return <p key={index} className="mb-4">{block.data.text}</p>;
+                  case "list":
+                    return block.data.style === "ordered" ? (
+                      <ol key={index} className="list-decimal pl-6 mb-4">
+                        {block.data.items.map((item: string, i: number) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <ul key={index} className="list-disc pl-6 mb-4">
+                        {block.data.items.map((item: string, i: number) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    );
+                  default:
+                    return null;
+                }
+              })
+            )}
           </div>
 
           <div className="border-t pt-8">
