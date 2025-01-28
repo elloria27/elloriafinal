@@ -1,20 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const BlogCategories = () => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const { toast } = useToast();
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      console.log('Fetching categories...');
+      const { data, error } = await supabase
+        .from('blog_categories')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        throw error;
+      }
+
+      console.log('Categories fetched:', data);
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error in fetchCategories:', error);
+      toast.error("Failed to fetch categories");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateCategory = async () => {
     try {
-      // Create a URL-friendly slug from the category name
       const slug = name.toLowerCase().replace(/\s+/g, '-');
       
       const { data, error } = await supabase
@@ -28,22 +56,40 @@ export const BlogCategories = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Category created successfully",
-      });
-      
+      toast.success("Category created successfully");
       setOpen(false);
       setName("");
+      fetchCategories();
     } catch (error) {
       console.error('Error creating category:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create category",
-        variant: "destructive",
-      });
+      toast.error("Failed to create category");
     }
   };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      const { error } = await supabase
+        .from('blog_categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (error) throw error;
+
+      toast.success("Category deleted successfully");
+      fetchCategories();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error("Failed to delete category");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -78,10 +124,39 @@ export const BlogCategories = () => {
         </Dialog>
       </div>
       
-      <div className="rounded-md border">
-        <div className="p-4">
-          <p className="text-sm text-gray-500">No categories found. Create your first category!</p>
-        </div>
+      <div className="grid gap-4">
+        {categories.length === 0 ? (
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-500">No categories found. Create your first category!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          categories.map((category) => (
+            <Card key={category.id}>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="font-semibold">{category.name}</h4>
+                    <p className="text-sm text-gray-500">/{category.slug}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDeleteCategory(category.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );
