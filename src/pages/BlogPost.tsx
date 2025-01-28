@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, Calendar, User, Share2 } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
 interface BlogPost {
   id: string;
@@ -17,7 +18,7 @@ interface BlogPost {
   meta_description: string | null;
   created_at: string;
   author: {
-    full_name: string;
+    full_name: string | null;
     avatar_url?: string;
   };
 }
@@ -27,7 +28,7 @@ interface Comment {
   content: string;
   created_at: string;
   user: {
-    full_name: string;
+    full_name: string | null;
     avatar_url?: string;
   };
 }
@@ -56,7 +57,7 @@ const BlogPost = () => {
         .select('custom_scripts')
         .single();
       
-      if (data?.custom_scripts?.blog) {
+      if (data?.custom_scripts && typeof data.custom_scripts === 'object' && 'blog' in data.custom_scripts) {
         setSettings(data.custom_scripts.blog as BlogSettings);
       }
     };
@@ -67,7 +68,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:profiles!blog_posts_author_id_fkey (
+            author:profiles(
               full_name,
               avatar_url
             )
@@ -82,7 +83,12 @@ const BlogPost = () => {
           return;
         }
 
-        setPost(postData as BlogPost);
+        const formattedPost: BlogPost = {
+          ...postData,
+          author: Array.isArray(postData.author) ? postData.author[0] : postData.author
+        };
+
+        setPost(formattedPost);
 
         // Increment view count
         await supabase.rpc('increment_post_view_count', { post_id: id });
@@ -93,7 +99,7 @@ const BlogPost = () => {
             .from('blog_comments')
             .select(`
               *,
-              user:profiles!blog_comments_user_id_fkey (
+              user:profiles(
                 full_name,
                 avatar_url
               )
@@ -101,8 +107,12 @@ const BlogPost = () => {
             .eq('post_id', id)
             .order('created_at', { ascending: false });
 
-          if (!commentsError) {
-            setComments(commentsData as Comment[]);
+          if (!commentsError && commentsData) {
+            const formattedComments: Comment[] = commentsData.map(comment => ({
+              ...comment,
+              user: Array.isArray(comment.user) ? comment.user[0] : comment.user
+            }));
+            setComments(formattedComments);
           }
         }
       } catch (error) {
@@ -165,7 +175,7 @@ const BlogPost = () => {
       .from('blog_comments')
       .select(`
         *,
-        user:profiles!blog_comments_user_id_fkey (
+        user:profiles(
           full_name,
           avatar_url
         )
@@ -174,7 +184,11 @@ const BlogPost = () => {
       .order('created_at', { ascending: false });
 
     if (commentsData) {
-      setComments(commentsData as Comment[]);
+      const formattedComments: Comment[] = commentsData.map(comment => ({
+        ...comment,
+        user: Array.isArray(comment.user) ? comment.user[0] : comment.user
+      }));
+      setComments(formattedComments);
     }
   };
 
@@ -204,17 +218,17 @@ const BlogPost = () => {
       <div className="container max-w-4xl mx-auto">
         <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-            {post.title}
+            {post?.title}
           </h1>
           
           <div className="flex items-center justify-center space-x-6 text-gray-600 mb-8">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-2" />
-              <time>{new Date(post.created_at).toLocaleDateString()}</time>
+              <time>{new Date(post?.created_at || "").toLocaleDateString()}</time>
             </div>
             <div className="flex items-center">
               <User className="w-4 h-4 mr-2" />
-              <span>{post.author?.full_name || 'Anonymous'}</span>
+              <span>{post?.author?.full_name || 'Anonymous'}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-2" />
@@ -223,11 +237,11 @@ const BlogPost = () => {
           </div>
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-            {post.meta_description}
+            {post?.meta_description}
           </p>
         </div>
 
-        {post.featured_image && (
+        {post?.featured_image && (
           <div className="mb-12 rounded-xl overflow-hidden shadow-2xl">
             <img
               src={post.featured_image}
@@ -238,9 +252,9 @@ const BlogPost = () => {
         )}
 
         <div className="prose prose-lg max-w-none">
-          {typeof post.content === 'string' 
+          {typeof post?.content === 'string' 
             ? post.content 
-            : JSON.stringify(post.content)}
+            : JSON.stringify(post?.content)}
         </div>
 
         {settings.enableComments && (
