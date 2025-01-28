@@ -12,7 +12,6 @@ import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
