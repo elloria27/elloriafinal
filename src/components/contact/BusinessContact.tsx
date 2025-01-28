@@ -1,22 +1,39 @@
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export const BusinessContact = () => {
   return (
-    <section className="py-12">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="max-w-2xl mx-auto text-center"
         >
-          <h2 className="text-3xl font-bold mb-4">Business Inquiries</h2>
-          <p className="text-lg mb-6">
-            For any business inquiries, please reach out to us using the contact form or email us directly.
+          <h2 className="text-3xl font-bold mb-4">For Business Inquiries</h2>
+          <p className="text-gray-600 mb-6">
+            Interested in partnering with Elloria? We'd love to explore opportunities together.
           </p>
-          <a href="mailto:business@example.com" className="inline-block bg-primary text-white py-2 px-4 rounded">
-            Contact Us
-          </a>
+          
+          <div className="space-y-4">
+            <p className="text-gray-800">
+              Email us at:{" "}
+              <a
+                href="mailto:business@elloria.ca"
+                className="text-primary hover:underline"
+              >
+                business@elloria.ca
+              </a>
+            </p>
+            
+            <Button asChild>
+              <Link to="/for-business">
+                Learn More About Business Opportunities
+              </Link>
+            </Button>
+          </div>
         </motion.div>
       </div>
     </section>

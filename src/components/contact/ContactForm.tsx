@@ -1,8 +1,59 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const ContactForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+    newsletter: false,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase.from("contact_submissions").insert([
+        {
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          newsletter_subscription: formData.newsletter,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast.success("Thank you for contacting us! We'll get back to you within 24 hours.");
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        newsletter: false,
+      });
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <section className="py-12">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -10,63 +61,81 @@ export const ContactForm = () => {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mx-auto"
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-          <form>
-            <div className="mb-4">
-              <label className="block text-gray-700" htmlFor="full_name">Full Name</label>
-              <input
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <Input
                 type="text"
-                id="full_name"
-                name="full_name"
+                placeholder="Full Name"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={formData.fullName}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullName: e.target.value })
+                }
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700" htmlFor="email">Email</label>
-              <input
+              
+              <Input
                 type="email"
-                id="email"
-                name="email"
+                placeholder="Email Address"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700" htmlFor="phone">Phone (optional)</label>
-              <input
+              
+              <Input
                 type="tel"
-                id="phone"
-                name="phone"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                placeholder="Phone Number (optional)"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700" htmlFor="subject">Subject</label>
-              <input
+              
+              <Input
                 type="text"
-                id="subject"
-                name="subject"
+                placeholder="Subject"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                value={formData.subject}
+                onChange={(e) =>
+                  setFormData({ ...formData, subject: e.target.value })
+                }
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700" htmlFor="message">Message</label>
-              <textarea
-                id="message"
-                name="message"
+              
+              <Textarea
+                placeholder="Your Message"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                rows={4}
-              ></textarea>
+                value={formData.message}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
+                className="min-h-[150px]"
+              />
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="newsletter"
+                  checked={formData.newsletter}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, newsletter: checked as boolean })
+                  }
+                />
+                <label
+                  htmlFor="newsletter"
+                  className="text-sm text-gray-600 cursor-pointer"
+                >
+                  Subscribe to our newsletter for updates and offers
+                </label>
+              </div>
             </div>
-            <button
+
+            <Button
               type="submit"
-              className="w-full bg-primary text-white font-bold py-2 rounded-md hover:bg-primary-dark"
+              className="w-full"
+              disabled={isSubmitting}
             >
-              Send Message
-            </button>
+              {isSubmitting ? "Sending..." : "Send Message"}
+            </Button>
           </form>
         </motion.div>
       </div>
