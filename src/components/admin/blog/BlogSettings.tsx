@@ -19,7 +19,8 @@ export const BlogSettings = () => {
     heroTitle: "",
     heroSubtitle: "",
     heroBackgroundImage: "",
-    id: "" // Add id to track the settings record
+    instagramProfileUrl: "",
+    id: ""
   });
 
   const [loading, setLoading] = useState(true);
@@ -44,7 +45,8 @@ export const BlogSettings = () => {
         heroTitle: data.hero_title,
         heroSubtitle: data.hero_subtitle,
         heroBackgroundImage: data.hero_background_image || '',
-        id: data.id // Store the id from the fetched data
+        instagramProfileUrl: data.instagram_profile_url || 'https://instagram.com',
+        id: data.id
       }));
     } catch (error) {
       console.error('Error loading blog settings:', error);
@@ -69,9 +71,10 @@ export const BlogSettings = () => {
         .update({
           hero_title: settings.heroTitle,
           hero_subtitle: settings.heroSubtitle,
-          hero_background_image: settings.heroBackgroundImage
+          hero_background_image: settings.heroBackgroundImage,
+          instagram_profile_url: settings.instagramProfileUrl
         })
-        .eq('id', settings.id); // Use the stored id instead of hardcoded value
+        .eq('id', settings.id);
 
       if (error) throw error;
 
@@ -155,6 +158,24 @@ export const BlogSettings = () => {
                 />
               </div>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Social Media Settings</CardTitle>
+          <CardDescription>Configure your social media links</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="instagramProfileUrl">Instagram Profile URL</Label>
+            <Input
+              id="instagramProfileUrl"
+              value={settings.instagramProfileUrl}
+              onChange={(e) => handleSettingChange('instagramProfileUrl', e.target.value)}
+              placeholder="Enter your Instagram profile URL"
+            />
           </div>
         </CardContent>
       </Card>

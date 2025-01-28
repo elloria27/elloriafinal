@@ -185,6 +185,7 @@ export type Database = {
           hero_subtitle: string
           hero_title: string
           id: string
+          instagram_profile_url: string | null
           updated_at: string | null
         }
         Insert: {
@@ -193,6 +194,7 @@ export type Database = {
           hero_subtitle?: string
           hero_title?: string
           id?: string
+          instagram_profile_url?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -201,6 +203,7 @@ export type Database = {
           hero_subtitle?: string
           hero_title?: string
           id?: string
+          instagram_profile_url?: string | null
           updated_at?: string | null
         }
         Relationships: []

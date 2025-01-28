@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const instagramPosts = [
   {
@@ -42,6 +44,31 @@ const instagramPosts = [
 ];
 
 export const InstagramFeed = () => {
+  const [instagramProfileUrl, setInstagramProfileUrl] = useState("https://instagram.com");
+
+  useEffect(() => {
+    const fetchBlogSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blog_settings')
+          .select('instagram_profile_url')
+          .single();
+
+        if (error) throw error;
+
+        if (data?.instagram_profile_url) {
+          setInstagramProfileUrl(data.instagram_profile_url);
+          // Update post links
+          instagramPosts.forEach(post => post.link = data.instagram_profile_url);
+        }
+      } catch (error) {
+        console.error('Error fetching blog settings:', error);
+      }
+    };
+
+    fetchBlogSettings();
+  }, []);
+
   return (
     <section id="instagram-feed" className="py-20 bg-white">
       <div className="container px-4">
@@ -80,7 +107,7 @@ export const InstagramFeed = () => {
                 <Button
                   variant="secondary"
                   className="bg-white text-black hover:bg-gray-200"
-                  onClick={() => window.open(post.link, '_blank')}
+                  onClick={() => window.open(instagramProfileUrl, '_blank')}
                 >
                   View on Instagram
                 </Button>
@@ -99,7 +126,7 @@ export const InstagramFeed = () => {
           <Button
             size="lg"
             className="bg-gradient-to-r from-primary to-secondary text-white hover:opacity-90"
-            onClick={() => window.open('https://instagram.com', '_blank')}
+            onClick={() => window.open(instagramProfileUrl, '_blank')}
           >
             <Instagram className="mr-2 h-5 w-5" />
             Follow Us on Instagram
