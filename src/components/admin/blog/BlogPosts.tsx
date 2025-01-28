@@ -13,6 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Database } from "@/integrations/supabase/types";
 
 type PostStatus = Database["public"]["Enums"]["post_status"];
@@ -29,6 +36,7 @@ export const BlogPosts = () => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [postStatus, setPostStatus] = useState<PostStatus>("draft");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,7 +128,7 @@ export const BlogPosts = () => {
         },
         excerpt,
         featured_image: imagePath,
-        status: "published" as PostStatus,
+        status: postStatus as PostStatus,
       };
 
       if (editingPost) {
@@ -146,6 +154,7 @@ export const BlogPosts = () => {
       setSelectedImage(null);
       setImagePreview("");
       setEditingPost(null);
+      setPostStatus("draft");
       setDialogOpen(false);
       fetchPosts();
     } catch (error) {
@@ -161,6 +170,7 @@ export const BlogPosts = () => {
     setTitle(post.title);
     setContent(post.content?.blocks?.[0]?.data?.text || "");
     setExcerpt(post.excerpt || "");
+    setPostStatus(post.status as PostStatus);
     if (post.featured_image) {
       setImagePreview(
         `${supabase.storage.from("files").getPublicUrl(post.featured_image).data.publicUrl}`
@@ -233,7 +243,7 @@ export const BlogPosts = () => {
                 New Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingPost ? "Edit Post" : "Create New Post"}
@@ -269,6 +279,22 @@ export const BlogPosts = () => {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <Select
+                    value={postStatus}
+                    onValueChange={(value: PostStatus) => setPostStatus(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium mb-1">
                     Featured Image
                   </label>
@@ -282,7 +308,7 @@ export const BlogPosts = () => {
                   )}
                 </div>
 
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                   {isLoading ? "Saving..." : "Save Post"}
                 </Button>
               </form>
@@ -300,9 +326,14 @@ export const BlogPosts = () => {
             >
               <div>
                 <h3 className="font-medium">{post.title}</h3>
-                <p className="text-sm text-gray-500">
-                  {new Date(post.created_at).toLocaleDateString()}
-                </p>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {post.status}
+                  </span>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button
