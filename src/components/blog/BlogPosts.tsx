@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, User } from "lucide-react";
+import { ArrowRight, User, Heart, Share2, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ interface BlogPost {
   status: 'draft' | 'published';
   created_at: string;
   profiles: Profile;
+  content: any;
 }
 
 export const BlogPosts = () => {
@@ -74,7 +75,6 @@ export const BlogPosts = () => {
 
   const getImageUrl = (imagePath: string | null) => {
     if (!imagePath) return '/placeholder.svg';
-    if (imagePath.startsWith('http')) return imagePath;
     return `${supabase.storage.from('files').getPublicUrl(imagePath).data.publicUrl}`;
   };
 

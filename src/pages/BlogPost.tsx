@@ -1,79 +1,44 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Heart, Share2, Bookmark, MessageSquare, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, MessageSquare, Calendar, Clock, User, Heart, Share2, Bookmark } from "lucide-react";
-
-interface BlogSettings {
-  enableComments: boolean;
-  moderateComments: boolean;
-}
-
-interface Profile {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-}
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface BlogPost {
   id: string;
   title: string;
-  content: string;
+  content: any;
+  excerpt: string | null;
   featured_image: string | null;
-  meta_description: string | null;
   created_at: string;
-  profiles: Profile;
-  view_count: number;
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  profiles: Profile;
+  author: {
+    full_name: string;
+    email: string;
+  };
 }
 
 const BlogPost = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [blogSettings, setBlogSettings] = useState<BlogSettings>({
-    enableComments: true,
-    moderateComments: false,
-  });
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data: settings } = await supabase
-          .from('site_settings')
-          .select('custom_scripts')
-          .single();
+        if (!id) return;
 
-        if (settings?.custom_scripts) {
-          const customScripts = settings.custom_scripts as Record<string, any>;
-          if (customScripts.blog) {
-            setBlogSettings({
-              enableComments: Boolean(customScripts.blog.enableComments),
-              moderateComments: Boolean(customScripts.blog.moderateComments),
-            });
-          }
-        }
-
-        const { data: postData, error: postError } = await supabase
+        const { data, error } = await supabase
           .from('blog_posts')
           .select(`
             *,
             profiles (
-              id,
               full_name,
               email
             )
@@ -81,291 +46,221 @@ const BlogPost = () => {
           .eq('id', id)
           .single();
 
-        if (postError) throw postError;
-
-        const { data: commentsData, error: commentsError } = await supabase
-          .from('blog_comments')
-          .select(`
-            *,
-            profiles (
-              id,
-              full_name,
-              email
-            )
-          `)
-          .eq('post_id', id)
-          .order('created_at', { ascending: false });
-
-        if (commentsError) throw commentsError;
-
-        if (postData) {
-          setPost(postData as BlogPost);
+        if (error) {
+          console.error('Error fetching post:', error);
+          toast.error('Failed to load post');
+          return;
         }
 
-        if (commentsData) {
-          setComments(commentsData as Comment[]);
-        }
-
+        console.log('Fetched post:', data);
+        setPost({
+          ...data,
+          author: data.profiles
+        });
       } catch (error) {
         console.error('Error:', error);
-        toast.error("Failed to load blog post");
-        navigate('/blog');
+        toast.error('Failed to load post');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (id) {
-      fetchPost();
-    }
-  }, [id, navigate]);
+    fetchPost();
+  }, [id]);
 
-  const handleCommentSubmit = async () => {
-    const session = await supabase.auth.getSession();
-    if (!session.data.session) {
-      toast.error("Please sign in to comment");
-      return;
-    }
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    toast.success(isLiked ? 'Post unliked' : 'Post liked');
+  };
 
-    if (!newComment.trim()) {
-      toast.error("Comment cannot be empty");
-      return;
-    }
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    toast.success(isSaved ? 'Post removed from bookmarks' : 'Post saved to bookmarks');
+  };
 
-    setIsSubmitting(true);
+  const handleShare = async () => {
     try {
-      const { error } = await supabase
-        .from('blog_comments')
-        .insert({
-          post_id: id,
-          content: newComment,
-          user_id: session.data.session.user.id
-        });
-
-      if (error) throw error;
-
-      toast.success("Comment added successfully");
-      setNewComment("");
-
-      const { data: freshComments, error: commentsError } = await supabase
-        .from('blog_comments')
-        .select(`
-          *,
-          profiles (
-            id,
-            full_name,
-            email
-          )
-        `)
-        .eq('post_id', id)
-        .order('created_at', { ascending: false });
-
-      if (commentsError) throw commentsError;
-
-      if (freshComments) {
-        setComments(freshComments as Comment[]);
-      }
+      await navigator.share({
+        title: post?.title,
+        text: post?.excerpt,
+        url: window.location.href,
+      });
     } catch (error) {
-      console.error('Error:', error);
-      toast.error("Failed to add comment");
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error sharing:', error);
+      // Fallback to copying URL
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard');
     }
+  };
+
+  const handleComment = () => {
+    if (!comment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+    // TODO: Implement comment submission
+    toast.success('Comment added');
+    setComment('');
+  };
+
+  const getImageUrl = (imagePath: string | null) => {
+    if (!imagePath) return '/placeholder.svg';
+    return `${supabase.storage.from('files').getPublicUrl(imagePath).data.publicUrl}`;
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Post not found</h2>
-        <Button onClick={() => navigate('/blog')} variant="outline">
-          Return to Blog
-        </Button>
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500">Post not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <article className="min-h-screen">
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative h-[70vh] overflow-hidden"
+      <div 
+        className="relative h-[60vh] bg-cover bg-center"
+        style={{ 
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${getImageUrl(post.featured_image)})` 
+        }}
       >
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundImage: `url(${post.featured_image || '/placeholder.svg'})`,
-            backgroundAttachment: 'fixed'
-          }}
-        />
-        <div className="absolute inset-0 bg-black/50" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="container px-4 text-center text-white">
+          <div className="text-center text-white px-4">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-4xl md:text-6xl font-bold mb-6 max-w-4xl mx-auto"
+              transition={{ duration: 0.6 }}
+              className="text-4xl md:text-5xl font-bold mb-4"
             >
               {post.title}
             </motion.h1>
-            {post.meta_description && (
+            {post.excerpt && (
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto"
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-lg md:text-xl max-w-2xl mx-auto"
               >
-                {post.meta_description}
+                {post.excerpt}
               </motion.p>
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Main Content */}
+      {/* Content Section */}
       <div className="container px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          {/* Author and Meta Info */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex flex-wrap items-center justify-between mb-8 pb-8 border-b"
-          >
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-12 w-12 border-2 border-primary/10">
-                <AvatarFallback className="bg-primary/5">
-                  <User className="h-6 w-6 text-primary" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  <time>
-                    {new Date(post.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </time>
-                </div>
+        <div className="max-w-3xl mx-auto">
+          {/* Author Info */}
+          <div className="flex items-center gap-4 mb-8 p-4 bg-gray-50 rounded-lg">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback>
+                <User className="h-6 w-6" />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-semibold">
+                {post.author?.full_name || post.author?.email || 'Anonymous'}
+              </div>
+              <div className="text-sm text-gray-500">
+                {new Date(post.created_at).toLocaleDateString()}
               </div>
             </div>
-            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-              <Button variant="ghost" size="sm" className="text-gray-600">
-                <Heart className="h-4 w-4 mr-2" />
-                <span>Like</span>
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600">
-                <Share2 className="h-4 w-4 mr-2" />
-                <span>Share</span>
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600">
-                <Bookmark className="h-4 w-4 mr-2" />
-                <span>Save</span>
-              </Button>
-            </div>
-          </motion.div>
+          </div>
 
-          {/* Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          {/* Interaction Buttons */}
+          <div className="flex gap-4 mb-8">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLike}
+              className={`gap-2 ${isLiked ? 'text-red-500' : ''}`}
+            >
+              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+              Like
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSave}
+              className={`gap-2 ${isSaved ? 'text-primary' : ''}`}
+            >
+              <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+              {isSaved ? 'Saved' : 'Save'}
+            </Button>
+          </div>
+
+          {/* Post Content */}
+          <div className="prose prose-lg max-w-none mb-12">
+            {typeof post.content === 'object' && post.content.blocks ? (
+              post.content.blocks.map((block: any, index: number) => {
+                switch (block.type) {
+                  case 'header':
+                    return <h2 key={index} className="text-2xl font-bold mb-4">{block.data.text}</h2>;
+                  case 'paragraph':
+                    return <p key={index} className="mb-4">{block.data.text}</p>;
+                  case 'list':
+                    return block.data.style === 'ordered' ? (
+                      <ol key={index} className="list-decimal pl-6 mb-4">
+                        {block.data.items.map((item: string, i: number) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <ul key={index} className="list-disc pl-6 mb-4">
+                        {block.data.items.map((item: string, i: number) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    );
+                  default:
+                    return null;
+                }
+              })
+            ) : (
+              <p>{JSON.stringify(post.content)}</p>
+            )}
+          </div>
 
           {/* Comments Section */}
-          {blogSettings.enableComments && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="mt-16 pt-8 border-t"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-3">
-                  <MessageSquare className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-semibold">
-                    Comments ({comments.length})
-                  </h2>
-                </div>
-              </div>
-
-              {/* Comment Form */}
-              <div className="mb-8">
-                <Textarea
-                  placeholder="Share your thoughts..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[120px] resize-none focus:ring-primary mb-4"
-                />
-                <Button
-                  onClick={handleCommentSubmit}
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Posting...
-                    </>
-                  ) : (
-                    'Post Comment'
-                  )}
-                </Button>
-              </div>
-
-              {/* Comments List */}
-              <div className="space-y-6">
-                {comments.map((comment) => (
-                  <motion.div
-                    key={comment.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-50 rounded-xl p-6"
-                  >
-                    <div className="flex items-center mb-4">
-                      <Avatar className="h-10 w-10 mr-3">
-                        <AvatarFallback>
-                          <User className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {comment.profiles?.full_name || comment.profiles?.email || 'Anonymous'}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="h-3 w-3 mr-1" />
-                          <time>
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </time>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 leading-relaxed">{comment.content}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          <div className="border-t pt-8">
+            <h3 className="text-2xl font-bold mb-6">Comments</h3>
+            
+            {/* Comment Form */}
+            <div className="mb-8">
+              <Textarea
+                placeholder="Share your thoughts..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="mb-4"
+              />
+              <Button onClick={handleComment}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Add Comment
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

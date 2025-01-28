@@ -92,13 +92,25 @@ export const BlogPosts = () => {
         featured_image = await handleImageUpload(selectedImage);
       }
 
+      // Transform content to proper format
+      const transformedContent = {
+        blocks: [
+          {
+            type: "paragraph",
+            data: {
+              text: content
+            }
+          }
+        ]
+      };
+
       const { data, error } = await supabase
         .from('blog_posts')
         .insert([
           { 
             title,
             excerpt,
-            content,
+            content: transformedContent,
             featured_image,
             status: 'published',
             author_id: session.session.user.id
@@ -106,10 +118,7 @@ export const BlogPosts = () => {
         ])
         .select();
 
-      if (error) {
-        console.error('Error creating post:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       console.log('Post created:', data);
       toast.success("Post created successfully");
