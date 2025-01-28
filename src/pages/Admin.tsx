@@ -15,6 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/header/Logo";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -128,32 +129,37 @@ const Admin = () => {
       <div className="flex h-screen">
         {isMobile ? (
           <>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="fixed top-4 left-4 z-50"
-            >
+            <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b z-40 px-4 flex items-center justify-between">
+              <Logo />
               <Sheet>
                 <SheetTrigger asChild>
-                  <Menu className="h-5 w-5" />
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                  </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-80">
+                <SheetContent side="left" className="p-0 w-64">
                   <AdminSidebar profile={profile} />
                 </SheetContent>
               </Sheet>
-            </Button>
+            </div>
+            <main className="flex-1 overflow-y-auto pt-16">
+              <div className="container mx-auto py-8">
+                {renderContent()}
+              </div>
+            </main>
           </>
         ) : (
-          <div className="w-64 flex-shrink-0">
-            <AdminSidebar profile={profile} />
-          </div>
+          <>
+            <div className="w-64 flex-shrink-0">
+              <AdminSidebar profile={profile} />
+            </div>
+            <main className="flex-1 overflow-y-auto">
+              <div className="container mx-auto py-8">
+                {renderContent()}
+              </div>
+            </main>
+          </>
         )}
-        
-        <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto py-8">
-            {renderContent()}
-          </div>
-        </main>
       </div>
     </div>
   );
