@@ -1,79 +1,30 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
-import { Edit2, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Edit2 } from "lucide-react";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
-  onMoveBlock?: (blockId: string, direction: 'up' | 'down') => void;
-  onDeleteBlock?: (blockId: string) => void;
 }
 
-export const PreviewPane = ({ 
-  blocks, 
-  onSelectBlock, 
-  onMoveBlock,
-  onDeleteBlock 
-}: PreviewPaneProps) => {
+export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
   const getContentValue = (content: BlockContent, key: string): any => {
     return (content as any)[key];
   };
 
-  const handleMove = (blockId: string, direction: 'up' | 'down') => {
-    if (onMoveBlock) {
-      onMoveBlock(blockId, direction);
-      toast.success(`Block moved ${direction}`);
-    }
-  };
-
-  const handleDelete = (blockId: string) => {
-    if (onDeleteBlock) {
-      onDeleteBlock(blockId);
-      toast.success("Block deleted");
-    }
-  };
-
-  const renderBlock = (block: ContentBlock, index: number) => {
+  const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
     const blockContent = (
       <div className="group relative">
-        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onSelectBlock(block)}
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          {index > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleMove(block.id, 'up')}
-            >
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-          )}
-          {index < blocks.length - 1 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleMove(block.id, 'down')}
-            >
-              <ArrowDown className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDelete(block.id)}
-            className="text-red-500 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => onSelectBlock(block)}
+        >
+          <Edit2 className="h-4 w-4" />
+        </Button>
 
         {(() => {
           switch (block.type) {
@@ -137,7 +88,7 @@ export const PreviewPane = ({
                 </div>
               );
           }
-          })()}
+        })()}
       </div>
     );
 
@@ -151,7 +102,7 @@ export const PreviewPane = ({
   return (
     <div className="p-8 bg-white rounded-lg shadow-sm">
       {blocks.length > 0 ? (
-        blocks.map((block, index) => renderBlock(block, index))
+        blocks.map((block) => renderBlock(block))
       ) : (
         <div className="text-center text-gray-500 py-8">
           No content blocks yet. Click "Add Component" to get started.
