@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, Save, Trash2 } from "lucide-react";
@@ -19,7 +19,13 @@ export interface PageBuilderProps {
 type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
 type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 type RealtimeContentBlockPayload = RealtimePostgresChangesPayload<{
-  [key: string]: any;
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id: string;
+  created_at: string | null;
+  updated_at: string | null;
 }>;
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
