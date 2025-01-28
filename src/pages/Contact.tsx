@@ -6,15 +6,20 @@ import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
+
+interface PageData {
+  id: string;
+  content_blocks: ContentBlock[];
+}
 
 const Contact = () => {
   const [pageContent, setPageContent] = useState<{
-    hero?: ContentBlock;
-    details?: ContentBlock;
-    form?: ContentBlock;
-    faq?: ContentBlock;
-    business?: ContentBlock;
+    hero?: ContentBlock<ContactHeroContent>;
+    details?: ContentBlock<ContactDetailsContent>;
+    form?: ContentBlock<ContactFormContent>;
+    faq?: ContentBlock<ContactFAQContent>;
+    business?: ContentBlock<ContactBusinessContent>;
   }>({});
 
   useEffect(() => {
@@ -37,11 +42,12 @@ const Contact = () => {
           return;
         }
 
-        console.log('Contact page content blocks:', pages.content_blocks);
+        const typedPages = pages as PageData;
+        console.log('Contact page content blocks:', typedPages.content_blocks);
 
         // Organize content blocks by type
         const content: any = {};
-        pages.content_blocks.forEach((block: ContentBlock) => {
+        typedPages.content_blocks.forEach((block: ContentBlock) => {
           switch (block.type) {
             case 'contact_hero':
               content.hero = block;
@@ -100,11 +106,11 @@ const Contact = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen pt-20"
     >
-      <ContactHero content={pageContent.hero?.content} />
-      <ContactDetails content={pageContent.details?.content} />
-      <ContactForm content={pageContent.form?.content} />
-      <ContactFAQ content={pageContent.faq?.content} />
-      <BusinessContact content={pageContent.business?.content} />
+      <ContactHero content={pageContent.hero?.content as ContactHeroContent} />
+      <ContactDetails content={pageContent.details?.content as ContactDetailsContent} />
+      <ContactForm content={pageContent.form?.content as ContactFormContent} />
+      <ContactFAQ content={pageContent.faq?.content as ContactFAQContent} />
+      <BusinessContact content={pageContent.business?.content as ContactBusinessContent} />
     </motion.main>
   );
 };

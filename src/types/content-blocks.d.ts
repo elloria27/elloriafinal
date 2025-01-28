@@ -138,10 +138,12 @@ export interface ContactDetailsContent extends BaseBlockContent {
 }
 
 export interface ContactFormContent extends BaseBlockContent {
-  // Form configuration is managed through database schema
+  title?: string;
+  description?: string;
 }
 
 export interface ContactFAQContent extends BaseBlockContent {
+  title?: string;
   faqs?: Array<{
     question: string;
     answer: string;

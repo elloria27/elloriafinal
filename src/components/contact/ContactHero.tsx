@@ -1,10 +1,8 @@
 import { motion } from "framer-motion";
+import { ContactHeroContent } from "@/types/content-blocks";
 
 interface ContactHeroProps {
-  content?: {
-    title?: string;
-    subtitle?: string;
-  };
+  content?: ContactHeroContent;
 }
 
 export const ContactHero = ({ content }: ContactHeroProps) => {
