@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, MessageSquare } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
 interface BlogSettings {
   enableComments: boolean;
@@ -23,8 +24,8 @@ interface BlogPost {
   id: string;
   title: string;
   content: string;
-  featured_image: string;
-  meta_description: string;
+  featured_image: string | null;
+  meta_description: string | null;
   created_at: string;
   author: Author;
 }
@@ -72,7 +73,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:author_id(id, full_name, avatar_url)
+            author:profiles!blog_posts_author_id_fkey(id, full_name, avatar_url)
           `)
           .eq('id', id)
           .single();
@@ -84,7 +85,7 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            user:user_id(id, full_name, avatar_url)
+            user:profiles!blog_comments_user_id_fkey(id, full_name, avatar_url)
           `)
           .eq('post_id', id)
           .order('created_at', { ascending: false });
@@ -93,16 +94,25 @@ const BlogPost = () => {
 
         if (postData && postData.author) {
           setPost({
-            ...postData,
+            id: postData.id,
+            title: postData.title,
+            content: typeof postData.content === 'string' 
+              ? postData.content 
+              : JSON.stringify(postData.content),
+            featured_image: postData.featured_image,
+            meta_description: postData.meta_description,
+            created_at: postData.created_at || '',
             author: postData.author as Author
           });
         }
 
         if (commentsData) {
           const validComments = commentsData
-            .filter(comment => comment.user)
+            .filter(comment => comment.user && comment.user.id)
             .map(comment => ({
-              ...comment,
+              id: comment.id,
+              content: comment.content,
+              created_at: comment.created_at || '',
               user: comment.user as Author
             }));
           setComments(validComments);
@@ -154,7 +164,7 @@ const BlogPost = () => {
         .from('blog_comments')
         .select(`
           *,
-          user:user_id(id, full_name, avatar_url)
+          user:profiles!blog_comments_user_id_fkey(id, full_name, avatar_url)
         `)
         .eq('post_id', id)
         .order('created_at', { ascending: false });
@@ -163,9 +173,11 @@ const BlogPost = () => {
 
       if (freshComments) {
         const validComments = freshComments
-          .filter(comment => comment.user)
+          .filter(comment => comment.user && comment.user.id)
           .map(comment => ({
-            ...comment,
+            id: comment.id,
+            content: comment.content,
+            created_at: comment.created_at || '',
             user: comment.user as Author
           }));
         setComments(validComments);
