@@ -72,7 +72,11 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:profiles(id, full_name, avatar_url)
+            profiles!blog_posts_author_id_fkey (
+              id,
+              full_name,
+              avatar_url
+            )
           `)
           .eq('id', id)
           .single();
@@ -83,14 +87,18 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            user:profiles(id, full_name, avatar_url)
+            profiles!blog_comments_user_id_fkey (
+              id,
+              full_name,
+              avatar_url
+            )
           `)
           .eq('post_id', id)
           .order('created_at', { ascending: false });
 
         if (commentsError) throw commentsError;
 
-        if (postData && postData.author && !('error' in postData.author)) {
+        if (postData && postData.profiles) {
           setPost({
             id: postData.id,
             title: postData.title,
@@ -100,18 +108,18 @@ const BlogPost = () => {
             featured_image: postData.featured_image,
             meta_description: postData.meta_description,
             created_at: postData.created_at || '',
-            author: postData.author as Author
+            author: postData.profiles as Author
           });
         }
 
         if (commentsData) {
           const validComments = commentsData
-            .filter(comment => comment.user && !('error' in comment.user) && 'id' in comment.user)
+            .filter(comment => comment.profiles && 'id' in comment.profiles)
             .map(comment => ({
               id: comment.id,
               content: comment.content,
               created_at: comment.created_at || '',
-              user: comment.user as Author
+              user: comment.profiles as Author
             }));
           setComments(validComments);
         }
@@ -161,7 +169,11 @@ const BlogPost = () => {
         .from('blog_comments')
         .select(`
           *,
-          user:profiles(id, full_name, avatar_url)
+          profiles!blog_comments_user_id_fkey (
+            id,
+            full_name,
+            avatar_url
+          )
         `)
         .eq('post_id', id)
         .order('created_at', { ascending: false });
@@ -170,12 +182,12 @@ const BlogPost = () => {
 
       if (freshComments) {
         const validComments = freshComments
-          .filter(comment => comment.user && !('error' in comment.user) && 'id' in comment.user)
+          .filter(comment => comment.profiles && 'id' in comment.profiles)
           .map(comment => ({
             id: comment.id,
             content: comment.content,
             created_at: comment.created_at || '',
-            user: comment.user as Author
+            user: comment.profiles as Author
           }));
         setComments(validComments);
       }
