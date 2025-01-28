@@ -300,7 +300,7 @@ const BlogPost = () => {
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-3">
                   <MessageSquare className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-semib
+                  <h2 className="text-2xl font-semibold">
                     Comments ({comments.length})
                   </h2>
                 </div>
