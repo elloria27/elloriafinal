@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, Save, Trash2 } from "lucide-react";
@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
-import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -18,15 +17,6 @@ export interface PageBuilderProps {
 
 type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
 type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
-type RealtimeContentBlockPayload = RealtimePostgresChangesPayload<{
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id: string;
-  created_at: string | null;
-  updated_at: string | null;
-}>;
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -102,62 +92,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     };
 
     initializeBlocks();
-
-    // Subscribe to real-time changes
-    const channel = supabase
-      .channel('content_blocks_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'content_blocks',
-          filter: `page_id=eq.${pageId}`
-        },
-        async (payload: RealtimeContentBlockPayload) => {
-          console.log('Received real-time update:', payload);
-          
-          // Only proceed if payload.new exists and has an id
-          if (payload.new && 'id' in payload.new) {
-            const { data: updatedBlocks, error } = await supabase
-              .from('content_blocks')
-              .select('*')
-              .eq('page_id', pageId)
-              .order('order_index');
-
-            if (error) {
-              console.error('Error fetching updated blocks:', error);
-              return;
-            }
-
-            if (updatedBlocks) {
-              const transformedBlocks: ContentBlock[] = updatedBlocks.map(block => ({
-                id: block.id,
-                type: block.type as BlockType,
-                content: block.content as BlockContent,
-                order_index: block.order_index,
-                page_id: block.page_id,
-                created_at: block.created_at,
-                updated_at: block.updated_at
-              }));
-              setBlocks(transformedBlocks);
-              
-              // Update selected block if it was modified
-              if (selectedBlock && payload.new.id === selectedBlock.id) {
-                const updatedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
-                if (updatedBlock) {
-                  setSelectedBlock(updatedBlock);
-                }
-              }
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [pageId, initialBlocks]);
 
   const handleDragEnd = async (result: any) => {
@@ -176,10 +110,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       const updatePromises = updatedBlocks.map(block => 
         supabase
           .from('content_blocks')
-          .update({ 
-            order_index: block.order_index,
-            updated_at: new Date().toISOString()
-          })
+          .update({ order_index: block.order_index })
           .eq('id', block.id)
       );
 
@@ -229,7 +160,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       type: blockType,
       content: defaultContent,
       order_index: blocks.length,
-      page_id: pageId,
     };
 
     try {
@@ -263,22 +193,19 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ 
-          content,
-          updated_at: new Date().toISOString()
-        })
+        .update({ content })
         .eq('id', blockId);
 
       if (error) throw error;
 
       setBlocks(prevBlocks => 
         prevBlocks.map(block => 
-          block.id === blockId ? { ...block, content, updated_at: new Date().toISOString() } : block
+          block.id === blockId ? { ...block, content } : block
         )
       );
       
       setSelectedBlock(prev => 
-        prev?.id === blockId ? { ...prev, content, updated_at: new Date().toISOString() } : prev
+        prev?.id === blockId ? { ...prev, content } : prev
       );
       
       toast.success("Block updated successfully");

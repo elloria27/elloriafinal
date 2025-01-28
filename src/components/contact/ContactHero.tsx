@@ -1,11 +1,6 @@
 import { motion } from "framer-motion";
-import { ContactHeroContent } from "@/types/content-blocks";
 
-interface ContactHeroProps {
-  content?: ContactHeroContent;
-}
-
-export const ContactHero = ({ content }: ContactHeroProps) => {
+export const ContactHero = () => {
   return (
     <section className="relative bg-gradient-to-r from-primary/10 to-secondary/10 py-20">
       <div className="container mx-auto px-4">
@@ -16,10 +11,10 @@ export const ContactHero = ({ content }: ContactHeroProps) => {
           className="text-center"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {content?.title || "We'd Love to Hear From You!"}
+            We'd Love to Hear From You!
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            {content?.subtitle || "Whether you have questions, feedback, or collaboration ideas, we're here for you."}
+            Whether you have questions, feedback, or collaboration ideas, we're here for you.
           </p>
         </motion.div>
       </div>
