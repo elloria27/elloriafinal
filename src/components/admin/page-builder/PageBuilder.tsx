@@ -24,37 +24,53 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [showComponentPicker, setShowComponentPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchBlocks = async () => {
+    try {
+      console.log('Fetching blocks for page:', pageId);
+      const { data: dbBlocks, error } = await supabase
+        .from('content_blocks')
+        .select('*')
+        .eq('page_id', pageId)
+        .order('order_index');
+
+      if (error) {
+        console.error('Error fetching blocks:', error);
+        throw error;
+      }
+
+      if (dbBlocks) {
+        const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
+          id: block.id,
+          type: block.type as BlockType,
+          content: block.content as BlockContent,
+          order_index: block.order_index,
+          page_id: block.page_id,
+          created_at: block.created_at,
+          updated_at: block.updated_at
+        }));
+        console.log('Setting blocks from DB:', transformedBlocks);
+        setBlocks(transformedBlocks);
+        
+        // Update selected block if it exists
+        if (selectedBlock) {
+          const updatedSelectedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
+          if (updatedSelectedBlock) {
+            setSelectedBlock(updatedSelectedBlock);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching blocks:', error);
+      toast.error("Failed to fetch blocks");
+    }
+  };
+
   useEffect(() => {
     const initializeBlocks = async () => {
       console.log('Initializing blocks for page:', pageId);
       try {
-        const { data: dbBlocks, error } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pageId)
-          .order('order_index');
-
-        if (error) {
-          console.error('Error fetching blocks from DB:', error);
-          throw error;
-        }
-
-        console.log('Blocks from DB:', dbBlocks);
-
-        if (dbBlocks && dbBlocks.length > 0) {
-          const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
-            id: block.id,
-            type: block.type as BlockType,
-            content: block.content as BlockContent,
-            order_index: block.order_index,
-            page_id: block.page_id,
-            created_at: block.created_at,
-            updated_at: block.updated_at
-          }));
-          console.log('Setting blocks from DB:', transformedBlocks);
-          setBlocks(transformedBlocks);
-        } else if (initialBlocks && initialBlocks.length > 0) {
-          console.log('No blocks in DB, using initial blocks:', initialBlocks);
+        if (initialBlocks && initialBlocks.length > 0) {
+          console.log('Using initial blocks:', initialBlocks);
           const savedBlocks = await Promise.all(
             initialBlocks.map(async (block, index) => {
               const insertData: ContentBlockInsert = {
@@ -82,6 +98,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
           console.log('Saved initial blocks to DB:', savedBlocks);
           setBlocks(initialBlocks);
+        } else {
+          await fetchBlocks();
         }
       } catch (error) {
         console.error('Error initializing blocks:', error);
@@ -92,6 +110,28 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     };
 
     initializeBlocks();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('content_blocks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'content_blocks',
+          filter: `page_id=eq.${pageId}`
+        },
+        (payload) => {
+          console.log('Content block changed:', payload);
+          fetchBlocks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [pageId, initialBlocks]);
 
   const handleDragEnd = async (result: any) => {
@@ -133,13 +173,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks(prevBlocks => {
-        const updatedBlocks = prevBlocks.filter(block => block.id !== blockId);
-        return updatedBlocks.map((block, index) => ({
-          ...block,
-          order_index: index
-        }));
-      });
+      await fetchBlocks();
 
       if (selectedBlock?.id === blockId) {
         setSelectedBlock(null);
@@ -178,7 +212,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks(prevBlocks => [...prevBlocks, newBlock]);
+      await fetchBlocks();
       setShowComponentPicker(false);
       setSelectedBlock(newBlock);
       toast.success("Block added successfully");
@@ -198,16 +232,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks(prevBlocks => 
-        prevBlocks.map(block => 
-          block.id === blockId ? { ...block, content } : block
-        )
-      );
-      
-      setSelectedBlock(prev => 
-        prev?.id === blockId ? { ...prev, content } : prev
-      );
-      
+      await fetchBlocks();
       toast.success("Block updated successfully");
     } catch (error) {
       console.error('Error updating block:', error);
