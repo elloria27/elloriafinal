@@ -8,6 +8,11 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentBlock } from "@/types/content-blocks";
 
+interface PageData {
+  id: string;
+  content_blocks: ContentBlock[];
+}
+
 const Contact = () => {
   const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,7 +21,7 @@ const Contact = () => {
     const fetchPageContent = async () => {
       try {
         console.log('Fetching contact page content');
-        const { data: pages, error } = await supabase
+        const { data: page, error } = await supabase
           .from('pages')
           .select('id, content_blocks')
           .eq('slug', 'contact')
@@ -27,9 +32,11 @@ const Contact = () => {
           return;
         }
 
-        if (pages?.content_blocks) {
-          console.log('Found content blocks:', pages.content_blocks);
-          setPageContent(pages.content_blocks as ContentBlock[]);
+        if (page?.content_blocks) {
+          console.log('Found content blocks:', page.content_blocks);
+          // Cast the content_blocks to ContentBlock[] type
+          const typedBlocks = page.content_blocks as unknown as ContentBlock[];
+          setPageContent(typedBlocks);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -50,12 +57,6 @@ const Contact = () => {
     return block?.content || {};
   };
 
-  const heroContent = getBlockContent('contact_hero');
-  const detailsContent = getBlockContent('contact_details');
-  const formContent = getBlockContent('contact_form');
-  const faqContent = getBlockContent('contact_faq');
-  const businessContent = getBlockContent('contact_business');
-
   return (
     <motion.main
       initial={{ opacity: 0 }}
@@ -63,11 +64,11 @@ const Contact = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen pt-20"
     >
-      <ContactHero content={heroContent} />
-      <ContactDetails content={detailsContent} />
-      <ContactForm content={formContent} />
-      <ContactFAQ content={faqContent} />
-      <BusinessContact content={businessContent} />
+      <ContactHero content={getBlockContent('contact_hero')} />
+      <ContactDetails />
+      <ContactForm />
+      <ContactFAQ />
+      <BusinessContact />
     </motion.main>
   );
 };
