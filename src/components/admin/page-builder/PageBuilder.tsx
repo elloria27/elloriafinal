@@ -120,6 +120,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }));
 
     try {
+      console.log('Updating block order:', updatedBlocks);
       const updatePromises = updatedBlocks.map(block => 
         supabase
           .from('content_blocks')
@@ -201,11 +202,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content })
+        .update({ 
+          content,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', blockId);
 
       if (error) throw error;
 
+      // Fetch updated blocks to ensure UI reflects latest changes
       await fetchBlocks();
       toast.success("Block updated successfully");
     } catch (error) {
