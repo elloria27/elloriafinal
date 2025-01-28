@@ -10,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const BlogCategories = () => {
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<any>(null);
   const [name, setName] = useState("");
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,35 @@ export const BlogCategories = () => {
     }
   };
 
+  const handleEditCategory = async () => {
+    try {
+      if (!currentCategory) return;
+
+      const slug = name.toLowerCase().replace(/\s+/g, '-');
+      
+      const { error } = await supabase
+        .from('blog_categories')
+        .update({ 
+          name,
+          slug,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentCategory.id);
+
+      if (error) throw error;
+
+      toast.success("Category updated successfully");
+      setOpen(false);
+      setEditMode(false);
+      setCurrentCategory(null);
+      setName("");
+      fetchCategories();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error("Failed to update category");
+    }
+  };
+
   const handleDeleteCategory = async (categoryId: string) => {
     try {
       const { error } = await supabase
@@ -83,6 +114,13 @@ export const BlogCategories = () => {
     }
   };
 
+  const openEditDialog = (category: any) => {
+    setCurrentCategory(category);
+    setName(category.name);
+    setEditMode(true);
+    setOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -95,7 +133,14 @@ export const BlogCategories = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Categories</h3>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(newOpen) => {
+          if (!newOpen) {
+            setEditMode(false);
+            setCurrentCategory(null);
+            setName("");
+          }
+          setOpen(newOpen);
+        }}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -104,7 +149,7 @@ export const BlogCategories = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Category</DialogTitle>
+              <DialogTitle>{editMode ? 'Edit Category' : 'Create New Category'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -116,8 +161,11 @@ export const BlogCategories = () => {
                   placeholder="Enter category name"
                 />
               </div>
-              <Button onClick={handleCreateCategory} className="w-full">
-                Create Category
+              <Button 
+                onClick={editMode ? handleEditCategory : handleCreateCategory}
+                className="w-full"
+              >
+                {editMode ? 'Update Category' : 'Create Category'}
               </Button>
             </div>
           </DialogContent>
@@ -141,7 +189,11 @@ export const BlogCategories = () => {
                     <p className="text-sm text-gray-500">/{category.slug}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => openEditDialog(category)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button 

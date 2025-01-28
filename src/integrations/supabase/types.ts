@@ -56,9 +56,11 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           published_at: string | null
+          slug: string | null
           status: Database["public"]["Enums"]["post_status"]
           title: string
           updated_at: string | null
+          view_count: number | null
         }
         Insert: {
           author_id?: string | null
@@ -71,9 +73,11 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          slug?: string | null
           status?: Database["public"]["Enums"]["post_status"]
           title: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Update: {
           author_id?: string | null
@@ -86,9 +90,11 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           published_at?: string | null
+          slug?: string | null
           status?: Database["public"]["Enums"]["post_status"]
           title?: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -684,6 +690,12 @@ export type Database = {
           page_path: string
           count: number
         }[]
+      }
+      increment_post_view_count: {
+        Args: {
+          post_id: string
+        }
+        Returns: undefined
       }
       is_admin: {
         Args: {

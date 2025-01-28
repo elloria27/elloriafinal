@@ -12,6 +12,8 @@ import { format } from "date-fns";
 
 export const BlogPosts = () => {
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [currentPost, setCurrentPost] = useState<any>(null);
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
@@ -93,7 +95,7 @@ export const BlogPosts = () => {
             title,
             excerpt,
             featured_image,
-            status: 'draft',
+            status: 'published', // Changed from 'draft' to 'published'
             content: {},
             author_id: session.session.user.id
           }
@@ -118,6 +120,42 @@ export const BlogPosts = () => {
     }
   };
 
+  const handleEditPost = async () => {
+    try {
+      if (!currentPost) return;
+
+      let featured_image = currentPost.featured_image;
+      
+      if (selectedImage) {
+        featured_image = await handleImageUpload(selectedImage);
+      }
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .update({ 
+          title,
+          excerpt,
+          featured_image,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentPost.id);
+
+      if (error) throw error;
+
+      toast.success("Post updated successfully");
+      setOpen(false);
+      setEditMode(false);
+      setCurrentPost(null);
+      setTitle("");
+      setExcerpt("");
+      setSelectedImage(null);
+      fetchPosts();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast.error("Failed to update post");
+    }
+  };
+
   const handleDeletePost = async (postId: string) => {
     try {
       const { error } = await supabase
@@ -135,6 +173,14 @@ export const BlogPosts = () => {
     }
   };
 
+  const openEditDialog = (post: any) => {
+    setCurrentPost(post);
+    setTitle(post.title);
+    setExcerpt(post.excerpt || '');
+    setEditMode(true);
+    setOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -147,7 +193,16 @@ export const BlogPosts = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Blog Posts</h3>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(newOpen) => {
+          if (!newOpen) {
+            setEditMode(false);
+            setCurrentPost(null);
+            setTitle("");
+            setExcerpt("");
+            setSelectedImage(null);
+          }
+          setOpen(newOpen);
+        }}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -156,7 +211,7 @@ export const BlogPosts = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
-              <DialogTitle>Create New Post</DialogTitle>
+              <DialogTitle>{editMode ? 'Edit Post' : 'Create New Post'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -186,8 +241,11 @@ export const BlogPosts = () => {
                   onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
                 />
               </div>
-              <Button onClick={handleCreatePost} className="w-full">
-                Create Post
+              <Button 
+                onClick={editMode ? handleEditPost : handleCreatePost} 
+                className="w-full"
+              >
+                {editMode ? 'Update Post' : 'Create Post'}
               </Button>
             </div>
           </DialogContent>
@@ -222,7 +280,11 @@ export const BlogPosts = () => {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => openEditDialog(post)}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button 
