@@ -26,6 +26,8 @@ export const BlogPosts = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [editingPost, setEditingPost] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +46,24 @@ export const BlogPosts = () => {
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Failed to fetch posts");
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const { data: comments, error } = await supabase
+        .from("blog_comments")
+        .select(`
+          *,
+          profiles:profiles(full_name)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setComments(comments || []);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      toast.error("Failed to fetch comments");
     }
   };
 
@@ -160,112 +180,175 @@ export const BlogPosts = () => {
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("blog_comments")
+        .delete()
+        .eq("id", commentId);
+      
+      if (error) throw error;
+      toast.success("Comment deleted successfully");
+      fetchComments();
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error("Failed to delete comment");
+    }
+  };
+
   const handleView = (post: any) => {
     navigate(`/blog/${post.id}`);
   };
 
   return (
     <div className="space-y-6">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="mb-4">
-            <Plus className="h-4 w-4 mr-2" />
-            New Post
+      <div className="flex justify-between items-center">
+        <div className="space-x-2">
+          <Button 
+            variant={!showComments ? "default" : "outline"}
+            onClick={() => setShowComments(false)}
+          >
+            Posts
           </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingPost ? "Edit Post" : "Create New Post"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+          <Button 
+            variant={showComments ? "default" : "outline"}
+            onClick={() => {
+              setShowComments(true);
+              fetchComments();
+            }}
+          >
+            Comments
+          </Button>
+        </div>
+        {!showComments && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Post
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingPost ? "Edit Post" : "Create New Post"}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Content</label>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                className="min-h-[200px]"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Content</label>
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                    className="min-h-[200px]"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Excerpt</label>
-              <Textarea
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                required
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Excerpt</label>
+                  <Textarea
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    required
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Featured Image
-              </label>
-              <Input type="file" onChange={handleImageChange} accept="image/*" />
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="mt-2 max-h-40 object-cover rounded"
-                />
-              )}
-            </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Featured Image
+                  </label>
+                  <Input type="file" onChange={handleImageChange} accept="image/*" />
+                  {imagePreview && (
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="mt-2 max-h-40 object-cover rounded"
+                    />
+                  )}
+                </div>
 
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Post"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save Post"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
 
       <div className="grid gap-4">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
-          >
-            <div>
-              <h3 className="font-medium">{post.title}</h3>
-              <p className="text-sm text-gray-500">
-                {new Date(post.created_at).toLocaleDateString()}
-              </p>
+        {!showComments ? (
+          posts.map((post) => (
+            <div
+              key={post.id}
+              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+            >
+              <div>
+                <h3 className="font-medium">{post.title}</h3>
+                <p className="text-sm text-gray-500">
+                  {new Date(post.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleView(post)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEdit(post)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(post.id)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
+          ))
+        ) : (
+          comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+            >
+              <div>
+                <h3 className="font-medium">{comment.profiles?.full_name || 'Anonymous'}</h3>
+                <p className="text-sm text-gray-600">{comment.content}</p>
+                <p className="text-xs text-gray-500">
+                  {new Date(comment.created_at).toLocaleDateString()}
+                </p>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleView(post)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEdit(post)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDelete(post.id)}
+                onClick={() => handleDeleteComment(comment.id)}
               >
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
