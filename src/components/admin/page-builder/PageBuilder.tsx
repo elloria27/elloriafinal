@@ -190,37 +190,25 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
     try {
-      // Update the block in the database
+      console.log('Updating block:', blockId, content);
       const { error } = await supabase
         .from('content_blocks')
-        .update({ 
-          content,
-          updated_at: new Date().toISOString()
-        })
+        .update({ content })
         .eq('id', blockId);
 
       if (error) throw error;
 
-      // Update local state
-      setBlocks(prevBlocks =>
-        prevBlocks.map(block =>
+      setBlocks(prevBlocks => 
+        prevBlocks.map(block => 
           block.id === blockId ? { ...block, content } : block
         )
       );
-
-      // Fetch updated blocks to ensure we have the latest data
-      const { data: updatedBlocks, error: fetchError } = await supabase
-        .from('content_blocks')
-        .select('*')
-        .eq('page_id', pageId)
-        .order('order_index');
-
-      if (fetchError) throw fetchError;
-
-      if (updatedBlocks) {
-        setBlocks(updatedBlocks as ContentBlock[]);
-      }
-
+      
+      setSelectedBlock(prev => 
+        prev?.id === blockId ? { ...prev, content } : prev
+      );
+      
+      toast.success("Block updated successfully");
     } catch (error) {
       console.error('Error updating block:', error);
       toast.error("Failed to update block");
@@ -303,7 +291,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={handleUpdateBlock}
+            onUpdate={(blockId, content) => handleUpdateBlock(blockId, content)}
           />
         </div>
       )}
