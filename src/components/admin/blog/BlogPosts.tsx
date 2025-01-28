@@ -1,28 +1,29 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
-import { Editor } from "@/components/ui/editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Pencil, Trash, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const BlogPosts = () => {
-  const [open, setOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [currentPost, setCurrentPost] = useState<any>(null);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState<any>({
-    blocks: []
-  });
-  const [excerpt, setExcerpt] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [excerpt, setExcerpt] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -30,309 +31,235 @@ export const BlogPosts = () => {
 
   const fetchPosts = async () => {
     try {
-      console.log('Fetching blog posts...');
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.user?.id) {
-        console.error('No user session found');
-        return;
-      }
+      const { data: posts, error } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*, blog_categories(name)')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching posts:', error);
-        throw error;
-      }
-
-      console.log('Posts fetched:', data);
-      setPosts(data || []);
+      if (error) throw error;
+      setPosts(posts || []);
     } catch (error) {
-      console.error('Error in fetchPosts:', error);
+      console.error("Error fetching posts:", error);
       toast.error("Failed to fetch posts");
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleImageUpload = async (file: File) => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
-      const { error: uploadError, data } = await supabase.storage
-        .from('files')
+  const uploadImage = async (file: File) => {
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `blog/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("files")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       return filePath;
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
       throw error;
     }
   };
 
-  const handleCreatePost = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
     try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.user?.id) {
-        toast.error("You must be logged in to create posts");
-        return;
-      }
+      let imagePath = editingPost?.featured_image || null;
 
-      let featured_image = null;
-      
       if (selectedImage) {
-        featured_image = await handleImageUpload(selectedImage);
+        imagePath = await uploadImage(selectedImage);
       }
 
-      // Transform content to proper format
-      const transformedContent = {
-        blocks: [
-          {
-            type: "paragraph",
-            data: {
-              text: content
+      const postData = {
+        title,
+        content: {
+          blocks: [
+            {
+              type: "paragraph",
+              data: {
+                text: content
+              }
             }
-          }
-        ]
+          ]
+        },
+        excerpt,
+        featured_image: imagePath,
+        status: "published",
       };
 
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .insert([
-          { 
-            title,
-            excerpt,
-            content: transformedContent,
-            featured_image,
-            status: 'published',
-            author_id: session.session.user.id
-          }
-        ])
-        .select();
+      if (editingPost) {
+        const { error } = await supabase
+          .from("blog_posts")
+          .update(postData)
+          .eq("id", editingPost.id);
 
-      if (error) throw error;
-
-      console.log('Post created:', data);
-      toast.success("Post created successfully");
-      setOpen(false);
-      setTitle("");
-      setExcerpt("");
-      setContent({ blocks: [] });
-      setSelectedImage(null);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error("Failed to create post");
-    }
-  };
-
-  const handleEditPost = async () => {
-    try {
-      if (!currentPost) return;
-
-      let featured_image = currentPost.featured_image;
-      
-      if (selectedImage) {
-        featured_image = await handleImageUpload(selectedImage);
+        if (error) throw error;
+        toast.success("Post updated successfully");
+      } else {
+        const { error } = await supabase.from("blog_posts").insert([postData]);
+        if (error) throw error;
+        toast.success("Post created successfully");
       }
 
-      const { error } = await supabase
-        .from('blog_posts')
-        .update({ 
-          title,
-          excerpt,
-          content,
-          featured_image,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', currentPost.id);
-
-      if (error) throw error;
-
-      toast.success("Post updated successfully");
-      setOpen(false);
-      setEditMode(false);
-      setCurrentPost(null);
       setTitle("");
+      setContent("");
       setExcerpt("");
-      setContent({ blocks: [] });
       setSelectedImage(null);
+      setImagePreview("");
+      setEditingPost(null);
       fetchPosts();
     } catch (error) {
-      console.error('Error updating post:', error);
-      toast.error("Failed to update post");
+      console.error("Error saving post:", error);
+      toast.error("Failed to save post");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
+  const handleEdit = (post: any) => {
+    setEditingPost(post);
+    setTitle(post.title);
+    setContent(post.content?.blocks?.[0]?.data?.text || "");
+    setExcerpt(post.excerpt || "");
+    if (post.featured_image) {
+      setImagePreview(
+        `${supabase.storage.from("files").getPublicUrl(post.featured_image).data.publicUrl}`
+      );
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
     try {
-      const { error } = await supabase
-        .from('blog_posts')
-        .delete()
-        .eq('id', postId);
-
+      const { error } = await supabase.from("blog_posts").delete().eq("id", id);
       if (error) throw error;
-
       toast.success("Post deleted successfully");
       fetchPosts();
     } catch (error) {
-      console.error('Error deleting post:', error);
+      console.error("Error deleting post:", error);
       toast.error("Failed to delete post");
     }
   };
 
-  const openEditDialog = (post: any) => {
-    setCurrentPost(post);
-    setTitle(post.title);
-    setExcerpt(post.excerpt || '');
-    setContent(post.content || { blocks: [] });
-    setEditMode(true);
-    setOpen(true);
+  const handleView = (post: any) => {
+    navigate(`/blog/${post.id}`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Blog Posts</h3>
-        <Dialog open={open} onOpenChange={(newOpen) => {
-          if (!newOpen) {
-            setEditMode(false);
-            setCurrentPost(null);
-            setTitle("");
-            setExcerpt("");
-            setContent({ blocks: [] });
-            setSelectedImage(null);
-          }
-          setOpen(newOpen);
-        }}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              New Post
+    <div className="space-y-6">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button className="mb-4">
+            <Plus className="h-4 w-4 mr-2" />
+            New Post
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPost ? "Edit Post" : "Create New Post"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Content</label>
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                className="min-h-[200px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Excerpt</label>
+              <Textarea
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Featured Image
+              </label>
+              <Input type="file" onChange={handleImageChange} accept="image/*" />
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="mt-2 max-h-40 object-cover rounded"
+                />
+              )}
+            </div>
+
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Post"}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[725px]">
-            <DialogHeader>
-              <DialogTitle>{editMode ? 'Edit Post' : 'Create New Post'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter post title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Excerpt</Label>
-                <Textarea
-                  id="excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="Enter post excerpt"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                <Editor
-                  value={content}
-                  onChange={setContent}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="image">Featured Image</Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-                />
-              </div>
-              <Button 
-                onClick={editMode ? handleEditPost : handleCreatePost} 
-                className="w-full"
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <div className="grid gap-4">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+          >
+            <div>
+              <h3 className="font-medium">{post.title}</h3>
+              <p className="text-sm text-gray-500">
+                {new Date(post.created_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleView(post)}
               >
-                {editMode ? 'Update Post' : 'Create Post'}
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleEdit(post)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDelete(post.id)}
+              >
+                <Trash className="h-4 w-4" />
               </Button>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      <div className="grid gap-4">
-        {posts.length === 0 ? (
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-500">No posts found. Create your first blog post!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex items-start gap-4 p-4">
-                  {post.featured_image && (
-                    <img
-                      src={`${supabase.storage.from('files').getPublicUrl(post.featured_image).data.publicUrl}`}
-                      alt={post.title}
-                      className="w-24 h-24 object-cover rounded"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{post.title}</h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {format(new Date(post.created_at), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => openEditDialog(post)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleDeletePost(post.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2">{post.excerpt}</p>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
-                        {post.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );
