@@ -13,6 +13,12 @@ interface BlogSettings {
   moderateComments: boolean;
 }
 
+interface Author {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+}
+
 interface BlogPost {
   id: string;
   title: string;
@@ -20,20 +26,14 @@ interface BlogPost {
   featured_image: string;
   meta_description: string;
   created_at: string;
-  author: {
-    full_name: string;
-    avatar_url?: string;
-  };
+  author: Author;
 }
 
 interface Comment {
   id: string;
   content: string;
   created_at: string;
-  user: {
-    full_name: string;
-    avatar_url?: string;
-  };
+  user: Author;
 }
 
 const BlogPost = () => {
@@ -67,7 +67,6 @@ const BlogPost = () => {
           }
         }
 
-        // First get the blog post with author information
         const { data: postData, error: postError } = await supabase
           .from('blog_posts')
           .select(`
@@ -79,7 +78,6 @@ const BlogPost = () => {
 
         if (postError) throw postError;
 
-        // Then get the comments with user information
         const { data: commentsData, error: commentsError } = await supabase
           .from('blog_comments')
           .select(`
@@ -91,13 +89,15 @@ const BlogPost = () => {
 
         if (commentsError) throw commentsError;
 
-        if (postData && postData.author) {
-          setPost(postData as BlogPost);
+        if (postData && postData.author && typeof postData.author.full_name === 'string') {
+          setPost(postData as unknown as BlogPost);
         }
 
         if (commentsData) {
-          const validComments = commentsData.filter(comment => comment.user);
-          setComments(validComments as Comment[]);
+          const validComments = commentsData.filter(
+            comment => comment.user && typeof comment.user.full_name === 'string'
+          );
+          setComments(validComments as unknown as Comment[]);
         }
 
       } catch (error) {
@@ -141,15 +141,11 @@ const BlogPost = () => {
       toast.success("Comment added successfully");
       setNewComment("");
 
-      // Refresh comments
       const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
           *,
-          user:user_id(
-            full_name,
-            avatar_url
-          )
+          user:profiles(id, full_name, avatar_url)
         `)
         .eq('post_id', id)
         .order('created_at', { ascending: false });
