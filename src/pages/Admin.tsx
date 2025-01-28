@@ -143,13 +143,11 @@ const Admin = () => {
           </div>
         )}
         
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-6">
-            <div className="container mx-auto">
-              {renderContent()}
-            </div>
-          </main>
-        </div>
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="container mx-auto">
+            {renderContent()}
+          </div>
+        </main>
       </div>
     </div>
   );
