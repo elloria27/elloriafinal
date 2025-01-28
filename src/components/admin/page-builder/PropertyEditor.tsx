@@ -44,8 +44,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     if (!content || !('faqs' in content)) {
       return [];
     }
-    const contactFAQContent = content as ContactFAQContent;
-    return Array.isArray(contactFAQContent.faqs) ? contactFAQContent.faqs : [];
+    const faqContent = content as ContactFAQContent;
+    return Array.isArray(faqContent.faqs) ? faqContent.faqs : [];
   };
 
   const renderFields = () => {
@@ -57,7 +57,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Title</Label>
               <Input
-                value={heroContent.title || ''}
+                value={String(heroContent.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Enter hero title"
               />
@@ -65,7 +65,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Subtitle</Label>
               <Textarea
-                value={heroContent.subtitle || ''}
+                value={String(heroContent.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
                 placeholder="Enter hero subtitle"
               />
@@ -80,7 +80,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Address</Label>
               <Input
-                value={detailsContent.address || ''}
+                value={String(detailsContent.address || '')}
                 onChange={(e) => handleChange('address', e.target.value)}
                 placeholder="Enter address"
               />
@@ -88,7 +88,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Phone</Label>
               <Input
-                value={detailsContent.phone || ''}
+                value={String(detailsContent.phone || '')}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="Enter phone number"
               />
@@ -96,7 +96,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
-                value={detailsContent.email || ''}
+                value={String(detailsContent.email || '')}
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="Enter email address"
               />
@@ -111,7 +111,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Form Title</Label>
               <Input
-                value={formContent.title || ''}
+                value={String(formContent.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Enter form title"
               />
@@ -119,7 +119,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Form Description</Label>
               <Textarea
-                value={formContent.description || ''}
+                value={String(formContent.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="Enter form description"
               />
@@ -127,7 +127,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Submit Button Text</Label>
               <Input
-                value={formContent.submitButtonText || ''}
+                value={String(formContent.submitButtonText || '')}
                 onChange={(e) => handleChange('submitButtonText', e.target.value)}
                 placeholder="Enter button text"
               />
@@ -176,7 +176,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <div className="space-y-2">
                   <Label>Question</Label>
                   <Input
-                    value={faq.question}
+                    value={String(faq.question)}
                     onChange={(e) => {
                       const newFaqs = [...getFAQs()];
                       newFaqs[index] = { ...newFaqs[index], question: e.target.value };
@@ -188,7 +188,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <div className="space-y-2">
                   <Label>Answer</Label>
                   <Textarea
-                    value={faq.answer}
+                    value={String(faq.answer)}
                     onChange={(e) => {
                       const newFaqs = [...getFAQs()];
                       newFaqs[index] = { ...newFaqs[index], answer: e.target.value };
@@ -208,7 +208,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Title</Label>
               <Input
-                value={businessContent.title || ''}
+                value={String(businessContent.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
                 placeholder="Enter business section title"
               />
@@ -216,7 +216,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Description</Label>
               <Textarea
-                value={businessContent.description || ''}
+                value={String(businessContent.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
                 placeholder="Enter business section description"
               />
@@ -224,7 +224,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
-                value={businessContent.email || ''}
+                value={String(businessContent.email || '')}
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="Enter business email"
               />
@@ -232,7 +232,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Button Text</Label>
               <Input
-                value={businessContent.buttonText || ''}
+                value={String(businessContent.buttonText || '')}
                 onChange={(e) => handleChange('buttonText', e.target.value)}
                 placeholder="Enter button text"
               />
@@ -240,7 +240,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div className="space-y-2">
               <Label>Button Link</Label>
               <Input
-                value={businessContent.buttonLink || ''}
+                value={String(businessContent.buttonLink || '')}
                 onChange={(e) => handleChange('buttonLink', e.target.value)}
                 placeholder="Enter button link"
               />
