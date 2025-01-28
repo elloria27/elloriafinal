@@ -6,18 +6,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, MessageSquare } from "lucide-react";
-import { Database } from "@/integrations/supabase/types";
+import { Loader2, MessageSquare, User } from "lucide-react";
 
 interface BlogSettings {
   enableComments: boolean;
   moderateComments: boolean;
 }
 
-interface Author {
+interface Profile {
   id: string;
-  full_name: string;
-  avatar_url?: string;
+  full_name: string | null;
+  email: string | null;
 }
 
 interface BlogPost {
@@ -27,14 +26,14 @@ interface BlogPost {
   featured_image: string | null;
   meta_description: string | null;
   created_at: string;
-  author: Author;
+  profiles: Profile;
 }
 
 interface Comment {
   id: string;
   content: string;
   created_at: string;
-  user: Author;
+  profiles: Profile;
 }
 
 const BlogPost = () => {
@@ -53,6 +52,7 @@ const BlogPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        console.log('Fetching blog post and settings...');
         const { data: settings } = await supabase
           .from('site_settings')
           .select('custom_scripts')
@@ -72,10 +72,10 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            profiles!blog_posts_author_id_fkey (
+            profiles (
               id,
               full_name,
-              avatar_url
+              email
             )
           `)
           .eq('id', id)
@@ -87,10 +87,10 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            profiles!blog_comments_user_id_fkey (
+            profiles (
               id,
               full_name,
-              avatar_url
+              email
             )
           `)
           .eq('post_id', id)
@@ -98,30 +98,15 @@ const BlogPost = () => {
 
         if (commentsError) throw commentsError;
 
-        if (postData && postData.profiles) {
-          setPost({
-            id: postData.id,
-            title: postData.title,
-            content: typeof postData.content === 'string' 
-              ? postData.content 
-              : JSON.stringify(postData.content),
-            featured_image: postData.featured_image,
-            meta_description: postData.meta_description,
-            created_at: postData.created_at || '',
-            author: postData.profiles as Author
-          });
+        console.log('Fetched post:', postData);
+        console.log('Fetched comments:', commentsData);
+
+        if (postData) {
+          setPost(postData as BlogPost);
         }
 
         if (commentsData) {
-          const validComments = commentsData
-            .filter(comment => comment.profiles && 'id' in comment.profiles)
-            .map(comment => ({
-              id: comment.id,
-              content: comment.content,
-              created_at: comment.created_at || '',
-              user: comment.profiles as Author
-            }));
-          setComments(validComments);
+          setComments(commentsData as Comment[]);
         }
 
       } catch (error) {
@@ -165,14 +150,15 @@ const BlogPost = () => {
       toast.success("Comment added successfully");
       setNewComment("");
 
+      // Refresh comments
       const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
           *,
-          profiles!blog_comments_user_id_fkey (
+          profiles (
             id,
             full_name,
-            avatar_url
+            email
           )
         `)
         .eq('post_id', id)
@@ -181,15 +167,7 @@ const BlogPost = () => {
       if (commentsError) throw commentsError;
 
       if (freshComments) {
-        const validComments = freshComments
-          .filter(comment => comment.profiles && 'id' in comment.profiles)
-          .map(comment => ({
-            id: comment.id,
-            content: comment.content,
-            created_at: comment.created_at || '',
-            user: comment.profiles as Author
-          }));
-        setComments(validComments);
+        setComments(freshComments as Comment[]);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -232,10 +210,10 @@ const BlogPost = () => {
           <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
             <div className="flex items-center">
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={post.author?.avatar_url} />
-                <AvatarFallback>{post.author?.full_name?.[0]}</AvatarFallback>
+                <AvatarImage src={post.profiles?.avatar_url} />
+                <AvatarFallback>{post.profiles?.full_name?.[0]}</AvatarFallback>
               </Avatar>
-              <span>{post.author?.full_name}</span>
+              <span>{post.profiles?.full_name}</span>
             </div>
             <span>•</span>
             <time>{new Date(post.created_at).toLocaleDateString()}</time>
@@ -273,11 +251,11 @@ const BlogPost = () => {
                 <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Avatar className="h-8 w-8 mr-2">
-                      <AvatarImage src={comment.user?.avatar_url} />
-                      <AvatarFallback>{comment.user?.full_name?.[0]}</AvatarFallback>
+                      <AvatarImage src={comment.profiles?.avatar_url} />
+                      <AvatarFallback>{comment.profiles?.full_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{comment.user?.full_name}</p>
+                      <p className="font-medium">{comment.profiles?.full_name}</p>
                       <p className="text-sm text-gray-500">
                         {new Date(comment.created_at).toLocaleDateString()}
                       </p>

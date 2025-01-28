@@ -7,18 +7,20 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+interface Profile {
+  full_name: string | null;
+  email: string | null;
+}
+
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
-  featured_image: string;
-  slug: string;
+  excerpt: string | null;
+  featured_image: string | null;
+  slug: string | null;
   status: 'draft' | 'published';
   created_at: string;
-  profiles: {
-    full_name: string | null;
-    email: string | null;
-  } | null;
+  profiles: Profile;
 }
 
 export const BlogPosts = () => {
@@ -29,11 +31,12 @@ export const BlogPosts = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log('Fetching blog posts...');
         const { data, error } = await supabase
           .from('blog_posts')
           .select(`
             *,
-            profiles:author_id (
+            profiles (
               full_name,
               email
             )
@@ -47,7 +50,8 @@ export const BlogPosts = () => {
           return;
         }
 
-        setPosts(data || []);
+        console.log('Fetched posts:', data);
+        setPosts(data as BlogPost[]);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load blog posts');
