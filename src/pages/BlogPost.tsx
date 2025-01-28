@@ -57,8 +57,16 @@ const BlogPost = () => {
         .select('custom_scripts')
         .single();
       
-      if (data?.custom_scripts && typeof data.custom_scripts === 'object' && 'blog' in data.custom_scripts) {
-        setSettings(data.custom_scripts.blog as BlogSettings);
+      if (data?.custom_scripts && 
+          typeof data.custom_scripts === 'object' && 
+          'blog' in data.custom_scripts && 
+          typeof data.custom_scripts.blog === 'object' && 
+          'enableComments' in data.custom_scripts.blog && 
+          'moderateComments' in data.custom_scripts.blog) {
+        setSettings({
+          enableComments: Boolean(data.custom_scripts.blog.enableComments),
+          moderateComments: Boolean(data.custom_scripts.blog.moderateComments)
+        });
       }
     };
 
