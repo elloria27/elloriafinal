@@ -8,6 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, MessageSquare } from "lucide-react";
 
+interface BlogSettings {
+  enableComments: boolean;
+  moderateComments: boolean;
+}
+
 interface BlogPost {
   id: string;
   title: string;
@@ -31,11 +36,6 @@ interface Comment {
   };
 }
 
-interface BlogSettings {
-  enableComments: boolean;
-  moderateComments: boolean;
-}
-
 const BlogPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,29 +57,21 @@ const BlogPost = () => {
           .select('custom_scripts')
           .single();
 
-        if (settings?.custom_scripts?.blog) {
-          setBlogSettings(settings.custom_scripts.blog as BlogSettings);
+        if (settings?.custom_scripts) {
+          const customScripts = settings.custom_scripts as Record<string, any>;
+          if (customScripts.blog) {
+            setBlogSettings({
+              enableComments: Boolean(customScripts.blog.enableComments),
+              moderateComments: Boolean(customScripts.blog.moderateComments),
+            });
+          }
         }
-
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select(`
-            *,
-            author:author_id (
-              full_name,
-              avatar_url
-            )
-          `)
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
 
         const { data: commentsData } = await supabase
           .from('blog_comments')
           .select(`
             *,
-            user:user_id (
+            user:profiles!blog_comments_user_id_fkey (
               full_name,
               avatar_url
             )
@@ -90,6 +82,20 @@ const BlogPost = () => {
         if (commentsData) {
           setComments(commentsData as Comment[]);
         }
+
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select(`
+            *,
+            author:profiles!blog_posts_author_id_fkey (
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
 
         setPost(data as BlogPost);
       } catch (error) {
@@ -138,7 +144,7 @@ const BlogPost = () => {
         .from('blog_comments')
         .select(`
           *,
-          user:user_id (
+          user:profiles!blog_comments_user_id_fkey (
             full_name,
             avatar_url
           )
