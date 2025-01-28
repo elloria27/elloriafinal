@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent, ContactFAQContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,10 +19,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const handleChange = async (key: string, value: any) => {
     try {
+      console.log('Saving changes for block:', block.id, 'key:', key, 'value:', value);
       setIsSaving(true);
       const updatedContent = { ...content, [key]: value };
       
-      // Update the content block in the database
       const { error } = await supabase
         .from('content_blocks')
         .update({ content: updatedContent })
@@ -31,7 +30,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
       if (error) throw error;
 
-      // Update the local state through the parent component
       onUpdate(block.id, updatedContent);
       toast.success("Changes saved successfully");
     } catch (error) {
@@ -52,6 +50,91 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const renderFields = () => {
     switch (block.type) {
+      case "contact_hero":
+        const heroContent = content as ContactHeroContent;
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input
+                value={heroContent.title || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Subtitle</Label>
+              <Textarea
+                value={heroContent.subtitle || ''}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+          </div>
+        );
+
+      case "contact_details":
+        const detailsContent = content as ContactDetailsContent;
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Address</Label>
+              <Input
+                value={detailsContent.address || ''}
+                onChange={(e) => handleChange('address', e.target.value)}
+                placeholder="Enter address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone</Label>
+              <Input
+                value={detailsContent.phone || ''}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                value={detailsContent.email || ''}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="Enter email address"
+              />
+            </div>
+          </div>
+        );
+
+      case "contact_form":
+        const formContent = content as ContactFormContent;
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Form Title</Label>
+              <Input
+                value={formContent.title || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter form title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Form Description</Label>
+              <Textarea
+                value={formContent.description || ''}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter form description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Submit Button Text</Label>
+              <Input
+                value={formContent.submitButtonText || ''}
+                onChange={(e) => handleChange('submitButtonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+          </div>
+        );
+
       case "contact_faq":
         return (
           <div className="space-y-4">
@@ -118,6 +201,53 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case "contact_business":
+        const businessContent = content as ContactBusinessContent;
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input
+                value={businessContent.title || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter business section title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={businessContent.description || ''}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter business section description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                value={businessContent.email || ''}
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="Enter business email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Button Text</Label>
+              <Input
+                value={businessContent.buttonText || ''}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Button Link</Label>
+              <Input
+                value={businessContent.buttonLink || ''}
+                onChange={(e) => handleChange('buttonLink', e.target.value)}
+                placeholder="Enter button link"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -126,7 +256,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Edit {block.type}</h3>
+        <h3 className="text-lg font-medium">Edit {block.type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</h3>
         {isSaving && <span className="text-sm text-gray-500">Saving...</span>}
       </div>
       {renderFields()}
