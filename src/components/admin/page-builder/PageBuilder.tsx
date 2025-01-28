@@ -39,6 +39,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       }
 
       if (dbBlocks) {
+        console.log('Blocks fetched:', dbBlocks);
         const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
           id: block.id,
           type: block.type as BlockType,
@@ -48,10 +49,9 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           created_at: block.created_at,
           updated_at: block.updated_at
         }));
-        console.log('Setting blocks from DB:', transformedBlocks);
         setBlocks(transformedBlocks);
         
-        // Update selected block if it exists
+        // Update selected block if it exists in the new blocks
         if (selectedBlock) {
           const updatedSelectedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
           if (updatedSelectedBlock) {
@@ -71,32 +71,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       try {
         if (initialBlocks && initialBlocks.length > 0) {
           console.log('Using initial blocks:', initialBlocks);
-          const savedBlocks = await Promise.all(
-            initialBlocks.map(async (block, index) => {
-              const insertData: ContentBlockInsert = {
-                id: block.id,
-                page_id: pageId,
-                type: block.type as Database['public']['Enums']['content_block_type'],
-                content: block.content,
-                order_index: index
-              };
-
-              const { data, error: insertError } = await supabase
-                .from('content_blocks')
-                .insert(insertData)
-                .select()
-                .single();
-
-              if (insertError) {
-                console.error('Error saving initial block to DB:', insertError);
-                throw insertError;
-              }
-
-              return block;
-            })
-          );
-
-          console.log('Saved initial blocks to DB:', savedBlocks);
           setBlocks(initialBlocks);
         } else {
           await fetchBlocks();
@@ -194,6 +168,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       type: blockType,
       content: defaultContent,
       order_index: blocks.length,
+      page_id: pageId
     };
 
     try {
@@ -326,14 +301,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         onClose={() => setShowComponentPicker(false)}
         onSelect={(type: BlockType) => handleAddBlock(type)}
       />
-
-      <Button
-        className="fixed bottom-4 right-4"
-        onClick={() => toast.success("Layout saved successfully")}
-      >
-        <Save className="w-4 h-4 mr-2" />
-        Save Layout
-      </Button>
     </div>
   );
 };
