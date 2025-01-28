@@ -1,8 +1,13 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { ContactBusinessContent } from "@/types/content-blocks";
 
-export const BusinessContact = () => {
+interface BusinessContactProps {
+  content?: ContactBusinessContent;
+}
+
+export const BusinessContact = ({ content }: BusinessContactProps) => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -12,25 +17,25 @@ export const BusinessContact = () => {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mx-auto text-center"
         >
-          <h2 className="text-3xl font-bold mb-4">For Business Inquiries</h2>
+          <h2 className="text-3xl font-bold mb-4">{content?.title || "For Business Inquiries"}</h2>
           <p className="text-gray-600 mb-6">
-            Interested in partnering with Elloria? We'd love to explore opportunities together.
+            {content?.description || "Interested in partnering with Elloria? We'd love to explore opportunities together."}
           </p>
           
           <div className="space-y-4">
             <p className="text-gray-800">
               Email us at:{" "}
               <a
-                href="mailto:business@elloria.ca"
+                href={`mailto:${content?.email || "business@elloria.ca"}`}
                 className="text-primary hover:underline"
               >
-                business@elloria.ca
+                {content?.email || "business@elloria.ca"}
               </a>
             </p>
             
             <Button asChild>
-              <Link to="/for-business">
-                Learn More About Business Opportunities
+              <Link to={content?.buttonLink || "/for-business"}>
+                {content?.buttonText || "Learn More About Business Opportunities"}
               </Link>
             </Button>
           </div>

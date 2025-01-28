@@ -10,7 +10,7 @@ import { ContentBlock, ContactHeroContent, ContactDetailsContent, ContactFormCon
 
 interface PageData {
   id: string;
-  content_blocks: ContentBlock[];
+  content_blocks: Array<ContentBlock<BaseBlockContent>>;
 }
 
 const Contact = () => {
@@ -42,12 +42,12 @@ const Contact = () => {
           return;
         }
 
-        const typedPages = pages as PageData;
+        const typedPages = pages as unknown as PageData;
         console.log('Contact page content blocks:', typedPages.content_blocks);
 
         // Organize content blocks by type
         const content: any = {};
-        typedPages.content_blocks.forEach((block: ContentBlock) => {
+        typedPages.content_blocks.forEach((block) => {
           switch (block.type) {
             case 'contact_hero':
               content.hero = block;
@@ -106,11 +106,11 @@ const Contact = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen pt-20"
     >
-      <ContactHero content={pageContent.hero?.content as ContactHeroContent} />
-      <ContactDetails content={pageContent.details?.content as ContactDetailsContent} />
-      <ContactForm content={pageContent.form?.content as ContactFormContent} />
-      <ContactFAQ content={pageContent.faq?.content as ContactFAQContent} />
-      <BusinessContact content={pageContent.business?.content as ContactBusinessContent} />
+      <ContactHero content={pageContent.hero?.content} />
+      <ContactDetails content={pageContent.details?.content} />
+      <ContactForm content={pageContent.form?.content} />
+      <ContactFAQ content={pageContent.faq?.content} />
+      <BusinessContact content={pageContent.business?.content} />
     </motion.main>
   );
 };

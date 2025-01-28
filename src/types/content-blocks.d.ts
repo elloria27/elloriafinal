@@ -158,6 +158,16 @@ export interface ContactBusinessContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface ContentBlock<T extends BaseBlockContent = BaseBlockContent> {
+  id: string;
+  type: BlockType;
+  content: T;
+  order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -209,21 +219,3 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business";
-
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
-}
