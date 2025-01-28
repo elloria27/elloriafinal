@@ -13,8 +13,6 @@ import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -139,28 +137,13 @@ const Admin = () => {
             "fixed inset-y-0 left-0 z-50 lg:relative",
             isMobile ? "w-full lg:w-64" : "w-64"
           )}>
-            <AdminSidebar />
+            <AdminSidebar profile={profile} />
           </div>
         )}
         
         <div className="flex-1 flex flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto p-6">
             <div className="container mx-auto">
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h1 className="text-2xl font-semibold">
-                    Hello, {profile?.full_name || 'Admin'} 👋
-                  </h1>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => window.open('/', '_blank')}
-                  className="flex items-center gap-2"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  View Website
-                </Button>
-              </div>
               {renderContent()}
             </div>
           </main>

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard,
   Users,
   FileText,
   BookOpen,
@@ -25,11 +24,6 @@ interface SidebarItem {
 }
 
 const sidebarItems: SidebarItem[] = [
-  {
-    title: "Dashboard Overview",
-    icon: LayoutDashboard,
-    href: "/admin?tab=dashboard"
-  },
   {
     title: "Site",
     icon: Globe,
@@ -57,7 +51,7 @@ const sidebarItems: SidebarItem[] = [
   }
 ];
 
-export const AdminSidebar = () => {
+export const AdminSidebar = ({ profile }: { profile: any }) => {
   const [openSections, setOpenSections] = useState<string[]>(["Site", "Shop", "HRM"]);
 
   const toggleSection = (title: string) => {
@@ -71,7 +65,7 @@ export const AdminSidebar = () => {
   return (
     <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">Admin Panel</h2>
+        <h2 className="text-lg font-semibold">Hello, {profile?.full_name || 'Admin'} 👋</h2>
         <Button
           variant="outline"
           size="sm"
