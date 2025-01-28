@@ -4,6 +4,19 @@ export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
 }
 
+export interface FeaturesProps {
+  content?: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    features?: Array<{
+      icon: string;
+      title: string;
+      description: string;
+    }>;
+  };
+}
+
 export interface FeatureItem {
   icon: string;
   title: string;
