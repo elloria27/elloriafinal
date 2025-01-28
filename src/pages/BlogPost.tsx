@@ -68,31 +68,29 @@ const BlogPost = () => {
           }
         }
 
-        // Get blog post with author profile
         const { data: postData, error: postError } = await supabase
           .from('blog_posts')
           .select(`
             *,
-            author:profiles!blog_posts_author_id_fkey(id, full_name, avatar_url)
+            author:profiles(id, full_name, avatar_url)
           `)
           .eq('id', id)
           .single();
 
         if (postError) throw postError;
 
-        // Get comments with user profiles
         const { data: commentsData, error: commentsError } = await supabase
           .from('blog_comments')
           .select(`
             *,
-            user:profiles!blog_comments_user_id_fkey(id, full_name, avatar_url)
+            user:profiles(id, full_name, avatar_url)
           `)
           .eq('post_id', id)
           .order('created_at', { ascending: false });
 
         if (commentsError) throw commentsError;
 
-        if (postData && postData.author) {
+        if (postData && postData.author && !('error' in postData.author)) {
           setPost({
             id: postData.id,
             title: postData.title,
@@ -108,7 +106,7 @@ const BlogPost = () => {
 
         if (commentsData) {
           const validComments = commentsData
-            .filter(comment => comment.user && comment.user.id)
+            .filter(comment => comment.user && !('error' in comment.user) && 'id' in comment.user)
             .map(comment => ({
               id: comment.id,
               content: comment.content,
@@ -159,12 +157,11 @@ const BlogPost = () => {
       toast.success("Comment added successfully");
       setNewComment("");
 
-      // Refresh comments
       const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
           *,
-          user:profiles!blog_comments_user_id_fkey(id, full_name, avatar_url)
+          user:profiles(id, full_name, avatar_url)
         `)
         .eq('post_id', id)
         .order('created_at', { ascending: false });
@@ -173,7 +170,7 @@ const BlogPost = () => {
 
       if (freshComments) {
         const validComments = freshComments
-          .filter(comment => comment.user && comment.user.id)
+          .filter(comment => comment.user && !('error' in comment.user) && 'id' in comment.user)
           .map(comment => ({
             id: comment.id,
             content: comment.content,
