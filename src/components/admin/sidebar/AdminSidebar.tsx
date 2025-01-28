@@ -13,8 +13,12 @@ import {
   ChevronDown,
   Globe,
   Building2,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarItem {
   title: string;
@@ -53,6 +57,7 @@ const sidebarItems: SidebarItem[] = [
 
 export const AdminSidebar = ({ profile }: { profile: any }) => {
   const [openSections, setOpenSections] = useState<string[]>(["Site", "Shop", "HRM"]);
+  const navigate = useNavigate();
 
   const toggleSection = (title: string) => {
     setOpenSections(prev =>
@@ -60,6 +65,17 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
         ? prev.filter(t => t !== title)
         : [...prev, title]
     );
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Error signing out");
+    }
   };
 
   return (
@@ -73,7 +89,7 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
           onClick={() => window.open("/", "_blank")}
         >
           <ExternalLink className="mr-2 h-4 w-4" />
-          Go to Website
+          View Website
         </Button>
       </div>
       
@@ -141,6 +157,17 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
           ))}
         </ul>
       </nav>
+
+      <div className="p-4 border-t border-gray-200">
+        <Button 
+          variant="destructive" 
+          className="w-full flex items-center gap-2"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
+      </div>
     </div>
   );
 };

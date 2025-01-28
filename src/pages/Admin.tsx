@@ -42,7 +42,6 @@ const Admin = () => {
           return;
         }
 
-        // Fetch user profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
