@@ -12,6 +12,7 @@ import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const Admin = () => {
   const navigate = useNavigate();
