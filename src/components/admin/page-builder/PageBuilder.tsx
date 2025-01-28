@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -17,6 +18,9 @@ export interface PageBuilderProps {
 
 type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
 type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
+type RealtimeContentBlockPayload = RealtimePostgresChangesPayload<{
+  [key: string]: any;
+}>;
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -104,7 +108,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           table: 'content_blocks',
           filter: `page_id=eq.${pageId}`
         },
-        async (payload) => {
+        async (payload: RealtimeContentBlockPayload) => {
           console.log('Received real-time update:', payload);
           const { data: updatedBlocks, error } = await supabase
             .from('content_blocks')
@@ -130,7 +134,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             setBlocks(transformedBlocks);
             
             // Update selected block if it was modified
-            if (selectedBlock && payload.new.id === selectedBlock.id) {
+            if (selectedBlock && payload.new && payload.new.id === selectedBlock.id) {
               const updatedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
               if (updatedBlock) {
                 setSelectedBlock(updatedBlock);
