@@ -116,34 +116,38 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         },
         async (payload: RealtimeContentBlockPayload) => {
           console.log('Received real-time update:', payload);
-          const { data: updatedBlocks, error } = await supabase
-            .from('content_blocks')
-            .select('*')
-            .eq('page_id', pageId)
-            .order('order_index');
+          
+          // Only proceed if payload.new exists and has an id
+          if (payload.new && 'id' in payload.new) {
+            const { data: updatedBlocks, error } = await supabase
+              .from('content_blocks')
+              .select('*')
+              .eq('page_id', pageId)
+              .order('order_index');
 
-          if (error) {
-            console.error('Error fetching updated blocks:', error);
-            return;
-          }
+            if (error) {
+              console.error('Error fetching updated blocks:', error);
+              return;
+            }
 
-          if (updatedBlocks) {
-            const transformedBlocks: ContentBlock[] = updatedBlocks.map(block => ({
-              id: block.id,
-              type: block.type as BlockType,
-              content: block.content as BlockContent,
-              order_index: block.order_index,
-              page_id: block.page_id,
-              created_at: block.created_at,
-              updated_at: block.updated_at
-            }));
-            setBlocks(transformedBlocks);
-            
-            // Update selected block if it was modified
-            if (selectedBlock && payload.new && payload.new.id === selectedBlock.id) {
-              const updatedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
-              if (updatedBlock) {
-                setSelectedBlock(updatedBlock);
+            if (updatedBlocks) {
+              const transformedBlocks: ContentBlock[] = updatedBlocks.map(block => ({
+                id: block.id,
+                type: block.type as BlockType,
+                content: block.content as BlockContent,
+                order_index: block.order_index,
+                page_id: block.page_id,
+                created_at: block.created_at,
+                updated_at: block.updated_at
+              }));
+              setBlocks(transformedBlocks);
+              
+              // Update selected block if it was modified
+              if (selectedBlock && payload.new.id === selectedBlock.id) {
+                const updatedBlock = transformedBlocks.find(b => b.id === selectedBlock.id);
+                if (updatedBlock) {
+                  setSelectedBlock(updatedBlock);
+                }
               }
             }
           }
