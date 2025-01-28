@@ -12,9 +12,10 @@ import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -23,7 +24,6 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const currentTab = searchParams.get("tab") || "dashboard";
 
@@ -89,6 +89,18 @@ const Admin = () => {
     checkAdminAccess();
   }, [navigate]);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
   const renderContent = () => {
     switch (currentTab) {
       case "dashboard":
@@ -112,49 +124,33 @@ const Admin = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
         {isMobile ? (
-          <>
-            <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b z-40 px-4 flex items-center justify-end">
-              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-                  <Menu className="h-5 w-5" />
-                </Button>
-                <SheetContent side="left" className="p-0 w-64">
-                  <AdminSidebar profile={profile} />
-                </SheetContent>
-              </Sheet>
-            </div>
-            <main className="flex-1 overflow-y-auto pt-16">
-              <div className="container mx-auto py-8">
-                {renderContent()}
-              </div>
-            </main>
-          </>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-80">
+              <AdminSidebar profile={profile} />
+            </SheetContent>
+          </Sheet>
         ) : (
-          <>
+          <div className="w-64 flex-shrink-0">
             <AdminSidebar profile={profile} />
-            <main className="flex-1 overflow-y-auto">
-              <div className="container mx-auto py-8">
-                {renderContent()}
-              </div>
-            </main>
-          </>
+          </div>
         )}
+        
+        <div className="flex-1 overflow-y-auto">
+          <main className="p-6">
+            <div className="container mx-auto">
+              {renderContent()}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ export const FileManagement = () => {
       }
 
       console.log('Files fetched successfully:', data);
-      setFiles(data || []);
+      setFiles(data);
     } catch (error) {
       console.error('Error in fetchFiles:', error);
       toast.error("Failed to fetch files");
@@ -59,7 +59,7 @@ export const FileManagement = () => {
 
       console.log('File uploaded successfully');
       toast.success("File uploaded successfully");
-      await fetchFiles(); // Refresh the file list after upload
+      fetchFiles();
     } catch (error) {
       console.error('Error in handleFileUpload:', error);
       toast.error("Failed to upload file");
@@ -113,7 +113,7 @@ export const FileManagement = () => {
 
       console.log('File deleted successfully');
       toast.success("File deleted successfully");
-      await fetchFiles(); // Refresh the file list after deletion
+      fetchFiles();
     } catch (error) {
       console.error('Error in handleFileDelete:', error);
       toast.error("Failed to delete file");
