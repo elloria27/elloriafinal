@@ -3,6 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { MessageSquare, Calendar, User, Share2 } from "lucide-react";
 
 interface BlogPost {
   id: string;
@@ -11,6 +17,20 @@ interface BlogPost {
   featured_image: string;
   meta_description: string;
   created_at: string;
+  author: {
+    full_name: string;
+    avatar_url?: string;
+  };
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  user: {
+    full_name: string;
+    avatar_url?: string;
+  };
 }
 
 const BlogPost = () => {
@@ -18,24 +38,64 @@ const BlogPost = () => {
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [settings, setSettings] = useState({ enableComments: false });
 
   useEffect(() => {
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('custom_scripts')
+        .single();
+      
+      if (data?.custom_scripts?.blog) {
+        setSettings(data.custom_scripts.blog);
+      }
+    };
+
     const fetchPost = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: postData, error: postError } = await supabase
           .from('blog_posts')
-          .select('*')
+          .select(`
+            *,
+            author:author_id (
+              full_name,
+              avatar_url
+            )
+          `)
           .eq('id', id)
           .single();
 
-        if (error) {
-          console.error('Error fetching post:', error);
+        if (postError) {
+          console.error('Error fetching post:', postError);
           toast.error('Failed to load blog post');
           navigate('/blog');
           return;
         }
 
-        setPost(data);
+        // Increment view count
+        await supabase.rpc('increment_post_view_count', { post_id: id });
+
+        setPost(postData);
+
+        // Fetch comments if enabled
+        if (settings.enableComments) {
+          const { data: commentsData } = await supabase
+            .from('blog_comments')
+            .select(`
+              *,
+              user:user_id (
+                full_name,
+                avatar_url
+              )
+            `)
+            .eq('post_id', id)
+            .order('created_at', { ascending: false });
+
+          setComments(commentsData || []);
+        }
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load blog post');
@@ -45,10 +105,60 @@ const BlogPost = () => {
       }
     };
 
+    fetchSettings();
     if (id) {
       fetchPost();
     }
-  }, [id, navigate]);
+  }, [id, navigate, settings.enableComments]);
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: post?.title || "",
+        text: post?.meta_description || "",
+        url: window.location.href,
+      });
+    } catch (error) {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!newComment.trim()) return;
+
+    const { data, error } = await supabase
+      .from('blog_comments')
+      .insert([
+        {
+          post_id: id,
+          content: newComment,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        }
+      ]);
+
+    if (error) {
+      toast.error("Failed to post comment");
+      return;
+    }
+
+    setNewComment("");
+    toast.success("Comment posted successfully");
+    // Refresh comments
+    const { data: commentsData } = await supabase
+      .from('blog_comments')
+      .select(`
+        *,
+        user:user_id (
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq('post_id', id)
+      .order('created_at', { ascending: false });
+
+    setComments(commentsData || []);
+  };
 
   if (isLoading) {
     return (
@@ -71,23 +181,40 @@ const BlogPost = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="py-20"
+      className="py-12 px-4"
     >
-      <div className="container px-4 max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">{post.title}</h1>
-          <p className="text-gray-600 mb-4">{post.meta_description}</p>
-          <time className="text-sm text-gray-500">
-            {new Date(post.created_at).toLocaleDateString()}
-          </time>
+      <div className="container max-w-4xl mx-auto">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+            {post.title}
+          </h1>
+          
+          <div className="flex items-center justify-center space-x-6 text-gray-600 mb-8">
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              <time>{new Date(post.created_at).toLocaleDateString()}</time>
+            </div>
+            <div className="flex items-center">
+              <User className="w-4 h-4 mr-2" />
+              <span>{post.author?.full_name || 'Anonymous'}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          </div>
+
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            {post.meta_description}
+          </p>
         </div>
 
         {post.featured_image && (
-          <div className="mb-8 rounded-xl overflow-hidden">
+          <div className="mb-12 rounded-xl overflow-hidden shadow-2xl">
             <img
               src={post.featured_image}
               alt={post.title}
-              className="w-full h-auto"
+              className="w-full h-auto object-cover"
             />
           </div>
         )}
@@ -97,6 +224,51 @@ const BlogPost = () => {
             ? post.content 
             : JSON.stringify(post.content)}
         </div>
+
+        {settings.enableComments && (
+          <div className="mt-16">
+            <Separator className="my-8" />
+            
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold flex items-center">
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Comments
+              </h2>
+
+              <div className="space-y-4">
+                <Textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <Button onClick={handleCommentSubmit}>Post Comment</Button>
+              </div>
+
+              <div className="space-y-6">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex space-x-4">
+                    <Avatar>
+                      <AvatarImage src={comment.user?.avatar_url} />
+                      <AvatarFallback>
+                        {comment.user?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold">{comment.user?.full_name}</h4>
+                        <time className="text-sm text-gray-500">
+                          {new Date(comment.created_at).toLocaleDateString()}
+                        </time>
+                      </div>
+                      <p className="text-gray-600">{comment.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </motion.article>
   );
