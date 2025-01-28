@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-interface ContactHeroContent {
+export interface ContactHeroContent {
   title?: string;
   subtitle?: string;
 }
@@ -10,7 +10,10 @@ interface ContactHeroProps {
 }
 
 export const ContactHero = ({ content }: ContactHeroProps) => {
-  const { title = "We'd Love to Hear From You!", subtitle = "Whether you have questions, feedback, or collaboration ideas, we're here for you." } = content;
+  const { 
+    title = "We'd Love to Hear From You!", 
+    subtitle = "Whether you have questions, feedback, or collaboration ideas, we're here for you." 
+  } = content;
 
   return (
     <section className="relative bg-gradient-to-r from-primary/10 to-secondary/10 py-20">
