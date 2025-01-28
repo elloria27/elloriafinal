@@ -13,6 +13,9 @@ import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,7 +23,6 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const isMobile = useIsMobile();
   
   const currentTab = searchParams.get("tab") || "dashboard";
@@ -87,12 +89,6 @@ const Admin = () => {
     checkAdminAccess();
   }, [navigate]);
 
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [isMobile]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -131,17 +127,25 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
-        {(sidebarOpen || !isMobile) && (
-          <div className={cn(
-            "fixed inset-y-0 left-0 z-50 lg:relative",
-            isMobile ? "w-full lg:w-64" : "w-64"
-          )}>
+        {isMobile ? (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-80">
+              <AdminSidebar profile={profile} />
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <div className="w-64 flex-shrink-0">
             <AdminSidebar profile={profile} />
           </div>
         )}
         
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto">
+          <main className="p-6">
             <div className="container mx-auto">
               {renderContent()}
             </div>
