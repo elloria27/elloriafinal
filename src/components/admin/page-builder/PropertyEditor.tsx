@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent, ContactFAQContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -172,6 +172,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     }
     const blogContent = content as BlogPreviewContent;
     return Array.isArray(blogContent.articles) ? blogContent.articles : [];
+  };
+
+  const getFAQs = () => {
+    if (!content || !('faqs' in content)) {
+      return [];
+    }
+    const contactFAQContent = content as ContactFAQContent;
+    return Array.isArray(contactFAQContent.faqs) ? contactFAQContent.faqs : [];
   };
 
   const renderFields = () => {
@@ -990,7 +998,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Label>FAQs</Label>
               <Button 
                 onClick={() => {
-                  const currentFaqs = content.faqs || [];
+                  const currentFaqs = getFAQs();
                   handleChange('faqs', [...currentFaqs, {
                     question: "New Question",
                     answer: "New Answer"
@@ -1003,7 +1011,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               </Button>
             </div>
             
-            {(content.faqs || []).map((faq: any, index: number) => (
+            {getFAQs().map((faq, index) => (
               <div key={index} className="space-y-4 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>FAQ {index + 1}</Label>
@@ -1011,7 +1019,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     variant="ghost" 
                     size="sm"
                     onClick={() => {
-                      const newFaqs = [...(content.faqs || [])];
+                      const newFaqs = [...getFAQs()];
                       newFaqs.splice(index, 1);
                       handleChange('faqs', newFaqs);
                     }}
@@ -1025,7 +1033,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <Input
                     value={faq.question}
                     onChange={(e) => {
-                      const newFaqs = [...(content.faqs || [])];
+                      const newFaqs = [...getFAQs()];
                       newFaqs[index] = { ...newFaqs[index], question: e.target.value };
                       handleChange('faqs', newFaqs);
                     }}
@@ -1038,7 +1046,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <Textarea
                     value={faq.answer}
                     onChange={(e) => {
-                      const newFaqs = [...(content.faqs || [])];
+                      const newFaqs = [...getFAQs()];
                       newFaqs[index] = { ...newFaqs[index], answer: e.target.value };
                       handleChange('faqs', newFaqs);
                     }}
