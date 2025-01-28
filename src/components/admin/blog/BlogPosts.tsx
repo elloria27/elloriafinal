@@ -25,6 +25,13 @@ export const BlogPosts = () => {
   const fetchPosts = async () => {
     try {
       console.log('Fetching blog posts...');
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user?.id) {
+        console.error('No user session found');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*, blog_categories(name)')
@@ -51,7 +58,7 @@ export const BlogPosts = () => {
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('files')
         .upload(filePath, file);
 
@@ -66,6 +73,13 @@ export const BlogPosts = () => {
 
   const handleCreatePost = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user?.id) {
+        toast.error("You must be logged in to create posts");
+        return;
+      }
+
       let featured_image = null;
       
       if (selectedImage) {
@@ -80,12 +94,18 @@ export const BlogPosts = () => {
             excerpt,
             featured_image,
             status: 'draft',
-            content: {}
+            content: {},
+            author_id: session.session.user.id
           }
-        ]);
+        ])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
 
+      console.log('Post created:', data);
       toast.success("Post created successfully");
       setOpen(false);
       setTitle("");
