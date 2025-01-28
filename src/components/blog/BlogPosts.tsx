@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BlogPost {
   id: string;
@@ -13,6 +14,11 @@ interface BlogPost {
   featured_image: string;
   slug: string;
   status: 'draft' | 'published';
+  created_at: string;
+  profiles: {
+    full_name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export const BlogPosts = () => {
@@ -25,7 +31,13 @@ export const BlogPosts = () => {
       try {
         const { data, error } = await supabase
           .from('blog_posts')
-          .select('*')
+          .select(`
+            *,
+            profiles:author_id (
+              full_name,
+              email
+            )
+          `)
           .eq('status', 'published')
           .order('created_at', { ascending: false });
 
@@ -98,6 +110,20 @@ export const BlogPosts = () => {
                   alt={post.title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-sm text-gray-600">
+                  {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}
+                </div>
+                <span className="text-gray-400">•</span>
+                <time className="text-sm text-gray-600">
+                  {new Date(post.created_at).toLocaleDateString()}
+                </time>
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                 {post.title}
