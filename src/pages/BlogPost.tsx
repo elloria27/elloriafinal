@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, MessageSquare, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2, MessageSquare } from "lucide-react";
 
 interface BlogSettings {
   enableComments: boolean;
@@ -210,8 +210,7 @@ const BlogPost = () => {
           <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
             <div className="flex items-center">
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={post.profiles?.avatar_url} />
-                <AvatarFallback>{post.profiles?.full_name?.[0]}</AvatarFallback>
+                <AvatarFallback>{post.profiles?.full_name?.[0] || '?'}</AvatarFallback>
               </Avatar>
               <span>{post.profiles?.full_name}</span>
             </div>
@@ -251,8 +250,7 @@ const BlogPost = () => {
                 <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center mb-2">
                     <Avatar className="h-8 w-8 mr-2">
-                      <AvatarImage src={comment.profiles?.avatar_url} />
-                      <AvatarFallback>{comment.profiles?.full_name?.[0]}</AvatarFallback>
+                      <AvatarFallback>{comment.profiles?.full_name?.[0] || '?'}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-medium">{comment.profiles?.full_name}</p>
