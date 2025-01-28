@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash, Eye } from "lucide-react";
-import { Editor } from "@tinymce/tinymce-react";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import {
   Dialog,
   DialogContent,
@@ -40,15 +41,31 @@ export const BlogPosts = () => {
   const [postStatus, setPostStatus] = useState<PostStatus>("draft");
   const navigate = useNavigate();
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML());
+    },
+  });
+
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (editor && content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
 
   const fetchPosts = async () => {
     try {
       const { data: posts, error } = await supabase
         .from("blog_posts")
-        .select("*")
+        .select("*, profiles(full_name, email)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -109,6 +126,10 @@ export const BlogPosts = () => {
     setIsLoading(true);
 
     try {
+      // Get current user's profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user found");
+
       let imagePath = editingPost?.featured_image || null;
 
       if (selectedImage) {
@@ -117,10 +138,11 @@ export const BlogPosts = () => {
 
       const postData = {
         title,
-        content: content, // Now storing the HTML content directly
+        content,
         excerpt,
         featured_image: imagePath,
         status: postStatus as PostStatus,
+        author_id: user.id, // Set the author_id to the current user's ID
       };
 
       if (editingPost) {
@@ -253,23 +275,9 @@ export const BlogPosts = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-1">Content</label>
-                  <Editor
-                    value={content}
-                    onEditorChange={(newContent) => setContent(newContent)}
-                    init={{
-                      height: 400,
-                      menubar: true,
-                      plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-                      ],
-                      toolbar: 'undo redo | blocks | ' +
-                        'bold italic forecolor | alignleft aligncenter ' +
-                        'alignright alignjustify | bullist numlist outdent indent | ' +
-                        'removeformat | help',
-                    }}
-                  />
+                  <div className="min-h-[200px] border rounded-md p-4">
+                    <EditorContent editor={editor} />
+                  </div>
                 </div>
 
                 <div>
@@ -336,6 +344,7 @@ export const BlogPosts = () => {
                   }`}>
                     {post.status}
                   </span>
+                  <span>by {post.profiles?.full_name || post.profiles?.email || 'Anonymous'}</span>
                 </div>
               </div>
               <div className="flex gap-2">
