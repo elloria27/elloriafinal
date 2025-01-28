@@ -67,27 +67,12 @@ const BlogPost = () => {
           }
         }
 
-        const { data: commentsData } = await supabase
-          .from('blog_comments')
-          .select(`
-            *,
-            user:profiles!blog_comments_user_id_fkey (
-              full_name,
-              avatar_url
-            )
-          `)
-          .eq('post_id', id)
-          .order('created_at', { ascending: false });
-
-        if (commentsData) {
-          setComments(commentsData as Comment[]);
-        }
-
-        const { data, error } = await supabase
+        // First get the blog post with author information
+        const { data: postData, error: postError } = await supabase
           .from('blog_posts')
           .select(`
             *,
-            author:profiles!blog_posts_author_id_fkey (
+            author:profiles(
               full_name,
               avatar_url
             )
@@ -95,9 +80,35 @@ const BlogPost = () => {
           .eq('id', id)
           .single();
 
-        if (error) throw error;
+        if (postError) throw postError;
 
-        setPost(data as BlogPost);
+        // Then get the comments with user information
+        const { data: commentsData, error: commentsError } = await supabase
+          .from('blog_comments')
+          .select(`
+            *,
+            user:profiles(
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('post_id', id)
+          .order('created_at', { ascending: false });
+
+        if (commentsError) throw commentsError;
+
+        // Type assertion after validating the data structure
+        if (postData && postData.author && typeof postData.author.full_name === 'string') {
+          setPost(postData as BlogPost);
+        }
+
+        if (commentsData) {
+          const validComments = commentsData.filter(
+            comment => comment.user && typeof comment.user.full_name === 'string'
+          );
+          setComments(validComments as Comment[]);
+        }
+
       } catch (error) {
         console.error('Error:', error);
         toast.error("Failed to load blog post");
@@ -140,11 +151,11 @@ const BlogPost = () => {
       setNewComment("");
 
       // Refresh comments
-      const { data: freshComments } = await supabase
+      const { data: freshComments, error: commentsError } = await supabase
         .from('blog_comments')
         .select(`
           *,
-          user:profiles!blog_comments_user_id_fkey (
+          user:profiles(
             full_name,
             avatar_url
           )
@@ -152,8 +163,13 @@ const BlogPost = () => {
         .eq('post_id', id)
         .order('created_at', { ascending: false });
 
+      if (commentsError) throw commentsError;
+
       if (freshComments) {
-        setComments(freshComments as Comment[]);
+        const validComments = freshComments.filter(
+          comment => comment.user && typeof comment.user.full_name === 'string'
+        );
+        setComments(validComments as Comment[]);
       }
     } catch (error) {
       console.error('Error:', error);
