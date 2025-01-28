@@ -72,10 +72,7 @@ const BlogPost = () => {
           .from('blog_posts')
           .select(`
             *,
-            author:profiles(
-              full_name,
-              avatar_url
-            )
+            author:profiles(id, full_name, avatar_url)
           `)
           .eq('id', id)
           .single();
@@ -87,26 +84,20 @@ const BlogPost = () => {
           .from('blog_comments')
           .select(`
             *,
-            user:profiles(
-              full_name,
-              avatar_url
-            )
+            user:profiles(id, full_name, avatar_url)
           `)
           .eq('post_id', id)
           .order('created_at', { ascending: false });
 
         if (commentsError) throw commentsError;
 
-        // Type assertion after validating the data structure
-        if (postData && postData.author && typeof postData.author.full_name === 'string') {
-          setPost(postData as unknown as BlogPost);
+        if (postData && postData.author) {
+          setPost(postData as BlogPost);
         }
 
         if (commentsData) {
-          const validComments = commentsData.filter(
-            comment => comment.user && typeof comment.user.full_name === 'string'
-          );
-          setComments(validComments as unknown as Comment[]);
+          const validComments = commentsData.filter(comment => comment.user);
+          setComments(validComments as Comment[]);
         }
 
       } catch (error) {
