@@ -8,6 +8,13 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentBlock } from "@/types/content-blocks";
 
+interface ContactHeroBlock extends ContentBlock {
+  content: {
+    title?: string;
+    subtitle?: string;
+  };
+}
+
 const Contact = () => {
   const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +36,7 @@ const Contact = () => {
 
         if (page?.content_blocks) {
           console.log('Found content blocks:', page.content_blocks);
-          setPageContent(page.content_blocks as ContentBlock[]);
+          setPageContent(page.content_blocks as unknown as ContentBlock[]);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -46,7 +53,7 @@ const Contact = () => {
   }
 
   const getBlockContent = (type: string) => {
-    const block = pageContent.find(block => block.type === type);
+    const block = pageContent.find(block => block.type === type) as ContactHeroBlock;
     return block?.content || {};
   };
 
