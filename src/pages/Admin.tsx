@@ -24,6 +24,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const currentTab = searchParams.get("tab") || "dashboard";
 
@@ -131,7 +132,7 @@ const Admin = () => {
           <>
             <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b z-40 px-4 flex items-center justify-between">
               <Logo />
-              <Sheet>
+              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <Menu className="h-5 w-5" />
