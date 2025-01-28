@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 
-interface PageBuilderProps {
+export interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
 }
@@ -328,7 +328,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       <ComponentPicker
         open={showComponentPicker}
         onClose={() => setShowComponentPicker(false)}
-        onSelect={handleAddBlock}
+        onSelect={(type: BlockType) => handleAddBlock(type)}
       />
 
       <Button
