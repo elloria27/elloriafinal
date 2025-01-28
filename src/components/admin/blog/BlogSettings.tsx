@@ -18,7 +18,8 @@ export const BlogSettings = () => {
     moderateComments: true,
     heroTitle: "",
     heroSubtitle: "",
-    heroBackgroundImage: ""
+    heroBackgroundImage: "",
+    id: "" // Add id to track the settings record
   });
 
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,8 @@ export const BlogSettings = () => {
         ...prev,
         heroTitle: data.hero_title,
         heroSubtitle: data.hero_subtitle,
-        heroBackgroundImage: data.hero_background_image || ''
+        heroBackgroundImage: data.hero_background_image || '',
+        id: data.id // Store the id from the fetched data
       }));
     } catch (error) {
       console.error('Error loading blog settings:', error);
@@ -69,7 +71,7 @@ export const BlogSettings = () => {
           hero_subtitle: settings.heroSubtitle,
           hero_background_image: settings.heroBackgroundImage
         })
-        .eq('id', 1);
+        .eq('id', settings.id); // Use the stored id instead of hardcoded value
 
       if (error) throw error;
 
