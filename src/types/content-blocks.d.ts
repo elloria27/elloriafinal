@@ -126,6 +126,36 @@ export interface CompetitorComparisonContent extends BaseBlockContent {
   buttonUrl?: string;
 }
 
+export interface ContactHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+}
+
+export interface ContactDetailsContent extends BaseBlockContent {
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface ContactFormContent extends BaseBlockContent {
+  // Form configuration is managed through database schema
+}
+
+export interface ContactFAQContent extends BaseBlockContent {
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface ContactBusinessContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  email?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -141,7 +171,12 @@ export type BlockContent =
   | BlogPreviewContent
   | NewsletterContent
   | ProductCarouselContent
-  | CompetitorComparisonContent;
+  | CompetitorComparisonContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent;
 
 export type BlockType = 
   | "heading" 
@@ -166,7 +201,12 @@ export type BlockType =
   | "about_mission"
   | "about_sustainability"
   | "about_team"
-  | "about_customer_impact";
+  | "about_customer_impact"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business";
 
 export interface ContentBlock {
   id: string;
@@ -185,4 +225,3 @@ export interface FeaturesProps {
 export interface HeroProps {
   content?: HeroContent;
 }
-
