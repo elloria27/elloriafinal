@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Sustainability as SustainabilityComponent } from "@/components/Sustainability";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, SustainabilityContent } from "@/types/content-blocks";
 
 const SustainabilityPage = () => {
   const [sustainabilityBlock, setSustainabilityBlock] = useState<ContentBlock | null>(null);
@@ -44,8 +44,15 @@ const SustainabilityPage = () => {
           return;
         }
 
-        console.log('Fetched sustainability block:', blocks);
-        setSustainabilityBlock(blocks);
+        // Type assertion to ensure the content is treated as SustainabilityContent
+        if (blocks) {
+          const typedBlock: ContentBlock = {
+            ...blocks,
+            content: blocks.content as SustainabilityContent
+          };
+          console.log('Fetched and typed sustainability block:', typedBlock);
+          setSustainabilityBlock(typedBlock);
+        }
       } catch (error) {
         console.error('Error:', error);
       }
@@ -104,7 +111,7 @@ const SustainabilityPage = () => {
       </section>
 
       {/* Sustainability Component */}
-      <SustainabilityComponent content={sustainabilityBlock?.content} />
+      <SustainabilityComponent content={sustainabilityBlock?.content as SustainabilityContent} />
 
       {/* FAQ Section */}
       <section className="py-20 bg-white">
