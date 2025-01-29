@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { motion } from "framer-motion";
 
 interface MenuItem {
   name: string;
@@ -20,49 +20,42 @@ export const Navigation = () => {
 
   // Define technical pages that should not appear in the menu
   const technicalPages = [
-    'login',
-    'register',
-    'profile',
-    'checkout',
-    'product',
-    'order-success',
-    'admin',
-    'terms'
+    'login', 'register', 'profile', 'product', 'checkout', 'order-success',
+    'bulk-orders', 'custom-solutions', 'sustainability-program', 'admin',
+    'terms', 'shared-file'
   ];
-
-  const buildMenuTree = (pages: any[], parentId: string | null = null): MenuItem[] => {
-    console.log('Building menu tree for parent:', parentId);
-    console.log('Available pages:', pages);
-    
-    const menuItems = pages
-      .filter(page => 
-        page.is_published && 
-        !technicalPages.includes(page.slug) &&
-        page.show_in_header &&
-        page.parent_id === parentId
-      )
-      .sort((a, b) => (a.menu_order || 0) - (b.menu_order || 0))
-      .map(page => {
-        const children = buildMenuTree(pages, page.id);
-        console.log(`Page ${page.title} has ${children.length} children`);
-        
-        return {
-          name: page.title,
-          path: page.slug === 'index' ? '/' : `/${page.slug}`,
-          children: children.length > 0 ? children : undefined
-        };
-      });
-
-    return menuItems;
-  };
-
-  const menuItems = buildMenuTree(publishedPages);
 
   if (isLoading) {
     return null;
   }
 
-  console.log('Final Menu Items:', menuItems);
+  // Filter and sort pages for the menu
+  const menuItems: MenuItem[] = publishedPages
+    .filter(page => 
+      page.show_in_header && 
+      !technicalPages.includes(page.slug) &&
+      !page.parent_id // Only get top-level items first
+    )
+    .sort((a, b) => a.menu_order - b.menu_order)
+    .map(page => {
+      // Find children for this page
+      const children = publishedPages
+        .filter(childPage => 
+          childPage.show_in_header && 
+          childPage.parent_id === page.id
+        )
+        .sort((a, b) => a.menu_order - b.menu_order)
+        .map(childPage => ({
+          name: childPage.title,
+          path: `/${childPage.slug}`,
+        }));
+
+      return {
+        name: page.title,
+        path: `/${page.slug}`,
+        children: children.length > 0 ? children : undefined,
+      };
+    });
 
   const handleMouseEnter = (path: string) => {
     if (timeoutRef.current) {
@@ -72,6 +65,9 @@ export const Navigation = () => {
   };
 
   const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = window.setTimeout(() => {
       setHoveredItem(null);
     }, 300); // 300ms delay before hiding submenu
@@ -102,7 +98,7 @@ export const Navigation = () => {
           <motion.span
             className="flex items-center text-gray-600 hover:text-primary transition-colors text-sm tracking-[0.15em] uppercase font-light cursor-pointer"
             whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
           >
             {item.name}
             {hasChildren && (
@@ -129,7 +125,7 @@ export const Navigation = () => {
               <Link
                 key={child.path}
                 to={child.path}
-                className="block px-4 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
+                className="block px-4 py-2 text-sm text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
               >
                 {child.name}
               </Link>
@@ -141,7 +137,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="hidden md:flex items-center space-x-12 ml-auto mr-8">
+    <nav className="hidden md:flex items-center space-x-8">
       {menuItems.map((item) => (
         <MenuItem key={item.path} item={item} />
       ))}
