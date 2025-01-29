@@ -18,6 +18,7 @@ interface MenuItem {
 export const MobileMenu = () => {
   const { publishedPages, isLoading } = usePages();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
 
   const technicalPages = [
     'login',
@@ -55,6 +56,10 @@ export const MobileMenu = () => {
     );
   };
 
+  const handleNavigate = () => {
+    setOpen(false);
+  };
+
   const MenuItem = ({ item, level = 0 }: { item: MenuItem; level?: number }) => {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.path);
@@ -69,7 +74,10 @@ export const MobileMenu = () => {
           className={`flex items-center justify-between py-3 ${level > 0 ? 'pl-4' : ''}`}
           onClick={() => hasChildren && toggleExpanded(item.path)}
         >
-          <Link to={item.path}>
+          <Link 
+            to={item.path}
+            onClick={handleNavigate}
+          >
             <motion.span
               className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light block cursor-pointer"
               whileHover={{ x: 4 }}
@@ -118,7 +126,7 @@ export const MobileMenu = () => {
   }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button 
           variant="ghost" 
@@ -148,7 +156,7 @@ export const MobileMenu = () => {
 
         <div className="mt-auto p-6 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
-            <UserMenu />
+            <UserMenu onClose={() => setOpen(false)} />
             <div className="flex items-center gap-4">
               <LanguageSelector />
               <CurrencySelector />

@@ -55,7 +55,12 @@ const sidebarItems: SidebarItem[] = [
   }
 ];
 
-export const AdminSidebar = ({ profile }: { profile: any }) => {
+interface AdminSidebarProps {
+  profile: any;
+  onClose?: () => void;
+}
+
+export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
   const [openSections, setOpenSections] = useState<string[]>(["Site", "Shop", "HRM"]);
   const navigate = useNavigate();
 
@@ -72,9 +77,18 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
       navigate("/");
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Error signing out");
+    }
+  };
+
+  const handleNavigate = () => {
+    if (onClose) {
+      onClose();
     }
   };
 
@@ -86,7 +100,10 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
           variant="outline"
           size="sm"
           className="mt-2 w-full"
-          onClick={() => window.open("/", "_blank")}
+          onClick={() => {
+            window.open("/", "_blank");
+            if (onClose) onClose();
+          }}
         >
           <ExternalLink className="mr-2 h-4 w-4" />
           View Website
@@ -128,6 +145,7 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
                             <Link
                               to={subItem.href}
                               className="flex items-center gap-2"
+                              onClick={handleNavigate}
                             >
                               <subItem.icon className="h-4 w-4" />
                               {subItem.title}
@@ -147,6 +165,7 @@ export const AdminSidebar = ({ profile }: { profile: any }) => {
                   <Link
                     to={item.href!}
                     className="flex items-center gap-2"
+                    onClick={handleNavigate}
                   >
                     <item.icon className="h-4 w-4" />
                     {item.title}

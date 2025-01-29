@@ -58,6 +58,12 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
     }
   };
 
+  const handleNavigate = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {onClose && (
@@ -88,7 +94,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent-purple/50"
                       }`}
-                      onClick={onClose}
+                      onClick={handleNavigate}
                     >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
