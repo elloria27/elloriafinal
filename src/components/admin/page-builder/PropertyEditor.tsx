@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BlockContent, ContentBlock, FeatureItem } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -20,7 +21,9 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const handleArrayChange = (key: string, index: number, field: string, value: any) => {
-    const array = [...(Array.isArray(content[key]) ? content[key] : [])];
+    if (!Array.isArray(content[key])) return;
+    
+    const array = [...content[key] as any[]];
     if (array[index] && typeof array[index] === 'object') {
       array[index] = { ...array[index], [field]: value };
       handleChange(key, array);
@@ -29,47 +32,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   const renderFields = () => {
     switch (block.type) {
-      case 'hero':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={String(content.title || '')}
-                onChange={(e) => handleChange('title', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={String(content.subtitle || '')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={String(content.description || '')}
-                onChange={(e) => handleChange('description', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Button Text</Label>
-              <Input
-                value={String(content.buttonText || '')}
-                onChange={(e) => handleChange('buttonText', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Button Link</Label>
-              <Input
-                value={String(content.buttonLink || '')}
-                onChange={(e) => handleChange('buttonLink', e.target.value)}
-              />
-            </div>
-          </div>
-        );
-
       case 'features':
         return (
           <div className="space-y-4">
@@ -96,7 +58,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             </div>
             <div className="space-y-4">
               <Label>Features</Label>
-              {Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
+              {Array.isArray(content.features) && (content.features as FeatureItem[]).map((feature: FeatureItem, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Icon name"
@@ -115,6 +77,40 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   />
                 </div>
               ))}
+            </div>
+          </div>
+        );
+
+      case 'hero':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={String(content.title || '')}
+                onChange={(e) => handleChange('title', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={String(content.subtitle || '')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={String(content.description || '')}
+                onChange={(e) => handleChange('description', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Video URL</Label>
+              <Input
+                value={String(content.videoUrl || '')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+              />
             </div>
           </div>
         );
@@ -157,7 +153,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     value={String(feature.title || '')}
                     onChange={(e) => handleArrayChange('features', index, 'title', e.target.value)}
                   />
-                  <Input
+                  <Textarea
                     placeholder="Description"
                     value={String(feature.description || '')}
                     onChange={(e) => handleArrayChange('features', index, 'description', e.target.value)}
