@@ -54,8 +54,6 @@ export const MainProfileContent = ({
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Profile</h1>
-      
       <ProfileHeader
         firstName={firstName}
         lastName={lastName}
