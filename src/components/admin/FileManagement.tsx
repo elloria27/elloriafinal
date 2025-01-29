@@ -40,30 +40,53 @@ export const FileManagement = () => {
         return;
       }
 
-      // Find all files that are actually broken folder entries (0 bytes and no folder record)
-      const brokenFiles = filesData.filter(file => 
-        file.metadata?.size === 0 && 
-        !file.metadata?.mimetype && 
-        !file.name.includes('/')
-      );
+      // Find all files that are actually broken folder entries
+      const brokenFiles = filesData.filter(file => {
+        // Check if it's a broken folder entry (0 bytes, no mimetype, not a real folder)
+        const isBrokenFolder = file.metadata?.size === 0 && 
+                             !file.metadata?.mimetype && 
+                             !file.name.includes('/');
+        
+        // Additional check to ensure we don't delete valid folders
+        const isValidFolder = file.name.endsWith('/');
+        
+        return isBrokenFolder && !isValidFolder;
+      });
 
       console.log('Found broken folder files:', brokenFiles);
 
+      // Delete broken folders from storage
       for (const file of brokenFiles) {
-        const { error: deleteError } = await supabase.storage
+        const { error: deleteStorageError } = await supabase.storage
           .from('files')
           .remove([file.name]);
 
-        if (deleteError) {
-          console.error(`Error deleting broken folder ${file.name}:`, deleteError);
-        } else {
-          console.log(`Successfully deleted broken folder ${file.name}`);
+        if (deleteStorageError) {
+          console.error(`Error deleting broken folder ${file.name} from storage:`, deleteStorageError);
+          continue;
         }
+
+        // Also delete any associated file_shares records
+        const { error: deleteShareError } = await supabase
+          .from('file_shares')
+          .delete()
+          .eq('file_path', file.name);
+
+        if (deleteShareError) {
+          console.error(`Error deleting file share for ${file.name}:`, deleteShareError);
+        }
+
+        console.log(`Successfully deleted broken folder ${file.name}`);
       }
 
+      if (brokenFiles.length > 0) {
+        toast.success(`Cleaned up ${brokenFiles.length} broken folder entries`);
+      }
+      
       console.log('Cleanup completed');
     } catch (error) {
       console.error('Error in cleanupBrokenFolders:', error);
+      toast.error("Error cleaning up broken folders");
     }
   };
 
