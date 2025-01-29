@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { AboutStoryContent } from "@/types/content-blocks";
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence } from "framer-motion";
+import ReactPlayer from "react-player";
 
 interface AboutStoryProps {
   content?: AboutStoryContent;
@@ -18,65 +19,18 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     videoThumbnail = ""
   } = content;
 
-  console.log("AboutStory received content:", content);
-  console.log("Video URL:", videoUrl);
-  console.log("Video Thumbnail:", videoThumbnail);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [videoError, setVideoError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Preload video when component mounts
-  useEffect(() => {
-    if (videoRef.current && videoUrl) {
-      videoRef.current.preload = "auto"; // Force preload
-      // Start loading the video
-      videoRef.current.load();
-      console.log("Preloading video:", videoUrl);
-    }
-  }, [videoUrl]);
-
-  const handlePlayVideo = () => {
-    if (videoRef.current) {
-      try {
-        if (!isPlaying) {
-          const playPromise = videoRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                setIsPlaying(true);
-                console.log("Video started playing successfully");
-              })
-              .catch(error => {
-                console.error("Error playing video:", error);
-                setVideoError("Failed to play video");
-              });
-          }
-        } else {
-          videoRef.current.pause();
-          setIsPlaying(false);
-        }
-      } catch (error) {
-        console.error("Error handling video playback:", error);
-        setVideoError("Error playing video");
-      }
-    }
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
   };
 
   const handleToggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleVideoError = (e: any) => {
-    console.error("Video error:", e);
-    setVideoError("Error loading video");
-    setIsVideoLoaded(false);
+    setIsMuted(!isMuted);
   };
 
   return (
@@ -109,27 +63,32 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
             <div className="relative z-10 w-full h-full rounded-xl overflow-hidden">
               {videoUrl ? (
                 <>
-                  <video
-                    ref={videoRef}
-                    loop
+                  <ReactPlayer
+                    url={videoUrl}
+                    playing={isPlaying}
                     muted={isMuted}
-                    playsInline
-                    preload="auto"
-                    className="w-full h-full object-cover"
-                    onLoadedData={() => {
-                      setIsVideoLoaded(true);
-                      setVideoError(null);
-                      console.log("Video loaded successfully");
+                    width="100%"
+                    height="100%"
+                    playsinline
+                    loop
+                    config={{
+                      file: {
+                        attributes: {
+                          poster: videoThumbnail,
+                          preload: 'auto'
+                        }
+                      }
                     }}
-                    onError={handleVideoError}
-                    poster={videoThumbnail}
-                  >
-                    <source src={videoUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  {videoError && (
+                    onReady={() => setIsReady(true)}
+                    onError={(e) => {
+                      console.error("Video error:", e);
+                      setError("Error loading video");
+                    }}
+                    className="object-cover"
+                  />
+                  {error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <p className="text-white">{videoError}</p>
+                      <p className="text-white">{error}</p>
                     </div>
                   )}
                 </>
@@ -140,7 +99,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
               )}
 
               <AnimatePresence>
-                {videoUrl && (!isPlaying || !isVideoLoaded) && !videoError && (
+                {videoUrl && (!isPlaying || !isReady) && !error && (
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center bg-black/30"
                     initial={{ opacity: 0 }}
@@ -148,7 +107,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                     exit={{ opacity: 0 }}
                   >
                     <Button
-                      onClick={handlePlayVideo}
+                      onClick={handlePlayPause}
                       className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
                     >
                       <Play className="w-8 h-8 text-primary ml-1" />
@@ -156,7 +115,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                   </motion.div>
                 )}
 
-                {videoUrl && isPlaying && isHovering && !videoError && (
+                {videoUrl && isPlaying && isHovering && !error && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent"
                     initial={{ opacity: 0, y: 20 }}
@@ -166,7 +125,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                   >
                     <div className="flex justify-center gap-4">
                       <Button
-                        onClick={handlePlayVideo}
+                        onClick={handlePlayPause}
                         className="w-10 h-10 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
                       >
                         {isPlaying ? (
