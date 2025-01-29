@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
 import { Features } from "@/components/Features";
+import { Header } from "@/components/Header";
 
 const ProductDetailContent = () => {
   const { id } = useParams();
