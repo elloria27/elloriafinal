@@ -1,65 +1,52 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Leaf, Recycle, TreePine, PackageCheck, Factory, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sustainability as SustainabilityComponent } from "@/components/Sustainability";
-import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, SustainabilityContent } from "@/types/content-blocks";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const SustainabilityPage = () => {
-  const [sustainabilityBlock, setSustainabilityBlock] = useState<ContentBlock | null>(null);
+  const stats = [
+    {
+      icon: <Leaf className="w-8 h-8" />,
+      value: "72%",
+      label: "Recyclable Materials",
+      description: "Our products are made with eco-friendly, biodegradable materials"
+    },
+    {
+      icon: <PackageCheck className="w-8 h-8" />,
+      value: "25%",
+      label: "Less Packaging",
+      description: "Reduction in packaging waste through innovative design"
+    },
+    {
+      icon: <Globe className="w-8 h-8" />,
+      value: "10K+",
+      label: "Kg Waste Saved",
+      description: "Annual waste reduction through sustainable practices"
+    }
+  ];
 
-  useEffect(() => {
-    const fetchPageContent = async () => {
-      try {
-        // First, get the page ID for the sustainability page
-        const { data: pages, error: pageError } = await supabase
-          .from('pages')
-          .select('id')
-          .eq('slug', 'sustainability')
-          .single();
-
-        if (pageError) {
-          console.error('Error fetching page:', pageError);
-          return;
-        }
-
-        if (!pages) {
-          console.log('No sustainability page found');
-          return;
-        }
-
-        // Then fetch the sustainability content block for this page
-        const { data: blocks, error: blocksError } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pages.id)
-          .eq('type', 'sustainability')
-          .order('order_index')
-          .single();
-
-        if (blocksError) {
-          console.error('Error fetching content blocks:', blocksError);
-          return;
-        }
-
-        // Type assertion to ensure the content is treated as SustainabilityContent
-        if (blocks) {
-          const typedBlock: ContentBlock = {
-            ...blocks,
-            content: blocks.content as SustainabilityContent
-          };
-          console.log('Fetched and typed sustainability block:', typedBlock);
-          setSustainabilityBlock(typedBlock);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
-
-    fetchPageContent();
-  }, []);
+  const materials = [
+    {
+      icon: <TreePine className="w-6 h-6" />,
+      title: "Perforated Dry Surface",
+      description: "Eco-friendly top layer for maximum comfort"
+    },
+    {
+      icon: <Recycle className="w-6 h-6" />,
+      title: "SAP Paper",
+      description: "Sustainable absorbent core material"
+    },
+    {
+      icon: <Factory className="w-6 h-6" />,
+      title: "Air-laid Paper",
+      description: "Biodegradable internal layer"
+    }
+  ];
 
   const faqs = [
     {
@@ -110,8 +97,76 @@ const SustainabilityPage = () => {
         </motion.div>
       </section>
 
-      {/* Sustainability Component */}
-      <SustainabilityComponent content={sustainabilityBlock?.content as SustainabilityContent} />
+      {/* Mission Section */}
+      <section className="py-20 bg-white">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-3xl mx-auto text-center"
+          >
+            <h2 className="text-4xl font-bold mb-6">Our Sustainability Mission</h2>
+            <p className="text-gray-600 mb-12">
+              "At Elloria, we believe that premium feminine care shouldn't come at the cost of our planet. 
+              Our mission is to revolutionize the industry with sustainable solutions that protect both women and the environment."
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2 }}
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="text-primary mb-4">{stat.icon}</div>
+                <div className="text-4xl font-bold text-primary mb-2">{stat.value}</div>
+                <h3 className="text-xl font-semibold mb-3">{stat.label}</h3>
+                <p className="text-gray-600">{stat.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Materials Section */}
+      <section className="py-20 bg-accent-green/10">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold mb-6">Sustainable Materials</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Our products are crafted with carefully selected materials that minimize environmental impact 
+              while maintaining the highest standards of comfort and protection.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {materials.map((material, index) => (
+              <motion.div
+                key={material.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2 }}
+                className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                <div className="text-primary mb-4">{material.icon}</div>
+                <h3 className="text-lg font-semibold mb-2">{material.title}</h3>
+                <p className="text-gray-600">{material.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Section */}
       <section className="py-20 bg-white">
