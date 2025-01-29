@@ -57,27 +57,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     });
   };
 
-  const getTimelineItems = (): string[] => {
-    if (!content || !('timelineItems' in content)) {
-      return [];
-    }
-    const items = (content as SustainabilityContent).timelineItems;
-    return Array.isArray(items) ? items : [];
-  };
-
-  const getMetrics = () => {
-    if (!content || !('metrics' in content)) {
-      return [];
-    }
-    const metrics = (content as CompetitorComparisonContent).metrics;
-    return Array.isArray(metrics) ? metrics : [];
-  };
-
   const getCustomerTestimonials = () => {
     if (!content || !('testimonials' in content)) {
       return [];
     }
-    const testimonials = (content as AboutCustomerImpactContent).testimonials;
+    const testimonials = (content as AboutCustomerImpactContent).testimonials || [];
     return Array.isArray(testimonials) ? testimonials : [];
   };
 
@@ -96,18 +80,42 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     handleChange('testimonials', newTestimonials);
   };
 
-  const handleTestimonialChange = (index: number, field: string, value: string | number) => {
+  const handleTestimonialChange = (index: number, field: string, value: string) => {
     const testimonials = getCustomerTestimonials();
     const newTestimonials = [...testimonials];
     newTestimonials[index] = { ...newTestimonials[index], [field]: value };
     handleChange('testimonials', newTestimonials);
   };
 
+  const getValues = () => {
+    if (!content || !('values' in content)) {
+      return [];
+    }
+    const values = (content as AboutMissionContent).values || [];
+    return Array.isArray(values) ? values : [];
+  };
+
+  const getTimelineItems = () => {
+    if (!content || !('timelineItems' in content)) {
+      return [];
+    }
+    const items = (content as SustainabilityContent).timelineItems || [];
+    return Array.isArray(items) ? items : [];
+  };
+
+  const getMetrics = () => {
+    if (!content || !('metrics' in content)) {
+      return [];
+    }
+    const metrics = (content as CompetitorComparisonContent).metrics || [];
+    return Array.isArray(metrics) ? metrics : [];
+  };
+
   const getBlogArticles = () => {
     if (!content || !('articles' in content)) {
       return [];
     }
-    const articles = (content as BlogPreviewContent).articles;
+    const articles = (content as BlogPreviewContent).articles || [];
     return Array.isArray(articles) ? articles : [];
   };
 
@@ -115,7 +123,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     if (!content || !('faqs' in content)) {
       return [];
     }
-    const faqs = (content as ContactFAQContent).faqs;
+    const faqs = (content as ContactFAQContent).faqs || [];
     return Array.isArray(faqs) ? faqs : [];
   };
 
