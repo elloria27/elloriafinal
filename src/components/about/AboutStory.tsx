@@ -18,20 +18,41 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     videoThumbnail = ""
   } = content;
 
+  console.log("AboutStory received content:", content);
+  console.log("Video URL:", videoUrl);
+  console.log("Video Thumbnail:", videoThumbnail);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   const handlePlayVideo = () => {
     if (videoRef.current) {
-      if (!isPlaying) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
+      try {
+        if (!isPlaying) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setIsPlaying(true);
+                console.log("Video started playing successfully");
+              })
+              .catch(error => {
+                console.error("Error playing video:", error);
+                setVideoError("Failed to play video");
+              });
+          }
+        } else {
+          videoRef.current.pause();
+          setIsPlaying(false);
+        }
+      } catch (error) {
+        console.error("Error handling video playback:", error);
+        setVideoError("Error playing video");
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -42,9 +63,11 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     }
   };
 
-  console.log("Rendering AboutStory with content:", content);
-  console.log("Video URL:", videoUrl);
-  console.log("Video Thumbnail:", videoThumbnail);
+  const handleVideoError = (e: any) => {
+    console.error("Video error:", e);
+    setVideoError("Error loading video");
+    setIsVideoLoaded(false);
+  };
 
   return (
     <section className="py-20">
@@ -75,18 +98,30 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
             
             <div className="relative z-10 w-full h-full rounded-xl overflow-hidden">
               {videoUrl ? (
-                <video
-                  ref={videoRef}
-                  loop
-                  muted={isMuted}
-                  playsInline
-                  className="w-full h-full object-cover"
-                  onLoadedData={() => setIsVideoLoaded(true)}
-                  poster={videoThumbnail}
-                >
-                  <source src={videoUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <>
+                  <video
+                    ref={videoRef}
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-cover"
+                    onLoadedData={() => {
+                      setIsVideoLoaded(true);
+                      setVideoError(null);
+                      console.log("Video loaded successfully");
+                    }}
+                    onError={handleVideoError}
+                    poster={videoThumbnail}
+                  >
+                    <source src={videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  {videoError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <p className="text-white">{videoError}</p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                   <p className="text-gray-400">No video selected</p>
@@ -94,7 +129,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
               )}
 
               <AnimatePresence>
-                {videoUrl && (!isPlaying || !isVideoLoaded) && (
+                {videoUrl && (!isPlaying || !isVideoLoaded) && !videoError && (
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center bg-black/30"
                     initial={{ opacity: 0 }}
@@ -110,7 +145,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                   </motion.div>
                 )}
 
-                {videoUrl && isPlaying && isHovering && (
+                {videoUrl && isPlaying && isHovering && !videoError && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent"
                     initial={{ opacity: 0, y: 20 }}
@@ -123,7 +158,11 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                         onClick={handlePlayVideo}
                         className="w-10 h-10 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
                       >
-                        <Pause className="w-5 h-5 text-primary" />
+                        {isPlaying ? (
+                          <Pause className="w-5 h-5 text-primary" />
+                        ) : (
+                          <Play className="w-5 h-5 text-primary ml-0.5" />
+                        )}
                       </Button>
                       <Button
                         onClick={handleToggleMute}
