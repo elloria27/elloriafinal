@@ -89,7 +89,7 @@ export const MobileCart = () => {
     >
       <SheetContent 
         side="bottom" 
-        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-white"
+        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-gradient-to-b from-white to-gray-50"
         onPointerDownOutside={(e) => {
           e.preventDefault();
           setIsOpen(false);
@@ -129,7 +129,7 @@ export const MobileCart = () => {
 
         {items.length > 0 && (
           <motion.div 
-            className="border-t bg-white px-4 py-4 space-y-4"
+            className="border-t border-gray-100 bg-gradient-to-t from-white to-transparent px-4 py-6 space-y-6"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -146,7 +146,7 @@ export const MobileCart = () => {
             />
 
             <Button 
-              className="w-full h-12 text-base rounded-full font-medium bg-primary hover:bg-primary/90"
+              className="w-full h-14 text-base rounded-full font-medium bg-primary hover:bg-primary/90 shadow-lg"
               onClick={handleCheckout}
             >
               Proceed to Checkout

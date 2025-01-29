@@ -30,7 +30,7 @@ export const CartSummary = ({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
+      className="space-y-6"
     >
       {!activePromoCode && (
         <div className="flex items-center gap-2">
@@ -38,13 +38,13 @@ export const CartSummary = ({
             placeholder="Enter promo code"
             value={promoCode}
             onChange={(e) => onPromoCodeChange(e.target.value)}
-            className="flex-1 rounded-xl bg-white/50 border-gray-200"
+            className="flex-1 rounded-xl bg-white/80 border-gray-200"
           />
           <Button 
             variant="outline"
             onClick={onApplyPromoCode}
             disabled={!promoCode.trim()}
-            className="whitespace-nowrap rounded-xl border-gray-200 bg-white"
+            className="whitespace-nowrap rounded-xl border-gray-200 bg-white hover:bg-primary hover:text-white"
           >
             <Tag className="mr-2 h-4 w-4" />
             Apply
@@ -58,7 +58,7 @@ export const CartSummary = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-between bg-primary/5 p-3 rounded-xl"
+            className="flex items-center justify-between bg-primary/5 p-4 rounded-xl"
           >
             <div className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-primary" />
@@ -78,7 +78,7 @@ export const CartSummary = ({
         )}
       </AnimatePresence>
 
-      <div className="space-y-3 bg-white/50 backdrop-blur-sm p-4 rounded-xl">
+      <div className="space-y-4 bg-white/80 backdrop-blur-sm p-6 rounded-xl border border-gray-100/50">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Subtotal</span>
           <span className="font-medium">{formatPrice(subtotal)}</span>

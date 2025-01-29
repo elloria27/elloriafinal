@@ -29,9 +29,9 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4"
+      className="flex items-center gap-4 bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-100/50 shadow-sm"
     >
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white/80">
         <img
           src={item.image}
           alt={item.name}
@@ -42,7 +42,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-medium text-gray-900 leading-tight text-sm">
+            <h3 className="font-medium text-gray-900 leading-tight">
               {item.name}
             </h3>
             <p className="text-primary font-semibold mt-1">
@@ -53,17 +53,17 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
             variant="ghost"
             size="sm"
             onClick={handleRemove}
-            className="text-gray-400 hover:text-red-500 -mt-1 p-1 h-auto"
+            className="text-gray-400 hover:text-red-500 -mt-1 hover:bg-red-50"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
         
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-3 mt-3">
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 rounded-lg p-0"
+            className="h-8 w-8 rounded-lg p-0 border-gray-200"
             onClick={(e) => handleQuantityChange(e, item.quantity - 1)}
             disabled={item.quantity <= 1}
           >
@@ -77,7 +77,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 rounded-lg p-0"
+            className="h-8 w-8 rounded-lg p-0 border-gray-200"
             onClick={(e) => handleQuantityChange(e, item.quantity + 1)}
             disabled={item.quantity >= 99}
           >
