@@ -3,7 +3,7 @@ import { Package, Truck, Calculator, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, FeatureItem } from "@/types/content-blocks";
+import { ContentBlock, FeatureItem, FeaturesContent, HeroContent, ContactFormContent } from "@/types/content-blocks";
 
 const BulkOrders = () => {
   const [loading, setLoading] = useState(true);
@@ -25,8 +25,10 @@ const BulkOrders = () => {
 
         if (page && page.content_blocks) {
           console.log('Fetched content blocks:', page.content_blocks);
-          // Cast the content blocks to the correct type
-          const typedContentBlocks = page.content_blocks as ContentBlock[];
+          const typedContentBlocks = page.content_blocks.map(block => ({
+            ...block,
+            content: block.content || {}
+          })) as ContentBlock[];
           setPageContent(typedContentBlocks);
         }
       } catch (error) {
@@ -41,14 +43,14 @@ const BulkOrders = () => {
 
   const getBlockContent = (type: string) => {
     const block = pageContent.find(block => block.type === type);
-    return block ? block.content : null;
+    return block?.content || null;
   };
 
-  const heroContent = getBlockContent('hero');
-  const whyChooseContent = getBlockContent('features');
+  const heroContent = getBlockContent('hero') as HeroContent | null;
+  const whyChooseContent = getBlockContent('features') as FeaturesContent | null;
   const howItWorksContent = pageContent
-    .filter(block => block.type === 'features')[1]?.content;
-  const ctaContent = getBlockContent('contact_form');
+    .filter(block => block.type === 'features')[1]?.content as FeaturesContent | null;
+  const ctaContent = getBlockContent('contact_form') as ContactFormContent | null;
 
   if (loading) {
     return (
@@ -75,7 +77,7 @@ const BulkOrders = () => {
               transition={{ delay: 0.2 }}
               className="text-4xl md:text-5xl font-light mb-6"
             >
-              {heroContent?.title || 'Bulk Orders for Your Business'}
+              {(heroContent?.title as string) || 'Bulk Orders for Your Business'}
             </motion.h1>
             <motion.p 
               initial={{ y: 20, opacity: 0 }}
@@ -83,7 +85,7 @@ const BulkOrders = () => {
               transition={{ delay: 0.3 }}
               className="text-gray-600 text-lg mb-8"
             >
-              {heroContent?.subtitle || 'Get premium feminine care products at competitive wholesale prices'}
+              {(heroContent?.subtitle as string) || 'Get premium feminine care products at competitive wholesale prices'}
             </motion.p>
             <motion.div
               initial={{ y: 20, opacity: 0 }}
@@ -102,7 +104,7 @@ const BulkOrders = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-12">
-            {whyChooseContent?.title || 'Why Choose Bulk Orders?'}
+            {(whyChooseContent?.title as string) || 'Why Choose Bulk Orders?'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {(whyChooseContent?.features as FeatureItem[] || []).map((feature, index) => (
@@ -129,7 +131,7 @@ const BulkOrders = () => {
       <section className="py-16 bg-accent-green/30">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-12">
-            {howItWorksContent?.title || 'How It Works'}
+            {(howItWorksContent?.title as string) || 'How It Works'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {(howItWorksContent?.features as FeatureItem[] || []).map((step, index) => (
@@ -152,17 +154,17 @@ const BulkOrders = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-light mb-6">
-              {ctaContent?.title || 'Ready to Get Started?'}
+              {(ctaContent?.title as string) || 'Ready to Get Started?'}
             </h2>
             <p className="text-gray-600 mb-8">
-              {ctaContent?.description || 'Join other organizations that trust Elloria for their feminine care needs.'}
+              {(ctaContent?.description as string) || 'Join other organizations that trust Elloria for their feminine care needs.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
-                {ctaContent?.buttonText || 'Request a Quote'}
+                {(ctaContent?.buttonText as string) || 'Request a Quote'}
               </Button>
               <Button size="lg" variant="outline">
-                {ctaContent?.secondaryButtonText || 'Learn More'}
+                {(ctaContent?.secondaryButtonText as string) || 'Learn More'}
               </Button>
             </div>
           </div>
