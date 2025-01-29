@@ -88,7 +88,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                           playsInline: true
                         },
                         forceVideo: true,
-                        forcedHLS: true,
+                        forceHLS: true,
                         hlsOptions: {
                           enableWorker: true,
                           lowLatencyMode: true,
