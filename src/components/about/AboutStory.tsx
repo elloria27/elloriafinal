@@ -42,6 +42,10 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     }
   };
 
+  console.log("Rendering AboutStory with content:", content);
+  console.log("Video URL:", videoUrl);
+  console.log("Video Thumbnail:", videoThumbnail);
+
   return (
     <section className="py-20">
       <div className="container px-4">

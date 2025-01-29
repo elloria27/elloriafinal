@@ -17,6 +17,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   const [currentField, setCurrentField] = useState<string>("");
 
   const handleChange = (key: string, value: any) => {
+    console.log("Updating content:", key, value);
     const updatedContent = { ...block.content, [key]: value };
     onUpdate(block.id, updatedContent);
   };
@@ -28,6 +29,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleMediaSelect = (url: string) => {
+    console.log("Selected media:", currentField, url);
     handleChange(currentField, url);
     setShowMediaLibrary(false);
   };
@@ -78,6 +80,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Input
               value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Subtitle</Label>
+            <Input
+              value={block.content.subtitle as string || ""}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </div>
           <div className="space-y-2">
