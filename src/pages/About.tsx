@@ -14,54 +14,64 @@ import { toast } from "sonner";
 import { ContentBlock, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 
 export default function About() {
-  const { data: pageData, isLoading } = useQuery({
+  const { data: pageData, isLoading, error } = useQuery({
     queryKey: ['about-page'],
     queryFn: async () => {
       console.log('Fetching about page data');
       
-      const { data: pageData, error: pageError } = await supabase
-        .from('pages')
-        .select('id')
-        .eq('slug', 'about')
-        .single();
+      try {
+        const { data: pageData, error: pageError } = await supabase
+          .from('pages')
+          .select('id')
+          .eq('slug', 'about')
+          .single();
 
-      if (pageError) {
-        console.error('Error fetching page:', pageError);
-        toast.error('Error loading page content');
-        throw pageError;
+        if (pageError) {
+          console.error('Error fetching page:', pageError);
+          throw pageError;
+        }
+
+        if (!pageData) {
+          console.error('Page not found');
+          throw new Error('Page not found');
+        }
+
+        console.log('Found page:', pageData);
+
+        const { data: blocks, error: blocksError } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageData.id)
+          .order('order_index');
+
+        if (blocksError) {
+          console.error('Error fetching content blocks:', blocksError);
+          throw blocksError;
+        }
+
+        console.log('Fetched content blocks:', blocks);
+        return blocks as ContentBlock[];
+      } catch (error) {
+        console.error('Error in queryFn:', error);
+        throw error;
       }
-
-      if (!pageData) {
-        console.error('Page not found');
-        toast.error('Page not found');
-        throw new Error('Page not found');
-      }
-
-      console.log('Found page:', pageData);
-
-      const { data: blocks, error: blocksError } = await supabase
-        .from('content_blocks')
-        .select('*')
-        .eq('page_id', pageData.id)
-        .order('order_index');
-
-      if (blocksError) {
-        console.error('Error fetching content blocks:', blocksError);
-        toast.error('Error loading page content');
-        throw blocksError;
-      }
-
-      console.log('Fetched content blocks:', blocks);
-      return blocks as ContentBlock[];
     }
   });
+
+  if (error) {
+    console.error('Error loading page:', error);
+    toast.error('Error loading page content');
+    return <div>Error loading page content</div>;
+  }
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   const getBlockContent = (type: string) => {
-    const block = pageData?.find(block => block.type === type);
+    if (!pageData) return {};
+    const block = pageData.find(block => block.type === type);
+    console.log(`Getting content for block type ${type}:`, block?.content);
     return block ? block.content : {};
   };
 
