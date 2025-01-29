@@ -10,6 +10,25 @@ interface MediaUploadProps {
 export const MediaUpload = ({ onUpload, uploading }: MediaUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
 
+  const allowedMediaTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'video/mp4',
+    'video/webm',
+    'video/ogg'
+  ];
+
+  const handleFile = (file: File) => {
+    if (!allowedMediaTypes.includes(file.type)) {
+      toast.error("Invalid file type. Only images and videos are allowed in the Media Library.");
+      return;
+    }
+    onUpload(file);
+  };
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -28,7 +47,7 @@ export const MediaUpload = ({ onUpload, uploading }: MediaUploadProps) => {
 
       const file = e.dataTransfer.files?.[0];
       if (file) {
-        onUpload(file);
+        handleFile(file);
       }
     },
     [onUpload]
@@ -38,7 +57,7 @@ export const MediaUpload = ({ onUpload, uploading }: MediaUploadProps) => {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
-        onUpload(file);
+        handleFile(file);
       }
     },
     [onUpload]
@@ -60,6 +79,7 @@ export const MediaUpload = ({ onUpload, uploading }: MediaUploadProps) => {
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           onChange={handleChange}
           disabled={uploading}
+          accept="image/*,video/*"
         />
         <div className="space-y-4">
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -67,14 +87,14 @@ export const MediaUpload = ({ onUpload, uploading }: MediaUploadProps) => {
           </div>
           <div>
             <p className="text-sm font-medium">
-              {uploading ? "Uploading..." : "Drop files here or click to upload"}
+              {uploading ? "Uploading..." : "Drop media files here or click to upload"}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Support for images, documents, and other media files
+              Supports images (JPG, PNG, GIF, WebP, SVG) and videos (MP4, WebM, OGG)
             </p>
           </div>
           <Button variant="outline" disabled={uploading}>
-            {uploading ? "Uploading..." : "Select File"}
+            {uploading ? "Uploading..." : "Select Media"}
           </Button>
         </div>
       </div>

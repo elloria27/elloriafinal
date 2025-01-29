@@ -16,7 +16,9 @@ import {
   ExternalLink,
   LogOut,
   LayoutDashboard,
-  Image
+  Image,
+  File,
+  Lock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -54,7 +56,12 @@ const sidebarItems: SidebarItem[] = [
     title: "HRM",
     icon: Building2,
     items: [
-      { title: "File Management", href: "/admin?tab=files", icon: FolderIcon }
+      { 
+        title: "Company Documents", 
+        href: "/admin?tab=files", 
+        icon: Lock,
+        description: "Private company documents (admin only)"
+      }
     ]
   }
 ];
