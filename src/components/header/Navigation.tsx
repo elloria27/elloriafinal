@@ -34,11 +34,10 @@ export const Navigation = () => {
     .filter(page => 
       page.show_in_header && 
       !technicalPages.includes(page.slug) &&
-      !page.parent_id // Only get top-level items first
+      !page.parent_id
     )
     .sort((a, b) => a.menu_order - b.menu_order)
     .map(page => {
-      // Find children for this page
       const children = publishedPages
         .filter(childPage => 
           childPage.show_in_header && 
@@ -73,14 +72,17 @@ export const Navigation = () => {
       }
       timeoutRef.current = window.setTimeout(() => {
         setHoveredItem(null);
-      }, 300); // 300ms delay before hiding submenu
+      }, 300);
     }
   };
 
   const handleItemClick = (item: MenuItem, e: React.MouseEvent) => {
     if (isMobile && item.children?.length) {
-      e.preventDefault(); // Prevent navigation if item has children on mobile
+      e.preventDefault();
       setExpandedMobileItem(expandedMobileItem === item.path ? null : item.path);
+    } else if (isMobile && expandedMobileItem === item.path) {
+      // If clicking the same item that's already expanded, allow navigation
+      setExpandedMobileItem(null);
     }
   };
 
@@ -121,8 +123,8 @@ export const Navigation = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             className={`
-              ${isMobile ? 'relative mt-2 bg-gray-50' : 'absolute left-0 top-full mt-2 bg-white rounded-lg shadow-lg'}
-              min-w-[200px] py-2 z-50
+              ${isMobile ? 'relative mt-2 bg-gray-50 py-2' : 'absolute left-0 top-full mt-2 bg-white rounded-lg shadow-lg min-w-[200px] py-2'}
+              z-50
             `}
           >
             {item.children.map((child) => (
