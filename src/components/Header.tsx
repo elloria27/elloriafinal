@@ -25,18 +25,21 @@ export const Header = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-14 md:h-20 px-4">
           <Logo />
-          <Navigation />
           
-          <div className="hidden md:flex items-center space-x-6">
-            <UserMenu />
-            <LanguageSelector />
-            <CurrencySelector />
-            <CartPopover />
-          </div>
+          <div className="flex items-center justify-end flex-1 space-x-6">
+            <Navigation />
+            
+            <div className="hidden md:flex items-center space-x-6">
+              <UserMenu />
+              <LanguageSelector />
+              <CurrencySelector />
+              <CartPopover />
+            </div>
 
-          <div className="md:hidden flex items-center gap-4">
-            <CartPopover />
-            <MobileMenu />
+            <div className="md:hidden flex items-center gap-4">
+              <CartPopover />
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </div>
