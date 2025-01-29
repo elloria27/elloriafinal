@@ -1,8 +1,61 @@
 import { motion } from "framer-motion";
-import { Package, Truck, Calculator, Clock, Shield, Users } from "lucide-react";
+import { Package, Truck, Calculator, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ContentBlock } from "@/types/content-blocks";
 
 const BulkOrders = () => {
+  const [loading, setLoading] = useState(true);
+  const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
+
+  useEffect(() => {
+    const fetchPageContent = async () => {
+      try {
+        const { data: page, error } = await supabase
+          .from('pages')
+          .select('content_blocks')
+          .eq('slug', 'bulk-orders')
+          .single();
+
+        if (error) {
+          console.error('Error fetching page content:', error);
+          return;
+        }
+
+        if (page && page.content_blocks) {
+          console.log('Fetched content blocks:', page.content_blocks);
+          setPageContent(page.content_blocks);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPageContent();
+  }, []);
+
+  const getBlockContent = (type: string) => {
+    return pageContent.find(block => block.type === type)?.content || null;
+  };
+
+  const heroContent = getBlockContent('hero');
+  const whyChooseContent = getBlockContent('features')?.features || [];
+  const howItWorksContent = pageContent
+    .filter(block => block.type === 'features')
+    .map(block => block.content)[1]?.features || [];
+  const ctaContent = getBlockContent('contact_form');
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <motion.main 
       initial={{ opacity: 0 }}
@@ -20,7 +73,7 @@ const BulkOrders = () => {
               transition={{ delay: 0.2 }}
               className="text-4xl md:text-5xl font-light mb-6"
             >
-              Bulk Orders for Your Business
+              {heroContent?.title || 'Bulk Orders for Your Business'}
             </motion.h1>
             <motion.p 
               initial={{ y: 20, opacity: 0 }}
@@ -28,7 +81,7 @@ const BulkOrders = () => {
               transition={{ delay: 0.3 }}
               className="text-gray-600 text-lg mb-8"
             >
-              Get premium feminine care products at competitive wholesale prices for your organization
+              {heroContent?.subtitle || 'Get premium feminine care products at competitive wholesale prices'}
             </motion.p>
             <motion.div
               initial={{ y: 20, opacity: 0 }}
@@ -48,41 +101,22 @@ const BulkOrders = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-12">Why Choose Bulk Orders?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <Calculator className="w-10 h-10 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Competitive Pricing</h3>
-              <p className="text-gray-600">Benefit from wholesale prices and volume discounts tailored to your needs.</p>
-            </motion.div>
-
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <Package className="w-10 h-10 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Custom Packaging</h3>
-              <p className="text-gray-600">Options for branded packaging and custom product assortments.</p>
-            </motion.div>
-
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-              className="p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <Truck className="w-10 h-10 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Reliable Delivery</h3>
-              <p className="text-gray-600">Scheduled deliveries and flexible shipping options for your convenience.</p>
-            </motion.div>
+            {whyChooseContent.map((feature: any, index: number) => (
+              <motion.div 
+                key={index}
+                initial={{ y: 20, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 * index }}
+                className="p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                {feature.icon === 'Calculator' && <Calculator className="w-10 h-10 text-primary mb-4" />}
+                {feature.icon === 'Package' && <Package className="w-10 h-10 text-primary mb-4" />}
+                {feature.icon === 'Truck' && <Truck className="w-10 h-10 text-primary mb-4" />}
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -92,29 +126,17 @@ const BulkOrders = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-light text-center mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <Users className="w-8 h-8 text-primary" />
+            {howItWorksContent.map((step: any, index: number) => (
+              <div key={index} className="text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  {step.icon === 'Users' && <Users className="w-8 h-8 text-primary" />}
+                  {step.icon === 'Calculator' && <Calculator className="w-8 h-8 text-primary" />}
+                  {step.icon === 'Package' && <Package className="w-8 h-8 text-primary" />}
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                <p className="text-gray-600">{step.description}</p>
               </div>
-              <h3 className="text-xl font-semibold mb-3">1. Contact Us</h3>
-              <p className="text-gray-600">Reach out with your requirements and organization details.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <Calculator className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">2. Get a Quote</h3>
-              <p className="text-gray-600">Receive a customized quote based on your needs and volume.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <Package className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">3. Place Order</h3>
-              <p className="text-gray-600">Confirm your order and schedule regular deliveries.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -123,16 +145,16 @@ const BulkOrders = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-light mb-6">Ready to Get Started?</h2>
+            <h2 className="text-3xl font-light mb-6">{ctaContent?.title || 'Ready to Get Started?'}</h2>
             <p className="text-gray-600 mb-8">
-              Join other organizations that trust Elloria for their feminine care needs.
+              {ctaContent?.description || 'Join other organizations that trust Elloria for their feminine care needs.'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Request a Quote
+                {ctaContent?.buttonText || 'Request a Quote'}
               </Button>
               <Button size="lg" variant="outline">
-                Learn More
+                {ctaContent?.secondaryButtonText || 'Learn More'}
               </Button>
             </div>
           </div>
