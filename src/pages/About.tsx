@@ -8,90 +8,17 @@ import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { 
-  ContentBlock, 
-  AboutHeroContent, 
-  AboutStoryContent, 
-  AboutMissionContent, 
-  AboutSustainabilityContent, 
-  AboutTeamContent, 
-  AboutCustomerImpactContent 
-} from "@/types/content-blocks";
 
 export default function About() {
-  const { data: pageData, isLoading, error } = useQuery({
-    queryKey: ['about-page'],
-    queryFn: async () => {
-      console.log('Fetching about page data');
-      
-      try {
-        const { data: pageData, error: pageError } = await supabase
-          .from('pages')
-          .select('id')
-          .eq('slug', 'about')
-          .single();
-
-        if (pageError) {
-          console.error('Error fetching page:', pageError);
-          throw pageError;
-        }
-
-        if (!pageData) {
-          console.error('Page not found');
-          throw new Error('Page not found');
-        }
-
-        console.log('Found page:', pageData);
-
-        const { data: blocks, error: blocksError } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pageData.id)
-          .order('order_index');
-
-        if (blocksError) {
-          console.error('Error fetching content blocks:', blocksError);
-          throw blocksError;
-        }
-
-        console.log('Fetched content blocks:', blocks);
-        return blocks as ContentBlock[];
-      } catch (error) {
-        console.error('Error in queryFn:', error);
-        throw error;
-      }
-    }
-  });
-
-  if (error) {
-    console.error('Error loading page:', error);
-    toast.error('Error loading page content');
-    return <div>Error loading page content</div>;
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  const getBlockContent = <T,>(type: string): T => {
-    if (!pageData) return {} as T;
-    const block = pageData.find(block => block.type === type);
-    console.log(`Getting content for block type ${type}:`, block?.content);
-    return (block?.content || {}) as T;
-  };
-
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <AboutHeroSection content={getBlockContent<AboutHeroContent>('about_hero_section')} />
-      <AboutStory content={getBlockContent<AboutStoryContent>('about_story')} />
-      <AboutMission content={getBlockContent<AboutMissionContent>('about_mission')} />
-      <AboutSustainability content={getBlockContent<AboutSustainabilityContent>('about_sustainability')} />
-      <AboutTeam content={getBlockContent<AboutTeamContent>('about_team')} />
-      <AboutCustomerImpact content={getBlockContent<AboutCustomerImpactContent>('about_customer_impact')} />
+      <AboutHeroSection />
+      <AboutStory />
+      <AboutMission />
+      <AboutSustainability />
+      <AboutTeam />
+      <AboutCustomerImpact />
       
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
