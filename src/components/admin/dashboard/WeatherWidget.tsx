@@ -36,20 +36,18 @@ export const WeatherWidget = () => {
         const weatherData = await weatherResponse.json();
         console.log('Weather data:', weatherData);
 
-        // Try to get city name using reverse geocoding
+        // Get city name using reverse geocoding
+        const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+        const geocodeResponse = await fetch(geocodeUrl);
         let city = "Unknown location";
-        try {
-          const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-          const geocodeResponse = await fetch(geocodeUrl);
-          if (geocodeResponse.ok) {
-            const geocodeData = await geocodeResponse.json();
-            city = geocodeData.city || geocodeData.locality || "Unknown location";
-          }
-        } catch (err) {
-          console.warn('Could not fetch city name:', err);
+        
+        if (geocodeResponse.ok) {
+          const geocodeData = await geocodeResponse.json();
+          city = geocodeData.city || geocodeData.locality || geocodeData.principalSubdivision || "Unknown location";
+          console.log('Location data:', geocodeData);
         }
 
-        // Convert weather code to our condition format
+        // Convert weather code to condition format
         const getCondition = (code: number) => {
           if (code >= 71 && code <= 77) return 'snow';
           if (code >= 61 && code <= 67) return 'rain';
@@ -84,25 +82,73 @@ export const WeatherWidget = () => {
       }
     };
 
-    // Get user's location using browser's Geolocation API
+    const handleGeolocationError = (error: GeolocationPositionError) => {
+      console.error('Geolocation error:', error);
+      let errorMessage = 'Could not get your location. ';
+      
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage += 'Please enable location access in your browser settings.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMessage += 'Location information is unavailable.';
+          break;
+        case error.TIMEOUT:
+          errorMessage += 'Location request timed out.';
+          break;
+        default:
+          errorMessage += 'An unknown error occurred.';
+      }
+      
+      toast.error(errorMessage);
+      // Use IP-based geolocation as fallback
+      fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+          console.log('IP geolocation data:', data);
+          if (data.latitude && data.longitude) {
+            fetchWeather(data.latitude, data.longitude);
+          } else {
+            throw new Error('Could not determine location from IP');
+          }
+        })
+        .catch(err => {
+          console.error('IP geolocation failed:', err);
+          // Final fallback to a default location
+          fetchWeather(50.4501, 30.5234); // Kyiv coordinates as default
+        });
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           console.log('Got user location:', position.coords);
           fetchWeather(position.coords.latitude, position.coords.longitude);
         },
-        (err) => {
-          console.error('Geolocation error:', err);
-          // Fallback to New York coordinates if geolocation fails
-          toast.error('Could not get your location. Showing weather for New York.');
-          fetchWeather(40.7128, -74.0060);
-        },
-        { timeout: 10000 }
+        handleGeolocationError,
+        { 
+          timeout: 10000,
+          enableHighAccuracy: true,
+          maximumAge: 0
+        }
       );
     } else {
       console.warn('Geolocation not supported');
-      toast.error('Geolocation is not supported by your browser. Showing weather for New York.');
-      fetchWeather(40.7128, -74.0060);
+      toast.error('Geolocation is not supported by your browser.');
+      // Use IP-based geolocation for browsers without geolocation support
+      fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+          if (data.latitude && data.longitude) {
+            fetchWeather(data.latitude, data.longitude);
+          } else {
+            throw new Error('Could not determine location from IP');
+          }
+        })
+        .catch(err => {
+          console.error('IP geolocation failed:', err);
+          fetchWeather(50.4501, 30.5234); // Kyiv coordinates as default
+        });
     }
   }, []);
 
