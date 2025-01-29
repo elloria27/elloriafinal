@@ -14,8 +14,8 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     title = "Our Story",
     subtitle = "A Journey of Innovation",
     content: storyContent = "Founded with a vision to revolutionize feminine care through sustainable innovation...",
-    videoUrl = "https://elloria.ca/Video_290mm.mp4",
-    videoThumbnail = "https://my.elloria.ca/290mmvideo-.jpg"
+    videoUrl = "",
+    videoThumbnail = ""
   } = content;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -74,21 +74,27 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
             <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-2xl blur-xl" />
             
             <div className="relative z-10 w-full h-full rounded-xl overflow-hidden">
-              <video
-                ref={videoRef}
-                loop
-                muted={isMuted}
-                playsInline
-                className="w-full h-full object-cover"
-                onLoadedData={() => setIsVideoLoaded(true)}
-                poster={videoThumbnail}
-              >
-                <source src={videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              {videoUrl ? (
+                <video
+                  ref={videoRef}
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  className="w-full h-full object-cover"
+                  onLoadedData={() => setIsVideoLoaded(true)}
+                  poster={videoThumbnail}
+                >
+                  <source src={videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <p className="text-gray-400">No video selected</p>
+                </div>
+              )}
 
               <AnimatePresence>
-                {(!isPlaying || !isVideoLoaded) && (
+                {videoUrl && (!isPlaying || !isVideoLoaded) && (
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center bg-black/30"
                     initial={{ opacity: 0 }}
@@ -104,7 +110,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                   </motion.div>
                 )}
 
-                {isPlaying && isHovering && (
+                {videoUrl && isPlaying && isHovering && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent"
                     initial={{ opacity: 0, y: 20 }}
