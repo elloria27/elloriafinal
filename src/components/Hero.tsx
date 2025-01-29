@@ -19,10 +19,28 @@ export const Hero = ({ content }: HeroProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
+  const [posterLoaded, setPosterLoaded] = useState(false);
   
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.5;
+      
+      // Create a poster image from the first frame
+      const handleLoadedData = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current!.videoWidth;
+        canvas.height = videoRef.current!.videoHeight;
+        canvas.getContext('2d')!.drawImage(videoRef.current!, 0, 0);
+        videoRef.current!.poster = canvas.toDataURL('image/jpeg');
+        setPosterLoaded(true);
+      };
+
+      videoRef.current.addEventListener('loadeddata', handleLoadedData);
+      return () => {
+        if (videoRef.current) {
+          videoRef.current.removeEventListener('loadeddata', handleLoadedData);
+        }
+      };
     }
   }, []);
 
@@ -94,7 +112,7 @@ export const Hero = ({ content }: HeroProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl"
+            className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0"
           >
             {content.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
           </motion.p>
@@ -124,14 +142,14 @@ export const Hero = ({ content }: HeroProps) => {
         </div>
 
         <motion.div 
-          className="flex-1 relative"
+          className="flex-1 relative w-full max-w-[600px] mx-auto"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1 }}
         >
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
           <motion.div 
-            className="relative z-10 w-full max-w-[600px] mx-auto rounded-lg overflow-hidden shadow-xl group"
+            className="relative z-10 w-full aspect-video rounded-lg overflow-hidden shadow-xl group bg-gray-100"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
             onMouseEnter={() => setIsHovering(true)}
@@ -143,13 +161,14 @@ export const Hero = ({ content }: HeroProps) => {
               muted={isMuted}
               playsInline
               className="w-full h-full object-cover"
+              preload="auto"
             >
               <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             
             <AnimatePresence>
-              {!isPlaying && (
+              {(!isPlaying || !posterLoaded) && (
                 <motion.div 
                   className="absolute inset-0 flex items-center justify-center bg-black/30"
                   initial={{ opacity: 0 }}

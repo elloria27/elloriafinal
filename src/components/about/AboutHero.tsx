@@ -35,16 +35,17 @@ export const AboutHero = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="rounded-2xl overflow-hidden shadow-2xl"
+            className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-100"
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10" />
             <iframe
               width="100%"
-              height="315"
+              height="100%"
               src="https://www.youtube.com/embed/dQw4w9WgXcQ"
               title="Our Mission"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="w-full aspect-video"
+              className="w-full h-full object-cover"
             />
           </motion.div>
         </div>
