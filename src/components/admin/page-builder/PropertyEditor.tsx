@@ -57,6 +57,68 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     });
   };
 
+  const getTimelineItems = (): string[] => {
+    if (!content || !('timelineItems' in content)) {
+      return [];
+    }
+    const items = (content as SustainabilityContent).timelineItems;
+    return Array.isArray(items) ? items : [];
+  };
+
+  const getMetrics = () => {
+    if (!content || !('metrics' in content)) {
+      return [];
+    }
+    const metrics = (content as CompetitorComparisonContent).metrics;
+    return Array.isArray(metrics) ? metrics : [];
+  };
+
+  const getCustomerTestimonials = () => {
+    if (!content || !('testimonials' in content)) {
+      return [];
+    }
+    const testimonials = (content as AboutCustomerImpactContent).testimonials;
+    return Array.isArray(testimonials) ? testimonials : [];
+  };
+
+  const addTestimonial = () => {
+    const testimonials = getCustomerTestimonials();
+    handleChange('testimonials', [...testimonials, {
+      quote: "New testimonial",
+      author: "Customer name",
+      location: "Location"
+    }]);
+  };
+
+  const removeTestimonial = (index: number) => {
+    const testimonials = getCustomerTestimonials();
+    const newTestimonials = testimonials.filter((_, i) => i !== index);
+    handleChange('testimonials', newTestimonials);
+  };
+
+  const handleTestimonialChange = (index: number, field: string, value: string | number) => {
+    const testimonials = getCustomerTestimonials();
+    const newTestimonials = [...testimonials];
+    newTestimonials[index] = { ...newTestimonials[index], [field]: value };
+    handleChange('testimonials', newTestimonials);
+  };
+
+  const getBlogArticles = () => {
+    if (!content || !('articles' in content)) {
+      return [];
+    }
+    const articles = (content as BlogPreviewContent).articles;
+    return Array.isArray(articles) ? articles : [];
+  };
+
+  const getFAQs = () => {
+    if (!content || !('faqs' in content)) {
+      return [];
+    }
+    const faqs = (content as ContactFAQContent).faqs;
+    return Array.isArray(faqs) ? faqs : [];
+  };
+
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
     const features = getFeatures();
     const newFeatures = [...features];
@@ -80,38 +142,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     const features = getFeatures();
     const newFeatures = features.filter((_, i) => i !== index);
     handleChange('features', newFeatures);
-  };
-
-  const getValues = () => {
-    if (!content || !('values' in content)) {
-      return [];
-    }
-    const values = (content as AboutMissionContent).values;
-    return Array.isArray(values) ? values : [];
-  };
-
-  const getSustainabilityStats = () => {
-    if (!content || !('stats' in content)) {
-      return [];
-    }
-    const stats = (content as AboutSustainabilityContent).stats;
-    return Array.isArray(stats) ? stats : [];
-  };
-
-  const getTeamMembers = () => {
-    if (!content || !('members' in content)) {
-      return [];
-    }
-    const members = (content as AboutTeamContent).members;
-    return Array.isArray(members) ? members : [];
-  };
-
-  const getCustomerTestimonials = () => {
-    if (!content || !('testimonials' in content)) {
-      return [];
-    }
-    const testimonials = (content as AboutCustomerImpactContent).testimonials;
-    return Array.isArray(testimonials) ? testimonials : [];
   };
 
   const renderFields = () => {
@@ -371,7 +401,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Stats</Label>
                 <Button 
                   onClick={() => {
-                    const currentStats = getSustainabilityStats();
+                    const currentStats = (content as SustainabilityContent).stats || [];
                     handleChange('stats', [...currentStats, {
                       icon: "Recycle",
                       title: "New Stat Title",
@@ -386,7 +416,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {getSustainabilityStats().map((stat, index) => (
+              {((content as SustainabilityContent).stats || []).map((stat, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Stat {index + 1}</Label>
@@ -394,7 +424,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newStats = [...getSustainabilityStats()];
+                        const newStats = [...((content as SustainabilityContent).stats || [])];
                         newStats.splice(index, 1);
                         handleChange('stats', newStats);
                       }}
@@ -408,7 +438,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={stat.icon}
                       onValueChange={(value) => {
-                        const newStats = [...getSustainabilityStats()];
+                        const newStats = [...((content as SustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], icon: value };
                         handleChange('stats', newStats);
                       }}
@@ -431,7 +461,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={stat.title}
                       onChange={(e) => {
-                        const newStats = [...getSustainabilityStats()];
+                        const newStats = [...((content as SustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], title: e.target.value };
                         handleChange('stats', newStats);
                       }}
@@ -444,7 +474,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Textarea
                       value={stat.description}
                       onChange={(e) => {
-                        const newStats = [...getSustainabilityStats()];
+                        const newStats = [...((content as SustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], description: e.target.value };
                         handleChange('stats', newStats);
                       }}
@@ -457,7 +487,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Select
                       value={stat.color}
                       onValueChange={(value) => {
-                        const newStats = [...getSustainabilityStats()];
+                        const newStats = [...((content as SustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], color: value };
                         handleChange('stats', newStats);
                       }}
@@ -499,7 +529,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               </div>
               
               {getTimelineItems().map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-3">
                   <Input
                     value={item}
                     onChange={(e) => {
@@ -723,8 +753,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <div>
                     <Label>Customer Name</Label>
                     <Input
-                      value={testimonial.name}
-                      onChange={(e) => handleTestimonialChange(index, 'name', e.target.value)}
+                      value={testimonial.author}
+                      onChange={(e) => handleTestimonialChange(index, 'author', e.target.value)}
                       placeholder="Enter customer name"
                     />
                   </div>
@@ -743,8 +773,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <div>
                     <Label>Text</Label>
                     <Textarea
-                      value={testimonial.text}
-                      onChange={(e) => handleTestimonialChange(index, 'text', e.target.value)}
+                      value={testimonial.quote}
+                      onChange={(e) => handleTestimonialChange(index, 'quote', e.target.value)}
                       placeholder="Enter testimonial text"
                     />
                   </div>
@@ -752,8 +782,8 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   <div>
                     <Label>Source</Label>
                     <Input
-                      value={testimonial.source}
-                      onChange={(e) => handleTestimonialChange(index, 'source', e.target.value)}
+                      value={testimonial.location}
+                      onChange={(e) => handleTestimonialChange(index, 'location', e.target.value)}
                       placeholder="Enter source (e.g., Verified Purchase, Instagram)"
                     />
                   </div>
@@ -1266,7 +1296,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Stats</Label>
                 <Button 
                   onClick={() => {
-                    const stats = getSustainabilityStats();
+                    const stats = (content as AboutSustainabilityContent).stats || [];
                     handleChange('stats', [...stats, {
                       value: "New Stat",
                       label: "Stat description"
@@ -1279,7 +1309,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {getSustainabilityStats().map((stat, index) => (
+              {((content as AboutSustainabilityContent).stats || []).map((stat, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Stat {index + 1}</Label>
@@ -1287,7 +1317,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newStats = getSustainabilityStats();
+                        const newStats = [...((content as AboutSustainabilityContent).stats || [])];
                         newStats.splice(index, 1);
                         handleChange('stats', newStats);
                       }}
@@ -1301,7 +1331,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={stat.value}
                       onChange={(e) => {
-                        const newStats = getSustainabilityStats();
+                        const newStats = [...((content as AboutSustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], value: e.target.value };
                         handleChange('stats', newStats);
                       }}
@@ -1314,223 +1344,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Input
                       value={stat.label}
                       onChange={(e) => {
-                        const newStats = getSustainabilityStats();
+                        const newStats = [...((content as AboutSustainabilityContent).stats || [])];
                         newStats[index] = { ...newStats[index], label: e.target.value };
                         handleChange('stats', newStats);
                       }}
                       placeholder="Enter stat label"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'about_team':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Team Members</Label>
-                <Button 
-                  onClick={() => {
-                    const members = getTeamMembers();
-                    handleChange('members', [...members, {
-                      name: "New Member",
-                      role: "Role",
-                      image: "",
-                      bio: ""
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Team Member
-                </Button>
-              </div>
-              
-              {getTeamMembers().map((member, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Member {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newMembers = getTeamMembers();
-                        newMembers.splice(index, 1);
-                        handleChange('members', newMembers);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={member.name}
-                      onChange={(e) => {
-                        const newMembers = getTeamMembers();
-                        newMembers[index] = { ...newMembers[index], name: e.target.value };
-                        handleChange('members', newMembers);
-                      }}
-                      placeholder="Enter member name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Role</Label>
-                    <Input
-                      value={member.role}
-                      onChange={(e) => {
-                        const newMembers = getTeamMembers();
-                        newMembers[index] = { ...newMembers[index], role: e.target.value };
-                        handleChange('members', newMembers);
-                      }}
-                      placeholder="Enter member role"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={member.image}
-                      onChange={(e) => {
-                        const newMembers = getTeamMembers();
-                        newMembers[index] = { ...newMembers[index], image: e.target.value };
-                        handleChange('members', newMembers);
-                      }}
-                      placeholder="Enter member image URL"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Bio</Label>
-                    <Textarea
-                      value={member.bio}
-                      onChange={(e) => {
-                        const newMembers = getTeamMembers();
-                        newMembers[index] = { ...newMembers[index], bio: e.target.value };
-                        handleChange('members', newMembers);
-                      }}
-                      placeholder="Enter member bio"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'about_customer_impact':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Testimonials</Label>
-                <Button 
-                  onClick={() => {
-                    const testimonials = getCustomerTestimonials();
-                    handleChange('testimonials', [...testimonials, {
-                      quote: "New testimonial",
-                      author: "Customer name",
-                      location: "Location"
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Testimonial
-                </Button>
-              </div>
-              
-              {getCustomerTestimonials().map((testimonial, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Testimonial {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newTestimonials = getCustomerTestimonials();
-                        newTestimonials.splice(index, 1);
-                        handleChange('testimonials', newTestimonials);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Quote</Label>
-                    <Textarea
-                      value={testimonial.quote}
-                      onChange={(e) => {
-                        const newTestimonials = getCustomerTestimonials();
-                        newTestimonials[index] = { ...newTestimonials[index], quote: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
-                      placeholder="Enter testimonial quote"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Author</Label>
-                    <Input
-                      value={testimonial.author}
-                      onChange={(e) => {
-                        const newTestimonials = getCustomerTestimonials();
-                        newTestimonials[index] = { ...newTestimonials[index], author: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
-                      placeholder="Enter author name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Location</Label>
-                    <Input
-                      value={testimonial.location}
-                      onChange={(e) => {
-                        const newTestimonials = getCustomerTestimonials();
-                        newTestimonials[index] = { ...newTestimonials[index], location: e.target.value };
-                        handleChange('testimonials', newTestimonials);
-                      }}
-                      placeholder="Enter author location"
                     />
                   </div>
                 </div>
