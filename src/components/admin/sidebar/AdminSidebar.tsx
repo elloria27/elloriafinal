@@ -28,7 +28,8 @@ interface SidebarItem {
   title: string;
   icon: React.ElementType;
   href?: string;
-  items?: { title: string; href: string; icon: React.ElementType }[];
+  description?: string;
+  items?: { title: string; href: string; icon: React.ElementType; description?: string }[];
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -201,3 +202,4 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
     </div>
   );
 };
+

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface MediaUploadProps {
   onUpload: (file: File) => Promise<void>;
