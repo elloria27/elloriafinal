@@ -64,7 +64,7 @@ export const Hero = ({ content }: HeroProps) => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden md:mt-20 -mt-[20px]">
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden mt-0">
       <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
       
       <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
@@ -156,7 +156,8 @@ export const Hero = ({ content }: HeroProps) => {
               playsInline
               className="w-full h-full object-cover"
               preload="auto"
-              poster="/placeholder.svg"
+              poster="/fab7a2c4-c023-4e9e-a359-656d5cf8c22e"
+              style={{ objectPosition: "center center" }}
             >
               <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
