@@ -60,9 +60,13 @@ export const MobileMenu = () => {
     const isExpanded = expandedItems.includes(item.path);
 
     return (
-      <div className="w-full">
+      <motion.div 
+        className="w-full"
+        initial={false}
+        animate={{ height: "auto" }}
+      >
         <div 
-          className={`flex items-center justify-between py-2 ${level > 0 ? 'pl-4' : ''}`}
+          className={`flex items-center justify-between py-3 ${level > 0 ? 'pl-4' : ''}`}
           onClick={() => hasChildren && toggleExpanded(item.path)}
         >
           <Link to={item.path}>
@@ -98,14 +102,14 @@ export const MobileMenu = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="pl-4 border-l border-primary/10 ml-4"
+            className="pl-4 border-l border-primary/10 ml-4 space-y-2"
           >
             {item.children.map((child) => (
               <MenuItem key={child.path} item={child} level={level + 1} />
             ))}
           </motion.div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -118,35 +122,37 @@ export const MobileMenu = () => {
       <SheetTrigger asChild>
         <Button 
           variant="ghost" 
-          size="icon" 
-          className="md:hidden hover:bg-primary/5"
+          size="icon"
+          className="md:hidden hover:bg-primary/5 -mr-2"
         >
           <Menu className="h-5 w-5 text-gray-700" />
         </Button>
       </SheetTrigger>
       <SheetContent 
         side="right" 
-        className="w-[300px] sm:w-[400px] bg-white/95 backdrop-blur-xl flex flex-col"
+        className="w-[300px] sm:w-[400px] bg-white/95 backdrop-blur-xl flex flex-col p-0"
       >
-        <SheetHeader>
+        <SheetHeader className="p-6 border-b border-gray-100">
           <SheetTitle className="text-left font-light tracking-[0.2em] text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             ELLORIA
           </SheetTitle>
         </SheetHeader>
         
-        <div className="flex-1">
-          <div className="flex flex-col mt-8">
+        <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="space-y-4">
             {menuItems.map((item) => (
               <MenuItem key={item.path} item={item} />
             ))}
           </div>
         </div>
 
-        <div className="mt-auto pt-6 border-t border-gray-100">
-          <div className="flex items-center justify-center space-x-6">
+        <div className="mt-auto p-6 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between">
             <UserMenu />
-            <LanguageSelector />
-            <CurrencySelector />
+            <div className="flex items-center gap-4">
+              <LanguageSelector />
+              <CurrencySelector />
+            </div>
           </div>
         </div>
       </SheetContent>
