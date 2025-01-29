@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+
+type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const CurrencySelector = () => {
-  const [currentCurrency, setCurrentCurrency] = useState("USD");
+  const [currentCurrency, setCurrentCurrency] = useState<Database['public']['Enums']['supported_currency']>("USD");
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
@@ -42,8 +45,9 @@ export const CurrencySelector = () => {
         },
         (payload) => {
           console.log('Site settings changed:', payload);
-          if (payload.new) {
-            setCurrentCurrency(payload.new.default_currency);
+          const newData = payload.new as SiteSettings;
+          if (newData) {
+            setCurrentCurrency(newData.default_currency);
           }
         }
       )
@@ -85,7 +89,7 @@ export const CurrencySelector = () => {
           {["CAD", "USD", "EUR", "UAH"].map((currency) => (
             <button
               key={currency}
-              onClick={() => setCurrentCurrency(currency)}
+              onClick={() => setCurrentCurrency(currency as Database['public']['Enums']['supported_currency'])}
               className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                 currentCurrency === currency
                   ? "bg-primary/10 text-primary"

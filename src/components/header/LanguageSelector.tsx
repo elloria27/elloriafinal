@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+
+type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const LanguageSelector = () => {
-  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
@@ -42,8 +45,9 @@ export const LanguageSelector = () => {
         },
         (payload) => {
           console.log('Site settings changed:', payload);
-          if (payload.new) {
-            setCurrentLanguage(payload.new.default_language);
+          const newData = payload.new as SiteSettings;
+          if (newData) {
+            setCurrentLanguage(newData.default_language);
           }
         }
       )
@@ -87,7 +91,7 @@ export const LanguageSelector = () => {
           {["en", "fr", "uk"].map((lang) => (
             <button
               key={lang}
-              onClick={() => setCurrentLanguage(lang)}
+              onClick={() => setCurrentLanguage(lang as Database['public']['Enums']['supported_language'])}
               className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                 currentLanguage === lang
                   ? "bg-primary/10 text-primary"
