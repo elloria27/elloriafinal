@@ -8,7 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/use-mobile";
 
-export const UserMenu = () => {
+interface UserMenuProps {
+  onClose?: () => void;
+}
+
+export const UserMenu = ({ onClose }: UserMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
@@ -32,6 +36,9 @@ export const UserMenu = () => {
     try {
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
+      if (onClose) {
+        onClose();
+      }
       navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -43,8 +50,14 @@ export const UserMenu = () => {
     if (isMobile) {
       if (user) {
         navigate("/profile");
+        if (onClose) {
+          onClose();
+        }
       } else {
         navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`);
+        if (onClose) {
+          onClose();
+        }
       }
       return;
     }
@@ -77,7 +90,10 @@ export const UserMenu = () => {
                 <Button 
                   className="w-full" 
                   variant="outline"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => {
+                    navigate("/profile");
+                    if (onClose) onClose();
+                  }}
                 >
                   Profile
                 </Button>
@@ -119,14 +135,20 @@ export const UserMenu = () => {
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-white" 
                 variant="default"
-                onClick={() => navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`)}
+                onClick={() => {
+                  navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`);
+                  if (onClose) onClose();
+                }}
               >
                 Sign In
               </Button>
               <Button 
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900" 
                 variant="outline"
-                onClick={() => navigate("/register")}
+                onClick={() => {
+                  navigate("/register");
+                  if (onClose) onClose();
+                }}
               >
                 Register
               </Button>
