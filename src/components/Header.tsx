@@ -6,8 +6,16 @@ import { LanguageSelector } from "./header/LanguageSelector";
 import { CurrencySelector } from "./header/CurrencySelector";
 import { CartPopover } from "./header/CartPopover";
 import { MobileMenu } from "./header/MobileMenu";
+import { useLocation } from "react-router-dom";
 
 export const Header = () => {
+  const location = useLocation();
+  
+  // Hide header on admin routes
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <motion.header 
       initial={{ y: -100 }}
