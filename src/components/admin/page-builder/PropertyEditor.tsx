@@ -13,6 +13,8 @@ interface PropertyEditorProps {
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
+  console.log("Rendering PropertyEditor for block type:", block.type);
+  console.log("Current content:", content);
 
   const handleChange = (key: string, value: any) => {
     const updatedContent = { ...content, [key]: value };
@@ -39,9 +41,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const renderFields = () => {
-    console.log("Rendering fields for block type:", block.type);
-    console.log("Current content:", content);
-
     switch (block.type) {
       case "heading":
         return (
@@ -259,6 +258,472 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case "game_changer":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={content.subtitle as string || ""}
+                onChange={(e) => handleChange("subtitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={content.description as string || ""}
+                onChange={(e) => handleChange("description", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Features</Label>
+              <div className="space-y-4">
+                {(content.features as any[] || []).map((feature, index) => (
+                  <div key={index} className="p-4 border rounded space-y-2">
+                    <select
+                      className="w-full border rounded p-2"
+                      value={feature.icon || ""}
+                      onChange={(e) =>
+                        handleArrayChange("features", index, {
+                          ...feature,
+                          icon: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="Droplets">Droplets</option>
+                      <option value="Leaf">Leaf</option>
+                      <option value="Heart">Heart</option>
+                    </select>
+                    <Input
+                      placeholder="Title"
+                      value={feature.title || ""}
+                      onChange={(e) =>
+                        handleArrayChange("features", index, {
+                          ...feature,
+                          title: e.target.value,
+                        })
+                      }
+                    />
+                    <Textarea
+                      placeholder="Description"
+                      value={feature.description || ""}
+                      onChange={(e) =>
+                        handleArrayChange("features", index, {
+                          ...feature,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Detail"
+                      value={feature.detail || ""}
+                      onChange={(e) =>
+                        handleArrayChange("features", index, {
+                          ...feature,
+                          detail: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeArrayItem("features", index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    addArrayItem("features", {
+                      icon: "Droplets",
+                      title: "",
+                      description: "",
+                      detail: "",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Feature
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "store_brands":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={content.subtitle as string || ""}
+                onChange={(e) => handleChange("subtitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Brands</Label>
+              <div className="space-y-4">
+                {(content.brands as any[] || []).map((brand, index) => (
+                  <div key={index} className="p-4 border rounded space-y-2">
+                    <Input
+                      placeholder="Brand Name"
+                      value={brand.name || ""}
+                      onChange={(e) =>
+                        handleArrayChange("brands", index, {
+                          ...brand,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Logo URL"
+                      value={brand.logo || ""}
+                      onChange={(e) =>
+                        handleArrayChange("brands", index, {
+                          ...brand,
+                          logo: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Link"
+                      value={brand.link || ""}
+                      onChange={(e) =>
+                        handleArrayChange("brands", index, {
+                          ...brand,
+                          link: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeArrayItem("brands", index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    addArrayItem("brands", {
+                      name: "",
+                      logo: "",
+                      link: "",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Brand
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "sustainability":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={content.description as string || ""}
+                onChange={(e) => handleChange("description", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Stats</Label>
+              <div className="space-y-4">
+                {(content.stats as any[] || []).map((stat, index) => (
+                  <div key={index} className="p-4 border rounded space-y-2">
+                    <select
+                      className="w-full border rounded p-2"
+                      value={stat.icon || ""}
+                      onChange={(e) =>
+                        handleArrayChange("stats", index, {
+                          ...stat,
+                          icon: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="Recycle">Recycle</option>
+                      <option value="Package">Package</option>
+                      <option value="Factory">Factory</option>
+                    </select>
+                    <Input
+                      placeholder="Title"
+                      value={stat.title || ""}
+                      onChange={(e) =>
+                        handleArrayChange("stats", index, {
+                          ...stat,
+                          title: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Description"
+                      value={stat.description || ""}
+                      onChange={(e) =>
+                        handleArrayChange("stats", index, {
+                          ...stat,
+                          description: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Color (e.g., bg-accent-green)"
+                      value={stat.color || ""}
+                      onChange={(e) =>
+                        handleArrayChange("stats", index, {
+                          ...stat,
+                          color: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeArrayItem("stats", index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    addArrayItem("stats", {
+                      icon: "Recycle",
+                      title: "",
+                      description: "",
+                      color: "bg-accent-green",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Stat
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "product_carousel":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={content.subtitle as string || ""}
+                onChange={(e) => handleChange("subtitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={content.description as string || ""}
+                onChange={(e) => handleChange("description", e.target.value)}
+              />
+            </div>
+          </div>
+        );
+
+      case "testimonials":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={content.subtitle as string || ""}
+                onChange={(e) => handleChange("subtitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Testimonials</Label>
+              <div className="space-y-4">
+                {(content.testimonials as any[] || []).map((testimonial, index) => (
+                  <div key={index} className="p-4 border rounded space-y-2">
+                    <Input
+                      placeholder="Name"
+                      value={testimonial.name || ""}
+                      onChange={(e) =>
+                        handleArrayChange("testimonials", index, {
+                          ...testimonial,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Rating"
+                      value={testimonial.rating || ""}
+                      onChange={(e) =>
+                        handleArrayChange("testimonials", index, {
+                          ...testimonial,
+                          rating: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                    <Textarea
+                      placeholder="Text"
+                      value={testimonial.text || ""}
+                      onChange={(e) =>
+                        handleArrayChange("testimonials", index, {
+                          ...testimonial,
+                          text: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Source"
+                      value={testimonial.source || ""}
+                      onChange={(e) =>
+                        handleArrayChange("testimonials", index, {
+                          ...testimonial,
+                          source: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeArrayItem("testimonials", index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    addArrayItem("testimonials", {
+                      name: "",
+                      rating: 5,
+                      text: "",
+                      source: "",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Testimonial
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "blog_preview":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={content.subtitle as string || ""}
+                onChange={(e) => handleChange("subtitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Articles</Label>
+              <div className="space-y-4">
+                {(content.articles as any[] || []).map((article, index) => (
+                  <div key={index} className="p-4 border rounded space-y-2">
+                    <Input
+                      placeholder="Title"
+                      value={article.title || ""}
+                      onChange={(e) =>
+                        handleArrayChange("articles", index, {
+                          ...article,
+                          title: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Category"
+                      value={article.category || ""}
+                      onChange={(e) =>
+                        handleArrayChange("articles", index, {
+                          ...article,
+                          category: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      placeholder="Image URL"
+                      value={article.image || ""}
+                      onChange={(e) =>
+                        handleArrayChange("articles", index, {
+                          ...article,
+                          image: e.target.value,
+                        })
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeArrayItem("articles", index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    addArrayItem("articles", {
+                      title: "",
+                      category: "",
+                      image: "",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Article
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
       case "about_story":
         return (
           <div className="space-y-4">
@@ -379,245 +844,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
             </div>
-          </div>
-        );
-
-      case "competitor_comparison":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={content.title as string || ""}
-                onChange={(e) => handleChange("title", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={content.subtitle as string || ""}
-                onChange={(e) => handleChange("subtitle", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Metrics</Label>
-              <div className="space-y-4">
-                {(content.metrics as any[] || []).map((metric, index) => (
-                  <div key={index} className="p-4 border rounded space-y-2">
-                    <Input
-                      placeholder="Category"
-                      value={metric.category || ""}
-                      onChange={(e) =>
-                        handleArrayChange("metrics", index, {
-                          ...metric,
-                          category: e.target.value,
-                        })
-                      }
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Elloria Score"
-                      value={metric.elloria || ""}
-                      onChange={(e) =>
-                        handleArrayChange("metrics", index, {
-                          ...metric,
-                          elloria: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Competitors Score"
-                      value={metric.competitors || ""}
-                      onChange={(e) =>
-                        handleArrayChange("metrics", index, {
-                          ...metric,
-                          competitors: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                    <Input
-                      placeholder="Icon"
-                      value={metric.icon || ""}
-                      onChange={(e) =>
-                        handleArrayChange("metrics", index, {
-                          ...metric,
-                          icon: e.target.value,
-                        })
-                      }
-                    />
-                    <Textarea
-                      placeholder="Description"
-                      value={metric.description || ""}
-                      onChange={(e) =>
-                        handleArrayChange("metrics", index, {
-                          ...metric,
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeArrayItem("metrics", index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    addArrayItem("metrics", {
-                      category: "",
-                      elloria: 0,
-                      competitors: 0,
-                      icon: "",
-                      description: "",
-                    })
-                  }
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Metric
-                </Button>
-              </div>
-            </div>
-            <div>
-              <Label>Button Text</Label>
-              <Input
-                value={content.buttonText as string || ""}
-                onChange={(e) => handleChange("buttonText", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Button URL</Label>
-              <Input
-                value={content.buttonUrl as string || ""}
-                onChange={(e) => handleChange("buttonUrl", e.target.value)}
-              />
-            </div>
-          </div>
-        );
-
-      case "contact_hero":
-      case "contact_form":
-      case "contact_details":
-      case "contact_faq":
-      case "contact_business":
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={content.title as string || ""}
-                onChange={(e) => handleChange("title", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={content.description as string || ""}
-                onChange={(e) => handleChange("description", e.target.value)}
-              />
-            </div>
-            {block.type === "contact_details" && (
-              <>
-                <div>
-                  <Label>Address</Label>
-                  <Input
-                    value={content.address as string || ""}
-                    onChange={(e) => handleChange("address", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <Input
-                    value={content.phone as string || ""}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input
-                    value={content.email as string || ""}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-            {block.type === "contact_faq" && (
-              <div>
-                <Label>FAQs</Label>
-                <div className="space-y-4">
-                  {(content.faqs as any[] || []).map((faq, index) => (
-                    <div key={index} className="p-4 border rounded space-y-2">
-                      <Input
-                        placeholder="Question"
-                        value={faq.question || ""}
-                        onChange={(e) =>
-                          handleArrayChange("faqs", index, {
-                            ...faq,
-                            question: e.target.value,
-                          })
-                        }
-                      />
-                      <Textarea
-                        placeholder="Answer"
-                        value={faq.answer || ""}
-                        onChange={(e) =>
-                          handleArrayChange("faqs", index, {
-                            ...faq,
-                            answer: e.target.value,
-                          })
-                        }
-                      />
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeArrayItem("faqs", index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      addArrayItem("faqs", {
-                        question: "",
-                        answer: "",
-                      })
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Add FAQ
-                  </Button>
-                </div>
-              </div>
-            )}
-            {block.type === "contact_business" && (
-              <>
-                <div>
-                  <Label>Email</Label>
-                  <Input
-                    value={content.email as string || ""}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Button Text</Label>
-                  <Input
-                    value={content.buttonText as string || ""}
-                    onChange={(e) => handleChange("buttonText", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Button Link</Label>
-                  <Input
-                    value={content.buttonLink as string || ""}
-                    onChange={(e) => handleChange("buttonLink", e.target.value)}
-                  />
-                </div>
-              </>
-            )}
           </div>
         );
 
@@ -937,6 +1163,129 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
             </div>
+          </div>
+        );
+
+      case "contact_hero":
+      case "contact_form":
+      case "contact_details":
+      case "contact_faq":
+      case "contact_business":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={content.title as string || ""}
+                onChange={(e) => handleChange("title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={content.description as string || ""}
+                onChange={(e) => handleChange("description", e.target.value)}
+              />
+            </div>
+            {block.type === "contact_details" && (
+              <>
+                <div>
+                  <Label>Address</Label>
+                  <Input
+                    value={content.address as string || ""}
+                    onChange={(e) => handleChange("address", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    value={content.phone as string || ""}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={content.email as string || ""}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+            {block.type === "contact_faq" && (
+              <div>
+                <Label>FAQs</Label>
+                <div className="space-y-4">
+                  {(content.faqs as any[] || []).map((faq, index) => (
+                    <div key={index} className="p-4 border rounded space-y-2">
+                      <Input
+                        placeholder="Question"
+                        value={faq.question || ""}
+                        onChange={(e) =>
+                          handleArrayChange("faqs", index, {
+                            ...faq,
+                            question: e.target.value,
+                          })
+                        }
+                      />
+                      <Textarea
+                        placeholder="Answer"
+                        value={faq.answer || ""}
+                        onChange={(e) =>
+                          handleArrayChange("faqs", index, {
+                            ...faq,
+                            answer: e.target.value,
+                          })
+                        }
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeArrayItem("faqs", index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      addArrayItem("faqs", {
+                        question: "",
+                        answer: "",
+                      })
+                    }
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Add FAQ
+                  </Button>
+                </div>
+              </div>
+            )}
+            {block.type === "contact_business" && (
+              <>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={content.email as string || ""}
+                    onChange={(e) => handleChange("email", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Button Text</Label>
+                  <Input
+                    value={content.buttonText as string || ""}
+                    onChange={(e) => handleChange("buttonText", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Button Link</Label>
+                  <Input
+                    value={content.buttonLink as string || ""}
+                    onChange={(e) => handleChange("buttonLink", e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </div>
         );
 
