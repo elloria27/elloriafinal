@@ -335,7 +335,10 @@ export type BlockType =
   | "contact_details" 
   | "contact_form" 
   | "contact_faq" 
-  | "contact_business";
+  | "contact_business"
+  | "product_carousel"
+  | "product_gallery"
+  | "elevating_essentials";
 
 export interface ContentBlock {
   id: string;
@@ -345,12 +348,4 @@ export interface ContentBlock {
   page_id?: string;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
 }

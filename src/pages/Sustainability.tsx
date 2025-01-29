@@ -21,13 +21,13 @@ const SustainabilityPage = () => {
       try {
         const { data: pages, error } = await supabase
           .from('pages')
-          .select('content_blocks')
+          .select('id')
           .eq('slug', 'sustainability')
           .single();
 
         if (error) throw error;
 
-        if (pages?.content_blocks) {
+        if (pages) {
           const { data: contentBlocks, error: blocksError } = await supabase
             .from('content_blocks')
             .select('*')
@@ -50,6 +50,8 @@ const SustainabilityPage = () => {
   }, []);
 
   const renderBlock = (block: ContentBlock) => {
+    const content = block.content as Record<string, any>;
+    
     switch (block.type) {
       case 'sustainability_hero':
         return (
