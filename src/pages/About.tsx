@@ -11,7 +11,7 @@ import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ContentBlock, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock } from "@/types/content-blocks";
 
 export default function About() {
   const { data: pageData, isLoading, error } = useQuery({
@@ -72,18 +72,18 @@ export default function About() {
     if (!pageData) return {};
     const block = pageData.find(block => block.type === type);
     console.log(`Getting content for block type ${type}:`, block?.content);
-    return block ? block.content : {};
+    return block?.content || {};
   };
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <AboutHeroSection content={getBlockContent('about_hero_section') as AboutHeroContent} />
-      <AboutStory content={getBlockContent('about_story') as AboutStoryContent} />
-      <AboutMission content={getBlockContent('about_mission') as AboutMissionContent} />
-      <AboutSustainability content={getBlockContent('about_sustainability') as AboutSustainabilityContent} />
-      <AboutTeam content={getBlockContent('about_team') as AboutTeamContent} />
-      <AboutCustomerImpact content={getBlockContent('about_customer_impact') as AboutCustomerImpactContent} />
+      <AboutHeroSection content={getBlockContent('about_hero_section')} />
+      <AboutStory content={getBlockContent('about_story')} />
+      <AboutMission content={getBlockContent('about_mission')} />
+      <AboutSustainability content={getBlockContent('about_sustainability')} />
+      <AboutTeam content={getBlockContent('about_team')} />
+      <AboutCustomerImpact content={getBlockContent('about_customer_impact')} />
       
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
