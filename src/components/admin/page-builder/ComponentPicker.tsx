@@ -43,7 +43,8 @@ const components = [
   { type: 'about_mission' as BlockType, icon: Heart, label: 'About Mission' },
   { type: 'about_sustainability' as BlockType, icon: Leaf, label: 'About Sustainability' },
   { type: 'about_team' as BlockType, icon: Users, label: 'About Team' },
-  { type: 'about_customer_impact' as BlockType, icon: MessageSquareQuote, label: 'About Customer Impact' }
+  { type: 'about_customer_impact' as BlockType, icon: MessageSquareQuote, label: 'About Customer Impact' },
+  { type: 'about_cta' as BlockType, icon: Square, label: 'About CTA Section' }
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {

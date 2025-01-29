@@ -73,6 +73,8 @@ export default function About() {
     return block?.content as any;
   };
 
+  const ctaContent = getBlockContent('about_cta') as AboutCtaContent;
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -105,22 +107,24 @@ export default function About() {
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              {(getBlockContent('about_cta') as AboutCtaContent)?.title || "Join the Elloria Movement"}
+              {ctaContent?.title || "Join the Elloria Movement"}
             </h2>
             <p className="text-xl mb-8">
-              {(getBlockContent('about_cta') as AboutCtaContent)?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
+              {ctaContent?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
+              <a 
+                href={ctaContent?.primaryButtonLink || "#"}
                 className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
               >
-                {(getBlockContent('about_cta') as AboutCtaContent)?.primaryButtonText || "Shop Now"}
-              </button>
-              <button 
+                {ctaContent?.primaryButtonText || "Shop Now"}
+              </a>
+              <a 
+                href={ctaContent?.secondaryButtonLink || "#"}
                 className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
               >
-                {(getBlockContent('about_cta') as AboutCtaContent)?.secondaryButtonText || "Learn More"}
-              </button>
+                {ctaContent?.secondaryButtonText || "Learn More"}
+              </a>
             </div>
           </div>
         </div>
