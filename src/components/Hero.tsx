@@ -136,7 +136,7 @@ export const Hero = ({ content }: HeroProps) => {
         </div>
 
         <motion.div 
-          className="flex-1 relative w-full max-w-[600px] mx-auto"
+          className="flex-1 relative w-full max-w-[630px] mx-auto" // Increased max-width by 5%
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1 }}
@@ -156,8 +156,8 @@ export const Hero = ({ content }: HeroProps) => {
               playsInline
               className="w-full h-full object-cover"
               preload="auto"
-              poster="/fab7a2c4-c023-4e9e-a359-656d5cf8c22e"
-              style={{ objectPosition: "center center" }}
+              poster="https://my.elloria.ca/290mmvideo-.jpg"
+              style={{ objectFit: "cover", height: "100%" }}
             >
               <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
