@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Package, Truck, Calculator, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,9 +24,14 @@ const BulkOrders = () => {
 
         if (page && page.content_blocks) {
           console.log('Fetched content blocks:', page.content_blocks);
-          const typedContentBlocks = page.content_blocks.map(block => ({
-            ...block,
-            content: block.content || {}
+          const typedContentBlocks = (page.content_blocks as any[]).map(block => ({
+            id: block.id,
+            type: block.type,
+            content: block.content,
+            order_index: block.order_index,
+            page_id: block.page_id,
+            created_at: block.created_at,
+            updated_at: block.updated_at
           })) as ContentBlock[];
           setPageContent(typedContentBlocks);
         }
@@ -116,9 +120,6 @@ const BulkOrders = () => {
                 transition={{ delay: 0.2 * index }}
                 className="p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
               >
-                {feature.icon === 'Calculator' && <Calculator className="w-10 h-10 text-primary mb-4" />}
-                {feature.icon === 'Package' && <Package className="w-10 h-10 text-primary mb-4" />}
-                {feature.icon === 'Truck' && <Truck className="w-10 h-10 text-primary mb-4" />}
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
               </motion.div>
@@ -137,9 +138,7 @@ const BulkOrders = () => {
             {(howItWorksContent?.features as FeatureItem[] || []).map((step, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  {step.icon === 'Users' && <Users className="w-8 h-8 text-primary" />}
-                  {step.icon === 'Calculator' && <Calculator className="w-8 h-8 text-primary" />}
-                  {step.icon === 'Package' && <Package className="w-8 h-8 text-primary" />}
+                  <span className="text-xl font-semibold">{index + 1}</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
                 <p className="text-gray-600">{step.description}</p>
