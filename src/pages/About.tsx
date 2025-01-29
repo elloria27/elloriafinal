@@ -8,17 +8,73 @@ import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { ContentBlock } from "@/types/content-blocks";
 
 export default function About() {
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: ['about-page'],
+    queryFn: async () => {
+      console.log('Fetching about page data');
+      
+      // First get the page ID for the about page
+      const { data: pageData, error: pageError } = await supabase
+        .from('pages')
+        .select('id')
+        .eq('slug', 'about')
+        .single();
+
+      if (pageError) {
+        console.error('Error fetching page:', pageError);
+        toast.error('Error loading page content');
+        throw pageError;
+      }
+
+      if (!pageData) {
+        console.error('Page not found');
+        toast.error('Page not found');
+        throw new Error('Page not found');
+      }
+
+      console.log('Found page:', pageData);
+
+      // Then get all content blocks for this page
+      const { data: blocks, error: blocksError } = await supabase
+        .from('content_blocks')
+        .select('*')
+        .eq('page_id', pageData.id)
+        .order('order_index');
+
+      if (blocksError) {
+        console.error('Error fetching content blocks:', blocksError);
+        toast.error('Error loading page content');
+        throw blocksError;
+      }
+
+      console.log('Fetched content blocks:', blocks);
+      return blocks as ContentBlock[];
+    }
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  const getBlockContent = (type: string) => {
+    return pageData?.find(block => block.type === type)?.content || {};
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <AboutHeroSection />
-      <AboutStory />
-      <AboutMission />
-      <AboutSustainability />
-      <AboutTeam />
-      <AboutCustomerImpact />
+      <AboutHeroSection content={getBlockContent('about_hero_section')} />
+      <AboutStory content={getBlockContent('about_story')} />
+      <AboutMission content={getBlockContent('about_mission')} />
+      <AboutSustainability content={getBlockContent('about_sustainability')} />
+      <AboutTeam content={getBlockContent('about_team')} />
+      <AboutCustomerImpact content={getBlockContent('about_customer_impact')} />
       
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
