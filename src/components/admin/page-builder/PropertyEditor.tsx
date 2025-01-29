@@ -125,46 +125,46 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={content.description || ''}
+                value={String(content.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Features</Label>
-              {(content.features || []).map((feature: any, index: number) => (
+              {Array.isArray(content.features) && content.features.map((feature: any, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Icon name"
-                    value={feature.icon || ''}
+                    value={String(feature.icon || '')}
                     onChange={(e) => handleArrayChange('features', index, 'icon', e.target.value)}
                   />
                   <Input
                     placeholder="Title"
-                    value={feature.title || ''}
+                    value={String(feature.title || '')}
                     onChange={(e) => handleArrayChange('features', index, 'title', e.target.value)}
                   />
                   <Input
                     placeholder="Description"
-                    value={feature.description || ''}
+                    value={String(feature.description || '')}
                     onChange={(e) => handleArrayChange('features', index, 'description', e.target.value)}
                   />
                   <Input
                     placeholder="Detail"
-                    value={feature.detail || ''}
+                    value={String(feature.detail || '')}
                     onChange={(e) => handleArrayChange('features', index, 'detail', e.target.value)}
                   />
                 </div>
@@ -179,34 +179,34 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Features (Brands)</Label>
-              {(content.features || []).map((feature: any, index: number) => (
+              {Array.isArray(content.features) && content.features.map((feature: any, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Title"
-                    value={feature.title || ''}
+                    value={String(feature.title || '')}
                     onChange={(e) => handleArrayChange('features', index, 'title', e.target.value)}
                   />
                   <Input
                     placeholder="Description (Logo URL)"
-                    value={feature.description || ''}
+                    value={String(feature.description || '')}
                     onChange={(e) => handleArrayChange('features', index, 'description', e.target.value)}
                   />
                   <Input
                     placeholder="Detail (Link)"
-                    value={feature.detail || ''}
+                    value={String(feature.detail || '')}
                     onChange={(e) => handleArrayChange('features', index, 'detail', e.target.value)}
                   />
                 </div>
@@ -221,39 +221,39 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={content.description || ''}
+                value={String(content.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Stats</Label>
-              {(content.stats || []).map((stat: any, index: number) => (
+              {Array.isArray(content.stats) && content.stats.map((stat: any, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Icon"
-                    value={stat.icon || ''}
+                    value={String(stat.icon || '')}
                     onChange={(e) => handleArrayChange('stats', index, 'icon', e.target.value)}
                   />
                   <Input
                     placeholder="Title"
-                    value={stat.title || ''}
+                    value={String(stat.title || '')}
                     onChange={(e) => handleArrayChange('stats', index, 'title', e.target.value)}
                   />
                   <Input
                     placeholder="Description"
-                    value={stat.description || ''}
+                    value={String(stat.description || '')}
                     onChange={(e) => handleArrayChange('stats', index, 'description', e.target.value)}
                   />
                   <Input
                     placeholder="Color"
-                    value={stat.color || ''}
+                    value={String(stat.color || '')}
                     onChange={(e) => handleArrayChange('stats', index, 'color', e.target.value)}
                   />
                 </div>
@@ -261,12 +261,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             </div>
             <div className="space-y-4">
               <Label>Timeline Items</Label>
-              {(content.timelineItems || []).map((item: string, index: number) => (
+              {Array.isArray(content.timelineItems) && content.timelineItems.map((item: string, index: number) => (
                 <Input
                   key={index}
-                  value={item}
+                  value={String(item)}
                   onChange={(e) => {
-                    const newItems = [...(content.timelineItems || [])];
+                    const newItems = [...(Array.isArray(content.timelineItems) ? content.timelineItems : [])];
                     newItems[index] = e.target.value;
                     handleChange('timelineItems', newItems);
                   }}
@@ -282,14 +282,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
@@ -302,17 +302,17 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Testimonials</Label>
-              {(content.testimonials || []).map((testimonial: any, index: number) => (
+              {Array.isArray(content.testimonials) && content.testimonials.map((testimonial: any, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Name"
-                    value={testimonial.name || ''}
+                    value={String(testimonial.name || '')}
                     onChange={(e) => handleArrayChange('testimonials', index, 'name', e.target.value)}
                   />
                   <Input
@@ -325,12 +325,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   />
                   <Textarea
                     placeholder="Text"
-                    value={testimonial.text || ''}
+                    value={String(testimonial.text || '')}
                     onChange={(e) => handleArrayChange('testimonials', index, 'text', e.target.value)}
                   />
                   <Input
                     placeholder="Source"
-                    value={testimonial.source || ''}
+                    value={String(testimonial.source || '')}
                     onChange={(e) => handleArrayChange('testimonials', index, 'source', e.target.value)}
                   />
                 </div>
@@ -345,34 +345,34 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Articles</Label>
-              {(content.articles || []).map((article: any, index: number) => (
+              {Array.isArray(content.articles) && content.articles.map((article: any, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Title"
-                    value={article.title || ''}
+                    value={String(article.title || '')}
                     onChange={(e) => handleArrayChange('articles', index, 'title', e.target.value)}
                   />
                   <Input
                     placeholder="Category"
-                    value={article.category || ''}
+                    value={String(article.category || '')}
                     onChange={(e) => handleArrayChange('articles', index, 'category', e.target.value)}
                   />
                   <Input
                     placeholder="Image URL"
-                    value={article.image || ''}
+                    value={String(article.image || '')}
                     onChange={(e) => handleArrayChange('articles', index, 'image', e.target.value)}
                   />
                 </div>
@@ -387,21 +387,21 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={content.description || ''}
+                value={String(content.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
             <div>
               <Label>Button Text</Label>
               <Input
-                value={content.buttonText || ''}
+                value={String(content.buttonText || '')}
                 onChange={(e) => handleChange('buttonText', e.target.value)}
               />
             </div>
