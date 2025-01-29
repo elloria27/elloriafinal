@@ -9,17 +9,14 @@ interface AboutCustomerImpactProps {
 export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) => {
   const defaultStats = [
     {
-      icon: <Users className="w-8 h-8 text-primary" />,
       value: "1M+",
       label: "Happy Customers"
     },
     {
-      icon: <Star className="w-8 h-8 text-primary" />,
       value: "4.9",
       label: "Average Rating"
     },
     {
-      icon: <Heart className="w-8 h-8 text-primary" />,
       value: "96%",
       label: "Would Recommend"
     }
@@ -49,6 +46,19 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
   const stats = content?.stats || defaultStats;
   const testimonials = content?.testimonials || defaultTestimonials;
 
+  const getIconComponent = (index: number) => {
+    switch (index) {
+      case 0:
+        return <Users className="w-8 h-8 text-primary" />;
+      case 1:
+        return <Star className="w-8 h-8 text-primary" />;
+      case 2:
+        return <Heart className="w-8 h-8 text-primary" />;
+      default:
+        return <Users className="w-8 h-8 text-primary" />;
+    }
+  };
+
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">
@@ -75,13 +85,7 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="text-center"
             >
               <div className="flex justify-center mb-4">
-                {typeof stat.icon === 'string' ? (
-                  stat.icon === 'Users' ? <Users className="w-8 h-8 text-primary" /> :
-                  stat.icon === 'Star' ? <Star className="w-8 h-8 text-primary" /> :
-                  <Heart className="w-8 h-8 text-primary" />
-                ) : (
-                  stat.icon
-                )}
+                {getIconComponent(index)}
               </div>
               <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
               <p className="text-gray-600">{stat.label}</p>
