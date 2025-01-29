@@ -27,7 +27,45 @@ export const FileManagement = () => {
 
   useEffect(() => {
     fetchFiles();
+    cleanupBrokenFolders();
   }, []);
+
+  const cleanupBrokenFolders = async () => {
+    try {
+      console.log('Starting cleanup of broken folders...');
+      const { data: filesData, error: filesError } = await supabase.storage.from('files').list();
+      
+      if (filesError) {
+        console.error('Error fetching files for cleanup:', filesError);
+        return;
+      }
+
+      // Find all files that are actually broken folder entries (0 bytes and no folder record)
+      const brokenFiles = filesData.filter(file => 
+        file.metadata?.size === 0 && 
+        !file.metadata?.mimetype && 
+        !file.name.includes('/')
+      );
+
+      console.log('Found broken folder files:', brokenFiles);
+
+      for (const file of brokenFiles) {
+        const { error: deleteError } = await supabase.storage
+          .from('files')
+          .remove([file.name]);
+
+        if (deleteError) {
+          console.error(`Error deleting broken folder ${file.name}:`, deleteError);
+        } else {
+          console.log(`Successfully deleted broken folder ${file.name}`);
+        }
+      }
+
+      console.log('Cleanup completed');
+    } catch (error) {
+      console.error('Error in cleanupBrokenFolders:', error);
+    }
+  };
 
   const fetchFiles = async () => {
     try {
@@ -230,7 +268,7 @@ export const FileManagement = () => {
       const timestamp = Date.now();
       const folderPath = `${timestamp}-${newFolderName}/`;
 
-      // Create folder record
+      // Create folder record in the database
       const { error: folderError } = await supabase
         .from('folders')
         .insert({
@@ -243,6 +281,20 @@ export const FileManagement = () => {
         console.error('Error creating folder record:', folderError);
         toast.error("Failed to create folder");
         return;
+      }
+
+      // Create file share record for the folder
+      const { error: shareError } = await supabase
+        .from('file_shares')
+        .insert({
+          file_path: folderPath,
+          access_level: 'view',
+          share_token: crypto.randomUUID(),
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (shareError) {
+        console.error('Error creating folder share:', shareError);
       }
 
       toast.success("Folder created successfully");
