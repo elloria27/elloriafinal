@@ -70,7 +70,7 @@ export const MainProfileContent = ({
         <PersonalInfoForm
           firstName={firstName}
           setFirstName={setFirstName}
-          lastName={lastName}
+          lastName={setLastName}
           setLastName={setLastName}
           email={userEmail}
           phoneNumber={phoneNumber}

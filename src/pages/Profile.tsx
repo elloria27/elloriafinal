@@ -60,7 +60,7 @@ const Profile = () => {
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72">
+              <SheetContent side="left" className="w-72 p-0">
                 <AccountSidebar onClose={() => {}} />
               </SheetContent>
             </Sheet>
@@ -69,7 +69,7 @@ const Profile = () => {
               <AccountSidebar />
             </div>
           )}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <Routes>
               <Route index element={<MainProfile />} />
               <Route path="invoices" element={<Invoices />} />
