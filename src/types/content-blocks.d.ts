@@ -163,22 +163,25 @@ export interface AboutHeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   backgroundImage?: string;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
 export interface AboutStoryContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   content?: string;
-  videoUrl?: string; // Added videoUrl property
+  videoUrl?: string;
+  videoThumbnail?: string;
 }
 
 export interface AboutMissionContent extends BaseBlockContent {
   title?: string;
   description?: string;
   values?: Array<{
+    icon: 'Leaf' | 'Star' | 'Heart';
     title: string;
     description: string;
-    icon?: string;
   }>;
 }
 
@@ -186,11 +189,9 @@ export interface AboutSustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
   stats?: Array<{
+    icon: 'Leaf' | 'Recycle' | 'TreePine';
     value: string;
     label: string;
-  }>;
-  initiatives?: Array<{
-    title: string;
     description: string;
   }>;
 }
@@ -202,18 +203,33 @@ export interface AboutTeamContent extends BaseBlockContent {
     name: string;
     role: string;
     image?: string;
-    bio?: string;
+    quote?: string;
   }>;
 }
 
 export interface AboutCustomerImpactContent extends BaseBlockContent {
   title?: string;
   description?: string;
+  stats?: Array<{
+    value: string;
+    label: string;
+  }>;
   testimonials?: Array<{
     quote: string;
     author: string;
-    location?: string;
+    role?: string;
+    rating: number;
   }>;
+}
+
+export interface AboutCtaContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+  backgroundGradient?: string;
 }
 
 export type BlockContent = 

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent, ContactFAQContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, SustainabilityContent, CompetitorComparisonContent, TestimonialsContent, BlogPreviewContent, ContactFAQContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent, AboutCtaContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -157,7 +157,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     console.log('Current content:', content);
 
     switch (block.type) {
-      case 'hero':
+      case 'about_hero_section':
         return (
           <div className="space-y-4">
             <div>
@@ -170,907 +170,18 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             </div>
             <div>
               <Label>Subtitle</Label>
-              <Input
+              <Textarea
                 value={getContentValue('subtitle')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
                 placeholder="Enter hero subtitle"
               />
             </div>
             <div>
-              <Label>Video URL</Label>
+              <Label>Background Image URL</Label>
               <Input
-                value={getContentValue('videoUrl')}
-                onChange={(e) => handleChange('videoUrl', e.target.value)}
-                placeholder="Enter video URL"
-              />
-            </div>
-          </div>
-        );
-
-      case 'product_carousel':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-          </div>
-        );
-
-      case 'features':
-      case 'elevating_essentials':
-      case 'game_changer':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Features</Label>
-                <Button onClick={addFeature} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Feature
-                </Button>
-              </div>
-              {getFeatures().map((feature, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Feature {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeFeature(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Icon</Label>
-                    <Select
-                      value={feature.icon}
-                      onValueChange={(value) => handleFeatureChange(index, 'icon', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableIcons.map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter feature title"
-                    />
-                  </div>
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter feature description"
-                    />
-                  </div>
-                  <div>
-                    <Label>Detail</Label>
-                    <Textarea
-                      value={feature.detail}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter feature detail"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'store_brands':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Brands</Label>
-                <Button onClick={addFeature} size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Brand
-                </Button>
-              </div>
-              {getFeatures().map((feature, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Brand {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeFeature(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Name</Label>
-                    <Input
-                      value={feature.title}
-                      onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
-                      placeholder="Enter brand name"
-                    />
-                  </div>
-                  <div>
-                    <Label>Logo URL</Label>
-                    <Input
-                      value={feature.description}
-                      onChange={(e) => handleFeatureChange(index, 'description', e.target.value)}
-                      placeholder="Enter logo URL"
-                    />
-                  </div>
-                  <div>
-                    <Label>Link</Label>
-                    <Input
-                      value={feature.detail || ''}
-                      onChange={(e) => handleFeatureChange(index, 'detail', e.target.value)}
-                      placeholder="Enter brand link"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'sustainability':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            
-            {/* Stats Section */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Stats</Label>
-                <Button 
-                  onClick={() => {
-                    const currentStats = (content as SustainabilityContent).stats || [];
-                    handleChange('stats', [...currentStats, {
-                      icon: "Recycle",
-                      title: "New Stat Title",
-                      description: "Enter description",
-                      color: "bg-accent-green"
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Stat
-                </Button>
-              </div>
-              
-              {((content as SustainabilityContent).stats || []).map((stat, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Stat {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newStats = [...((content as SustainabilityContent).stats || [])];
-                        newStats.splice(index, 1);
-                        handleChange('stats', newStats);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Icon</Label>
-                    <Select
-                      value={stat.icon}
-                      onValueChange={(value) => {
-                        const newStats = [...((content as SustainabilityContent).stats || [])];
-                        newStats[index] = { ...newStats[index], icon: value };
-                        handleChange('stats', newStats);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {['Recycle', 'Package', 'Factory', 'Leaf'].map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={stat.title}
-                      onChange={(e) => {
-                        const newStats = [...((content as SustainabilityContent).stats || [])];
-                        newStats[index] = { ...newStats[index], title: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
-                      placeholder="Enter stat title"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={stat.description}
-                      onChange={(e) => {
-                        const newStats = [...((content as SustainabilityContent).stats || [])];
-                        newStats[index] = { ...newStats[index], description: e.target.value };
-                        handleChange('stats', newStats);
-                      }}
-                      placeholder="Enter stat description"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Color</Label>
-                    <Select
-                      value={stat.color}
-                      onValueChange={(value) => {
-                        const newStats = [...((content as SustainabilityContent).stats || [])];
-                        newStats[index] = { ...newStats[index], color: value };
-                        handleChange('stats', newStats);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          { label: 'Green', value: 'bg-accent-green' },
-                          { label: 'Purple', value: 'bg-accent-purple' },
-                          { label: 'Peach', value: 'bg-accent-peach' }
-                        ].map((color) => (
-                          <SelectItem key={color.value} value={color.value}>
-                            {color.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Timeline Items Section */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Timeline Items</Label>
-                <Button 
-                  onClick={() => {
-                    const currentItems = getTimelineItems();
-                    handleChange('timelineItems', [...currentItems, "New Timeline Item"]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Timeline Item
-                </Button>
-              </div>
-              
-              {getTimelineItems().map((item, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <Input
-                    value={item}
-                    onChange={(e) => {
-                      const newItems = [...getTimelineItems()];
-                      newItems[index] = e.target.value;
-                      handleChange('timelineItems', newItems);
-                    }}
-                    placeholder="Enter timeline item"
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      const newItems = [...getTimelineItems()];
-                      newItems.splice(index, 1);
-                      handleChange('timelineItems', newItems);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'competitor_comparison':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div>
-              <Label>Button Text</Label>
-              <Input
-                value={getContentValue('buttonText')}
-                onChange={(e) => handleChange('buttonText', e.target.value)}
-                placeholder="Enter button text"
-              />
-            </div>
-            <div>
-              <Label>Button URL</Label>
-              <Input
-                value={getContentValue('buttonUrl')}
-                onChange={(e) => handleChange('buttonUrl', e.target.value)}
-                placeholder="Enter button URL"
-              />
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Metrics</Label>
-                <Button 
-                  onClick={() => {
-                    const currentMetrics = getMetrics();
-                    handleChange('metrics', [...currentMetrics, {
-                      category: "New Metric",
-                      elloria: 90,
-                      competitors: 70,
-                      icon: "Shield",
-                      description: "Enter description"
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Metric
-                </Button>
-              </div>
-              
-              {getMetrics().map((metric, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Metric {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics.splice(index, 1);
-                        handleChange('metrics', newMetrics);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Category</Label>
-                    <Input
-                      value={metric.category}
-                      onChange={(e) => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics[index] = { ...newMetrics[index], category: e.target.value };
-                        handleChange('metrics', newMetrics);
-                      }}
-                      placeholder="Enter category name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={metric.description}
-                      onChange={(e) => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics[index] = { ...newMetrics[index], description: e.target.value };
-                        handleChange('metrics', newMetrics);
-                      }}
-                      placeholder="Enter metric description"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Icon</Label>
-                    <Select
-                      value={metric.icon}
-                      onValueChange={(value) => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics[index] = { ...newMetrics[index], icon: value };
-                        handleChange('metrics', newMetrics);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {['Shield', 'Leaf', 'Heart', 'Sparkles'].map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Elloria Score (%)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={metric.elloria}
-                      onChange={(e) => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics[index] = { ...newMetrics[index], elloria: parseInt(e.target.value) || 0 };
-                        handleChange('metrics', newMetrics);
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Competitors Score (%)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={metric.competitors}
-                      onChange={(e) => {
-                        const newMetrics = [...getMetrics()];
-                        newMetrics[index] = { ...newMetrics[index], competitors: parseInt(e.target.value) || 0 };
-                        handleChange('metrics', newMetrics);
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'testimonials':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Testimonials</Label>
-                <Button 
-                  onClick={addTestimonial} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Testimonial
-                </Button>
-              </div>
-              
-              {getCustomerTestimonials().map((testimonial, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Testimonial {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => removeTestimonial(index)}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Customer Name</Label>
-                    <Input
-                      value={testimonial.author}
-                      onChange={(e) => handleTestimonialChange(index, 'author', e.target.value)}
-                      placeholder="Enter customer name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Text</Label>
-                    <Textarea
-                      value={testimonial.quote}
-                      onChange={(e) => handleTestimonialChange(index, 'quote', e.target.value)}
-                      placeholder="Enter testimonial text"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Location</Label>
-                    <Input
-                      value={testimonial.location || ''}
-                      onChange={(e) => handleTestimonialChange(index, 'location', e.target.value)}
-                      placeholder="Enter location"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'blog_preview':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label>Articles</Label>
-                <Button 
-                  onClick={() => {
-                    const currentArticles = getBlogArticles();
-                    handleChange('articles', [...currentArticles, {
-                      title: "New Article",
-                      category: "Category",
-                      image: "/placeholder.svg"
-                    }]);
-                  }} 
-                  size="sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Article
-                </Button>
-              </div>
-              
-              {getBlogArticles().map((article, index) => (
-                <div key={index} className="space-y-4 p-4 border rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <Label>Article {index + 1}</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        const newArticles = getBlogArticles();
-                        newArticles.splice(index, 1);
-                        handleChange('articles', newArticles);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </Button>
-                  </div>
-                  
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={article.title}
-                      onChange={(e) => {
-                        const newArticles = getBlogArticles();
-                        newArticles[index] = { ...newArticles[index], title: e.target.value };
-                        handleChange('articles', newArticles);
-                      }}
-                      placeholder="Enter article title"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Category</Label>
-                    <Input
-                      value={article.category}
-                      onChange={(e) => {
-                        const newArticles = getBlogArticles();
-                        newArticles[index] = { ...newArticles[index], category: e.target.value };
-                        handleChange('articles', newArticles);
-                      }}
-                      placeholder="Enter article category"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={article.image}
-                      onChange={(e) => {
-                        const newArticles = getBlogArticles();
-                        newArticles[index] = { ...newArticles[index], image: e.target.value };
-                        handleChange('articles', newArticles);
-                      }}
-                      placeholder="Enter article image URL"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'contact_hero':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter hero title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter hero subtitle"
-              />
-            </div>
-          </div>
-        );
-
-      case 'contact_details':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Address</Label>
-              <Input
-                value={getContentValue('address')}
-                onChange={(e) => handleChange('address', e.target.value)}
-                placeholder="Enter address"
-              />
-            </div>
-            <div>
-              <Label>Phone</Label>
-              <Input
-                value={getContentValue('phone')}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="Enter phone number"
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                value={getContentValue('email')}
-                onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="Enter email address"
-              />
-            </div>
-          </div>
-        );
-
-      case 'contact_form':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            <div>
-              <Label>Button Text</Label>
-              <Input
-                value={getContentValue('buttonText')}
-                onChange={(e) => handleChange('buttonText', e.target.value)}
-                placeholder="Enter button text"
-              />
-            </div>
-            <div>
-              <Label>Secondary Button Text</Label>
-              <Input
-                value={getContentValue('secondaryButtonText')}
-                onChange={(e) => handleChange('secondaryButtonText', e.target.value)}
-                placeholder="Enter secondary button text"
-              />
-            </div>
-          </div>
-        );
-
-      case 'contact_faq':
-        return (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label>FAQs</Label>
-              <Button 
-                onClick={() => {
-                  const currentFaqs = getFAQs();
-                  handleChange('faqs', [...currentFaqs, {
-                    question: "New Question",
-                    answer: "New Answer"
-                  }]);
-                }} 
-                size="sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add FAQ
-              </Button>
-            </div>
-            
-            {getFAQs().map((faq, index) => (
-              <div key={index} className="space-y-4 p-4 border rounded-lg">
-                <div className="flex justify-between items-center">
-                  <Label>FAQ {index + 1}</Label>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => {
-                      const newFaqs = [...getFAQs()];
-                      newFaqs.splice(index, 1);
-                      handleChange('faqs', newFaqs);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-                
-                <div>
-                  <Label>Question</Label>
-                  <Input
-                    value={faq.question}
-                    onChange={(e) => {
-                      const newFaqs = [...getFAQs()];
-                      newFaqs[index] = { ...newFaqs[index], question: e.target.value };
-                      handleChange('faqs', newFaqs);
-                    }}
-                    placeholder="Enter question"
-                  />
-                </div>
-
-                <div>
-                  <Label>Answer</Label>
-                  <Textarea
-                    value={faq.answer}
-                    onChange={(e) => {
-                      const newFaqs = [...getFAQs()];
-                      newFaqs[index] = { ...newFaqs[index], answer: e.target.value };
-                      handleChange('faqs', newFaqs);
-                    }}
-                    placeholder="Enter answer"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'contact_business':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                value={getContentValue('email')}
-                onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="Enter business email"
+                value={getContentValue('backgroundImage')}
+                onChange={(e) => handleChange('backgroundImage', e.target.value)}
+                placeholder="Enter background image URL"
               />
             </div>
             <div>
@@ -1092,36 +203,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
-      case 'about_hero_section':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter hero title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter hero subtitle"
-              />
-            </div>
-            <div>
-              <Label>Background Image URL</Label>
-              <Input
-                value={getContentValue('backgroundImage')}
-                onChange={(e) => handleChange('backgroundImage', e.target.value)}
-                placeholder="Enter background image URL"
-              />
-            </div>
-          </div>
-        );
-
       case 'about_story':
         return (
           <div className="space-y-4">
@@ -1130,7 +211,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter story title"
+                placeholder="Enter section title"
               />
             </div>
             <div>
@@ -1138,7 +219,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('subtitle')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter story subtitle"
+                placeholder="Enter section subtitle"
               />
             </div>
             <div>
@@ -1147,14 +228,23 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 value={getContentValue('content')}
                 onChange={(e) => handleChange('content', e.target.value)}
                 placeholder="Enter story content"
+                className="min-h-[200px]"
               />
             </div>
             <div>
-              <Label>Image URL</Label>
+              <Label>Video URL</Label>
               <Input
-                value={getContentValue('image')}
-                onChange={(e) => handleChange('image', e.target.value)}
-                placeholder="Enter image URL"
+                value={getContentValue('videoUrl')}
+                onChange={(e) => handleChange('videoUrl', e.target.value)}
+                placeholder="Enter video URL"
+              />
+            </div>
+            <div>
+              <Label>Video Thumbnail URL</Label>
+              <Input
+                value={getContentValue('videoThumbnail')}
+                onChange={(e) => handleChange('videoThumbnail', e.target.value)}
+                placeholder="Enter video thumbnail URL"
               />
             </div>
           </div>
@@ -1168,7 +258,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Input
                 value={getContentValue('title')}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter mission title"
+                placeholder="Enter section title"
               />
             </div>
             <div>
@@ -1176,7 +266,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
               <Textarea
                 value={getContentValue('description')}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter mission description"
+                placeholder="Enter section description"
               />
             </div>
             <div className="space-y-4">
@@ -1184,11 +274,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 <Label>Values</Label>
                 <Button 
                   onClick={() => {
-                    const values = getValues();
+                    const values = (content as AboutMissionContent).values || [];
                     handleChange('values', [...values, {
+                      icon: 'Heart',
                       title: "New Value",
-                      description: "Value description",
-                      icon: "Heart"
+                      description: "Value description"
                     }]);
                   }} 
                   size="sm"
@@ -1198,7 +288,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 </Button>
               </div>
               
-              {getValues().map((value, index) => (
+              {((content as AboutMissionContent).values || []).map((value, index) => (
                 <div key={index} className="space-y-4 p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <Label>Value {index + 1}</Label>
@@ -1206,7 +296,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => {
-                        const newValues = getValues();
+                        const newValues = [...((content as AboutMissionContent).values || [])];
                         newValues.splice(index, 1);
                         handleChange('values', newValues);
                       }}
@@ -1216,11 +306,32 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
                   
                   <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={value.icon}
+                      onValueChange={(newValue) => {
+                        const newValues = [...((content as AboutMissionContent).values || [])];
+                        newValues[index] = { ...newValues[index], icon: newValue as 'Leaf' | 'Star' | 'Heart' };
+                        handleChange('values', newValues);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Leaf">Leaf</SelectItem>
+                        <SelectItem value="Star">Star</SelectItem>
+                        <SelectItem value="Heart">Heart</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label>Title</Label>
                     <Input
                       value={value.title}
                       onChange={(e) => {
-                        const newValues = getValues();
+                        const newValues = [...((content as AboutMissionContent).values || [])];
                         newValues[index] = { ...newValues[index], title: e.target.value };
                         handleChange('values', newValues);
                       }}
@@ -1233,35 +344,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Textarea
                       value={value.description}
                       onChange={(e) => {
-                        const newValues = getValues();
+                        const newValues = [...((content as AboutMissionContent).values || [])];
                         newValues[index] = { ...newValues[index], description: e.target.value };
                         handleChange('values', newValues);
                       }}
                       placeholder="Enter value description"
                     />
-                  </div>
-
-                  <div>
-                    <Label>Icon</Label>
-                    <Select
-                      value={value.icon || 'Heart'}
-                      onValueChange={(newValue) => {
-                        const newValues = getValues();
-                        newValues[index] = { ...newValues[index], icon: newValue };
-                        handleChange('values', newValues);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select icon" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableIcons.map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               ))}
@@ -1295,8 +383,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   onClick={() => {
                     const stats = (content as AboutSustainabilityContent).stats || [];
                     handleChange('stats', [...stats, {
+                      icon: 'Leaf',
                       value: "New Stat",
-                      label: "Stat description"
+                      label: "Stat Label",
+                      description: "Stat description"
                     }]);
                   }} 
                   size="sm"
@@ -1322,7 +412,28 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
-                  
+
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={stat.icon}
+                      onValueChange={(newValue) => {
+                        const newStats = [...((content as AboutSustainabilityContent).stats || [])];
+                        newStats[index] = { ...newStats[index], icon: newValue as 'Leaf' | 'Recycle' | 'TreePine' };
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Leaf">Leaf</SelectItem>
+                        <SelectItem value="Recycle">Recycle</SelectItem>
+                        <SelectItem value="TreePine">Tree Pine</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div>
                     <Label>Value</Label>
                     <Input
@@ -1348,18 +459,383 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                       placeholder="Enter stat label"
                     />
                   </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={stat.description}
+                      onChange={(e) => {
+                        const newStats = [...((content as AboutSustainabilityContent).stats || [])];
+                        newStats[index] = { ...newStats[index], description: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat description"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         );
 
-      default:
+      case 'about_team':
         return (
-          <div className="text-gray-500 italic">
-            No editable properties for this component type.
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Team Members</Label>
+                <Button 
+                  onClick={() => {
+                    const members = (content as AboutTeamContent).members || [];
+                    handleChange('members', [...members, {
+                      name: "New Member",
+                      role: "Role",
+                      image: "",
+                      quote: ""
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Team Member
+                </Button>
+              </div>
+              
+              {((content as AboutTeamContent).members || []).map((member, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Member {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newMembers = [...((content as AboutTeamContent).members || [])];
+                        newMembers.splice(index, 1);
+                        handleChange('members', newMembers);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={member.name}
+                      onChange={(e) => {
+                        const newMembers = [...((content as AboutTeamContent).members || [])];
+                        newMembers[index] = { ...newMembers[index], name: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Role</Label>
+                    <Input
+                      value={member.role}
+                      onChange={(e) => {
+                        const newMembers = [...((content as AboutTeamContent).members || [])];
+                        newMembers[index] = { ...newMembers[index], role: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member role"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Image URL</Label>
+                    <Input
+                      value={member.image}
+                      onChange={(e) => {
+                        const newMembers = [...((content as AboutTeamContent).members || [])];
+                        newMembers[index] = { ...newMembers[index], image: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member image URL"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Quote</Label>
+                    <Textarea
+                      value={member.quote}
+                      onChange={(e) => {
+                        const newMembers = [...((content as AboutTeamContent).members || [])];
+                        newMembers[index] = { ...newMembers[index], quote: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member quote"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         );
+
+      case 'about_customer_impact':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+
+            {/* Stats */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Stats</Label>
+                <Button 
+                  onClick={() => {
+                    const stats = (content as AboutCustomerImpactContent).stats || [];
+                    handleChange('stats', [...stats, {
+                      value: "New Stat",
+                      label: "Stat Label"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Stat
+                </Button>
+              </div>
+              
+              {((content as AboutCustomerImpactContent).stats || []).map((stat, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Stat {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newStats = [...((content as AboutCustomerImpactContent).stats || [])];
+                        newStats.splice(index, 1);
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Label>Value</Label>
+                    <Input
+                      value={stat.value}
+                      onChange={(e) => {
+                        const newStats = [...((content as AboutCustomerImpactContent).stats || [])];
+                        newStats[index] = { ...newStats[index], value: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat value"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Label</Label>
+                    <Input
+                      value={stat.label}
+                      onChange={(e) => {
+                        const newStats = [...((content as AboutCustomerImpactContent).stats || [])];
+                        newStats[index] = { ...newStats[index], label: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat label"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Testimonials */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Testimonials</Label>
+                <Button 
+                  onClick={() => {
+                    const testimonials = (content as AboutCustomerImpactContent).testimonials || [];
+                    handleChange('testimonials', [...testimonials, {
+                      quote: "New Testimonial",
+                      author: "Customer Name",
+                      role: "Customer Role",
+                      rating: 5
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </div>
+              
+              {((content as AboutCustomerImpactContent).testimonials || []).map((testimonial, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Testimonial {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newTestimonials = [...((content as AboutCustomerImpactContent).testimonials || [])];
+                        newTestimonials.splice(index, 1);
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Label>Quote</Label>
+                    <Textarea
+                      value={testimonial.quote}
+                      onChange={(e) => {
+                        const newTestimonials = [...((content as AboutCustomerImpactContent).testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], quote: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter testimonial quote"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Author</Label>
+                    <Input
+                      value={testimonial.author}
+                      onChange={(e) => {
+                        const newTestimonials = [...((content as AboutCustomerImpactContent).testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], author: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter author name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Role</Label>
+                    <Input
+                      value={testimonial.role}
+                      onChange={(e) => {
+                        const newTestimonials = [...((content as AboutCustomerImpactContent).testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], role: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter author role"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Rating (1-5)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={testimonial.rating}
+                      onChange={(e) => {
+                        const newTestimonials = [...((content as AboutCustomerImpactContent).testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], rating: parseInt(e.target.value) || 5 };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'about_cta':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter CTA title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Textarea
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter CTA subtitle"
+              />
+            </div>
+            <div>
+              <Label>Primary Button Text</Label>
+              <Input
+                value={getContentValue('primaryButtonText')}
+                onChange={(e) => handleChange('primaryButtonText', e.target.value)}
+                placeholder="Enter primary button text"
+              />
+            </div>
+            <div>
+              <Label>Primary Button Link</Label>
+              <Input
+                value={getContentValue('primaryButtonLink')}
+                onChange={(e) => handleChange('primaryButtonLink', e.target.value)}
+                placeholder="Enter primary button link"
+              />
+            </div>
+            <div>
+              <Label>Secondary Button Text</Label>
+              <Input
+                value={getContentValue('secondaryButtonText')}
+                onChange={(e) => handleChange('secondaryButtonText', e.target.value)}
+                placeholder="Enter secondary button text"
+              />
+            </div>
+            <div>
+              <Label>Secondary Button Link</Label>
+              <Input
+                value={getContentValue('secondaryButtonLink')}
+                onChange={(e) => handleChange('secondaryButtonLink', e.target.value)}
+                placeholder="Enter secondary button link"
+              />
+            </div>
+            <div>
+              <Label>Background Gradient</Label>
+              <Input
+                value={getContentValue('backgroundGradient')}
+                onChange={(e) => handleChange('backgroundGradient', e.target.value)}
+                placeholder="Enter background gradient"
+              />
+            </div>
+          </div>
+        );
+
+      // ... keep existing code (other cases)
     }
   };
 
