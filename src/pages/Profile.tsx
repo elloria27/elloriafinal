@@ -40,7 +40,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 md:pt-24">
+      <div className="min-h-screen pt-16">
         <div className="container mx-auto px-4">
           Loading...
         </div>
@@ -49,13 +49,13 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16 md:pt-24">
+    <div className="min-h-screen pt-16">
       <div className="container mx-auto px-4">
-        <div className="flex gap-4 md:gap-8">
+        <div className="flex gap-4">
           {isMobile ? (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
+                <Button variant="outline" size="icon" className="md:hidden fixed top-20 left-4 z-50">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
@@ -65,7 +65,7 @@ const Profile = () => {
               </SheetContent>
             </Sheet>
           ) : (
-            <div className="hidden md:block w-72">
+            <div className="hidden md:block w-72 shrink-0">
               <AccountSidebar />
             </div>
           )}

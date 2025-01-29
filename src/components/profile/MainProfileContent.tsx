@@ -45,15 +45,17 @@ export const MainProfileContent = ({
   handleSave,
 }: MainProfileContentProps) => {
   if (loading) {
-    return <div className="p-4 md:p-8">Loading...</div>;
+    return <div className="p-4">Loading...</div>;
   }
 
   if (!profile) {
-    return <div className="p-4 md:p-8">No profile found.</div>;
+    return <div className="p-4">No profile found.</div>;
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto">
+    <div className="p-4 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-semibold mb-6">Profile</h1>
+      
       <ProfileHeader
         firstName={firstName}
         lastName={lastName}
@@ -66,7 +68,7 @@ export const MainProfileContent = ({
         currency={profile.currency || 'USD'}
       />
 
-      <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border space-y-6 mt-6 md:mt-8">
+      <div className="bg-white p-4 rounded-lg shadow-sm border space-y-6 mt-6">
         <PersonalInfoForm
           firstName={firstName}
           setFirstName={setFirstName}
