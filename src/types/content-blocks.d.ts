@@ -169,7 +169,7 @@ export interface AboutStoryContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   content?: string;
-  image?: string;
+  videoUrl?: string; // Added videoUrl property
 }
 
 export interface AboutMissionContent extends BaseBlockContent {
