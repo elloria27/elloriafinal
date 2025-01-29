@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
@@ -7,7 +7,16 @@ import { AboutMission } from "@/components/about/AboutMission";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
-import { ContentBlock, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent, AboutCtaContent } from "@/types/content-blocks";
+import { 
+  ContentBlock, 
+  AboutHeroContent, 
+  AboutStoryContent, 
+  AboutMissionContent, 
+  AboutSustainabilityContent, 
+  AboutTeamContent, 
+  AboutCustomerImpactContent, 
+  AboutCtaContent 
+} from "@/types/content-blocks";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchAboutPageContent = async () => {
@@ -61,10 +70,8 @@ export default function About() {
 
   const getBlockContent = (type: string) => {
     const block = contentBlocks?.find(block => block.type === type);
-    return (block?.content || {}) as any;
+    return block?.content as any;
   };
-
-  const ctaContent = getBlockContent('about_cta') as AboutCtaContent;
 
   return (
     <div className="min-h-screen bg-white">
@@ -98,21 +105,21 @@ export default function About() {
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              {ctaContent.title || "Join the Elloria Movement"}
+              {(getBlockContent('about_cta') as AboutCtaContent)?.title || "Join the Elloria Movement"}
             </h2>
             <p className="text-xl mb-8">
-              {ctaContent.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
+              {(getBlockContent('about_cta') as AboutCtaContent)?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
               >
-                {ctaContent.primaryButtonText || "Shop Now"}
+                {(getBlockContent('about_cta') as AboutCtaContent)?.primaryButtonText || "Shop Now"}
               </button>
               <button 
                 className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
               >
-                {ctaContent.secondaryButtonText || "Learn More"}
+                {(getBlockContent('about_cta') as AboutCtaContent)?.secondaryButtonText || "Learn More"}
               </button>
             </div>
           </div>

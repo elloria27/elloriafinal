@@ -7,26 +7,43 @@ interface AboutSustainabilityProps {
 }
 
 export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) => {
-  const stats = [
-    {
-      icon: <Leaf className="w-8 h-8 text-primary" />,
-      value: "72%",
-      label: "Recyclable Materials",
-      description: "Our products are made with eco-friendly, biodegradable materials"
-    },
-    {
-      icon: <Recycle className="w-8 h-8 text-primary" />,
-      value: "85%",
-      label: "Packaging Reduction",
-      description: "Minimized packaging waste through innovative design"
-    },
-    {
-      icon: <TreePine className="w-8 h-8 text-primary" />,
-      value: "50K+",
-      label: "Trees Planted",
-      description: "Contributing to global reforestation efforts"
+  const {
+    title = "Our Commitment to Sustainability",
+    description = "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
+    stats = [
+      {
+        icon: "Leaf",
+        value: "72%",
+        label: "Recyclable Materials",
+        description: "Our products are made with eco-friendly, biodegradable materials"
+      },
+      {
+        icon: "Recycle",
+        value: "85%",
+        label: "Packaging Reduction",
+        description: "Minimized packaging waste through innovative design"
+      },
+      {
+        icon: "TreePine",
+        value: "50K+",
+        label: "Trees Planted",
+        description: "Contributing to global reforestation efforts"
+      }
+    ]
+  } = content;
+
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case "Leaf":
+        return <Leaf className="w-8 h-8 text-primary" />;
+      case "Recycle":
+        return <Recycle className="w-8 h-8 text-primary" />;
+      case "TreePine":
+        return <TreePine className="w-8 h-8 text-primary" />;
+      default:
+        return <Leaf className="w-8 h-8 text-primary" />;
     }
-  ];
+  };
 
   return (
     <section className="py-20 bg-white">
@@ -37,9 +54,9 @@ export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) 
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Our Commitment to Sustainability</h2>
+          <h2 className="text-4xl font-bold mb-4">{title}</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.
+            {description}
           </p>
         </motion.div>
 
@@ -54,7 +71,7 @@ export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) 
               className="bg-white p-8 rounded-xl shadow-lg"
             >
               <div className="flex justify-center mb-6">
-                {stat.icon}
+                {getIcon(stat.icon)}
               </div>
               <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
               <h4 className="text-xl font-semibold mb-4">{stat.label}</h4>
