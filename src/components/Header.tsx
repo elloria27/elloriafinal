@@ -12,10 +12,10 @@ export const Header = () => {
     <motion.header 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-100"
+      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 md:shadow-sm"
     >
       <div className="container mx-auto">
-        <div className="flex items-center justify-between h-20 px-4">
+        <div className="flex items-center justify-between h-16 md:h-20 px-4">
           <Logo />
           <Navigation />
           

@@ -11,18 +11,14 @@ interface CartItemProps {
 }
 
 export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: CartItemProps) => {
-  console.log("Rendering cart item:", item.id);
-  
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("Remove button clicked for item:", item.id);
     onRemove(item.id);
   };
 
   const handleQuantityChange = (e: React.MouseEvent, newQuantity: number) => {
     e.stopPropagation();
     if (newQuantity >= 1 && newQuantity <= 99) {
-      console.log("Updating quantity for item:", item.id, "to:", newQuantity);
       onUpdateQuantity(item.id, newQuantity);
     }
   };
@@ -33,9 +29,9 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-start gap-4 bg-white p-4 rounded-2xl border border-gray-100/50 shadow-sm"
+      className="flex items-start gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-gray-100"
     >
-      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50">
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white/80">
         <img
           src={item.image}
           alt={item.name}
@@ -67,7 +63,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           <Button
             variant="outline"
             size="sm"
-            className="h-7 w-7 rounded-lg p-0"
+            className="h-7 w-7 rounded-lg p-0 bg-white"
             onClick={(e) => handleQuantityChange(e, item.quantity - 1)}
             disabled={item.quantity <= 1}
           >
@@ -81,7 +77,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
           <Button
             variant="outline"
             size="sm"
-            className="h-7 w-7 rounded-lg p-0"
+            className="h-7 w-7 rounded-lg p-0 bg-white"
             onClick={(e) => handleQuantityChange(e, item.quantity + 1)}
             disabled={item.quantity >= 99}
           >

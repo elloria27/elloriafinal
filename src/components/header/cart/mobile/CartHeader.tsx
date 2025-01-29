@@ -11,7 +11,7 @@ interface CartHeaderProps {
 
 export const CartHeader = ({ onClose, onClear, hasItems }: CartHeaderProps) => {
   return (
-    <SheetHeader className="sticky top-0 z-50 bg-white border-b px-4 py-4">
+    <SheetHeader className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b px-4 py-4">
       <motion.div 
         className="flex items-center justify-between"
         initial={{ opacity: 0, y: -20 }}

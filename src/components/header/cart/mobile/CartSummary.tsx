@@ -38,13 +38,13 @@ export const CartSummary = ({
             placeholder="Enter promo code"
             value={promoCode}
             onChange={(e) => onPromoCodeChange(e.target.value)}
-            className="flex-1 rounded-xl bg-gray-50 border-gray-200"
+            className="flex-1 rounded-xl bg-white/50 border-gray-200"
           />
           <Button 
             variant="outline"
             onClick={onApplyPromoCode}
             disabled={!promoCode.trim()}
-            className="whitespace-nowrap rounded-xl border-gray-200"
+            className="whitespace-nowrap rounded-xl border-gray-200 bg-white"
           >
             <Tag className="mr-2 h-4 w-4" />
             Apply
@@ -78,7 +78,7 @@ export const CartSummary = ({
         )}
       </AnimatePresence>
 
-      <div className="space-y-3 bg-gray-50 p-4 rounded-xl">
+      <div className="space-y-3 bg-white/50 backdrop-blur-sm p-4 rounded-xl">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Subtotal</span>
           <span className="font-medium">{formatPrice(subtotal)}</span>
