@@ -29,7 +29,7 @@ export const CartItem = ({ item, onRemove, onUpdateQuantity, formatPrice }: Cart
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex items-center gap-4 bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-100/50 shadow-sm"
+      className="flex items-center gap-4 bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-100/50 shadow-sm hover:shadow-md transition-all duration-300"
     >
       <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-white/80">
         <img

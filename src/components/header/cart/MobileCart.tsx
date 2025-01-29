@@ -89,7 +89,7 @@ export const MobileCart = () => {
     >
       <SheetContent 
         side="bottom" 
-        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-gradient-to-b from-white to-gray-50"
+        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-gradient-to-b from-white to-gray-50/80 backdrop-blur-lg"
         onPointerDownOutside={(e) => {
           e.preventDefault();
           setIsOpen(false);
