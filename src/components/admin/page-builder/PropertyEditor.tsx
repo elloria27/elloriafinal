@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { BlockContent, ContentBlock } from "@/types/content-blocks";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BlockContent, ContentBlock, FeatureItem } from "@/types/content-blocks";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -21,9 +20,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   };
 
   const handleArrayChange = (key: string, index: number, field: string, value: any) => {
-    const array = [...(content[key] || [])];
-    array[index] = { ...array[index], [field]: value };
-    handleChange(key, array);
+    const array = [...(Array.isArray(content[key]) ? content[key] : [])];
+    if (array[index] && typeof array[index] === 'object') {
+      array[index] = { ...array[index], [field]: value };
+      handleChange(key, array);
+    }
   };
 
   const renderFields = () => {
@@ -34,35 +35,35 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={content.description || ''}
+                value={String(content.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
             <div>
               <Label>Button Text</Label>
               <Input
-                value={content.buttonText || ''}
+                value={String(content.buttonText || '')}
                 onChange={(e) => handleChange('buttonText', e.target.value)}
               />
             </div>
             <div>
               <Label>Button Link</Label>
               <Input
-                value={content.buttonLink || ''}
+                value={String(content.buttonLink || '')}
                 onChange={(e) => handleChange('buttonLink', e.target.value)}
               />
             </div>
@@ -75,27 +76,27 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={content.title || ''}
+                value={String(content.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={content.subtitle || ''}
+                value={String(content.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Textarea
-                value={content.description || ''}
+                value={String(content.description || '')}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Features</Label>
-              {(content.features || []).map((feature: any, index: number) => (
+              {Array.isArray(content.features) && content.features.map((feature: FeatureItem, index: number) => (
                 <div key={index} className="space-y-2 p-4 border rounded">
                   <Input
                     placeholder="Icon name"
