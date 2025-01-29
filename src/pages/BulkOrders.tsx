@@ -11,20 +11,40 @@ const BulkOrders = () => {
   useEffect(() => {
     const fetchPageContent = async () => {
       try {
-        const { data: blocks, error } = await supabase
+        // First, get the page ID for bulk-orders
+        const { data: pageData, error: pageError } = await supabase
+          .from('pages')
+          .select('id')
+          .eq('slug', 'bulk-orders')
+          .single();
+
+        if (pageError) {
+          console.error('Error fetching page:', pageError);
+          return;
+        }
+
+        if (!pageData?.id) {
+          console.error('Page not found');
+          return;
+        }
+
+        console.log('Found page ID:', pageData.id);
+
+        // Then fetch content blocks for this page
+        const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', 'bulk-orders')
+          .eq('page_id', pageData.id)
           .order('order_index');
 
-        if (error) {
-          console.error('Error fetching content blocks:', error);
+        if (blocksError) {
+          console.error('Error fetching content blocks:', blocksError);
           return;
         }
 
         if (blocks) {
           console.log('Fetched content blocks:', blocks);
-          const typedContentBlocks = blocks.map(block => ({
+          const typedBlocks = blocks.map(block => ({
             id: block.id,
             type: block.type,
             content: block.content,
@@ -33,7 +53,8 @@ const BulkOrders = () => {
             created_at: block.created_at,
             updated_at: block.updated_at
           })) as ContentBlock[];
-          setPageContent(typedContentBlocks);
+          
+          setPageContent(typedBlocks);
         }
       } catch (error) {
         console.error('Error:', error);
