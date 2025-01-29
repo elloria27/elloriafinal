@@ -1,10 +1,33 @@
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Footer = () => {
   const { publishedPages, isLoading } = usePages();
   const location = useLocation();
+  const [products, setProducts] = useState<{ name: string }[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      console.log('Fetching products for footer...');
+      const { data, error } = await supabase
+        .from('products')
+        .select('name')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        return;
+      }
+
+      console.log('Products fetched:', data);
+      setProducts(data || []);
+    };
+
+    fetchProducts();
+  }, []);
 
   // Don't render footer on admin pages
   if (location.pathname.startsWith('/admin')) {
@@ -56,10 +79,13 @@ export const Footer = () => {
           <div className="flex flex-col items-center md:items-start space-y-4">
             <h4 className="font-semibold text-gray-900">Products</h4>
             <ul className="space-y-2 text-center md:text-left">
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Ultra-Thin</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Maxi Pads</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">Overnight</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-primary transition-colors">New Arrivals</a></li>
+              {products.map((product) => (
+                <li key={product.name}>
+                  <a href="#" className="text-gray-600 hover:text-primary transition-colors">
+                    {product.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
           
@@ -82,14 +108,21 @@ export const Footer = () => {
           <div className="flex flex-col items-center md:items-start space-y-4">
             <h4 className="font-semibold text-gray-900">Connect</h4>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-600 hover:text-primary transition-colors">
+              <a 
+                href="https://www.facebook.com/share/18RPDSfvGm/?mibextid=wwXIfr" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-600 hover:text-primary transition-colors"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition-colors">
+              <a 
+                href="https://www.instagram.com/elloria_menstrual_pads/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-600 hover:text-primary transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
               </a>
             </div>
             <p className="text-gray-600 text-center md:text-left">
@@ -101,7 +134,7 @@ export const Footer = () => {
         <div className="mt-8 md:mt-12 pt-8 border-t border-gray-100">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-gray-600 text-sm text-center md:text-left">
-              © 2024 Elloria. All rights reserved.
+              © 2025 Elloria. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <a href="#" className="text-gray-600 hover:text-primary transition-colors text-sm">Privacy Policy</a>
