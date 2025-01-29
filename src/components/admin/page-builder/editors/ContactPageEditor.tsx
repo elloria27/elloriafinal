@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
+import { Plus, Trash2, Image, Video } from "lucide-react";
 
 interface ContactPageEditorProps {
   block: ContentBlock;
@@ -12,6 +13,9 @@ interface ContactPageEditorProps {
 }
 
 export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) => {
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [currentField, setCurrentField] = useState<string>("");
   const [content, setContent] = useState<BlockContent>(block.content);
 
   const handleChange = (key: string, value: any) => {
@@ -19,6 +23,54 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
   };
+
+  const openMediaLibrary = (type: "image" | "video", field: string) => {
+    setMediaType(type);
+    setCurrentField(field);
+    setShowMediaLibrary(true);
+  };
+
+  const handleMediaSelect = (url: string) => {
+    handleChange(currentField, url);
+    setShowMediaLibrary(false);
+  };
+
+  const renderMediaField = (label: string, field: string, type: "image" | "video") => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          value={content[field] as string || ""}
+          readOnly
+          placeholder={`Select ${type}...`}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => openMediaLibrary(type, field)}
+        >
+          {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
+        </Button>
+      </div>
+      {content[field] && (
+        <div className="mt-2">
+          {type === "image" ? (
+            <img
+              src={content[field] as string}
+              alt={label}
+              className="max-w-xs rounded"
+            />
+          ) : (
+            <video
+              src={content[field] as string}
+              controls
+              className="max-w-xs rounded"
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   const handleArrayChange = (key: string, index: number, value: any) => {
     const array = [...(content[key] as any[] || [])];
@@ -56,6 +108,13 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
               onChange={(e) => handleChange("description", e.target.value)}
             />
           </div>
+          {renderMediaField("Background Image", "backgroundImage", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
