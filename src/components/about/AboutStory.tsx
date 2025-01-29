@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AboutStoryContent } from "@/types/content-blocks";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence } from "framer-motion";
@@ -24,6 +24,13 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [player, setPlayer] = useState<ReactPlayer | null>(null);
+
+  useEffect(() => {
+    // Reset error state when video URL changes
+    setError(null);
+    setIsReady(false);
+  }, [videoUrl]);
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -64,6 +71,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
               {videoUrl ? (
                 <>
                   <ReactPlayer
+                    ref={setPlayer}
                     url={videoUrl}
                     playing={isPlaying}
                     muted={isMuted}
@@ -75,15 +83,33 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                       file: {
                         attributes: {
                           poster: videoThumbnail,
-                          preload: 'auto'
+                          preload: 'auto',
+                          'webkit-playsinline': true,
+                          playsInline: true
+                        },
+                        forceVideo: true,
+                        forcedHLS: true,
+                        hlsOptions: {
+                          enableWorker: true,
+                          lowLatencyMode: true,
+                          backBufferLength: 90,
+                          progressive: true,
+                          startLevel: -1,
+                          maxBufferLength: 30,
+                          maxMaxBufferLength: 600
                         }
                       }
                     }}
-                    onReady={() => setIsReady(true)}
+                    onReady={() => {
+                      console.log("Video is ready to play");
+                      setIsReady(true);
+                    }}
                     onError={(e) => {
                       console.error("Video error:", e);
                       setError("Error loading video");
                     }}
+                    onBuffer={() => console.log("Video buffering...")}
+                    onBufferEnd={() => console.log("Video buffering ended")}
                     className="object-cover"
                   />
                   {error && (
