@@ -19,7 +19,6 @@ export default function About() {
     queryFn: async () => {
       console.log('Fetching about page data');
       
-      // First get the page ID for the about page
       const { data: pageData, error: pageError } = await supabase
         .from('pages')
         .select('id')
@@ -40,7 +39,6 @@ export default function About() {
 
       console.log('Found page:', pageData);
 
-      // Then get all content blocks for this page
       const { data: blocks, error: blocksError } = await supabase
         .from('content_blocks')
         .select('*')

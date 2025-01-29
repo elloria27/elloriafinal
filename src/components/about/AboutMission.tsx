@@ -1,28 +1,17 @@
 import { motion } from "framer-motion";
-import { Leaf, Sparkles, Heart } from "lucide-react";
+import { AboutMissionContent } from "@/types/content-blocks";
 
-const values = [
-  {
-    icon: <Leaf className="w-8 h-8" />,
-    title: "Sustainability",
-    description: "72% recyclable materials and eco-friendly production processes that protect our planet.",
-    color: "bg-accent-green"
-  },
-  {
-    icon: <Sparkles className="w-8 h-8" />,
-    title: "Innovation",
-    description: "Advanced absorption technology for unmatched comfort and protection.",
-    color: "bg-accent-purple"
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: "Empowerment",
-    description: "Dedicated to improving women's lives and health globally through better care.",
-    color: "bg-accent-peach"
-  }
-];
+interface AboutMissionProps {
+  content?: AboutMissionContent;
+}
 
-export const AboutMission = () => {
+export const AboutMission = ({ content = {} }: AboutMissionProps) => {
+  const {
+    title = "Our Mission",
+    description = "We're on a mission to transform feminine care...",
+    values = []
+  } = content;
+
   return (
     <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
       <div className="container px-4">
