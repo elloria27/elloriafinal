@@ -57,7 +57,7 @@ export const FileList = ({
                 <p className="font-medium truncate">
                   {file.name.split('-').slice(1).join('-')}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-muted-foreground">
                   <span>{formatFileSize(file.metadata?.size || 0)}</span>
                   {file.uploader && (
                     <div className="flex items-center gap-1">

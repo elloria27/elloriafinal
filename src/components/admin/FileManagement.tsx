@@ -96,6 +96,20 @@ export const FileManagement = () => {
           continue;
         }
 
+        // Create file share record to track uploader
+        const { error: shareError } = await supabase
+          .from('file_shares')
+          .insert({
+            file_path: `${Date.now()}-${file.name}`,
+            access_level: 'view',
+            share_token: crypto.randomUUID(),
+            created_by: (await supabase.auth.getUser()).data.user?.id
+          });
+
+        if (shareError) {
+          console.error('Error creating file share:', shareError);
+        }
+
         console.log('File uploaded successfully');
         toast.success(`${file.name} uploaded successfully`);
       }
@@ -131,7 +145,19 @@ export const FileManagement = () => {
           continue;
         }
 
-        console.log('File uploaded successfully');
+        // Create file share record to track uploader
+        const { error: shareError } = await supabase
+          .from('file_shares')
+          .insert({
+            file_path: `${Date.now()}-${relativePath}`,
+            access_level: 'view',
+            share_token: crypto.randomUUID(),
+            created_by: (await supabase.auth.getUser()).data.user?.id
+          });
+
+        if (shareError) {
+          console.error('Error creating file share:', shareError);
+        }
       }
 
       toast.success("Folder uploaded successfully");
@@ -155,7 +181,8 @@ export const FileManagement = () => {
         .from('folders')
         .insert({
           name: newFolderName,
-          path: `/${newFolderName}`
+          path: `/${newFolderName}`,
+          created_by: (await supabase.auth.getUser()).data.user?.id
         });
 
       if (error) throw error;
@@ -190,18 +217,19 @@ export const FileManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold">File Management</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Secure storage for company files. Only administrators can access and share these files.
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           {selectedFiles.length > 0 && (
             <Button
               variant="outline"
               onClick={() => setSelectedFiles([])}
+              className="w-full sm:w-auto"
             >
               Clear Selection ({selectedFiles.length})
             </Button>
@@ -209,13 +237,13 @@ export const FileManagement = () => {
           <Button
             variant="outline"
             onClick={() => setShowFolderDialog(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <FolderPlus className="h-4 w-4" />
             New Folder
           </Button>
-          <div className="flex gap-2">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative w-full sm:w-auto">
               <Input
                 type="file"
                 onChange={handleFileUpload}
@@ -227,16 +255,16 @@ export const FileManagement = () => {
               <Button
                 asChild
                 variant="outline"
-                className="flex items-center gap-2"
+                className="w-full"
                 disabled={uploading}
               >
-                <label htmlFor="file-upload" className="cursor-pointer">
+                <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-2 justify-center">
                   <Upload className="h-4 w-4" />
                   Upload Files
                 </label>
               </Button>
             </div>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Input
                 type="file"
                 onChange={handleFolderUpload}
@@ -249,10 +277,10 @@ export const FileManagement = () => {
               <Button
                 asChild
                 variant="outline"
-                className="flex items-center gap-2"
+                className="w-full"
                 disabled={uploading}
               >
-                <label htmlFor="folder-upload" className="cursor-pointer">
+                <label htmlFor="folder-upload" className="cursor-pointer flex items-center gap-2 justify-center">
                   <Upload className="h-4 w-4" />
                   Upload Folder
                 </label>
@@ -317,7 +345,7 @@ export const FileManagement = () => {
       />
 
       <Dialog open={showFolderDialog} onOpenChange={setShowFolderDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Folder</DialogTitle>
           </DialogHeader>
