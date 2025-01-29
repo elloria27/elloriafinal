@@ -8,8 +8,15 @@ import { FileObject } from "@supabase/storage-js";
 import { FileList } from "./file/FileList";
 import { BulkShareDialog } from "./file/BulkShareDialog";
 
+interface FileWithUploader extends FileObject {
+  uploader?: {
+    email: string;
+    full_name: string;
+  };
+}
+
 export const FileManagement = () => {
-  const [files, setFiles] = useState<FileObject[]>([]);
+  const [files, setFiles] = useState<FileWithUploader[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -21,16 +28,42 @@ export const FileManagement = () => {
   const fetchFiles = async () => {
     try {
       console.log('Fetching files from storage...');
-      const { data, error } = await supabase.storage.from('files').list();
+      const { data: filesData, error: filesError } = await supabase.storage.from('files').list();
       
-      if (error) {
-        console.error('Error fetching files:', error);
+      if (filesError) {
+        console.error('Error fetching files:', filesError);
         toast.error("Failed to fetch files");
         return;
       }
 
-      console.log('Files fetched successfully:', data);
-      setFiles(data);
+      // Fetch uploader information for each file
+      const filesWithUploaders = await Promise.all(
+        filesData.map(async (file) => {
+          const { data: shareData } = await supabase
+            .from('file_shares')
+            .select('created_by')
+            .eq('file_path', file.name)
+            .single();
+
+          if (shareData?.created_by) {
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('email, full_name')
+              .eq('id', shareData.created_by)
+              .single();
+
+            return {
+              ...file,
+              uploader: userData
+            };
+          }
+
+          return file;
+        })
+      );
+
+      console.log('Files fetched successfully:', filesWithUploaders);
+      setFiles(filesWithUploaders);
     } catch (error) {
       console.error('Error in fetchFiles:', error);
       toast.error("Failed to fetch files");
@@ -41,28 +74,33 @@ export const FileManagement = () => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const file = event.target.files?.[0];
-      if (!file) return;
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
       setUploading(true);
-      console.log('Uploading file:', file.name);
+      
+      // Handle multiple files
+      for (const file of files) {
+        console.log('Uploading file:', file.name);
 
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(`${Date.now()}-${file.name}`, file);
+        const { error: uploadError } = await supabase.storage
+          .from('files')
+          .upload(`${Date.now()}-${file.name}`, file);
 
-      if (uploadError) {
-        console.error('Error uploading file:', uploadError);
-        toast.error("Failed to upload file");
-        return;
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        console.log('File uploaded successfully');
+        toast.success(`${file.name} uploaded successfully`);
       }
 
-      console.log('File uploaded successfully');
-      toast.success("File uploaded successfully");
       fetchFiles();
     } catch (error) {
       console.error('Error in handleFileUpload:', error);
-      toast.error("Failed to upload file");
+      toast.error("Failed to upload files");
     } finally {
       setUploading(false);
     }
@@ -161,6 +199,7 @@ export const FileManagement = () => {
               className="hidden"
               id="file-upload"
               disabled={uploading}
+              multiple
             />
             <Button
               asChild
@@ -170,7 +209,7 @@ export const FileManagement = () => {
             >
               <label htmlFor="file-upload" className="cursor-pointer">
                 <Upload className="h-4 w-4" />
-                Upload File
+                Upload Files
               </label>
             </Button>
           </div>

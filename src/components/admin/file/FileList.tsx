@@ -2,13 +2,20 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileIcon, Download, Share2, Trash2, Eye } from "lucide-react";
+import { FileIcon, Download, Share2, Trash2, Eye, User } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FilePreview } from "./FilePreview";
 import { ShareDialog } from "./ShareDialog";
 
+interface FileWithUploader extends FileObject {
+  uploader?: {
+    email: string;
+    full_name: string;
+  };
+}
+
 interface FileListProps {
-  files: FileObject[];
+  files: FileWithUploader[];
   selectedFiles: string[];
   onFileSelect: (fileName: string) => void;
   onFileDownload: (fileName: string) => void;
@@ -50,9 +57,15 @@ export const FileList = ({
                 <p className="font-medium truncate">
                   {file.name.split('-').slice(1).join('-')}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatFileSize(file.metadata?.size || 0)}
-                </p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{formatFileSize(file.metadata?.size || 0)}</span>
+                  {file.uploader && (
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      <span>{file.uploader.full_name || file.uploader.email}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 ml-12 sm:ml-0">
