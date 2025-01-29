@@ -79,45 +79,6 @@ export interface SustainabilityContent extends BaseBlockContent {
   timelineItems?: string[];
 }
 
-export interface SustainabilityHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  backgroundImage?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
-export interface SustainabilityMissionContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  stats?: Array<{
-    icon: string;
-    value: string;
-    label: string;
-    description: string;
-  }>;
-}
-
-export interface SustainabilityMaterialsContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  materials?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface SustainabilityFAQContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  faqs?: Array<{
-    question: string;
-    answer: string;
-  }>;
-}
-
 export interface TestimonialsContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
@@ -276,33 +237,29 @@ export type BlockContent =
   | HeadingBlockContent 
   | TextBlockContent 
   | ImageBlockContent 
-  | VideoBlockContent 
-  | ButtonBlockContent 
-  | HeroContent 
-  | FeaturesContent 
-  | GameChangerContent 
-  | StoreBrandsContent 
-  | SustainabilityContent 
-  | SustainabilityHeroContent 
-  | SustainabilityMissionContent 
-  | SustainabilityMaterialsContent 
-  | SustainabilityFAQContent 
-  | TestimonialsContent 
-  | BlogPreviewContent 
-  | NewsletterContent 
-  | ProductCarouselContent 
-  | CompetitorComparisonContent 
-  | ContactHeroContent 
-  | ContactDetailsContent 
-  | ContactFormContent 
-  | ContactFAQContent 
-  | ContactBusinessContent 
-  | AboutHeroContent 
-  | AboutStoryContent 
-  | AboutMissionContent 
-  | AboutSustainabilityContent 
-  | AboutTeamContent 
-  | AboutCustomerImpactContent 
+  | VideoBlockContent
+  | ButtonBlockContent
+  | HeroContent
+  | FeaturesContent
+  | GameChangerContent
+  | StoreBrandsContent
+  | SustainabilityContent
+  | TestimonialsContent
+  | BlogPreviewContent
+  | NewsletterContent
+  | ProductCarouselContent
+  | CompetitorComparisonContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
   | AboutCtaContent;
 
 export type BlockType = 
@@ -316,29 +273,25 @@ export type BlockType =
   | "testimonials" 
   | "newsletter" 
   | "blog_preview" 
-  | "store_brands" 
-  | "sustainability" 
-  | "sustainability_hero" 
-  | "sustainability_mission" 
-  | "sustainability_materials" 
-  | "sustainability_faq" 
-  | "game_changer" 
-  | "competitor_comparison" 
-  | "about_hero_section" 
-  | "about_story" 
-  | "about_mission" 
-  | "about_sustainability" 
-  | "about_team" 
-  | "about_customer_impact" 
-  | "about_cta" 
-  | "contact_hero" 
-  | "contact_details" 
-  | "contact_form" 
-  | "contact_faq" 
-  | "contact_business"
+  | "store_brands"
+  | "sustainability"
   | "product_carousel"
   | "product_gallery"
-  | "elevating_essentials";
+  | "elevating_essentials"
+  | "game_changer"
+  | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact"
+  | "about_cta"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business";
 
 export interface ContentBlock {
   id: string;
@@ -348,4 +301,12 @@ export interface ContentBlock {
   page_id?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
+export interface HeroProps {
+  content?: HeroContent;
 }

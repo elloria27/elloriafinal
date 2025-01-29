@@ -16,10 +16,7 @@ import {
   Store,
   Heart,
   Leaf,
-  Users,
-  TreePine,
-  PackageCheck,
-  HelpCircle
+  Users
 } from "lucide-react";
 
 export interface ComponentPickerProps {
@@ -41,10 +38,6 @@ const components = [
   { type: 'product_gallery' as BlockType, icon: ShoppingBag, label: 'Product Gallery' },
   { type: 'blog_preview' as BlockType, icon: Newspaper, label: 'Blog Preview' },
   { type: 'store_brands' as BlockType, icon: Store, label: 'Store Brands' },
-  { type: 'sustainability_hero' as BlockType, icon: Leaf, label: 'Sustainability Hero' },
-  { type: 'sustainability_mission' as BlockType, icon: TreePine, label: 'Sustainability Mission' },
-  { type: 'sustainability_materials' as BlockType, icon: PackageCheck, label: 'Sustainable Materials' },
-  { type: 'sustainability_faq' as BlockType, icon: HelpCircle, label: 'Sustainability FAQ' },
   { type: 'about_hero_section' as BlockType, icon: LayoutTemplate, label: 'About Hero Section' },
   { type: 'about_story' as BlockType, icon: Type, label: 'About Story' },
   { type: 'about_mission' as BlockType, icon: Heart, label: 'About Mission' },
