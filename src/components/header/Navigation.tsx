@@ -58,19 +58,23 @@ export const Navigation = () => {
     });
 
   const handleMouseEnter = (path: string) => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
+    if (!isMobile) {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      setHoveredItem(path);
     }
-    setHoveredItem(path);
   };
 
   const handleMouseLeave = () => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
+    if (!isMobile) {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = window.setTimeout(() => {
+        setHoveredItem(null);
+      }, 300); // 300ms delay before hiding submenu
     }
-    timeoutRef.current = window.setTimeout(() => {
-      setHoveredItem(null);
-    }, 300); // 300ms delay before hiding submenu
   };
 
   const handleItemClick = (item: MenuItem, e: React.MouseEvent) => {
