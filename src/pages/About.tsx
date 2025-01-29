@@ -1,124 +1,128 @@
 import { Header } from "@/components/Header";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
 import { AboutValues } from "@/components/about/AboutValues";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
+import { ContentBlock } from "@/types/content-blocks";
+import { useQuery } from "@tanstack/react-query";
+
+const fetchAboutPageContent = async () => {
+  console.log("Fetching about page content...");
+  
+  // First, get the page ID for the about page
+  const { data: pageData, error: pageError } = await supabase
+    .from('pages')
+    .select('id')
+    .eq('slug', 'about')
+    .single();
+
+  if (pageError) {
+    console.error("Error fetching page:", pageError);
+    throw pageError;
+  }
+
+  if (!pageData) {
+    console.error("No page found with slug 'about'");
+    throw new Error("Page not found");
+  }
+
+  // Then fetch all content blocks for this page
+  const { data: blocks, error: blocksError } = await supabase
+    .from('content_blocks')
+    .select('*')
+    .eq('page_id', pageData.id)
+    .order('order_index');
+
+  if (blocksError) {
+    console.error("Error fetching content blocks:", blocksError);
+    throw blocksError;
+  }
+
+  console.log("Fetched content blocks:", blocks);
+  return blocks;
+};
 
 export default function About() {
+  const { data: contentBlocks, isLoading, error } = useQuery({
+    queryKey: ['aboutContent'],
+    queryFn: fetchAboutPageContent
+  });
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (error) {
+    console.error("Error loading content:", error);
+    return <div className="min-h-screen flex items-center justify-center">Error loading content</div>;
+  }
+
+  const getBlockContent = (type: string) => {
+    const block = contentBlocks?.find(block => block.type === type);
+    return block?.content || {};
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
       
       <AboutHeroSection 
-        content={{
-          title: "Redefining Comfort & Care for Everyone",
-          subtitle: "At Elloria, we create innovative personal care products designed for comfort, confidence, and reliability.",
-          backgroundImage: "/lovable-uploads/7a6b700f-4122-4c0b-ae5b-519bbf08e94a.png"
-        }}
+        content={getBlockContent('about_hero_section')}
       />
 
       <AboutStory 
-        content={{
-          title: "Our Story",
-          subtitle: "A Journey of Innovation and Care",
-          content: "Founded with a vision to revolutionize personal care through sustainable innovation, Elloria began its journey to create products that care for both you and our planet. We believe in inclusivity and creating solutions that cater to diverse needs while maintaining the highest standards of quality and comfort.",
-          videoUrl: "https://elloria.ca/Video_290mm.mp4"
-        }}
+        content={getBlockContent('about_story')}
       />
 
-      <AboutValues />
+      <AboutValues 
+        content={getBlockContent('about_mission')}
+      />
 
       <AboutSustainability 
-        content={{
-          title: "Our Commitment to Sustainability",
-          description: "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
-          stats: [
-            {
-              icon: "Leaf",
-              value: "55%",
-              label: "Recyclable Materials",
-              description: "Of our materials are fully recyclable"
-            },
-            {
-              icon: "Recycle",
-              value: "95%",
-              label: "Recyclable Packaging",
-              description: "Eco-friendly packaging solutions"
-            },
-            {
-              icon: "TreePine",
-              value: "100%",
-              label: "Eco-Friendly Production",
-              description: "Sustainable manufacturing process"
-            }
-          ]
-        }}
+        content={getBlockContent('about_sustainability')}
       />
 
       <AboutTeam 
-        content={{
-          title: "Meet Our Team",
-          subtitle: "The passionate people behind our mission",
-          members: [
-            {
-              name: "Sarah Johnson",
-              role: "Founder & CEO",
-              image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              quote: "Leading the vision for sustainable feminine care"
-            },
-            {
-              name: "Dr. Emily Chen",
-              role: "Head of Research",
-              image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              quote: "Driving innovation in product development"
-            },
-            {
-              name: "Maria Rodriguez",
-              role: "Sustainability Director",
-              image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              quote: "Ensuring eco-friendly practices"
-            }
-          ]
-        }}
+        content={getBlockContent('about_team')}
       />
 
-      <AboutCustomerImpact />
+      <AboutCustomerImpact 
+        content={getBlockContent('about_customer_impact')}
+      />
 
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
         <div className="container px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto text-center"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Join the Elloria Movement
-            </h2>
-            <p className="text-xl mb-8">
-              Experience the perfect blend of comfort, protection, and sustainability.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-primary hover:bg-white/90"
-              >
-                Shop Now
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/20"
-              >
-                Learn More <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-          </motion.div>
+          <div className="max-w-3xl mx-auto text-center">
+            {(() => {
+              const ctaContent = getBlockContent('about_cta');
+              return (
+                <>
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                    {ctaContent.title || "Join the Elloria Movement"}
+                  </h2>
+                  <p className="text-xl mb-8">
+                    {ctaContent.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button 
+                      className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
+                    >
+                      {ctaContent.primaryButtonText || "Shop Now"}
+                    </button>
+                    <button 
+                      className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
+                    >
+                      {ctaContent.secondaryButtonText || "Learn More"}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </section>
     </div>

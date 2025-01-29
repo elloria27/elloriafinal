@@ -259,7 +259,8 @@ export type BlockContent =
   | AboutMissionContent
   | AboutSustainabilityContent
   | AboutTeamContent
-  | AboutCustomerImpactContent;
+  | AboutCustomerImpactContent
+  | AboutCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -285,7 +286,7 @@ export type BlockType =
   | "about_sustainability"
   | "about_team"
   | "about_customer_impact"
-  | "about_cta"  // Added this type
+  | "about_cta"
   | "contact_hero"
   | "contact_details"
   | "contact_form"
