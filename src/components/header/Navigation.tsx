@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { usePages } from "@/contexts/PagesContext";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MenuItem {
   name: string;
@@ -13,7 +14,9 @@ interface MenuItem {
 export const Navigation = () => {
   const { publishedPages, isLoading } = usePages();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const isMobile = useIsMobile();
 
   // Define technical pages that should not appear in the menu
   const technicalPages = [
@@ -74,8 +77,16 @@ export const Navigation = () => {
     }, 300); // 300ms delay before hiding submenu
   };
 
+  const handleItemClick = (item: MenuItem, e: React.MouseEvent) => {
+    if (isMobile && item.children?.length) {
+      e.preventDefault(); // Prevent navigation if item has children on mobile
+      setExpandedMobileItem(expandedMobileItem === item.path ? null : item.path);
+    }
+  };
+
   const MenuItem = ({ item }: { item: MenuItem }) => {
     const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedMobileItem === item.path;
     
     return (
       <div
@@ -83,7 +94,11 @@ export const Navigation = () => {
         onMouseEnter={() => handleMouseEnter(item.path)}
         onMouseLeave={handleMouseLeave}
       >
-        <Link to={item.path}>
+        <Link 
+          to={item.path}
+          onClick={(e) => handleItemClick(item, e)}
+          className="block"
+        >
           <motion.span
             className="flex items-center text-gray-600 hover:text-primary transition-colors text-sm tracking-[0.15em] uppercase font-light cursor-pointer"
             whileHover={{ y: -2 }}
@@ -91,17 +106,24 @@ export const Navigation = () => {
           >
             {item.name}
             {hasChildren && (
-              <ChevronDown className="ml-1 h-4 w-4" />
+              <ChevronDown 
+                className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+                  (isExpanded || (!isMobile && hoveredItem === item.path)) ? 'rotate-180' : ''
+                }`} 
+              />
             )}
           </motion.span>
         </Link>
         
-        {hasChildren && hoveredItem === item.path && (
+        {hasChildren && ((!isMobile && hoveredItem === item.path) || (isMobile && isExpanded)) && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute left-0 top-full mt-2 py-2 bg-white rounded-lg shadow-lg min-w-[200px] z-50"
+            className={`
+              ${isMobile ? 'relative mt-2 bg-gray-50' : 'absolute left-0 top-full mt-2 bg-white rounded-lg shadow-lg'}
+              min-w-[200px] py-2 z-50
+            `}
           >
             {item.children.map((child) => (
               <Link
