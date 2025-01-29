@@ -916,7 +916,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Image URL</Label>
                     <Input
                       value={article.image}
-                
                       onChange={(e) => {
                         const newArticles = getBlogArticles();
                         newArticles[index] = { ...newArticles[index], image: e.target.value };
@@ -986,8 +985,37 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       case 'contact_form':
         return (
           <div className="space-y-4">
-            <div className="text-sm text-gray-500 italic">
-              The contact form settings are managed through the database schema. No additional configuration needed here.
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div>
+              <Label>Button Text</Label>
+              <Input
+                value={getContentValue('buttonText')}
+                onChange={(e) => handleChange('buttonText', e.target.value)}
+                placeholder="Enter button text"
+              />
+            </div>
+            <div>
+              <Label>Secondary Button Text</Label>
+              <Input
+                value={getContentValue('secondaryButtonText')}
+                onChange={(e) => handleChange('secondaryButtonText', e.target.value)}
+                placeholder="Enter secondary button text"
+              />
             </div>
           </div>
         );
