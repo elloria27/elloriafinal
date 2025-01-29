@@ -6,6 +6,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface FilePreviewProps {
   fileName: string | null;
@@ -15,6 +21,8 @@ interface FilePreviewProps {
 export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadPreview = async () => {
@@ -47,8 +55,58 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
     loadPreview();
   }, [fileName]);
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    console.log('PDF loaded successfully with', numPages, 'pages');
+    setNumPages(numPages);
+    setPdfError(null);
+  };
+
+  const onDocumentLoadError = (error: Error) => {
+    console.error('PDF load error:', error);
+    setPdfError(error.message);
+  };
+
   const renderPreview = () => {
     if (!previewUrl) return null;
+
+    if (fileType === 'application/pdf' || fileType === 'pdf' || fileName?.toLowerCase().endsWith('.pdf')) {
+      console.log('Rendering PDF preview');
+      return (
+        <div className="max-w-4xl mx-auto overflow-x-auto pdf-container">
+          <Document
+            file={previewUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading={
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+            error={
+              <div className="text-center py-4 text-red-500">
+                {pdfError || "Failed to load PDF. Please try downloading the file instead."}
+              </div>
+            }
+          >
+            {numPages && Array.from(new Array(numPages), (el, index) => (
+              <Page 
+                key={`page_${index + 1}`} 
+                pageNumber={index + 1}
+                className="mb-4 shadow-lg"
+                width={Math.min(window.innerWidth - 48, 800)}
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                loading={
+                  <div className="flex justify-center p-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                }
+              />
+            ))}
+          </Document>
+        </div>
+      );
+    }
 
     if (fileType?.startsWith('image/')) {
       return (
