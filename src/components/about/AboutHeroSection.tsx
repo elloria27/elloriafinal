@@ -6,7 +6,12 @@ export const AboutHeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-accent-purple/30 to-accent-peach/30" />
       <div 
         className="absolute inset-0 bg-[url('/lovable-uploads/ba8d9a77-42de-4ec9-8666-53e795a2673c.png')] bg-cover bg-center"
-        style={{ backgroundAttachment: 'fixed' }}
+        style={{ 
+          backgroundAttachment: 'fixed',
+          '@media (max-width: 768px)': {
+            backgroundAttachment: 'scroll' // Disable fixed attachment on mobile
+          }
+        }}
       />
       <div className="absolute inset-0 bg-black/20" />
       <div className="relative h-full flex items-center justify-center">

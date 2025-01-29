@@ -136,14 +136,14 @@ export const Hero = ({ content }: HeroProps) => {
         </div>
 
         <motion.div 
-          className="flex-1 relative w-full max-w-[630px] mx-auto" // Increased max-width by 5%
+          className="flex-1 relative w-full max-w-[630px] mx-auto aspect-video" // Added aspect-video class
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1 }}
         >
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
           <motion.div 
-            className="relative z-10 w-full aspect-video rounded-lg overflow-hidden shadow-xl group bg-gray-100"
+            className="relative z-10 w-full h-full rounded-lg overflow-hidden shadow-xl group bg-gray-100"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
             onMouseEnter={() => setIsHovering(true)}
@@ -157,7 +157,7 @@ export const Hero = ({ content }: HeroProps) => {
               className="w-full h-full object-cover"
               preload="auto"
               poster="https://my.elloria.ca/290mmvideo-.jpg"
-              style={{ objectFit: "cover", height: "100%" }}
+              style={{ objectFit: "cover" }}
             >
               <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
