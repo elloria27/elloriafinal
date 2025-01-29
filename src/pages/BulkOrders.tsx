@@ -3,7 +3,7 @@ import { Package, Truck, Calculator, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, FeatureItem } from "@/types/content-blocks";
 
 const BulkOrders = () => {
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,9 @@ const BulkOrders = () => {
 
         if (page && page.content_blocks) {
           console.log('Fetched content blocks:', page.content_blocks);
-          setPageContent(page.content_blocks);
+          // Cast the content blocks to the correct type
+          const typedContentBlocks = page.content_blocks as ContentBlock[];
+          setPageContent(typedContentBlocks);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -38,14 +40,14 @@ const BulkOrders = () => {
   }, []);
 
   const getBlockContent = (type: string) => {
-    return pageContent.find(block => block.type === type)?.content || null;
+    const block = pageContent.find(block => block.type === type);
+    return block ? block.content : null;
   };
 
   const heroContent = getBlockContent('hero');
-  const whyChooseContent = getBlockContent('features')?.features || [];
+  const whyChooseContent = getBlockContent('features');
   const howItWorksContent = pageContent
-    .filter(block => block.type === 'features')
-    .map(block => block.content)[1]?.features || [];
+    .filter(block => block.type === 'features')[1]?.content;
   const ctaContent = getBlockContent('contact_form');
 
   if (loading) {
@@ -99,9 +101,11 @@ const BulkOrders = () => {
       {/* Benefits Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-12">Why Choose Bulk Orders?</h2>
+          <h2 className="text-3xl font-light text-center mb-12">
+            {whyChooseContent?.title || 'Why Choose Bulk Orders?'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {whyChooseContent.map((feature: any, index: number) => (
+            {(whyChooseContent?.features as FeatureItem[] || []).map((feature, index) => (
               <motion.div 
                 key={index}
                 initial={{ y: 20, opacity: 0 }}
@@ -124,9 +128,11 @@ const BulkOrders = () => {
       {/* Process Section */}
       <section className="py-16 bg-accent-green/30">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-12">How It Works</h2>
+          <h2 className="text-3xl font-light text-center mb-12">
+            {howItWorksContent?.title || 'How It Works'}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {howItWorksContent.map((step: any, index: number) => (
+            {(howItWorksContent?.features as FeatureItem[] || []).map((step, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                   {step.icon === 'Users' && <Users className="w-8 h-8 text-primary" />}
@@ -145,7 +151,9 @@ const BulkOrders = () => {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-light mb-6">{ctaContent?.title || 'Ready to Get Started?'}</h2>
+            <h2 className="text-3xl font-light mb-6">
+              {ctaContent?.title || 'Ready to Get Started?'}
+            </h2>
             <p className="text-gray-600 mb-8">
               {ctaContent?.description || 'Join other organizations that trust Elloria for their feminine care needs.'}
             </p>
