@@ -113,6 +113,7 @@ export const OrderManagement = () => {
 
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
+          const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -120,7 +121,7 @@ export const OrderManagement = () => {
             order_number: order.order_number,
             total_amount: order.total_amount,
             status: validateOrderStatus(order.status),
-            shipping_address: validateShippingAddress(order.shipping_address),
+            shipping_address: shippingAddress,
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
@@ -128,8 +129,8 @@ export const OrderManagement = () => {
               full_name: order.profiles?.full_name || 'Guest',
               email: order.profiles?.email || 'Anonymous Order'
             } : {
-              full_name: `${validateShippingAddress(order.shipping_address).first_name || ''} ${validateShippingAddress(order.shipping_address).last_name || ''}`.trim() || 'Guest',
-              email: validateShippingAddress(order.shipping_address).email || 'Anonymous Order'
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              email: shippingAddress.email || 'Anonymous Order'
             }
           };
           return validatedOrder;
@@ -293,7 +294,13 @@ export const OrderManagement = () => {
           {orders.map((order) => (
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
-              <TableCell>{order.profile?.full_name || 'N/A'}</TableCell>
+              <TableCell>
+                {order.user_id ? (
+                  order.profile?.full_name || 'N/A'
+                ) : (
+                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
+                )}
+              </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
                 <select
@@ -345,8 +352,16 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.profile?.full_name || 'N/A'}</p>
-                  <p>Email: {selectedOrder.profile?.email || 'N/A'}</p>
+                  <p>Name: {selectedOrder.user_id ? (
+                    selectedOrder.profile?.full_name || 'N/A'
+                  ) : (
+                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 'Guest'
+                  )}</p>
+                  <p>Email: {selectedOrder.user_id ? (
+                    selectedOrder.profile?.email || 'N/A'
+                  ) : (
+                    selectedOrder.shipping_address.email || 'N/A'
+                  )}</p>
                 </div>
               </div>
 
