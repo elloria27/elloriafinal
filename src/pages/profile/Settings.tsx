@@ -141,6 +141,13 @@ export default function Settings() {
               setCurrency(value);
               updateSetting("currency", value);
             }}
+            firstName={profile?.full_name?.split(' ')[0] || ''}
+            lastName={profile?.full_name?.split(' ')[1] || ''}
+            email={profile?.email}
+            phoneNumber={profile?.phone_number || ''}
+            address={profile?.address || ''}
+            country={profile?.country || ''}
+            region={profile?.region || ''}
           />
         </div>
 
