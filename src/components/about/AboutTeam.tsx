@@ -6,7 +6,7 @@ interface AboutTeamProps {
 }
 
 export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
-  const team = [
+  const defaultTeam = [
     {
       name: "Sarah Johnson",
       role: "Founder & CEO",
@@ -27,6 +27,8 @@ export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
     }
   ];
 
+  const team = content?.members || defaultTeam;
+
   return (
     <section className="py-20 bg-white">
       <div className="container px-4">
@@ -36,8 +38,8 @@ export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Meet Our Team</h2>
-          <p className="text-xl text-gray-600">The passionate people behind our mission</p>
+          <h2 className="text-4xl font-bold mb-4">{content?.title || "Meet Our Team"}</h2>
+          <p className="text-xl text-gray-600">{content?.subtitle || "The passionate people behind our mission"}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">

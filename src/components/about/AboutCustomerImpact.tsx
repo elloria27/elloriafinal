@@ -7,7 +7,7 @@ interface AboutCustomerImpactProps {
 }
 
 export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) => {
-  const stats = [
+  const defaultStats = [
     {
       icon: <Users className="w-8 h-8 text-primary" />,
       value: "1M+",
@@ -25,23 +25,29 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
     }
   ];
 
-  const testimonials = [
+  const defaultTestimonials = [
     {
       quote: "Elloria's products have completely changed my perspective on sustainable feminine care.",
       author: "Sarah M.",
-      role: "Loyal Customer"
+      role: "Loyal Customer",
+      rating: 5
     },
     {
       quote: "Not only are their products eco-friendly, but they're also incredibly comfortable and reliable.",
       author: "Emily R.",
-      role: "Customer Since 2021"
+      role: "Customer Since 2021",
+      rating: 5
     },
     {
       quote: "I love knowing that my choice in feminine care products is making a positive impact on the environment.",
       author: "Jessica L.",
-      role: "Environmental Advocate"
+      role: "Environmental Advocate",
+      rating: 5
     }
   ];
+
+  const stats = content?.stats || defaultStats;
+  const testimonials = content?.testimonials || defaultTestimonials;
 
   return (
     <section className="py-20 bg-white">
@@ -52,9 +58,9 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Making a Difference</h2>
+          <h2 className="text-4xl font-bold mb-4">{content?.title || "Making a Difference"}</h2>
           <p className="text-xl text-gray-600">
-            Our customers are at the heart of everything we do. Here's what they have to say about their experience with Elloria.
+            {content?.description || "Our customers are at the heart of everything we do. Here's what they have to say about their experience with Elloria."}
           </p>
         </motion.div>
 
@@ -69,7 +75,13 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="text-center"
             >
               <div className="flex justify-center mb-4">
-                {stat.icon}
+                {typeof stat.icon === 'string' ? (
+                  stat.icon === 'Users' ? <Users className="w-8 h-8 text-primary" /> :
+                  stat.icon === 'Star' ? <Star className="w-8 h-8 text-primary" /> :
+                  <Heart className="w-8 h-8 text-primary" />
+                ) : (
+                  stat.icon
+                )}
               </div>
               <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
               <p className="text-gray-600">{stat.label}</p>
@@ -88,7 +100,7 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="bg-white p-6 rounded-lg shadow-lg"
             >
               <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
+                {[...Array(testimonial.rating || 5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-primary" fill="#0094F4" />
                 ))}
               </div>
