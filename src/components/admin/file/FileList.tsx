@@ -63,7 +63,7 @@ export const FileList = ({
                   {file.name.split('-').slice(1).join('-')}
                 </p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-muted-foreground">
-                  <span>{formatFileSize(file.metadata?.size || 0)}</span>
+                  {!file.isFolder && <span>{formatFileSize(file.metadata?.size || 0)}</span>}
                   {file.uploader && (
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3" />
@@ -74,7 +74,7 @@ export const FileList = ({
               </div>
             </div>
             <div className="flex items-center gap-2 ml-12 sm:ml-0">
-              {!file.isFolder && (
+              {!file.isFolder && !file.name.endsWith('.folder') && (
                 <Button
                   variant="outline"
                   size="icon"

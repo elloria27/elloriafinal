@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload, FolderPlus, User } from "lucide-react";
+import { Upload, FolderPlus } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FileList } from "./file/FileList";
 import { BulkShareDialog } from "./file/BulkShareDialog";
@@ -245,17 +245,6 @@ export const FileManagement = () => {
         return;
       }
 
-      // Create an empty .folder file to represent the folder
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(`${folderPath}.folder`, new Blob([]));
-
-      if (uploadError) {
-        console.error('Error creating folder marker:', uploadError);
-        toast.error("Failed to create folder");
-        return;
-      }
-
       toast.success("Folder created successfully");
       setShowFolderDialog(false);
       setNewFolderName("");
@@ -264,16 +253,6 @@ export const FileManagement = () => {
       console.error('Error in handleCreateFolder:', error);
       toast.error("Failed to create folder");
     }
-  };
-
-  const handleFileSelect = (fileName: string, isSelected: boolean) => {
-    setSelectedFiles(prev => {
-      if (isSelected) {
-        return [...prev, fileName];
-      } else {
-        return prev.filter(name => name !== fileName);
-      }
-    });
   };
 
   if (loading) {
