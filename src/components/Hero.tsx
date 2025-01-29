@@ -3,18 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, Heart, Shield, Sparkles, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-
-interface HeroContent {
-  title?: string;
-  subtitle?: string;
-  videoUrl?: string;
-}
+import { HeroContent } from "@/types/content-blocks";
 
 interface HeroProps {
   content: HeroContent;
 }
 
 export const Hero = ({ content }: HeroProps) => {
+  console.log('Hero content received:', content);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -97,7 +93,7 @@ export const Hero = ({ content }: HeroProps) => {
           >
             <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
-                {content.title || "Redefining Comfort, Confidence, and Sustainability"}
+                {content?.title || "Redefining Comfort, Confidence, and Sustainability"}
               </span>
             </h1>
           </motion.div>
@@ -108,7 +104,7 @@ export const Hero = ({ content }: HeroProps) => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0"
           >
-            {content.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
+            {content?.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
           </motion.p>
           
           <motion.div
@@ -158,7 +154,7 @@ export const Hero = ({ content }: HeroProps) => {
               preload="auto"
               poster="https://my.elloria.ca/290mmvideo-.jpg"
             >
-              <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
+              <source src={content?.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             

@@ -24,6 +24,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     onUpdate(block.id, newContent);
   };
 
+  const getContentValue = (key: string): string => {
+    if (!content) return '';
+    return (content as any)[key]?.toString() || '';
+  };
+
   const getFeatures = (): FeatureItem[] => {
     if (!content || !('features' in content)) {
       return [];
@@ -75,11 +80,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     const features = getFeatures();
     const newFeatures = features.filter((_, i) => i !== index);
     handleChange('features', newFeatures);
-  };
-
-  const getContentValue = (key: string): string => {
-    if (!content) return '';
-    return (content as any)[key]?.toString() || '';
   };
 
   const getSustainabilityStats = () => {
@@ -187,36 +187,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     console.log('Current content:', content);
 
     switch (block.type) {
-      case 'product_carousel':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                value={getContentValue('title')}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="Enter section title"
-              />
-            </div>
-            <div>
-              <Label>Subtitle</Label>
-              <Input
-                value={getContentValue('subtitle')}
-                onChange={(e) => handleChange('subtitle', e.target.value)}
-                placeholder="Enter section subtitle"
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={getContentValue('description')}
-                onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="Enter section description"
-              />
-            </div>
-          </div>
-        );
-
       case 'hero':
         return (
           <div className="space-y-4">
@@ -242,6 +212,36 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                 value={getContentValue('videoUrl')}
                 onChange={(e) => handleChange('videoUrl', e.target.value)}
                 placeholder="Enter video URL"
+              />
+            </div>
+          </div>
+        );
+
+      case 'product_carousel':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
               />
             </div>
           </div>
@@ -916,6 +916,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                     <Label>Image URL</Label>
                     <Input
                       value={article.image}
+                
                       onChange={(e) => {
                         const newArticles = getBlogArticles();
                         newArticles[index] = { ...newArticles[index], image: e.target.value };
