@@ -1,11 +1,8 @@
 import { motion } from "framer-motion";
+import { AboutHeroContent } from "@/types/content-blocks";
 
 interface AboutHeroSectionProps {
-  content?: {
-    title?: string;
-    subtitle?: string;
-    backgroundImage?: string;
-  };
+  content?: AboutHeroContent;
 }
 
 export const AboutHeroSection = ({ content = {} }: AboutHeroSectionProps) => {

@@ -63,7 +63,8 @@ export default function About() {
   }
 
   const getBlockContent = (type: string) => {
-    return pageData?.find(block => block.type === type)?.content || {};
+    const block = pageData?.find(block => block.type === type);
+    return block ? block.content : {};
   };
 
   return (

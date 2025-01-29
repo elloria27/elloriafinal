@@ -159,6 +159,63 @@ export interface ContactBusinessContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface AboutHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface AboutStoryContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  image?: string;
+}
+
+export interface AboutMissionContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  values?: Array<{
+    title: string;
+    description: string;
+    icon?: string;
+  }>;
+}
+
+export interface AboutSustainabilityContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: Array<{
+    value: string;
+    label: string;
+  }>;
+  initiatives?: Array<{
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface AboutTeamContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  members?: Array<{
+    name: string;
+    role: string;
+    image?: string;
+    bio?: string;
+  }>;
+}
+
+export interface AboutCustomerImpactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  testimonials?: Array<{
+    quote: string;
+    author: string;
+    location?: string;
+  }>;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -179,7 +236,13 @@ export type BlockContent =
   | ContactDetailsContent
   | ContactFormContent
   | ContactFAQContent
-  | ContactBusinessContent;
+  | ContactBusinessContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent;
 
 export type BlockType = 
   | "heading" 
