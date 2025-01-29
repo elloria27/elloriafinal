@@ -1,7 +1,12 @@
 import { MapPin, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
+import { ContactDetailsContent } from "@/types/content-blocks";
 
-export const ContactDetails = () => {
+interface ContactDetailsProps {
+  content: ContactDetailsContent;
+}
+
+export const ContactDetails = ({ content }: ContactDetailsProps) => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -17,7 +22,7 @@ export const ContactDetails = () => {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Address</h3>
                 <p className="text-gray-600">
-                  229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada
+                  {content.address || "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada"}
                 </p>
               </div>
             </div>
@@ -26,7 +31,7 @@ export const ContactDetails = () => {
               <Phone className="w-6 h-6 text-primary mt-1" />
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                <p className="text-gray-600">+1 (204) 930-2019</p>
+                <p className="text-gray-600">{content.phone || "+1 (204) 930-2019"}</p>
               </div>
             </div>
             
@@ -34,7 +39,7 @@ export const ContactDetails = () => {
               <Mail className="w-6 h-6 text-primary mt-1" />
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                <p className="text-gray-600">support@elloria.ca</p>
+                <p className="text-gray-600">{content.email || "support@elloria.ca"}</p>
               </div>
             </div>
           </motion.div>

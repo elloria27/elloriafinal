@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ContactFormContent } from "@/types/content-blocks";
 
-export const ContactForm = () => {
+interface ContactFormProps {
+  content: ContactFormContent;
+}
+
+export const ContactForm = ({ content }: ContactFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -36,7 +41,7 @@ export const ContactForm = () => {
 
       if (error) throw error;
 
-      toast.success("Thank you for contacting us! We'll get back to you within 24 hours.");
+      toast.success(content.secondaryButtonText || "Thank you for contacting us! We'll get back to you within 24 hours.");
       setFormData({
         fullName: "",
         email: "",
@@ -124,7 +129,7 @@ export const ContactForm = () => {
                   htmlFor="newsletter"
                   className="text-sm text-gray-600 cursor-pointer"
                 >
-                  Subscribe to our newsletter for updates and offers
+                  {content.description || "Subscribe to our newsletter for updates and offers"}
                 </label>
               </div>
             </div>
@@ -134,7 +139,7 @@ export const ContactForm = () => {
               className="w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : "Send Message"}
+              {isSubmitting ? "Sending..." : (content.buttonText || "Send Message")}
             </Button>
           </form>
         </motion.div>

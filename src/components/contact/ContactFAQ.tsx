@@ -5,25 +5,29 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
+import { ContactFAQContent } from "@/types/content-blocks";
 
-export const ContactFAQ = () => {
-  const faqs = [
+interface ContactFAQProps {
+  content: ContactFAQContent;
+}
+
+export const ContactFAQ = ({ content }: ContactFAQProps) => {
+  const defaultFaqs = [
     {
       question: "What is the return policy for Elloria products?",
-      answer:
-        "We offer a 30-day satisfaction guarantee on all our products. If you're not completely satisfied, please contact our customer service team for a return authorization.",
+      answer: "We offer a 30-day satisfaction guarantee on all our products. If you're not completely satisfied, please contact our customer service team for a return authorization.",
     },
     {
       question: "How can I track my order?",
-      answer:
-        "Once your order ships, you'll receive a tracking number via email. You can use this number to track your package on our website or through the carrier's website.",
+      answer: "Once your order ships, you'll receive a tracking number via email. You can use this number to track your package on our website or through the carrier's website.",
     },
     {
       question: "Do you ship internationally?",
-      answer:
-        "Yes, we ship to select international destinations. Shipping costs and delivery times vary by location. Please check our shipping page for more details.",
+      answer: "Yes, we ship to select international destinations. Shipping costs and delivery times vary by location. Please check our shipping page for more details.",
     },
   ];
+
+  const faqs = content.faqs || defaultFaqs;
 
   return (
     <section className="py-16 bg-white">
