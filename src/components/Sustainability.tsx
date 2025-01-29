@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Recycle, Percent, Package, Factory } from "lucide-react";
+import { Leaf, Recycle, Package, Factory } from "lucide-react";
 import { SustainabilityContent } from "@/types/content-blocks";
 
 interface SustainabilityProps {
