@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload, FolderPlus } from "lucide-react";
+import { Upload, FolderPlus, User } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FileList } from "./file/FileList";
 import { BulkShareDialog } from "./file/BulkShareDialog";
@@ -14,6 +14,7 @@ interface FileWithUploader extends FileObject {
     email: string;
     full_name: string;
   };
+  isFolder?: boolean;
 }
 
 export const FileManagement = () => {
@@ -39,9 +40,23 @@ export const FileManagement = () => {
         return;
       }
 
+      // Fetch folders
+      const { data: foldersData, error: foldersError } = await supabase
+        .from('folders')
+        .select('*');
+
+      if (foldersError) {
+        console.error('Error fetching folders:', foldersError);
+      }
+
+      // Create a map of folder paths
+      const folderPaths = new Set(foldersData?.map(folder => folder.path) || []);
+
       // Fetch uploader information for each file
       const filesWithUploaders = await Promise.all(
         filesData.map(async (file) => {
+          const isFolder = folderPaths.has(file.name);
+          
           const { data: shareData } = await supabase
             .from('file_shares')
             .select('created_by')
@@ -57,11 +72,15 @@ export const FileManagement = () => {
 
             return {
               ...file,
+              isFolder,
               uploader: userData
             };
           }
 
-          return file;
+          return {
+            ...file,
+            isFolder
+          };
         })
       );
 
@@ -134,6 +153,26 @@ export const FileManagement = () => {
       setUploading(true);
       const timestamp = Date.now();
       
+      // Get the folder name from the first file's path
+      const firstFile = files[0] as any;
+      const folderPath = firstFile.webkitRelativePath.split('/')[0];
+      const fullFolderPath = `${timestamp}-${folderPath}/`;
+
+      // Create folder record first
+      const { error: folderError } = await supabase
+        .from('folders')
+        .insert({
+          name: folderPath,
+          path: fullFolderPath,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (folderError) {
+        console.error('Error creating folder record:', folderError);
+        toast.error("Failed to create folder");
+        return;
+      }
+
       // Handle folder upload
       for (const file of files) {
         const relativePath = (file as any).webkitRelativePath;
@@ -160,6 +199,7 @@ export const FileManagement = () => {
           .from('file_shares')
           .insert({
             file_path: fileName,
+            folder_path: fullFolderPath,
             access_level: 'view',
             share_token: crypto.randomUUID(),
             created_by: (await supabase.auth.getUser()).data.user?.id
@@ -190,17 +230,7 @@ export const FileManagement = () => {
       const timestamp = Date.now();
       const folderPath = `${timestamp}-${newFolderName}/`;
 
-      // Create an empty file to represent the folder
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(folderPath + '.folder', new Blob([]));
-
-      if (uploadError) {
-        console.error('Error creating folder:', uploadError);
-        toast.error("Failed to create folder");
-        return;
-      }
-
+      // Create folder record
       const { error: folderError } = await supabase
         .from('folders')
         .insert({
@@ -210,8 +240,19 @@ export const FileManagement = () => {
         });
 
       if (folderError) {
-        console.error('Error saving folder metadata:', folderError);
-        toast.error("Failed to save folder metadata");
+        console.error('Error creating folder record:', folderError);
+        toast.error("Failed to create folder");
+        return;
+      }
+
+      // Create an empty .folder file to represent the folder
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(`${folderPath}.folder`, new Blob([]));
+
+      if (uploadError) {
+        console.error('Error creating folder marker:', uploadError);
+        toast.error("Failed to create folder");
         return;
       }
 
@@ -362,6 +403,18 @@ export const FileManagement = () => {
               .remove([fileName]);
 
             if (error) throw error;
+
+            // If it's a folder, delete the folder record
+            if (fileName.endsWith('/')) {
+              const { error: folderError } = await supabase
+                .from('folders')
+                .delete()
+                .eq('path', fileName);
+
+              if (folderError) {
+                console.error('Error deleting folder record:', folderError);
+              }
+            }
 
             console.log('File deleted successfully');
             toast.success("File deleted successfully");

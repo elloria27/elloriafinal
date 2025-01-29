@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileIcon, Download, Share2, Trash2, Eye, User } from "lucide-react";
+import { FileIcon, Download, Share2, Trash2, Eye, User, Folder } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FilePreview } from "./FilePreview";
 import { ShareDialog } from "./ShareDialog";
@@ -12,6 +12,7 @@ interface FileWithUploader extends FileObject {
     email: string;
     full_name: string;
   };
+  isFolder?: boolean;
 }
 
 interface FileListProps {
@@ -52,7 +53,11 @@ export const FileList = ({
                 checked={selectedFiles.includes(file.name)}
                 onCheckedChange={(checked) => onFileSelect(file.name, checked === true)}
               />
-              <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />
+              {file.isFolder ? (
+                <Folder className="h-8 w-8 text-primary flex-shrink-0" />
+              ) : (
+                <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />
+              )}
               <div className="min-w-0">
                 <p className="font-medium truncate">
                   {file.name.split('-').slice(1).join('-')}
@@ -69,14 +74,16 @@ export const FileList = ({
               </div>
             </div>
             <div className="flex items-center gap-2 ml-12 sm:ml-0">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setPreviewFile(file.name)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
+              {!file.isFolder && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setPreviewFile(file.name)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="icon"
