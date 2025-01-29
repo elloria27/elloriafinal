@@ -31,11 +31,16 @@ export const PageViewTracker = () => {
           console.error('Error tracking page view:', error);
         }
 
-        // Try to get location data in the background
+        // Try to get location data in the background with a timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
         try {
           const response = await fetch('https://ipapi.co/json/', { 
-            signal: AbortSignal.timeout(3000) // Timeout after 3 seconds
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
           
           if (response.ok) {
             const locationData = await response.json();
@@ -59,6 +64,7 @@ export const PageViewTracker = () => {
         } catch (locationError) {
           // Just log the location error but don't let it affect the page view tracking
           console.warn('Location service unavailable:', locationError);
+          clearTimeout(timeoutId);
         }
       } catch (err) {
         console.error('Error tracking page view:', err);

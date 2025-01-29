@@ -19,20 +19,14 @@ export const Hero = ({ content }: HeroProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
-  const [posterLoaded, setPosterLoaded] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.5;
       
-      // Create a poster image from the first frame
       const handleLoadedData = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current!.videoWidth;
-        canvas.height = videoRef.current!.videoHeight;
-        canvas.getContext('2d')!.drawImage(videoRef.current!, 0, 0);
-        videoRef.current!.poster = canvas.toDataURL('image/jpeg');
-        setPosterLoaded(true);
+        setIsVideoLoaded(true);
       };
 
       videoRef.current.addEventListener('loadeddata', handleLoadedData);
@@ -162,13 +156,14 @@ export const Hero = ({ content }: HeroProps) => {
               playsInline
               className="w-full h-full object-cover"
               preload="auto"
+              poster="/placeholder.svg"
             >
               <source src={content.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             
             <AnimatePresence>
-              {(!isPlaying || !posterLoaded) && (
+              {(!isPlaying || !isVideoLoaded) && (
                 <motion.div 
                   className="absolute inset-0 flex items-center justify-center bg-black/30"
                   initial={{ opacity: 0 }}
