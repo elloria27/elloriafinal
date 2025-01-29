@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AboutStoryContent } from "@/types/content-blocks";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence } from "framer-motion";
@@ -28,6 +28,16 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+
+  // Preload video when component mounts
+  useEffect(() => {
+    if (videoRef.current && videoUrl) {
+      videoRef.current.preload = "auto"; // Force preload
+      // Start loading the video
+      videoRef.current.load();
+      console.log("Preloading video:", videoUrl);
+    }
+  }, [videoUrl]);
 
   const handlePlayVideo = () => {
     if (videoRef.current) {
@@ -104,6 +114,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                     loop
                     muted={isMuted}
                     playsInline
+                    preload="auto"
                     className="w-full h-full object-cover"
                     onLoadedData={() => {
                       setIsVideoLoaded(true);
