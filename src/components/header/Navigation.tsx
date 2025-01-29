@@ -38,6 +38,9 @@ export const Navigation = () => {
     )
     .sort((a, b) => a.menu_order - b.menu_order)
     .map(page => {
+      // Special handling for the home page
+      const path = page.slug === 'index' ? '/' : `/${page.slug}`;
+      
       const children = publishedPages
         .filter(childPage => 
           childPage.show_in_header && 
@@ -51,7 +54,7 @@ export const Navigation = () => {
 
       return {
         name: page.title,
-        path: `/${page.slug}`,
+        path,
         children: children.length > 0 ? children : undefined,
       };
     });
