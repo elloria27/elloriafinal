@@ -17,7 +17,7 @@ interface FileWithUploader extends FileObject {
 interface FileListProps {
   files: FileWithUploader[];
   selectedFiles: string[];
-  onFileSelect: (fileName: string) => void;
+  onFileSelect: (fileName: string, isSelected: boolean) => void;
   onFileDownload: (fileName: string) => void;
   onFileDelete: (fileName: string) => void;
   onShare: (fileName: string) => void;
@@ -50,7 +50,7 @@ export const FileList = ({
             <div className="flex items-center gap-4">
               <Checkbox
                 checked={selectedFiles.includes(file.name)}
-                onCheckedChange={() => onFileSelect(file.name)}
+                onCheckedChange={(checked) => onFileSelect(file.name, checked === true)}
               />
               <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />
               <div className="min-w-0">

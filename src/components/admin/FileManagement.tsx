@@ -170,6 +170,16 @@ export const FileManagement = () => {
     }
   };
 
+  const handleFileSelect = (fileName: string, isSelected: boolean) => {
+    setSelectedFiles(prev => {
+      if (isSelected) {
+        return [...prev, fileName];
+      } else {
+        return prev.filter(name => name !== fileName);
+      }
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -255,7 +265,7 @@ export const FileManagement = () => {
       <FileList
         files={files}
         selectedFiles={selectedFiles}
-        onFileSelect={setSelectedFiles}
+        onFileSelect={handleFileSelect}
         onFileDownload={async (fileName) => {
           try {
             console.log('Downloading file:', fileName);
