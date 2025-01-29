@@ -364,6 +364,127 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
         </div>
       );
 
+    case "competitor_comparison":
+      return (
+        <div className="space-y-4">
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Subtitle</Label>
+            <Input
+              value={content.subtitle as string || ""}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Metrics</Label>
+            <div className="space-y-4">
+              {(content.metrics as any[] || []).map((metric, index) => (
+                <div key={index} className="p-4 border rounded space-y-2">
+                  <Input
+                    placeholder="Category"
+                    value={metric.category || ""}
+                    onChange={(e) =>
+                      handleArrayChange("metrics", index, {
+                        ...metric,
+                        category: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Elloria Value"
+                    value={metric.elloria || ""}
+                    onChange={(e) =>
+                      handleArrayChange("metrics", index, {
+                        ...metric,
+                        elloria: Number(e.target.value),
+                      })
+                    }
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Competitors Value"
+                    value={metric.competitors || ""}
+                    onChange={(e) =>
+                      handleArrayChange("metrics", index, {
+                        ...metric,
+                        competitors: Number(e.target.value),
+                      })
+                    }
+                  />
+                  <select
+                    className="w-full border rounded p-2"
+                    value={metric.icon || ""}
+                    onChange={(e) =>
+                      handleArrayChange("metrics", index, {
+                        ...metric,
+                        icon: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="ChartBar">Chart Bar</option>
+                    <option value="TrendingUp">Trending Up</option>
+                    <option value="Star">Star</option>
+                    <option value="Heart">Heart</option>
+                  </select>
+                  <Input
+                    placeholder="Description"
+                    value={metric.description || ""}
+                    onChange={(e) =>
+                      handleArrayChange("metrics", index, {
+                        ...metric,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeArrayItem("metrics", index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() =>
+                  addArrayItem("metrics", {
+                    category: "",
+                    elloria: 0,
+                    competitors: 0,
+                    icon: "ChartBar",
+                    description: "",
+                  })
+                }
+              >
+                <Plus className="h-4 w-4 mr-2" /> Add Metric
+              </Button>
+            </div>
+          </div>
+          <div>
+            <Label>Button Text</Label>
+            <Input
+              value={content.buttonText as string || ""}
+              onChange={(e) => handleChange("buttonText", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Button URL</Label>
+            <Input
+              value={content.buttonUrl as string || ""}
+              onChange={(e) => handleChange("buttonUrl", e.target.value)}
+            />
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
