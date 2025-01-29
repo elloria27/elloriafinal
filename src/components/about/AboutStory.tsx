@@ -5,6 +5,7 @@ import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence } from "framer-motion";
 import ReactPlayer from "react-player";
+import { toast } from "sonner";
 
 interface AboutStoryProps {
   content?: AboutStoryContent;
@@ -30,9 +31,15 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     // Reset error state when video URL changes
     setError(null);
     setIsReady(false);
+    console.log("Video URL changed:", videoUrl);
   }, [videoUrl]);
 
   const handlePlayPause = () => {
+    if (error) {
+      // Try to reload the video if there was an error
+      setError(null);
+      player?.seekTo(0);
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -103,18 +110,29 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                     onReady={() => {
                       console.log("Video is ready to play");
                       setIsReady(true);
+                      setError(null);
                     }}
                     onError={(e) => {
                       console.error("Video error:", e);
                       setError("Error loading video");
+                      setIsPlaying(false);
+                      toast.error("Error loading video. Please try again.");
                     }}
-                    onBuffer={() => console.log("Video buffering...")}
-                    onBufferEnd={() => console.log("Video buffering ended")}
+                    onBuffer={() => {
+                      console.log("Video buffering...");
+                      toast.info("Loading video...");
+                    }}
+                    onBufferEnd={() => {
+                      console.log("Video buffering ended");
+                    }}
+                    onProgress={(state) => {
+                      console.log("Playback progress:", state);
+                    }}
                     className="object-cover"
                   />
                   {error && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <p className="text-white">{error}</p>
+                      <p className="text-white bg-red-500/80 px-4 py-2 rounded-lg">{error}</p>
                     </div>
                   )}
                 </>
