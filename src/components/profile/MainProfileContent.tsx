@@ -45,15 +45,15 @@ export const MainProfileContent = ({
   handleSave,
 }: MainProfileContentProps) => {
   if (loading) {
-    return <div className="p-8">Loading...</div>;
+    return <div className="p-4 md:p-8">Loading...</div>;
   }
 
   if (!profile) {
-    return <div className="p-8">No profile found.</div>;
+    return <div className="p-4 md:p-8">No profile found.</div>;
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto">
       <ProfileHeader
         firstName={firstName}
         lastName={lastName}
@@ -66,38 +66,25 @@ export const MainProfileContent = ({
         currency={profile.currency || 'USD'}
       />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border space-y-6 mt-8">
+      <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border space-y-6 mt-6 md:mt-8">
         <PersonalInfoForm
           firstName={firstName}
-          setFirstName={(value) => {
-            setFirstName(value);
-          }}
+          setFirstName={setFirstName}
           lastName={lastName}
-          setLastName={(value) => {
-            setLastName(value);
-          }}
+          setLastName={setLastName}
           email={userEmail}
           phoneNumber={phoneNumber}
-          setPhoneNumber={(value) => {
-            setPhoneNumber(value);
-          }}
+          setPhoneNumber={setPhoneNumber}
           address={address}
-          setAddress={(value) => {
-            setAddress(value);
-          }}
+          setAddress={setAddress}
           loading={loading}
         />
 
         <LocationForm
           country={country}
-          setCountry={(value) => {
-            setCountry(value);
-            setRegion("");
-          }}
+          setCountry={setCountry}
           region={region}
-          setRegion={(value) => {
-            setRegion(value);
-          }}
+          setRegion={setRegion}
         />
 
         <ProfileActions
