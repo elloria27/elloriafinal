@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CartItem } from "./mobile/CartItem";
@@ -13,7 +13,12 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Tag, X } from "lucide-react";
 
-export const MobileCart = () => {
+interface MobileCartProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
   const navigate = useNavigate();
   const { 
     items, 
@@ -28,34 +33,18 @@ export const MobileCart = () => {
   } = useCart();
 
   const [promoCode, setPromoCode] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const [showPromoInput, setShowPromoInput] = useState(false);
-
-  useEffect(() => {
-    const handleOpen = () => {
-      console.log('Opening mobile cart');
-      setIsOpen(true);
-    };
-
-    window.addEventListener('openCart', handleOpen);
-    return () => {
-      console.log('Cleaning up mobile cart event listener');
-      window.removeEventListener('openCart', handleOpen);
-    };
-  }, []);
 
   const handleClose = () => {
     console.log('Closing mobile cart');
-    setIsOpen(false);
+    onClose();
     setShowPromoInput(false);
   };
 
   const handleCheckout = () => {
     console.log("Starting checkout process");
-    setIsOpen(false);
-    setTimeout(() => {
-      navigate("/checkout", { replace: true });
-    }, 300);
+    handleClose();
+    navigate("/checkout", { replace: true });
   };
 
   const handleRemoveItem = (itemId: string) => {
@@ -68,7 +57,7 @@ export const MobileCart = () => {
     console.log("Clearing entire cart");
     clearCart();
     toast.success("Cart cleared");
-    setIsOpen(false);
+    handleClose();
   };
 
   const handleApplyPromoCode = () => {
@@ -90,7 +79,7 @@ export const MobileCart = () => {
   return (
     <Sheet 
       open={isOpen} 
-      onOpenChange={setIsOpen}
+      onOpenChange={handleClose}
       modal={true}
     >
       <SheetContent 

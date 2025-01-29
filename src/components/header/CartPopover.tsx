@@ -5,15 +5,17 @@ import { DesktopCart } from "./cart/DesktopCart";
 import { MobileCart } from "./cart/MobileCart";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useState } from "react";
 
 export const CartPopover = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { totalItems, isCartAnimating } = useCart();
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
   const handleCartClick = () => {
     if (isMobile) {
-      console.log("Mobile cart click - dispatching open event");
-      window.dispatchEvent(new CustomEvent('openCart'));
+      console.log("Opening mobile cart");
+      setIsMobileCartOpen(true);
     }
   };
 
@@ -45,9 +47,15 @@ export const CartPopover = () => {
   return (
     <div className="relative">
       {isMobile ? (
-        <div onClick={handleCartClick}>
-          <CartIcon />
-        </div>
+        <>
+          <div onClick={handleCartClick}>
+            <CartIcon />
+          </div>
+          <MobileCart 
+            isOpen={isMobileCartOpen} 
+            onClose={() => setIsMobileCartOpen(false)} 
+          />
+        </>
       ) : (
         <Popover>
           <PopoverTrigger asChild>
@@ -60,8 +68,6 @@ export const CartPopover = () => {
           </PopoverContent>
         </Popover>
       )}
-      
-      <MobileCart />
     </div>
   );
 };
