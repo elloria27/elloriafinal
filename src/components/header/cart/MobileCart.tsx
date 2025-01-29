@@ -9,6 +9,9 @@ import { CartSummary } from "./mobile/CartSummary";
 import { CartHeader } from "./mobile/CartHeader";
 import { EmptyCart } from "./mobile/EmptyCart";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Tag, X } from "lucide-react";
 
 export const MobileCart = () => {
   const navigate = useNavigate();
@@ -26,6 +29,7 @@ export const MobileCart = () => {
 
   const [promoCode, setPromoCode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
 
   useEffect(() => {
     const handleOpen = () => {
@@ -43,6 +47,7 @@ export const MobileCart = () => {
   const handleClose = () => {
     console.log('Closing mobile cart');
     setIsOpen(false);
+    setShowPromoInput(false);
   };
 
   const handleCheckout = () => {
@@ -71,6 +76,7 @@ export const MobileCart = () => {
       console.log("Applying promo code:", promoCode);
       applyPromoCode(promoCode.trim());
       setPromoCode("");
+      setShowPromoInput(false);
     }
   };
 
@@ -88,13 +94,8 @@ export const MobileCart = () => {
       modal={true}
     >
       <SheetContent 
-        side="bottom" 
-        className="h-[90vh] p-0 flex flex-col rounded-t-[20px] shadow-2xl bg-gradient-to-b from-white to-gray-50/80 backdrop-blur-lg"
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-          setIsOpen(false);
-        }}
-        onEscapeKeyDown={() => setIsOpen(false)}
+        side="right" 
+        className="w-full sm:max-w-md h-full p-0 flex flex-col bg-gradient-to-br from-white via-white to-gray-50"
       >
         <CartHeader 
           onClose={handleClose}
@@ -102,57 +103,133 @@ export const MobileCart = () => {
           hasItems={items.length > 0}
         />
 
-        <motion.div 
-          className="flex-1 overflow-y-auto px-4 py-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        >
-          <AnimatePresence mode="popLayout">
-            {items.length === 0 ? (
-              <EmptyCart onClose={handleClose} />
-            ) : (
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    item={item}
-                    onRemove={handleRemoveItem}
-                    onUpdateQuantity={updateQuantity}
-                    formatPrice={formatPrice}
-                  />
-                ))}
-              </div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {items.length > 0 && (
-          <motion.div 
-            className="border-t border-gray-100 bg-gradient-to-t from-white to-transparent px-4 py-6 space-y-6"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <CartSummary
-              subtotal={subtotal}
-              total={total}
-              promoCode={promoCode}
-              activePromoCode={activePromoCode}
-              onPromoCodeChange={setPromoCode}
-              onApplyPromoCode={handleApplyPromoCode}
-              onRemovePromoCode={removePromoCode}
-              formatPrice={formatPrice}
-            />
-
-            <Button 
-              className="w-full h-14 text-base rounded-full font-medium bg-primary hover:bg-primary/90 shadow-lg"
-              onClick={handleCheckout}
+        <AnimatePresence mode="wait">
+          {items.length === 0 ? (
+            <EmptyCart onClose={handleClose} />
+          ) : (
+            <motion.div 
+              className="flex flex-col h-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              Proceed to Checkout
-            </Button>
-          </motion.div>
-        )}
+              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+                <AnimatePresence mode="popLayout">
+                  {items.map((item) => (
+                    <CartItem
+                      key={item.id}
+                      item={item}
+                      onRemove={handleRemoveItem}
+                      onUpdateQuantity={updateQuantity}
+                      formatPrice={formatPrice}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              <div className="border-t border-gray-100 bg-white p-4 space-y-4">
+                {!showPromoInput && !activePromoCode && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-primary hover:text-primary hover:bg-primary/5"
+                    onClick={() => setShowPromoInput(true)}
+                  >
+                    <Tag className="mr-2 h-4 w-4" />
+                    Add promo code
+                  </Button>
+                )}
+
+                <AnimatePresence mode="wait">
+                  {showPromoInput && !activePromoCode && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="space-y-2"
+                    >
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Enter promo code"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setShowPromoInput(false)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button 
+                        className="w-full bg-primary/10 text-primary hover:bg-primary/20"
+                        onClick={handleApplyPromoCode}
+                        disabled={!promoCode.trim()}
+                      >
+                        Apply Code
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {activePromoCode && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center justify-between bg-primary/5 p-3 rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">
+                          {activePromoCode.code} ({activePromoCode.discount}% OFF)
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={removePromoCode}
+                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">{formatPrice(subtotal)}</span>
+                  </div>
+                  
+                  {activePromoCode && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Discount</span>
+                      <span className="text-primary font-medium">
+                        -{formatPrice((subtotal * activePromoCode.discount) / 100)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span>Total</span>
+                    <span className="text-primary">{formatPrice(total)}</span>
+                  </div>
+                </div>
+
+                <Button 
+                  className="w-full h-14 text-base font-medium bg-primary hover:bg-primary/90"
+                  onClick={handleCheckout}
+                >
+                  Proceed to Checkout ({formatPrice(total)})
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </SheetContent>
     </Sheet>
   );
