@@ -1,19 +1,32 @@
 import { motion } from "framer-motion";
 import { AboutMissionContent } from "@/types/content-blocks";
+import { Leaf, Star, Heart } from "lucide-react";
 
 interface AboutMissionProps {
   content?: AboutMissionContent;
 }
 
 export const AboutMission = ({ content = {} }: AboutMissionProps) => {
-  const {
-    title = "Our Mission",
-    description = "We're on a mission to transform feminine care...",
-    values = []
-  } = content;
+  const values = [
+    {
+      icon: <Leaf className="w-8 h-8" />,
+      title: "Sustainability",
+      description: "72% recyclable materials and eco-friendly production processes that protect our planet."
+    },
+    {
+      icon: <Star className="w-8 h-8" />,
+      title: "Innovation",
+      description: "Advanced absorption technology for unmatched comfort and protection."
+    },
+    {
+      icon: <Heart className="w-8 h-8" />,
+      title: "Empowerment",
+      description: "Dedicated to improving women's lives and health globally through better care."
+    }
+  ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
+    <section className="py-20 bg-white">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,11 +35,13 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">{title}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">{description}</p>
+          <h2 className="text-4xl font-bold mb-4">Our Mission & Values</h2>
+          <p className="text-gray-600 max-w-3xl mx-auto">
+            We're committed to creating innovative solutions that prioritize both women's comfort and environmental sustainability.
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {values.map((value, index) => (
             <motion.div
               key={index}
@@ -34,14 +49,13 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="p-8 rounded-2xl hover:shadow-xl transition-all duration-300 bg-white"
+              className="text-center"
             >
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                className="text-primary mb-6"
-              >
-                {value.icon}
-              </motion.div>
+              <div className="flex justify-center mb-6">
+                <div className="text-primary">
+                  {value.icon}
+                </div>
+              </div>
               <h3 className="text-2xl font-bold mb-4">{value.title}</h3>
               <p className="text-gray-600">{value.description}</p>
             </motion.div>

@@ -6,41 +6,60 @@ interface AboutTeamProps {
 }
 
 export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
-  const {
-    title = "Our Team",
-    subtitle = "Meet the passionate individuals behind Elloria",
-    members = []
-  } = content;
+  const team = [
+    {
+      name: "Sarah Johnson",
+      role: "Founder & CEO",
+      image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
+      quote: "Every woman deserves comfort and confidence, every day of the month."
+    },
+    {
+      name: "Dr. Emily Chen",
+      role: "Head of Research",
+      image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
+      quote: "Innovation in feminine care starts with understanding women's needs."
+    },
+    {
+      name: "Maria Rodriguez",
+      role: "Sustainability Director",
+      image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
+      quote: "Creating products that care for both women and our planet."
+    }
+  ];
 
   return (
-    <section className="py-20">
+    <section className="py-20 bg-white">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">{title}</h2>
-          <p className="text-xl text-gray-600 mb-12">{subtitle}</p>
+          <h2 className="text-4xl font-bold mb-4">Meet Our Team</h2>
+          <p className="text-xl text-gray-600">The passionate people behind our mission</p>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {members.map((member, index) => (
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {team.map((member, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              className="bg-white rounded-lg shadow-lg p-6 text-center"
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.2 }}
+              className="text-center"
             >
-              <img
-                src={member.image || "/placeholder.svg"}
-                alt={member.name}
-                className="w-24 h-24 rounded-full mx-auto mb-4"
-              />
-              <h3 className="text-xl font-semibold">{member.name}</h3>
-              <p className="text-gray-500">{member.role}</p>
-              <p className="mt-2">{member.bio}</p>
+              <div className="mb-6">
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-48 h-48 rounded-full mx-auto object-cover"
+                />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">{member.name}</h3>
+              <p className="text-primary mb-4">{member.role}</p>
+              <p className="text-gray-600 italic">"{member.quote}"</p>
             </motion.div>
           ))}
         </div>

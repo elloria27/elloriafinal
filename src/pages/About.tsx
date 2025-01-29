@@ -1,6 +1,5 @@
 import { Header } from "@/components/Header";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
-import { AboutStory } from "@/components/about/AboutStory";
 import { AboutMission } from "@/components/about/AboutMission";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
@@ -14,14 +13,13 @@ export default function About() {
     <div className="min-h-screen bg-white">
       <Header />
       <AboutHeroSection />
-      <AboutStory />
       <AboutMission />
       <AboutSustainability />
       <AboutTeam />
       <AboutCustomerImpact />
       
       {/* Call to Action Section */}
-      <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
+      <section className="py-20 bg-gradient-to-r from-[#0094F4] to-[#9b87f5] text-white">
         <div className="container px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -46,7 +44,7 @@ export default function About() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white/20 bg-white/10"
+                className="border-white text-white hover:bg-white/20"
               >
                 Sign Up for Updates <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
