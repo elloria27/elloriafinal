@@ -3,17 +3,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
-import { AboutValues } from "@/components/about/AboutValues";
+import { AboutMission } from "@/components/about/AboutMission";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent, AboutCtaContent } from "@/types/content-blocks";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchAboutPageContent = async () => {
   console.log("Fetching about page content...");
   
-  // First, get the page ID for the about page
   const { data: pageData, error: pageError } = await supabase
     .from('pages')
     .select('id')
@@ -30,7 +29,6 @@ const fetchAboutPageContent = async () => {
     throw new Error("Page not found");
   }
 
-  // Then fetch all content blocks for this page
   const { data: blocks, error: blocksError } = await supabase
     .from('content_blocks')
     .select('*')
@@ -63,65 +61,60 @@ export default function About() {
 
   const getBlockContent = (type: string) => {
     const block = contentBlocks?.find(block => block.type === type);
-    return block?.content || {};
+    return (block?.content || {}) as any;
   };
+
+  const ctaContent = getBlockContent('about_cta') as AboutCtaContent;
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
       
       <AboutHeroSection 
-        content={getBlockContent('about_hero_section')}
+        content={getBlockContent('about_hero_section') as AboutHeroContent}
       />
 
       <AboutStory 
-        content={getBlockContent('about_story')}
+        content={getBlockContent('about_story') as AboutStoryContent}
       />
 
-      <AboutValues 
-        content={getBlockContent('about_mission')}
+      <AboutMission 
+        content={getBlockContent('about_mission') as AboutMissionContent}
       />
 
       <AboutSustainability 
-        content={getBlockContent('about_sustainability')}
+        content={getBlockContent('about_sustainability') as AboutSustainabilityContent}
       />
 
       <AboutTeam 
-        content={getBlockContent('about_team')}
+        content={getBlockContent('about_team') as AboutTeamContent}
       />
 
       <AboutCustomerImpact 
-        content={getBlockContent('about_customer_impact')}
+        content={getBlockContent('about_customer_impact') as AboutCustomerImpactContent}
       />
 
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
         <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
-            {(() => {
-              const ctaContent = getBlockContent('about_cta');
-              return (
-                <>
-                  <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                    {ctaContent.title || "Join the Elloria Movement"}
-                  </h2>
-                  <p className="text-xl mb-8">
-                    {ctaContent.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button 
-                      className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
-                    >
-                      {ctaContent.primaryButtonText || "Shop Now"}
-                    </button>
-                    <button 
-                      className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
-                    >
-                      {ctaContent.secondaryButtonText || "Learn More"}
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              {ctaContent.title || "Join the Elloria Movement"}
+            </h2>
+            <p className="text-xl mb-8">
+              {ctaContent.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
+              >
+                {ctaContent.primaryButtonText || "Shop Now"}
+              </button>
+              <button 
+                className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
+              >
+                {ctaContent.secondaryButtonText || "Learn More"}
+              </button>
+            </div>
           </div>
         </div>
       </section>
