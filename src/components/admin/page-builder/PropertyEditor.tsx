@@ -768,17 +768,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
 
                   <div>
-                    <Label>Rating (1-5)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={testimonial.rating}
-                      onChange={(e) => handleTestimonialChange(index, 'rating', parseInt(e.target.value) || 5)}
-                    />
-                  </div>
-
-                  <div>
                     <Label>Text</Label>
                     <Textarea
                       value={testimonial.quote}
@@ -788,11 +777,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
                   </div>
 
                   <div>
-                    <Label>Source</Label>
+                    <Label>Location</Label>
                     <Input
-                      value={testimonial.location}
+                      value={testimonial.location || ''}
                       onChange={(e) => handleTestimonialChange(index, 'location', e.target.value)}
-                      placeholder="Enter source (e.g., Verified Purchase, Instagram)"
+                      placeholder="Enter location"
                     />
                   </div>
                 </div>
