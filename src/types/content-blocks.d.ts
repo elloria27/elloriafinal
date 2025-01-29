@@ -204,6 +204,7 @@ export interface AboutTeamContent extends BaseBlockContent {
     role: string;
     image?: string;
     quote?: string;
+    bio?: string;  // Added bio field
   }>;
 }
 
@@ -284,6 +285,7 @@ export type BlockType =
   | "about_sustainability"
   | "about_team"
   | "about_customer_impact"
+  | "about_cta"  // Added this type
   | "contact_hero"
   | "contact_details"
   | "contact_form"

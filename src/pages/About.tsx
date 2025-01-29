@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { motion } from "framer-motion";
-import { ArrowRight, Heart, Leaf, Shield, Users, Star, Award } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
@@ -14,7 +14,6 @@ export default function About() {
     <div className="min-h-screen bg-white">
       <Header />
       
-      {/* Hero Section */}
       <AboutHeroSection 
         content={{
           title: "Redefining Comfort & Care for Everyone",
@@ -23,42 +22,44 @@ export default function About() {
         }}
       />
 
-      {/* Story Section */}
       <AboutStory 
         content={{
           title: "Our Story",
           subtitle: "A Journey of Innovation and Care",
           content: "Founded with a vision to revolutionize personal care through sustainable innovation, Elloria began its journey to create products that care for both you and our planet. We believe in inclusivity and creating solutions that cater to diverse needs while maintaining the highest standards of quality and comfort.",
-          image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png"
+          videoUrl: "https://elloria.ca/Video_290mm.mp4"
         }}
       />
 
-      {/* Values Section */}
       <AboutValues />
 
-      {/* Sustainability Section */}
       <AboutSustainability 
         content={{
           title: "Our Commitment to Sustainability",
           description: "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
           stats: [
             {
+              icon: "Leaf",
               value: "55%",
-              label: "Recyclable Materials"
+              label: "Recyclable Materials",
+              description: "Of our materials are fully recyclable"
             },
             {
+              icon: "Recycle",
               value: "95%",
-              label: "Recyclable Packaging"
+              label: "Recyclable Packaging",
+              description: "Eco-friendly packaging solutions"
             },
             {
+              icon: "TreePine",
               value: "100%",
-              label: "Eco-Friendly Production"
+              label: "Eco-Friendly Production",
+              description: "Sustainable manufacturing process"
             }
           ]
         }}
       />
 
-      {/* Team Section */}
       <AboutTeam 
         content={{
           title: "Meet Our Team",
@@ -68,28 +69,26 @@ export default function About() {
               name: "Sarah Johnson",
               role: "Founder & CEO",
               image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              bio: "Leading the vision for sustainable feminine care"
+              quote: "Leading the vision for sustainable feminine care"
             },
             {
               name: "Dr. Emily Chen",
               role: "Head of Research",
               image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              bio: "Driving innovation in product development"
+              quote: "Driving innovation in product development"
             },
             {
               name: "Maria Rodriguez",
               role: "Sustainability Director",
               image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
-              bio: "Ensuring eco-friendly practices"
+              quote: "Ensuring eco-friendly practices"
             }
           ]
         }}
       />
 
-      {/* Customer Impact Section */}
       <AboutCustomerImpact />
 
-      {/* Call to Action */}
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
         <div className="container px-4">
           <motion.div
