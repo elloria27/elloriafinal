@@ -15,7 +15,8 @@ import {
   Building2,
   ExternalLink,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Image
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ const sidebarItems: SidebarItem[] = [
       { title: "User Management", href: "/admin?tab=users", icon: Users },
       { title: "Page Management", href: "/admin?tab=pages", icon: FileText },
       { title: "Blog Management", href: "/admin?tab=blog", icon: BookOpen },
+      { title: "Media Library", href: "/admin?tab=media", icon: Image },
       { title: "Site Settings", href: "/admin?tab=settings", icon: Settings }
     ]
   },

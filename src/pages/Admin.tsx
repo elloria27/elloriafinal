@@ -8,6 +8,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
+import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -117,6 +118,8 @@ const Admin = () => {
         return <BlogManagement />;
       case "files":
         return <FileManagement />;
+      case "media":
+        return <MediaLibrary />;
       case "settings":
         return <SiteSettings />;
       default:
