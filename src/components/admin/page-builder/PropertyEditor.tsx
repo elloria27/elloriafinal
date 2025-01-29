@@ -405,70 +405,70 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         );
 
       case 'competitor_comparison':
+        const comparisonContent = content as CompetitorComparisonContent;
         return (
           <div className="space-y-4">
             <div>
               <Label>Title</Label>
               <Input
-                value={String(content.title || '')}
+                value={String(comparisonContent.title || '')}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={String(content.subtitle || '')}
+                value={String(comparisonContent.subtitle || '')}
                 onChange={(e) => handleChange('subtitle', e.target.value)}
               />
             </div>
             <div>
               <Label>Button Text</Label>
               <Input
-                value={String(content.buttonText || '')}
+                value={String(comparisonContent.buttonText || '')}
                 onChange={(e) => handleChange('buttonText', e.target.value)}
               />
             </div>
             <div>
               <Label>Button URL</Label>
               <Input
-                value={String(content.buttonUrl || '')}
+                value={String(comparisonContent.buttonUrl || '')}
                 onChange={(e) => handleChange('buttonUrl', e.target.value)}
               />
             </div>
             <div className="space-y-4">
               <Label>Metrics</Label>
-              {Array.isArray((content as CompetitorComparisonContent).metrics) && 
-                (content as CompetitorComparisonContent).metrics?.map((metric, index) => (
-                  <div key={index} className="space-y-2 p-4 border rounded">
-                    <Input
-                      placeholder="Category"
-                      value={String(metric.category || '')}
-                      onChange={(e) => handleArrayChange('metrics', index, 'category', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Elloria Score"
-                      type="number"
-                      value={metric.elloria || 0}
-                      onChange={(e) => handleArrayChange('metrics', index, 'elloria', parseInt(e.target.value))}
-                    />
-                    <Input
-                      placeholder="Competitors Score"
-                      type="number"
-                      value={metric.competitors || 0}
-                      onChange={(e) => handleArrayChange('metrics', index, 'competitors', parseInt(e.target.value))}
-                    />
-                    <Input
-                      placeholder="Icon"
-                      value={String(metric.icon || '')}
-                      onChange={(e) => handleArrayChange('metrics', index, 'icon', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Description"
-                      value={String(metric.description || '')}
-                      onChange={(e) => handleArrayChange('metrics', index, 'description', e.target.value)}
-                    />
-                  </div>
-                ))}
+              {Array.isArray(comparisonContent.metrics) && comparisonContent.metrics.map((metric, index) => (
+                <div key={index} className="space-y-2 p-4 border rounded">
+                  <Input
+                    placeholder="Category"
+                    value={String(metric.category || '')}
+                    onChange={(e) => handleArrayChange('metrics', index, 'category', e.target.value)}
+                  />
+                  <Input
+                    placeholder="Elloria Score"
+                    type="number"
+                    value={metric.elloria || 0}
+                    onChange={(e) => handleArrayChange('metrics', index, 'elloria', parseInt(e.target.value))}
+                  />
+                  <Input
+                    placeholder="Competitors Score"
+                    type="number"
+                    value={metric.competitors || 0}
+                    onChange={(e) => handleArrayChange('metrics', index, 'competitors', parseInt(e.target.value))}
+                  />
+                  <Input
+                    placeholder="Icon"
+                    value={String(metric.icon || '')}
+                    onChange={(e) => handleArrayChange('metrics', index, 'icon', e.target.value)}
+                  />
+                  <Input
+                    placeholder="Description"
+                    value={String(metric.description || '')}
+                    onChange={(e) => handleArrayChange('metrics', index, 'description', e.target.value)}
+                  />
+                </div>
+              ))}
             </div>
           </div>
         );
