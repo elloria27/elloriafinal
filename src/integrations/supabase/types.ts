@@ -319,6 +319,7 @@ export type Database = {
           created_by: string | null
           expires_at: string | null
           file_path: string
+          folder_path: string | null
           id: string
           share_token: string
         }
@@ -328,6 +329,7 @@ export type Database = {
           created_by?: string | null
           expires_at?: string | null
           file_path: string
+          folder_path?: string | null
           id?: string
           share_token: string
         }
@@ -337,10 +339,46 @@ export type Database = {
           created_by?: string | null
           expires_at?: string | null
           file_path?: string
+          folder_path?: string | null
           id?: string
           share_token?: string
         }
         Relationships: []
+      }
+      folders: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          parent_path: string | null
+          path: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          parent_path?: string | null
+          path: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          parent_path?: string | null
+          path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_parent_path_fkey"
+            columns: ["parent_path"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["path"]
+          },
+        ]
       }
       orders: {
         Row: {

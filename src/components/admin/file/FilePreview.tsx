@@ -69,7 +69,7 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
   const renderPreview = () => {
     if (!previewUrl) return null;
 
-    if (fileType === 'application/pdf' || fileType === 'pdf' || fileName?.toLowerCase().endsWith('.pdf')) {
+    if (fileType?.toLowerCase().includes('pdf')) {
       console.log('Rendering PDF preview');
       return (
         <div className="max-w-4xl mx-auto overflow-x-auto pdf-container">

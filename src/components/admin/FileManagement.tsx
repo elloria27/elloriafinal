@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Upload, FolderPlus } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FileList } from "./file/FileList";
 import { BulkShareDialog } from "./file/BulkShareDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface FileWithUploader extends FileObject {
   uploader?: {
@@ -20,6 +21,8 @@ export const FileManagement = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [showFolderDialog, setShowFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
 
   useEffect(() => {
     fetchFiles();
@@ -106,64 +109,65 @@ export const FileManagement = () => {
     }
   };
 
-  const handleFileDownload = async (fileName: string) => {
+  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      console.log('Downloading file:', fileName);
-      const { data, error } = await supabase.storage
-        .from('files')
-        .download(fileName);
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-      if (error) {
-        console.error('Error downloading file:', error);
-        toast.error("Failed to download file");
-        return;
+      setUploading(true);
+      
+      // Handle folder upload
+      for (const file of files) {
+        const relativePath = (file as any).webkitRelativePath || file.name;
+        console.log('Uploading file with path:', relativePath);
+
+        const { error: uploadError } = await supabase.storage
+          .from('files')
+          .upload(`${Date.now()}-${relativePath}`, file);
+
+        if (uploadError) {
+          console.error('Error uploading file:', uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        console.log('File uploaded successfully');
       }
 
-      const url = window.URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName.split('-').slice(1).join('-');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      console.log('File downloaded successfully');
-      toast.success("File downloaded successfully");
-    } catch (error) {
-      console.error('Error in handleFileDownload:', error);
-      toast.error("Failed to download file");
-    }
-  };
-
-  const handleFileDelete = async (fileName: string) => {
-    try {
-      console.log('Deleting file:', fileName);
-      const { error } = await supabase.storage
-        .from('files')
-        .remove([fileName]);
-
-      if (error) {
-        console.error('Error deleting file:', error);
-        toast.error("Failed to delete file");
-        return;
-      }
-
-      console.log('File deleted successfully');
-      toast.success("File deleted successfully");
+      toast.success("Folder uploaded successfully");
       fetchFiles();
     } catch (error) {
-      console.error('Error in handleFileDelete:', error);
-      toast.error("Failed to delete file");
+      console.error('Error in handleFolderUpload:', error);
+      toast.error("Failed to upload folder");
+    } finally {
+      setUploading(false);
     }
   };
 
-  const handleFileSelect = (fileName: string) => {
-    setSelectedFiles(prev => 
-      prev.includes(fileName)
-        ? prev.filter(f => f !== fileName)
-        : [...prev, fileName]
-    );
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) {
+      toast.error("Please enter a folder name");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('folders')
+        .insert({
+          name: newFolderName,
+          path: `/${newFolderName}`
+        });
+
+      if (error) throw error;
+
+      toast.success("Folder created successfully");
+      setShowFolderDialog(false);
+      setNewFolderName("");
+      fetchFiles();
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast.error("Failed to create folder");
+    }
   };
 
   if (loading) {
@@ -192,26 +196,58 @@ export const FileManagement = () => {
               Clear Selection ({selectedFiles.length})
             </Button>
           )}
-          <div className="relative">
-            <Input
-              type="file"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              disabled={uploading}
-              multiple
-            />
-            <Button
-              asChild
-              variant="outline"
-              className="flex items-center gap-2"
-              disabled={uploading}
-            >
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="h-4 w-4" />
-                Upload Files
-              </label>
-            </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowFolderDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <FolderPlus className="h-4 w-4" />
+            New Folder
+          </Button>
+          <div className="flex gap-2">
+            <div className="relative">
+              <Input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+                disabled={uploading}
+                multiple
+              />
+              <Button
+                asChild
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={uploading}
+              >
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Upload className="h-4 w-4" />
+                  Upload Files
+                </label>
+              </Button>
+            </div>
+            <div className="relative">
+              <Input
+                type="file"
+                onChange={handleFolderUpload}
+                className="hidden"
+                id="folder-upload"
+                disabled={uploading}
+                multiple
+                {...{ webkitdirectory: "", directory: "" } as any}
+              />
+              <Button
+                asChild
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={uploading}
+              >
+                <label htmlFor="folder-upload" className="cursor-pointer">
+                  <Upload className="h-4 w-4" />
+                  Upload Folder
+                </label>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -219,9 +255,49 @@ export const FileManagement = () => {
       <FileList
         files={files}
         selectedFiles={selectedFiles}
-        onFileSelect={handleFileSelect}
-        onFileDownload={handleFileDownload}
-        onFileDelete={handleFileDelete}
+        onFileSelect={setSelectedFiles}
+        onFileDownload={async (fileName) => {
+          try {
+            console.log('Downloading file:', fileName);
+            const { data, error } = await supabase.storage
+              .from('files')
+              .download(fileName);
+
+            if (error) throw error;
+
+            const url = window.URL.createObjectURL(data);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName.split('-').slice(1).join('-');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            console.log('File downloaded successfully');
+            toast.success("File downloaded successfully");
+          } catch (error) {
+            console.error('Error downloading file:', error);
+            toast.error("Failed to download file");
+          }
+        }}
+        onFileDelete={async (fileName) => {
+          try {
+            console.log('Deleting file:', fileName);
+            const { error } = await supabase.storage
+              .from('files')
+              .remove([fileName]);
+
+            if (error) throw error;
+
+            console.log('File deleted successfully');
+            toast.success("File deleted successfully");
+            fetchFiles();
+          } catch (error) {
+            console.error('Error deleting file:', error);
+            toast.error("Failed to delete file");
+          }
+        }}
         onShare={() => {}}
       />
 
@@ -229,6 +305,32 @@ export const FileManagement = () => {
         fileNames={selectedFiles}
         onClose={() => setSelectedFiles([])}
       />
+
+      <Dialog open={showFolderDialog} onOpenChange={setShowFolderDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <Input
+              placeholder="Enter folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFolderDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCreateFolder}>
+                Create
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
