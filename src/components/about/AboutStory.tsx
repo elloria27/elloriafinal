@@ -14,7 +14,8 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
     title = "Our Story",
     subtitle = "A Journey of Innovation",
     content: storyContent = "Founded with a vision to revolutionize feminine care through sustainable innovation...",
-    videoUrl = "https://elloria.ca/Video_290mm.mp4" // Default video URL
+    videoUrl = "https://elloria.ca/Video_290mm.mp4",
+    videoThumbnail = "https://my.elloria.ca/290mmvideo-.jpg"
   } = content;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,7 +77,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
                 playsInline
                 className="w-full h-full object-cover"
                 onLoadedData={() => setIsVideoLoaded(true)}
-                poster="https://my.elloria.ca/290mmvideo-.jpg"
+                poster={videoThumbnail}
               >
                 <source src={videoUrl} type="video/mp4" />
                 Your browser does not support the video tag.
