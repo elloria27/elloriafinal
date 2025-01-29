@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Plus, Trash2, Image, Video } from "lucide-react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -12,105 +13,131 @@ interface HomePageEditorProps {
 }
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
-  const [content, setContent] = useState<BlockContent>(block.content);
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [currentField, setCurrentField] = useState<string>("");
 
   const handleChange = (key: string, value: any) => {
-    const updatedContent = { ...content, [key]: value };
-    setContent(updatedContent);
+    const updatedContent = { ...block.content, [key]: value };
     onUpdate(block.id, updatedContent);
   };
 
   const handleArrayChange = (key: string, index: number, value: any) => {
-    const array = [...(content[key] as any[] || [])];
+    const array = [...(block.content[key] as any[] || [])];
     array[index] = { ...array[index], ...value };
     handleChange(key, array);
   };
 
   const addArrayItem = (key: string, defaultItem: any) => {
-    const array = [...(content[key] as any[] || [])];
+    const array = [...(block.content[key] as any[] || [])];
     array.push(defaultItem);
     handleChange(key, array);
   };
 
   const removeArrayItem = (key: string, index: number) => {
-    const array = [...(content[key] as any[] || [])];
+    const array = [...(block.content[key] as any[] || [])];
     array.splice(index, 1);
     handleChange(key, array);
   };
+
+  const openMediaLibrary = (type: "image" | "video", field: string) => {
+    setMediaType(type);
+    setCurrentField(field);
+    setShowMediaLibrary(true);
+  };
+
+  const handleMediaSelect = (url: string) => {
+    if (currentField.includes(".")) {
+      const [arrayName, index, field] = currentField.split(".");
+      const array = [...(block.content[arrayName] as any[] || [])];
+      array[parseInt(index)][field] = url;
+      handleChange(arrayName, array);
+    } else {
+      handleChange(currentField, url);
+    }
+    setShowMediaLibrary(false);
+  };
+
+  const renderMediaField = (label: string, field: string, type: "image" | "video") => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          value={
+            field.includes(".")
+              ? (block.content[field.split(".")[0]] as any[])[parseInt(field.split(".")[1])][
+                  field.split(".")[2]
+                ]
+              : (block.content[field] as string) || ""
+          }
+          readOnly
+          placeholder={`Select ${type}...`}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => openMediaLibrary(type, field)}
+        >
+          {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
+  );
 
   switch (block.type) {
     case "hero":
       return (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.title as string || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Subtitle</Label>
             <Textarea
-              value={content.subtitle as string || ""}
+              value={block.content.subtitle as string || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </div>
-          <div>
-            <Label>Video URL</Label>
-            <Input
-              value={content.videoUrl as string || ""}
-              onChange={(e) => handleChange("videoUrl", e.target.value)}
-            />
-          </div>
+          {renderMediaField("Background Image", "backgroundImage", "image")}
+          {renderMediaField("Background Video", "backgroundVideo", "video")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
     case "game_changer":
       return (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.title as string || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
-            <Input
-              value={content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          <div>
+          <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={content.description as string || ""}
+              value={block.content.description as string || ""}
               onChange={(e) => handleChange("description", e.target.value)}
             />
           </div>
-          <div>
+          {renderMediaField("Image", "image", "image")}
+          <div className="space-y-2">
             <Label>Features</Label>
             <div className="space-y-4">
-              {(content.features as any[] || []).map((feature, index) => (
+              {(block.content.features as any[] || []).map((feature, index) => (
                 <div key={index} className="p-4 border rounded space-y-2">
-                  <select
-                    className="w-full border rounded p-2"
-                    value={feature.icon || ""}
-                    onChange={(e) =>
-                      handleArrayChange("features", index, {
-                        ...feature,
-                        icon: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="Droplets">Droplets</option>
-                    <option value="Leaf">Leaf</option>
-                    <option value="Heart">Heart</option>
-                  </select>
                   <Input
-                    placeholder="Title"
+                    placeholder="Feature title"
                     value={feature.title || ""}
                     onChange={(e) =>
                       handleArrayChange("features", index, {
@@ -120,7 +147,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                     }
                   />
                   <Textarea
-                    placeholder="Description"
+                    placeholder="Feature description"
                     value={feature.description || ""}
                     onChange={(e) =>
                       handleArrayChange("features", index, {
@@ -129,16 +156,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                       })
                     }
                   />
-                  <Input
-                    placeholder="Detail"
-                    value={feature.detail || ""}
-                    onChange={(e) =>
-                      handleArrayChange("features", index, {
-                        ...feature,
-                        detail: e.target.value,
-                      })
-                    }
-                  />
+                  {renderMediaField(
+                    "Feature Icon",
+                    `features.${index}.icon`,
+                    "image"
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
@@ -152,10 +174,9 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 variant="outline"
                 onClick={() =>
                   addArrayItem("features", {
-                    icon: "Droplets",
                     title: "",
                     description: "",
-                    detail: "",
+                    icon: "",
                   })
                 }
               >
@@ -163,33 +184,39 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               </Button>
             </div>
           </div>
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
     case "store_brands":
       return (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.title as string || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
-            <Input
-              value={content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              value={block.content.description as string || ""}
+              onChange={(e) => handleChange("description", e.target.value)}
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Brands</Label>
             <div className="space-y-4">
-              {(content.brands as any[] || []).map((brand, index) => (
+              {(block.content.brands as any[] || []).map((brand, index) => (
                 <div key={index} className="p-4 border rounded space-y-2">
                   <Input
-                    placeholder="Brand Name"
+                    placeholder="Brand name"
                     value={brand.name || ""}
                     onChange={(e) =>
                       handleArrayChange("brands", index, {
@@ -198,26 +225,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                       })
                     }
                   />
-                  <Input
-                    placeholder="Logo URL"
-                    value={brand.logo || ""}
-                    onChange={(e) =>
-                      handleArrayChange("brands", index, {
-                        ...brand,
-                        logo: e.target.value,
-                      })
-                    }
-                  />
-                  <Input
-                    placeholder="Link"
-                    value={brand.link || ""}
-                    onChange={(e) =>
-                      handleArrayChange("brands", index, {
-                        ...brand,
-                        link: e.target.value,
-                      })
-                    }
-                  />
+                  {renderMediaField(
+                    "Brand Logo",
+                    `brands.${index}.logo`,
+                    "image"
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
@@ -233,7 +245,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                   addArrayItem("brands", {
                     name: "",
                     logo: "",
-                    link: "",
                   })
                 }
               >
@@ -241,79 +252,67 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               </Button>
             </div>
           </div>
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
     case "sustainability":
       return (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.title as string || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={content.description as string || ""}
+              value={block.content.description as string || ""}
               onChange={(e) => handleChange("description", e.target.value)}
             />
           </div>
-          <div>
-            <Label>Stats</Label>
+          {renderMediaField("Background Image", "backgroundImage", "image")}
+          <div className="space-y-2">
+            <Label>Features</Label>
             <div className="space-y-4">
-              {(content.stats as any[] || []).map((stat, index) => (
+              {(block.content.features as any[] || []).map((feature, index) => (
                 <div key={index} className="p-4 border rounded space-y-2">
-                  <select
-                    className="w-full border rounded p-2"
-                    value={stat.icon || ""}
-                    onChange={(e) =>
-                      handleArrayChange("stats", index, {
-                        ...stat,
-                        icon: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="Recycle">Recycle</option>
-                    <option value="Package">Package</option>
-                    <option value="Factory">Factory</option>
-                  </select>
                   <Input
-                    placeholder="Title"
-                    value={stat.title || ""}
+                    placeholder="Feature title"
+                    value={feature.title || ""}
                     onChange={(e) =>
-                      handleArrayChange("stats", index, {
-                        ...stat,
+                      handleArrayChange("features", index, {
+                        ...feature,
                         title: e.target.value,
                       })
                     }
                   />
-                  <Input
-                    placeholder="Description"
-                    value={stat.description || ""}
+                  <Textarea
+                    placeholder="Feature description"
+                    value={feature.description || ""}
                     onChange={(e) =>
-                      handleArrayChange("stats", index, {
-                        ...stat,
+                      handleArrayChange("features", index, {
+                        ...feature,
                         description: e.target.value,
                       })
                     }
                   />
-                  <Input
-                    placeholder="Color (e.g., bg-accent-green)"
-                    value={stat.color || ""}
-                    onChange={(e) =>
-                      handleArrayChange("stats", index, {
-                        ...stat,
-                        color: e.target.value,
-                      })
-                    }
-                  />
+                  {renderMediaField(
+                    "Feature Icon",
+                    `features.${index}.icon`,
+                    "image"
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => removeArrayItem("stats", index)}
+                    onClick={() => removeArrayItem("features", index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -322,131 +321,88 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               <Button
                 variant="outline"
                 onClick={() =>
-                  addArrayItem("stats", {
-                    icon: "Recycle",
+                  addArrayItem("features", {
                     title: "",
                     description: "",
-                    color: "bg-accent-green",
+                    icon: "",
                   })
                 }
               >
-                <Plus className="h-4 w-4 mr-2" /> Add Stat
+                <Plus className="h-4 w-4 mr-2" /> Add Feature
               </Button>
             </div>
           </div>
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
     case "product_carousel":
       return (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.title as string || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
-            <Input
-              value={content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          <div>
+          <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={content.description as string || ""}
+              value={block.content.description as string || ""}
               onChange={(e) => handleChange("description", e.target.value)}
             />
           </div>
-        </div>
-      );
-
-    case "competitor_comparison":
-      return (
-        <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Subtitle</Label>
-            <Input
-              value={content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Metrics</Label>
+          <div className="space-y-2">
+            <Label>Products</Label>
             <div className="space-y-4">
-              {(content.metrics as any[] || []).map((metric, index) => (
+              {(block.content.products as any[] || []).map((product, index) => (
                 <div key={index} className="p-4 border rounded space-y-2">
                   <Input
-                    placeholder="Category"
-                    value={metric.category || ""}
+                    placeholder="Product name"
+                    value={product.name || ""}
                     onChange={(e) =>
-                      handleArrayChange("metrics", index, {
-                        ...metric,
-                        category: e.target.value,
+                      handleArrayChange("products", index, {
+                        ...product,
+                        name: e.target.value,
                       })
                     }
                   />
-                  <Input
-                    type="number"
-                    placeholder="Elloria Value"
-                    value={metric.elloria || ""}
+                  <Textarea
+                    placeholder="Product description"
+                    value={product.description || ""}
                     onChange={(e) =>
-                      handleArrayChange("metrics", index, {
-                        ...metric,
-                        elloria: Number(e.target.value),
-                      })
-                    }
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Competitors Value"
-                    value={metric.competitors || ""}
-                    onChange={(e) =>
-                      handleArrayChange("metrics", index, {
-                        ...metric,
-                        competitors: Number(e.target.value),
-                      })
-                    }
-                  />
-                  <select
-                    className="w-full border rounded p-2"
-                    value={metric.icon || ""}
-                    onChange={(e) =>
-                      handleArrayChange("metrics", index, {
-                        ...metric,
-                        icon: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="ChartBar">Chart Bar</option>
-                    <option value="TrendingUp">Trending Up</option>
-                    <option value="Star">Star</option>
-                    <option value="Heart">Heart</option>
-                  </select>
-                  <Input
-                    placeholder="Description"
-                    value={metric.description || ""}
-                    onChange={(e) =>
-                      handleArrayChange("metrics", index, {
-                        ...metric,
+                      handleArrayChange("products", index, {
+                        ...product,
                         description: e.target.value,
+                      })
+                    }
+                  />
+                  {renderMediaField(
+                    "Product Image",
+                    `products.${index}.image`,
+                    "image"
+                  )}
+                  <Input
+                    placeholder="Product price"
+                    type="number"
+                    value={product.price || ""}
+                    onChange={(e) =>
+                      handleArrayChange("products", index, {
+                        ...product,
+                        price: parseFloat(e.target.value),
                       })
                     }
                   />
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => removeArrayItem("metrics", index)}
+                    onClick={() => removeArrayItem("products", index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -455,33 +411,24 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               <Button
                 variant="outline"
                 onClick={() =>
-                  addArrayItem("metrics", {
-                    category: "",
-                    elloria: 0,
-                    competitors: 0,
-                    icon: "ChartBar",
+                  addArrayItem("products", {
+                    name: "",
                     description: "",
+                    image: "",
+                    price: 0,
                   })
                 }
               >
-                <Plus className="h-4 w-4 mr-2" /> Add Metric
+                <Plus className="h-4 w-4 mr-2" /> Add Product
               </Button>
             </div>
           </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={content.buttonText as string || ""}
-              onChange={(e) => handleChange("buttonText", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Button URL</Label>
-            <Input
-              value={content.buttonUrl as string || ""}
-              onChange={(e) => handleChange("buttonUrl", e.target.value)}
-            />
-          </div>
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
 
