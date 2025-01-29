@@ -27,8 +27,8 @@ export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="p-4 border rounded-lg">
-                <h3 className="text-2xl font-semibold">{stat.title}</h3>
-                <p>{stat.description}</p>
+                <h3 className="text-2xl font-semibold">{stat.value}</h3>
+                <p>{stat.label}</p>
               </div>
             ))}
           </div>

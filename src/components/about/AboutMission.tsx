@@ -22,11 +22,8 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Our Mission & Values</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            We're committed to creating innovative solutions that prioritize both 
-            women's comfort and environmental sustainability.
-          </p>
+          <h2 className="text-4xl font-bold mb-4">{title}</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">{description}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -37,7 +34,7 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              className={`${value.color}/20 p-8 rounded-2xl hover:shadow-xl transition-all duration-300`}
+              className="p-8 rounded-2xl hover:shadow-xl transition-all duration-300 bg-white"
             >
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}

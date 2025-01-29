@@ -11,7 +11,7 @@ import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 
 export default function About() {
   const { data: pageData, isLoading } = useQuery({
@@ -68,12 +68,12 @@ export default function About() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <AboutHeroSection content={getBlockContent('about_hero_section')} />
-      <AboutStory content={getBlockContent('about_story')} />
-      <AboutMission content={getBlockContent('about_mission')} />
-      <AboutSustainability content={getBlockContent('about_sustainability')} />
-      <AboutTeam content={getBlockContent('about_team')} />
-      <AboutCustomerImpact content={getBlockContent('about_customer_impact')} />
+      <AboutHeroSection content={getBlockContent('about_hero_section') as AboutHeroContent} />
+      <AboutStory content={getBlockContent('about_story') as AboutStoryContent} />
+      <AboutMission content={getBlockContent('about_mission') as AboutMissionContent} />
+      <AboutSustainability content={getBlockContent('about_sustainability') as AboutSustainabilityContent} />
+      <AboutTeam content={getBlockContent('about_team') as AboutTeamContent} />
+      <AboutCustomerImpact content={getBlockContent('about_customer_impact') as AboutCustomerImpactContent} />
       
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
