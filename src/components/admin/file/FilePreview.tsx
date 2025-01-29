@@ -11,7 +11,10 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 // Configure PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url,
+).toString();
 
 interface FilePreviewProps {
   fileName: string | null;
@@ -148,7 +151,7 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
       <DialogContent className="w-[95vw] max-w-4xl mx-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold break-words">
-            {fileName}
+            {fileName?.split('-').slice(1).join('-')}
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4 overflow-x-auto">

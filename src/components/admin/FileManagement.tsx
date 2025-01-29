@@ -46,14 +46,14 @@ export const FileManagement = () => {
             .from('file_shares')
             .select('created_by')
             .eq('file_path', file.name)
-            .single();
+            .maybeSingle();
 
           if (shareData?.created_by) {
             const { data: userData } = await supabase
               .from('profiles')
               .select('email, full_name')
               .eq('id', shareData.created_by)
-              .single();
+              .maybeSingle();
 
             return {
               ...file,
@@ -86,9 +86,12 @@ export const FileManagement = () => {
       for (const file of files) {
         console.log('Uploading file:', file.name);
 
+        const timestamp = Date.now();
+        const fileName = `${timestamp}-${file.name}`;
+
         const { error: uploadError } = await supabase.storage
           .from('files')
-          .upload(`${Date.now()}-${file.name}`, file);
+          .upload(fileName, file);
 
         if (uploadError) {
           console.error('Error uploading file:', uploadError);
@@ -100,7 +103,7 @@ export const FileManagement = () => {
         const { error: shareError } = await supabase
           .from('file_shares')
           .insert({
-            file_path: `${Date.now()}-${file.name}`,
+            file_path: fileName,
             access_level: 'view',
             share_token: crypto.randomUUID(),
             created_by: (await supabase.auth.getUser()).data.user?.id
@@ -129,15 +132,22 @@ export const FileManagement = () => {
       if (!files || files.length === 0) return;
 
       setUploading(true);
+      const timestamp = Date.now();
       
       // Handle folder upload
       for (const file of files) {
-        const relativePath = (file as any).webkitRelativePath || file.name;
+        const relativePath = (file as any).webkitRelativePath;
+        if (!relativePath) {
+          console.error('No relative path found for file:', file.name);
+          continue;
+        }
+
         console.log('Uploading file with path:', relativePath);
+        const fileName = `${timestamp}-${relativePath}`;
 
         const { error: uploadError } = await supabase.storage
           .from('files')
-          .upload(`${Date.now()}-${relativePath}`, file);
+          .upload(fileName, file);
 
         if (uploadError) {
           console.error('Error uploading file:', uploadError);
@@ -149,7 +159,7 @@ export const FileManagement = () => {
         const { error: shareError } = await supabase
           .from('file_shares')
           .insert({
-            file_path: `${Date.now()}-${relativePath}`,
+            file_path: fileName,
             access_level: 'view',
             share_token: crypto.randomUUID(),
             created_by: (await supabase.auth.getUser()).data.user?.id
@@ -177,22 +187,40 @@ export const FileManagement = () => {
     }
 
     try {
-      const { error } = await supabase
+      const timestamp = Date.now();
+      const folderPath = `${timestamp}-${newFolderName}/`;
+
+      // Create an empty file to represent the folder
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(folderPath + '.folder', new Blob([]));
+
+      if (uploadError) {
+        console.error('Error creating folder:', uploadError);
+        toast.error("Failed to create folder");
+        return;
+      }
+
+      const { error: folderError } = await supabase
         .from('folders')
         .insert({
           name: newFolderName,
-          path: `/${newFolderName}`,
+          path: folderPath,
           created_by: (await supabase.auth.getUser()).data.user?.id
         });
 
-      if (error) throw error;
+      if (folderError) {
+        console.error('Error saving folder metadata:', folderError);
+        toast.error("Failed to save folder metadata");
+        return;
+      }
 
       toast.success("Folder created successfully");
       setShowFolderDialog(false);
       setNewFolderName("");
       fetchFiles();
     } catch (error) {
-      console.error('Error creating folder:', error);
+      console.error('Error in handleCreateFolder:', error);
       toast.error("Failed to create folder");
     }
   };
@@ -271,7 +299,6 @@ export const FileManagement = () => {
                 className="hidden"
                 id="folder-upload"
                 disabled={uploading}
-                multiple
                 {...{ webkitdirectory: "", directory: "" } as any}
               />
               <Button
@@ -293,7 +320,15 @@ export const FileManagement = () => {
       <FileList
         files={files}
         selectedFiles={selectedFiles}
-        onFileSelect={handleFileSelect}
+        onFileSelect={(fileName, isSelected) => {
+          setSelectedFiles(prev => {
+            if (isSelected) {
+              return [...prev, fileName];
+            } else {
+              return prev.filter(name => name !== fileName);
+            }
+          });
+        }}
         onFileDownload={async (fileName) => {
           try {
             console.log('Downloading file:', fileName);
