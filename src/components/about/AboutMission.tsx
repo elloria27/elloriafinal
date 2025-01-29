@@ -7,23 +7,38 @@ interface AboutMissionProps {
 }
 
 export const AboutMission = ({ content = {} }: AboutMissionProps) => {
-  const values = [
+  const defaultValues = [
     {
-      icon: <Leaf className="w-8 h-8" />,
+      icon: 'Leaf',
       title: "Sustainability",
       description: "72% recyclable materials and eco-friendly production processes that protect our planet."
     },
     {
-      icon: <Star className="w-8 h-8" />,
+      icon: 'Star',
       title: "Innovation",
       description: "Advanced absorption technology for unmatched comfort and protection."
     },
     {
-      icon: <Heart className="w-8 h-8" />,
+      icon: 'Heart',
       title: "Empowerment",
       description: "Dedicated to improving women's lives and health globally through better care."
     }
   ];
+
+  const values = content?.values || defaultValues;
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'Leaf':
+        return <Leaf className="w-8 h-8" />;
+      case 'Star':
+        return <Star className="w-8 h-8" />;
+      case 'Heart':
+        return <Heart className="w-8 h-8" />;
+      default:
+        return <Heart className="w-8 h-8" />;
+    }
+  };
 
   return (
     <section className="py-20 bg-white">
@@ -35,9 +50,9 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Our Mission & Values</h2>
+          <h2 className="text-4xl font-bold mb-4">{content?.title || "Our Mission & Values"}</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
-            We're committed to creating innovative solutions that prioritize both women's comfort and environmental sustainability.
+            {content?.description || "We're committed to creating innovative solutions that prioritize both women's comfort and environmental sustainability."}
           </p>
         </motion.div>
 
@@ -53,7 +68,7 @@ export const AboutMission = ({ content = {} }: AboutMissionProps) => {
             >
               <div className="flex justify-center mb-6">
                 <div className="text-primary">
-                  {value.icon}
+                  {getIconComponent(value.icon)}
                 </div>
               </div>
               <h3 className="text-2xl font-bold mb-4">{value.title}</h3>

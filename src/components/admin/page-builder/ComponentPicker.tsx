@@ -13,7 +13,10 @@ import {
   Mail,
   ShoppingBag,
   Newspaper,
-  Store
+  Store,
+  Heart,
+  Leaf,
+  Users
 } from "lucide-react";
 
 export interface ComponentPickerProps {
@@ -34,7 +37,13 @@ const components = [
   { type: 'newsletter' as BlockType, icon: Mail, label: 'Newsletter' },
   { type: 'product_gallery' as BlockType, icon: ShoppingBag, label: 'Product Gallery' },
   { type: 'blog_preview' as BlockType, icon: Newspaper, label: 'Blog Preview' },
-  { type: 'store_brands' as BlockType, icon: Store, label: 'Store Brands' }
+  { type: 'store_brands' as BlockType, icon: Store, label: 'Store Brands' },
+  { type: 'about_hero_section' as BlockType, icon: LayoutTemplate, label: 'About Hero Section' },
+  { type: 'about_story' as BlockType, icon: Type, label: 'About Story' },
+  { type: 'about_mission' as BlockType, icon: Heart, label: 'About Mission' },
+  { type: 'about_sustainability' as BlockType, icon: Leaf, label: 'About Sustainability' },
+  { type: 'about_team' as BlockType, icon: Users, label: 'About Team' },
+  { type: 'about_customer_impact' as BlockType, icon: MessageSquareQuote, label: 'About Customer Impact' }
 ];
 
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
