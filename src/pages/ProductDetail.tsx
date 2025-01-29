@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Header } from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
 import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
@@ -16,6 +15,7 @@ import { Features } from "@/components/Features";
 const ProductDetailContent = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
@@ -24,24 +24,32 @@ const ProductDetailContent = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-      if (error) {
-        console.error('Error fetching product:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching product:', error);
+          setLoading(false);
+          return;
+        }
 
-      if (data) {
-        const parsedProduct = parseProduct(data);
-        console.log('Parsed product media:', parsedProduct.media);
-        setProduct(parsedProduct);
+        if (data) {
+          const parsedProduct = parseProduct(data);
+          console.log('Parsed product media:', parsedProduct.media);
+          setProduct(parsedProduct);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error("Error:", error);
+        setLoading(false);
       }
     };
 
+    setLoading(true);
     fetchProduct();
   }, [id]);
 
@@ -70,7 +78,15 @@ const ProductDetailContent = () => {
     });
   };
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!product && !loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <motion.div 
