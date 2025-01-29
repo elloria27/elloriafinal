@@ -7,14 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 export const Footer = () => {
   const { publishedPages, isLoading } = usePages();
   const location = useLocation();
-  const [products, setProducts] = useState<{ name: string }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       console.log('Fetching products for footer...');
       const { data, error } = await supabase
         .from('products')
-        .select('name')
+        .select('id, name')
         .order('name');
 
       if (error) {
@@ -80,10 +80,13 @@ export const Footer = () => {
             <h4 className="font-semibold text-gray-900">Products</h4>
             <ul className="space-y-2 text-center md:text-left">
               {products.map((product) => (
-                <li key={product.name}>
-                  <a href="#" className="text-gray-600 hover:text-primary transition-colors">
+                <li key={product.id}>
+                  <Link 
+                    to={`/product/${product.id}`}
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
                     {product.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
