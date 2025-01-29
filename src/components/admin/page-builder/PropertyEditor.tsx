@@ -1133,6 +1133,480 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
           </div>
         );
 
+      case 'about_hero_section':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter hero title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter hero subtitle"
+              />
+            </div>
+            <div>
+              <Label>Background Image URL</Label>
+              <Input
+                value={getContentValue('backgroundImage')}
+                onChange={(e) => handleChange('backgroundImage', e.target.value)}
+                placeholder="Enter background image URL"
+              />
+            </div>
+          </div>
+        );
+
+      case 'about_story':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter story title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter story subtitle"
+              />
+            </div>
+            <div>
+              <Label>Content</Label>
+              <Textarea
+                value={getContentValue('content')}
+                onChange={(e) => handleChange('content', e.target.value)}
+                placeholder="Enter story content"
+              />
+            </div>
+            <div>
+              <Label>Image URL</Label>
+              <Input
+                value={getContentValue('image')}
+                onChange={(e) => handleChange('image', e.target.value)}
+                placeholder="Enter image URL"
+              />
+            </div>
+          </div>
+        );
+
+      case 'about_mission':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter mission title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter mission description"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Values</Label>
+                <Button 
+                  onClick={() => {
+                    const currentValues = content.values || [];
+                    handleChange('values', [...currentValues, {
+                      title: "New Value",
+                      description: "Value description",
+                      icon: "Heart"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Value
+                </Button>
+              </div>
+              
+              {(content.values || []).map((value: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Value {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newValues = [...(content.values || [])];
+                        newValues.splice(index, 1);
+                        handleChange('values', newValues);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Title</Label>
+                    <Input
+                      value={value.title}
+                      onChange={(e) => {
+                        const newValues = [...(content.values || [])];
+                        newValues[index] = { ...newValues[index], title: e.target.value };
+                        handleChange('values', newValues);
+                      }}
+                      placeholder="Enter value title"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={value.description}
+                      onChange={(e) => {
+                        const newValues = [...(content.values || [])];
+                        newValues[index] = { ...newValues[index], description: e.target.value };
+                        handleChange('values', newValues);
+                      }}
+                      placeholder="Enter value description"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Icon</Label>
+                    <Select
+                      value={value.icon}
+                      onValueChange={(newValue) => {
+                        const newValues = [...(content.values || [])];
+                        newValues[index] = { ...newValues[index], icon: newValue };
+                        handleChange('values', newValues);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select icon" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Heart', 'Shield', 'Star', 'Sun', 'Moon'].map((icon) => (
+                          <SelectItem key={icon} value={icon}>
+                            {icon}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'about_sustainability':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Stats</Label>
+                <Button 
+                  onClick={() => {
+                    const currentStats = content.stats || [];
+                    handleChange('stats', [...currentStats, {
+                      value: "New Stat",
+                      label: "Stat description"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Stat
+                </Button>
+              </div>
+              
+              {(content.stats || []).map((stat: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Stat {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newStats = [...(content.stats || [])];
+                        newStats.splice(index, 1);
+                        handleChange('stats', newStats);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Value</Label>
+                    <Input
+                      value={stat.value}
+                      onChange={(e) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], value: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat value"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Label</Label>
+                    <Input
+                      value={stat.label}
+                      onChange={(e) => {
+                        const newStats = [...(content.stats || [])];
+                        newStats[index] = { ...newStats[index], label: e.target.value };
+                        handleChange('stats', newStats);
+                      }}
+                      placeholder="Enter stat label"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'about_team':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Subtitle</Label>
+              <Input
+                value={getContentValue('subtitle')}
+                onChange={(e) => handleChange('subtitle', e.target.value)}
+                placeholder="Enter section subtitle"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Team Members</Label>
+                <Button 
+                  onClick={() => {
+                    const currentMembers = content.members || [];
+                    handleChange('members', [...currentMembers, {
+                      name: "New Member",
+                      role: "Role",
+                      image: "",
+                      bio: ""
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Team Member
+                </Button>
+              </div>
+              
+              {(content.members || []).map((member: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Member {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newMembers = [...(content.members || [])];
+                        newMembers.splice(index, 1);
+                        handleChange('members', newMembers);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={member.name}
+                      onChange={(e) => {
+                        const newMembers = [...(content.members || [])];
+                        newMembers[index] = { ...newMembers[index], name: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Role</Label>
+                    <Input
+                      value={member.role}
+                      onChange={(e) => {
+                        const newMembers = [...(content.members || [])];
+                        newMembers[index] = { ...newMembers[index], role: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member role"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Image URL</Label>
+                    <Input
+                      value={member.image}
+                      onChange={(e) => {
+                        const newMembers = [...(content.members || [])];
+                        newMembers[index] = { ...newMembers[index], image: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member image URL"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea
+                      value={member.bio}
+                      onChange={(e) => {
+                        const newMembers = [...(content.members || [])];
+                        newMembers[index] = { ...newMembers[index], bio: e.target.value };
+                        handleChange('members', newMembers);
+                      }}
+                      placeholder="Enter member bio"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'about_customer_impact':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={getContentValue('title')}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Enter section title"
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={getContentValue('description')}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Enter section description"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Testimonials</Label>
+                <Button 
+                  onClick={() => {
+                    const currentTestimonials = content.testimonials || [];
+                    handleChange('testimonials', [...currentTestimonials, {
+                      quote: "New testimonial",
+                      author: "Customer name",
+                      location: "Location"
+                    }]);
+                  }} 
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+              </div>
+              
+              {(content.testimonials || []).map((testimonial: any, index: number) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <Label>Testimonial {index + 1}</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials.splice(index, 1);
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Quote</Label>
+                    <Textarea
+                      value={testimonial.quote}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], quote: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter testimonial quote"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Author</Label>
+                    <Input
+                      value={testimonial.author}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], author: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter author name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Location</Label>
+                    <Input
+                      value={testimonial.location}
+                      onChange={(e) => {
+                        const newTestimonials = [...(content.testimonials || [])];
+                        newTestimonials[index] = { ...newTestimonials[index], location: e.target.value };
+                        handleChange('testimonials', newTestimonials);
+                      }}
+                      placeholder="Enter author location"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-gray-500 italic">
@@ -1151,3 +1625,4 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
+
