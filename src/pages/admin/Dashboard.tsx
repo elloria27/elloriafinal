@@ -36,12 +36,25 @@ const Dashboard = () => {
         // Fetch only paid orders and calculate revenue
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount')
-          .eq('status', 'paid'); // Only include paid orders
+          .select('total_amount, status')
+          .eq('status', 'paid');
 
-        if (ordersError) throw ordersError;
+        if (ordersError) {
+          console.error('Error fetching orders:', ordersError);
+          throw ordersError;
+        }
+
+        console.log('Fetched orders:', orders);
         
-        const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+        const totalRevenue = orders?.reduce((sum, order) => {
+          // Ensure we're working with numbers
+          const amount = typeof order.total_amount === 'string' 
+            ? parseFloat(order.total_amount) 
+            : Number(order.total_amount);
+          return sum + amount;
+        }, 0) || 0;
+
+        console.log('Calculated revenue:', totalRevenue);
         
         // Fetch products count
         const { count: productsCount, error: productsError } = await supabase
@@ -52,7 +65,7 @@ const Dashboard = () => {
 
         console.log('Dashboard data fetched successfully:', {
           users: usersCount,
-          orders: orders?.length,
+          orders: orders?.length || 0,
           revenue: totalRevenue,
           products: productsCount
         });

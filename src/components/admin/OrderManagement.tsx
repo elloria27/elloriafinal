@@ -149,7 +149,7 @@ export const OrderManagement = () => {
             email
           )
         `)
-        .neq('status', 'pending') // Only fetch non-pending orders
+        .eq('status', 'paid') // Only fetch paid orders
         .order('created_at', { ascending: false });
 
       if (error) {
