@@ -1,19 +1,21 @@
 import { Route, Routes as RouterRoutes } from "react-router-dom";
-import { Index } from "@/pages/Index";
-import { Shop } from "@/pages/Shop";
-import { About } from "@/pages/About";
-import { Contact } from "@/pages/Contact";
-import { Blog } from "@/pages/Blog";
-import { BlogPost } from "@/pages/BlogPost";
-import { ProductDetail } from "@/pages/ProductDetail";
-import { Checkout } from "@/pages/Checkout";
-import { OrderSuccess } from "@/pages/OrderSuccess";
-import { Login } from "@/pages/Login";
-import { Register } from "@/pages/Register";
-import { Profile } from "@/pages/Profile";
-import { Admin } from "@/pages/Admin";
+import Index from "@/pages/Index";
+import Shop from "@/pages/Shop";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
+import ProductDetail from "@/pages/ProductDetail";
+import Checkout from "@/pages/Checkout";
+import OrderSuccess from "@/pages/OrderSuccess";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Profile from "@/pages/Profile";
+import Admin from "@/pages/Admin";
 
 export const Routes = () => {
+  console.log('Routes component rendering'); // Debug log
+  
   return (
     <RouterRoutes>
       <Route path="/" element={<Index />} />
