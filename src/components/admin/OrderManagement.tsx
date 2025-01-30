@@ -43,7 +43,6 @@ const formatCurrency = (amount: number) => {
 
 const getPaymentStatusBadge = (order: OrderData) => {
   const method = order.payment_method || 'Not specified';
-  // Changed from 'success' to 'default' as it's an allowed variant
   const variant = order.stripe_session_id ? 'default' : 'secondary';
   return <Badge variant={variant}>{method}</Badge>;
 };
@@ -63,8 +62,6 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   }
   
   const typedAddress = address as Record<string, unknown>;
-  
-  console.log('Processing shipping address:', typedAddress);
   
   return {
     address: String(typedAddress.address || ''),
@@ -94,12 +91,13 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       };
     }
 
+    const typedItem = item as Record<string, unknown>;
     return {
-      id: String(item.id || ''),
-      name: String(item.name || 'Unknown Product'),
-      quantity: Number(item.quantity || 0),
-      price: Number(item.price || 0),
-      image: item.image ? String(item.image) : undefined,
+      id: String(typedItem.id || ''),
+      name: String(typedItem.name || 'Unknown Product'),
+      quantity: Number(typedItem.quantity || 0),
+      price: Number(typedItem.price || 0),
+      image: typedItem.image ? String(typedItem.image) : undefined,
     };
   });
 };
@@ -125,7 +123,6 @@ export const OrderManagement = () => {
         return;
       }
 
-      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId ? { ...order, status: newStatus } : order
@@ -164,26 +161,22 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      if (!ordersData || ordersData.length === 0) {
-        console.log("No orders found");
-        setOrders([]);
-        return;
-      }
-
       const validatedOrders: OrderData[] = [];
 
-      for (const order of ordersData) {
+      for (const order of ordersData || []) {
         try {
-          console.log('Processing order:', order.order_number);
+          console.log('Processing order:', order);
           
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
 
+          // Get customer name from shipping address if not a registered user
           const customerName = order.profiles?.full_name || 
             `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 
             'Guest';
           
+          // Get customer email from shipping address if not a registered user
           const customerEmail = order.profiles?.email || 
             shippingAddress.email || 
             'N/A';
@@ -193,7 +186,7 @@ export const OrderManagement = () => {
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
-            total_amount: order.total_amount,
+            total_amount: Number(order.total_amount) || 0,
             status: order.status as OrderStatus,
             shipping_address: shippingAddress,
             billing_address: billingAddress,
@@ -207,11 +200,10 @@ export const OrderManagement = () => {
             }
           };
 
+          console.log('Validated order:', validatedOrder);
           validatedOrders.push(validatedOrder);
-          console.log('Successfully validated order:', order.order_number);
         } catch (error) {
           console.error("Error processing order:", error, order);
-          toast.error(`Error processing order ${order.order_number}`);
         }
       }
 
