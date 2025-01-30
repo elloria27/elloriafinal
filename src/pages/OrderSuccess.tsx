@@ -1,17 +1,25 @@
 import { CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/contexts/CartContext";
 
 const OrderSuccess = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
+  const { clearCart } = useCart();
 
   useEffect(() => {
+    // Check if cart needs to be cleared (after Stripe payment)
+    const pendingCartClear = localStorage.getItem('pending_cart_clear');
+    if (pendingCartClear === 'true') {
+      clearCart();
+      localStorage.removeItem('pending_cart_clear');
+    }
+
     // Check authentication status
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
@@ -23,7 +31,7 @@ const OrderSuccess = () => {
       const orderDetails = JSON.parse(lastOrder);
       setGuestEmail(orderDetails.customerDetails?.email || "");
     }
-  }, []);
+  }, [clearCart]);
 
   const handleAuthRedirect = () => {
     // Store email in localStorage for auto-fill
