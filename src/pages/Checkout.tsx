@@ -14,7 +14,8 @@ import { sendOrderEmails } from "@/utils/emailService";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
-  US_TAX_RATES,
+  US_TAX_RATES, 
+  SHIPPING_OPTIONS,
   USD_TO_CAD 
 } from "@/utils/locationData";
 
@@ -30,7 +31,6 @@ const Checkout = () => {
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [paymentMethods, setPaymentMethods] = useState<any>(null);
-  const [deliveryMethods, setDeliveryMethods] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,29 +53,9 @@ const Checkout = () => {
 
     // Fetch payment methods configuration
     fetchPaymentMethods();
-    // Fetch delivery methods
-    fetchDeliveryMethods();
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchDeliveryMethods = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('delivery_methods')
-        .select('*')
-        .eq('is_active', true)
-        .order('base_price', { ascending: true });
-
-      if (error) throw error;
-
-      console.log('Fetched delivery methods:', data);
-      setDeliveryMethods(data || []);
-    } catch (error) {
-      console.error('Error fetching delivery methods:', error);
-      toast.error('Failed to load delivery methods');
-    }
-  };
 
   const fetchPaymentMethods = async () => {
     const { data, error } = await supabase
@@ -152,14 +132,7 @@ const Checkout = () => {
     };
   };
 
-  const shippingOptions = deliveryMethods.map(method => ({
-    id: method.id,
-    name: method.name,
-    price: method.base_price,
-    estimatedDays: method.estimated_days,
-    currency: country === "US" ? "USD" : "CAD"
-  }));
-
+  const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
 
   const taxes = calculateTaxes();
@@ -331,12 +304,12 @@ const Checkout = () => {
                 onFormChange={updateProfile}
               />
 
-              {country && shippingOptions.length > 0 && (
+              {country && (
                 <ShippingOptions
-                  shippingOptions={shippingOptions}
+                  shippingOptions={SHIPPING_OPTIONS[country] || []}
                   selectedShipping={selectedShipping}
                   setSelectedShipping={setSelectedShipping}
-                  currencySymbol={currencySymbol}
+                  currencySymbol={country === "US" ? "$" : "CAD $"}
                 />
               )}
 
