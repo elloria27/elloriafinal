@@ -4,7 +4,7 @@ import { WeatherWidget } from "@/components/admin/dashboard/WeatherWidget";
 import { AnalyticsWidget } from "@/components/admin/dashboard/AnalyticsWidget";
 import { Users, ShoppingCart, DollarSign, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface DashboardCounts {
   users: number;
@@ -13,13 +13,7 @@ interface DashboardCounts {
   products: number;
 }
 
-interface Order {
-  id: string;
-  total_amount: number;
-  applied_promo_code: {
-    discounted_amount: number;
-  } | null;
-}
+type Order = Tables<'orders'>;
 
 const Dashboard = () => {
   const [counts, setCounts] = useState<DashboardCounts>({
@@ -45,7 +39,7 @@ const Dashboard = () => {
         // Fetch only paid orders
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('id, total_amount, applied_promo_code')
+          .select('*')
           .eq('status', 'paid');
 
         if (ordersError) {
@@ -55,24 +49,9 @@ const Dashboard = () => {
 
         console.log('Fetched paid orders:', orders);
         
-        // Calculate total revenue considering promo codes
+        // Calculate total revenue from paid orders
         const totalRevenue = orders?.reduce((sum, order: Order) => {
-          if (order.applied_promo_code) {
-            // If there's a promo code, use the discounted amount
-            console.log('Order with promo code:', {
-              orderId: order.id,
-              promoCode: order.applied_promo_code,
-              discountedAmount: order.applied_promo_code.discounted_amount
-            });
-            return sum + (order.applied_promo_code.discounted_amount || 0);
-          } else {
-            // If no promo code, use the original total amount
-            console.log('Order without promo code:', {
-              orderId: order.id,
-              totalAmount: order.total_amount
-            });
-            return sum + (order.total_amount || 0);
-          }
+          return sum + (order.total_amount || 0);
         }, 0) || 0;
 
         console.log('Calculated total revenue:', totalRevenue);
