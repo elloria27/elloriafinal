@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables, Json } from "@/types";
+import { Tables, Json } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
@@ -157,3 +157,4 @@ export default function Invoices() {
     </div>
   );
 }
+

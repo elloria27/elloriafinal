@@ -4,7 +4,7 @@ import { WeatherWidget } from "@/components/admin/dashboard/WeatherWidget";
 import { AnalyticsWidget } from "@/components/admin/dashboard/AnalyticsWidget";
 import { Users, ShoppingCart, DollarSign, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Json, Tables } from "@/types";
+import type { Json } from "@/integrations/supabase/types";
 
 interface DashboardCounts {
   users: number;
