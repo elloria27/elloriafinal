@@ -18,26 +18,26 @@ export const BusinessContact = ({ content }: BusinessContactProps) => {
           className="max-w-2xl mx-auto text-center"
         >
           <h2 className="text-3xl font-bold mb-4">
-            {content.title || "For Business Inquiries"}
+            {typeof content.title === 'string' ? content.title : "For Business Inquiries"}
           </h2>
           <p className="text-gray-600 mb-6">
-            {content.description || "Interested in partnering with Elloria? We'd love to explore opportunities together."}
+            {typeof content.description === 'string' ? content.description : "Interested in partnering with Elloria? We'd love to explore opportunities together."}
           </p>
           
           <div className="space-y-4">
             <p className="text-gray-800">
               Email us at:{" "}
               <a
-                href={`mailto:${content.email || "business@elloria.ca"}`}
+                href={`mailto:${typeof content.email === 'string' ? content.email : "business@elloria.ca"}`}
                 className="text-primary hover:underline"
               >
-                {content.email || "business@elloria.ca"}
+                {typeof content.email === 'string' ? content.email : "business@elloria.ca"}
               </a>
             </p>
             
             <Button asChild>
-              <Link to={content.buttonLink || "/for-business"}>
-                {content.buttonText || "Learn More About Business Opportunities"}
+              <Link to={typeof content.buttonLink === 'string' ? content.buttonLink : "/for-business"}>
+                {typeof content.buttonText === 'string' ? content.buttonText : "Learn More About Business Opportunities"}
               </Link>
             </Button>
           </div>
