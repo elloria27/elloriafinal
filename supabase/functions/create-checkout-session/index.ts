@@ -114,21 +114,21 @@ serve(async (req) => {
       }
     }
 
-    // Calculate discount if promo code is present
+    // Handle promo code discount
     let discounts = [];
     if (activePromoCode) {
-      const discountAmount = activePromoCode.type === 'percentage'
-        ? Math.round((total * activePromoCode.value) / 100)
-        : activePromoCode.value;
-
-      discounts.push({
-        coupon: {
-          name: `Promo: ${activePromoCode.code}`,
-          amount_off: Math.round(discountAmount * 100),
-          currency: 'usd',
-          duration: 'once',
-        }
+      // Create a coupon
+      const coupon = await stripe.coupons.create({
+        name: `Promo: ${activePromoCode.code}`,
+        currency: 'usd',
+        ...(activePromoCode.type === 'percentage' 
+          ? { percent_off: activePromoCode.value }
+          : { amount_off: Math.round(activePromoCode.value * 100) }
+        ),
+        duration: 'once',
       });
+
+      discounts.push({ coupon: coupon.id });
     }
 
     console.log('Creating Stripe session with:', {
