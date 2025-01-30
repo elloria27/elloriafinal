@@ -24,7 +24,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
+  console.log("Validating shipping address:", address);
+  
   if (typeof address !== 'object' || !address) {
+    console.error("Invalid shipping address format - not an object:", address);
     throw new Error('Invalid shipping address format');
   }
   
@@ -36,10 +39,11 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     typeof typedAddress.country !== 'string' ||
     typeof typedAddress.phone !== 'string'
   ) {
+    console.error("Missing required shipping address fields:", typedAddress);
     throw new Error('Missing required shipping address fields');
   }
 
-  return {
+  const validatedAddress: ShippingAddress = {
     address: typedAddress.address,
     region: typedAddress.region,
     country: typedAddress.country,
@@ -48,14 +52,22 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
     email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
   };
+
+  console.log("Validated shipping address:", validatedAddress);
+  return validatedAddress;
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
+  console.log("Validating order items:", items);
+  
   if (!Array.isArray(items)) {
+    console.error("Items must be an array:", items);
     throw new Error('Items must be an array');
   }
 
-  return items.map(item => {
+  const validatedItems = items.map((item, index) => {
+    console.log(`Validating item ${index}:`, item);
+    
     if (
       typeof item !== 'object' ||
       !item ||
@@ -64,6 +76,7 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       typeof (item as any).quantity !== 'number' ||
       typeof (item as any).price !== 'number'
     ) {
+      console.error(`Invalid order item format at index ${index}:`, item);
       throw new Error('Invalid order item format');
     }
 
@@ -75,10 +88,16 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       image: (item as any).image,
     };
   });
+
+  console.log("Validated order items:", validatedItems);
+  return validatedItems;
 };
 
 const validateOrderStatus = (status: string): OrderStatus => {
+  console.log("Validating order status:", status);
+  
   if (!ORDER_STATUSES.includes(status as OrderStatus)) {
+    console.error(`Invalid order status: ${status}`);
     throw new Error(`Invalid order status: ${status}`);
   }
   return status as OrderStatus;
@@ -93,62 +112,70 @@ export const OrderManagement = () => {
 
   const fetchOrders = async () => {
     try {
-      console.log("Fetching orders...");
+      console.log("Starting to fetch orders...");
+      
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          profiles:profiles!left (
-            id,
-            full_name,
-            email
-          )
-        `)
+        .select("*, profiles(id, full_name, email)")
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching orders:", error);
+        console.error("Error fetching orders from Supabase:", error);
         toast.error("Failed to fetch orders");
         return;
       }
 
-      console.log("Raw orders data:", ordersData);
+      console.log("Raw orders data from Supabase:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
+      if (!ordersData) {
+        console.log("No orders data returned from Supabase");
+        setOrders([]);
+        return;
+      }
+
+      const validatedOrders: OrderData[] = ordersData.map((order, index) => {
+        console.log(`Processing order ${index}:`, order);
+        
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
+          const items = validateOrderItems(order.items);
+          const status = validateOrderStatus(order.status);
+
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
-            total_amount: order.total_amount,
-            status: validateOrderStatus(order.status),
+            total_amount: Number(order.total_amount),
+            status: status,
             shipping_address: shippingAddress,
-            billing_address: validateShippingAddress(order.billing_address),
-            items: validateOrderItems(order.items),
+            billing_address: billingAddress,
+            items: items,
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            profile: order.user_id ? {
-              full_name: order.profiles?.full_name || 'Guest',
-              email: order.profiles?.email || 'Anonymous Order'
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || 'Anonymous Order'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
+
+          console.log(`Successfully validated order ${index}:`, validatedOrder);
           return validatedOrder;
         } catch (error) {
-          console.error("Error validating order:", error, order);
+          console.error(`Error validating order ${index}:`, error, order);
           throw error;
         }
       });
 
-      console.log("Validated orders:", validatedOrders);
+      console.log("Final validated orders:", validatedOrders);
       setOrders(validatedOrders);
     } catch (error) {
-      console.error("Error in fetchOrders:", error);
+      console.error("Unexpected error in fetchOrders:", error);
       toast.error("An unexpected error occurred while fetching orders");
     } finally {
       setLoading(false);
