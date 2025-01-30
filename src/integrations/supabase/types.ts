@@ -982,6 +982,10 @@ export type Database = {
   }
 }
 
+type PublicSchema = Database["public"]
+
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+
 export interface ShippingMethod {
   id: string;
   name: string;
