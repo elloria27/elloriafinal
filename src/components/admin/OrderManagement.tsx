@@ -1,4 +1,3 @@
-<lov-code>
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -187,9 +186,121 @@ export const OrderManagement = () => {
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      console.log("Starting order status update:", { orderId, newStatus });
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error("No active session found");
-        toast.error("You must be logged in to update orders
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error("Error updating order status:", error);
+        toast.error("Failed to update order status");
+        return;
+      }
+
+      toast.success("Order status updated successfully");
+      fetchOrders();
+    } catch (error) {
+      console.error("Error in handleStatusUpdate:", error);
+      toast.error("An unexpected error occurred while updating order status");
+    }
+  };
+
+  if (loading) {
+    return <div>Loading orders...</div>;
+  }
+
+  return (
+    <div className="container mx-auto py-10">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Order Number</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Total Amount</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => (
+            <TableRow key={order.id}>
+              <TableCell>{order.order_number}</TableCell>
+              <TableCell>{order.profile.full_name}</TableCell>
+              <TableCell>
+                <Badge>{order.status}</Badge>
+              </TableCell>
+              <TableCell>${order.total_amount}</TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setIsDetailsOpen(true);
+                  }}
+                >
+                  View Details
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        {selectedOrder && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Order Details - {selectedOrder.order_number}</DialogTitle>
+              <DialogDescription>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">Customer Information</h3>
+                    <p>Name: {selectedOrder.profile.full_name}</p>
+                    <p>Email: {selectedOrder.profile.email}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Order Status</h3>
+                    <select
+                      value={selectedOrder.status}
+                      onChange={(e) => handleStatusUpdate(selectedOrder.id, e.target.value as OrderStatus)}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    >
+                      {ORDER_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Items</h3>
+                    {selectedOrder.items.map((item) => (
+                      <div key={item.id} className="flex justify-between py-2">
+                        <span>{item.name}</span>
+                        <span>
+                          {item.quantity} x ${item.price}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Total Amount</h3>
+                    <p>${selectedOrder.total_amount}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Shipping Address</h3>
+                    <p>{selectedOrder.shipping_address.address}</p>
+                    <p>
+                      {selectedOrder.shipping_address.region}, {selectedOrder.shipping_address.country}
+                    </p>
+                    <p>Phone: {selectedOrder.shipping_address.phone}</p>
+                  </div>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        )}
+      </Dialog>
+    </div>
+  );
+};
