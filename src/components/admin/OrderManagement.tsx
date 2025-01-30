@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -88,6 +89,7 @@ export const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const fetchOrders = async () => {
     try {
@@ -168,16 +170,31 @@ export const OrderManagement = () => {
         return;
       }
 
-      console.log("Current user session:", session.user.id);
-      
+      // Find the current order to preserve payment information
+      const currentOrder = orders.find(order => order.id === orderId);
+      if (!currentOrder) {
+        console.error("Order not found");
+        toast.error("Order not found");
+        return;
+      }
+
       // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          // Preserve existing payment information
+          payment_method: currentOrder.payment_method,
+          stripe_session_id: currentOrder.stripe_session_id
+        })
         .eq("id", orderId)
         .select(`
           *,
-          profile:profiles(full_name, email)
+          profiles:profiles!left(
+            id,
+            full_name,
+            email
+          )
         `)
         .single();
 
@@ -201,7 +218,9 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
-        profile: updatedOrder.profile || undefined
+        payment_method: updatedOrder.payment_method,
+        stripe_session_id: updatedOrder.stripe_session_id,
+        profile: updatedOrder.profiles || undefined
       };
 
       // Update the orders state
@@ -216,17 +235,22 @@ export const OrderManagement = () => {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification using Supabase Edge Function
+      // Send email notification
       try {
         console.log("Attempting to send email notification");
-        if (validatedOrder.profile?.email) {
-          console.log("Sending email to:", validatedOrder.profile.email);
+        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
+        const customerName = validatedOrder.profile?.full_name || 
+          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
+          'Valued Customer';
+
+        if (customerEmail) {
+          console.log("Sending email to:", customerEmail);
           const { data: emailData, error: emailError } = await supabase.functions.invoke(
             'send-order-status-email',
             {
               body: {
-                customerEmail: validatedOrder.profile.email,
-                customerName: validatedOrder.profile.full_name || 'Valued Customer',
+                customerEmail,
+                customerName,
                 orderId: validatedOrder.id,
                 orderNumber: validatedOrder.order_number,
                 newStatus: validatedOrder.status
@@ -275,13 +299,27 @@ export const OrderManagement = () => {
   };
 
   const getPaymentStatusBadge = (order: OrderData) => {
+    const baseClasses = "whitespace-nowrap text-xs px-2 py-1 rounded-full font-medium";
+    
     if (order.stripe_session_id) {
-      return <Badge className="bg-green-500">Paid with Stripe</Badge>;
+      return (
+        <Badge className={`${baseClasses} bg-green-500 text-white`}>
+          {isMobile ? "Stripe" : "Paid with Stripe"}
+        </Badge>
+      );
     }
     if (order.payment_method === 'cash_on_delivery') {
-      return <Badge className="bg-yellow-500">Cash on Delivery</Badge>;
+      return (
+        <Badge className={`${baseClasses} bg-yellow-500 text-white`}>
+          {isMobile ? "Cash" : "Cash on Delivery"}
+        </Badge>
+      );
     }
-    return <Badge className="bg-gray-500">Payment Pending</Badge>;
+    return (
+      <Badge className={`${baseClasses} bg-gray-500 text-white`}>
+        {isMobile ? "Pending" : "Payment Pending"}
+      </Badge>
+    );
   };
 
   if (loading) {
