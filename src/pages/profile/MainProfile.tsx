@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { MainProfileContent } from "@/components/profile/MainProfileContent";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Tables } from "@/integrations/supabase/types";
+import { Tables } from "@/types";
 
 type Profile = Tables<"profiles">;
 

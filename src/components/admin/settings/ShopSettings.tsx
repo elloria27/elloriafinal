@@ -8,9 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
-import type { Json } from "@/integrations/supabase/types";
-import type { PaymentMethods, StripeSettings, ShippingMethod, ShippingMethods } from "@/integrations/supabase/types";
+import type { Tables, PaymentMethods, StripeSettings, ShippingMethod, ShippingMethods } from "@/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
 
@@ -436,3 +434,4 @@ export const ShopSettings = () => {
 };
 
 export default ShopSettings;
+
