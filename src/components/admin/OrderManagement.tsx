@@ -21,7 +21,13 @@ import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/orde
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
 
-type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"] & {
+  profiles?: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+  } | null;
+};
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -173,7 +179,6 @@ export const OrderManagement = () => {
 
       console.log("Current user session:", session.user.id);
       
-      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ status: newStatus })
@@ -192,7 +197,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -207,19 +211,16 @@ export const OrderManagement = () => {
         profile: updatedOrder.profile || undefined
       };
 
-      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
-      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification using Supabase Edge Function
       try {
         console.log("Attempting to send email notification");
         if (validatedOrder.profile?.email) {
