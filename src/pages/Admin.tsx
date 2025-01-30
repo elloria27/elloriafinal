@@ -10,6 +10,7 @@ import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
+import { ShopSettings } from "@/components/admin/settings/ShopSettings";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -123,6 +124,8 @@ const Admin = () => {
         return <MediaLibrary />;
       case "settings":
         return <SiteSettings />;
+      case "shop-settings":
+        return <ShopSettings />;
       case "promo-codes":
         return <PromoCodeManagement />;
       default:

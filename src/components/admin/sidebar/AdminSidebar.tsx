@@ -18,7 +18,8 @@ import {
   LayoutDashboard,
   Image,
   Lock,
-  Tag
+  Tag,
+  Store
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,7 +52,8 @@ const sidebarItems: SidebarItem[] = [
     items: [
       { title: "Order Management", href: "/admin?tab=orders", icon: ShoppingCart },
       { title: "Product Management", href: "/admin?tab=products", icon: Package },
-      { title: "Promo Codes", href: "/admin?tab=promo-codes", icon: Tag }
+      { title: "Promo Codes", href: "/admin?tab=promo-codes", icon: Tag },
+      { title: "Shop Settings", href: "/admin?tab=shop-settings", icon: Store }
     ]
   },
   {
