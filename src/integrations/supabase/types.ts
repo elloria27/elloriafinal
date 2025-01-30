@@ -716,7 +716,9 @@ export type Database = {
           id: string
           max_order_amount: number | null
           min_order_amount: number | null
+          payment_methods: Json | null
           shipping_countries: string[] | null
+          stripe_settings: Json | null
           tax_rate: number | null
           updated_at: string
         }
@@ -727,7 +729,9 @@ export type Database = {
           id?: string
           max_order_amount?: number | null
           min_order_amount?: number | null
+          payment_methods?: Json | null
           shipping_countries?: string[] | null
+          stripe_settings?: Json | null
           tax_rate?: number | null
           updated_at?: string
         }
@@ -738,7 +742,9 @@ export type Database = {
           id?: string
           max_order_amount?: number | null
           min_order_amount?: number | null
+          payment_methods?: Json | null
           shipping_countries?: string[] | null
+          stripe_settings?: Json | null
           tax_rate?: number | null
           updated_at?: string
         }

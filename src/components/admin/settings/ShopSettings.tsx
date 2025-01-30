@@ -56,7 +56,9 @@ export const ShopSettings = () => {
           min_order_amount: settings.min_order_amount,
           max_order_amount: settings.max_order_amount,
           shipping_countries: settings.shipping_countries,
-          tax_rate: settings.tax_rate
+          tax_rate: settings.tax_rate,
+          payment_methods: settings.payment_methods,
+          stripe_settings: settings.stripe_settings
         })
         .eq('id', settings.id);
 
@@ -69,6 +71,20 @@ export const ShopSettings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handlePaymentMethodToggle = (method: 'stripe' | 'cash_on_delivery', enabled: boolean) => {
+    if (!settings) return;
+    
+    const updatedPaymentMethods = {
+      ...settings.payment_methods,
+      [method]: enabled
+    };
+    
+    setSettings({
+      ...settings,
+      payment_methods: updatedPaymentMethods
+    });
   };
 
   if (loading) {
@@ -175,6 +191,32 @@ export const ShopSettings = () => {
                 setSettings({ ...settings, tax_rate: Number(e.target.value) })
               }
             />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-medium">Payment Methods</h3>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="enable_stripe"
+                checked={settings.payment_methods?.stripe || false}
+                onCheckedChange={(checked) => 
+                  handlePaymentMethodToggle('stripe', checked)
+                }
+              />
+              <Label htmlFor="enable_stripe">Enable Stripe Payments</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="enable_cash_on_delivery"
+                checked={settings.payment_methods?.cash_on_delivery || false}
+                onCheckedChange={(checked) => 
+                  handlePaymentMethodToggle('cash_on_delivery', checked)
+                }
+              />
+              <Label htmlFor="enable_cash_on_delivery">Enable Cash on Delivery</Label>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -152,90 +152,114 @@ const Checkout = () => {
 
       console.log('Customer details:', customerDetails);
 
-      // Generate order number
-      const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
-      console.log('Generated order number:', orderNumber);
+      // Get shop settings to check payment method
+      const { data: shopSettings } = await supabase
+        .from('shop_settings')
+        .select('payment_methods')
+        .single();
 
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      
-      // Prepare order data
-      const orderData = {
-        user_id: userId || null,
-        profile_id: userId || null,
-        order_number: orderNumber,
-        total_amount: total,
-        status: 'pending',
-        items: items,
-        shipping_address: {
-          address: customerDetails.address,
-          country: customerDetails.country,
-          region: customerDetails.region,
-          phone: customerDetails.phone,
-          first_name: customerDetails.firstName,
-          last_name: customerDetails.lastName,
-          email: customerDetails.email
-        },
-        billing_address: {
-          address: customerDetails.address,
-          country: customerDetails.country,
-          region: customerDetails.region,
-          phone: customerDetails.phone,
-          first_name: customerDetails.firstName,
-          last_name: customerDetails.lastName,
-          email: customerDetails.email
+      if (shopSettings?.payment_methods?.stripe) {
+        // Handle Stripe payment
+        console.log('Processing Stripe payment...');
+        
+        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+          body: {
+            items,
+            customerDetails,
+            total
+          }
+        });
+
+        if (error) throw error;
+
+        // Redirect to Stripe Checkout
+        if (data.url) {
+          window.location.href = data.url;
+          return;
         }
-      };
-
-      console.log('Saving order to database:', orderData);
-
-      // Save order to Supabase
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData);
-
-      if (orderError) {
-        console.error('Error saving order:', orderError);
-        throw new Error('Failed to save order');
-      }
-
-      console.log('Order saved successfully');
-
-      // Send order confirmation email
-      console.log('Sending order confirmation email');
-      const emailResult = await sendOrderEmails({
-        customerEmail: customerDetails.email,
-        customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-        orderId: orderNumber,
-        items,
-        total,
-        shippingAddress: {
-          address: customerDetails.address,
-          region: customerDetails.region,
-          country: customerDetails.country
-        }
-      });
-
-      if (emailResult.error) {
-        console.error('Error sending email:', emailResult.error);
-        // Don't throw error here, continue with order success
-        toast.error('Order placed but confirmation email failed to send');
       } else {
-        console.log('Email sent successfully');
+        // Handle cash on delivery
+        // Generate order number
+        const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+        console.log('Generated order number:', orderNumber);
+
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        
+        // Prepare order data
+        const orderData = {
+          user_id: userId || null,
+          profile_id: userId || null,
+          order_number: orderNumber,
+          total_amount: total,
+          status: 'pending',
+          items: items,
+          shipping_address: {
+            address: customerDetails.address,
+            country: customerDetails.country,
+            region: customerDetails.region,
+            phone: customerDetails.phone,
+            first_name: customerDetails.firstName,
+            last_name: customerDetails.lastName,
+            email: customerDetails.email
+          },
+          billing_address: {
+            address: customerDetails.address,
+            country: customerDetails.country,
+            region: customerDetails.region,
+            phone: customerDetails.phone,
+            first_name: customerDetails.firstName,
+            last_name: customerDetails.lastName,
+            email: customerDetails.email
+          }
+        };
+
+        console.log('Saving order to database:', orderData);
+
+        // Save order to Supabase
+        const { error: orderError } = await supabase
+          .from('orders')
+          .insert(orderData);
+
+        if (orderError) throw orderError;
+
+        console.log('Order saved successfully');
+
+        // Send order confirmation email
+        console.log('Sending order confirmation email');
+        const emailResult = await sendOrderEmails({
+          customerEmail: customerDetails.email,
+          customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+          orderId: orderNumber,
+          items,
+          total,
+          shippingAddress: {
+            address: customerDetails.address,
+            region: customerDetails.region,
+            country: customerDetails.country
+          }
+        });
+
+        if (emailResult.error) {
+          console.error('Error sending email:', emailResult.error);
+          toast.error('Order placed but confirmation email failed to send');
+        } else {
+          console.log('Email sent successfully');
+        }
+
+        // Store order details and redirect
+        localStorage.setItem('lastOrder', JSON.stringify({
+          orderNumber,
+          customerDetails,
+          items,
+          total,
+          shipping: selectedShippingOption
+        }));
+
+        clearCart();
+        navigate("/order-success");
       }
-
-      // Store order details and redirect
-      localStorage.setItem('lastOrder', JSON.stringify({
-        orderNumber,
-        customerDetails,
-        items,
-        total,
-        shipping: selectedShippingOption
-      }));
-
-      clearCart();
-      navigate("/order-success");
     } catch (error: any) {
       console.error('Error processing order:', error);
       toast.error(error.message || "There was an error processing your order. Please try again.");
