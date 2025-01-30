@@ -149,6 +149,7 @@ export const OrderManagement = () => {
             email
           )
         `)
+        .neq('status', 'pending') // Only fetch non-pending orders
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -218,9 +219,26 @@ export const OrderManagement = () => {
 
       console.log("Current user session:", session.user.id);
       
+      // First get the current order to preserve payment_method
+      const { data: currentOrder, error: fetchError } = await supabase
+        .from("orders")
+        .select("payment_method")
+        .eq("id", orderId)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching current order:", fetchError);
+        toast.error("Failed to update order status");
+        return;
+      }
+
+      // Update order while preserving payment_method
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          payment_method: currentOrder.payment_method // Preserve the original payment method
+        })
         .eq("id", orderId)
         .select(`
           *,
@@ -247,8 +265,10 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
+        payment_method: updatedOrder.payment_method,
+        stripe_session_id: updatedOrder.stripe_session_id,
         profile: updatedOrder.profile || undefined,
-        applied_promo_code: updatedOrder.applied_promo_code
+        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
       };
 
       setOrders(prevOrders => 
