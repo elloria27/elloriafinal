@@ -64,6 +64,8 @@ export const LanguageSelector = () => {
         return "English";
       case "fr":
         return "Français";
+      case "es":
+        return "Español";
       case "uk":
         return "Українська";
       default:

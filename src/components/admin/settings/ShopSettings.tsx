@@ -109,7 +109,7 @@ export const ShopSettings = () => {
       name: "New Shipping Method",
       price: 0,
       currency: country === "US" ? "USD" : "CAD",
-      estimatedDays: "3-5 business days"
+      estimated_days: "3-5 business days"
     };
 
     setShippingMethods(prev => ({
@@ -300,8 +300,8 @@ export const ShopSettings = () => {
                 <div className="col-span-3">
                   <Label>Estimated Days</Label>
                   <Input
-                    value={method.estimatedDays}
-                    onChange={(e) => updateShippingMethod('US', method.id, 'estimatedDays', e.target.value)}
+                    value={method.estimated_days}
+                    onChange={(e) => updateShippingMethod('US', method.id, 'estimated_days', e.target.value)}
                   />
                 </div>
                 <div className="col-span-1">
@@ -352,8 +352,8 @@ export const ShopSettings = () => {
                 <div className="col-span-3">
                   <Label>Estimated Days</Label>
                   <Input
-                    value={method.estimatedDays}
-                    onChange={(e) => updateShippingMethod('CA', method.id, 'estimatedDays', e.target.value)}
+                    value={method.estimated_days}
+                    onChange={(e) => updateShippingMethod('CA', method.id, 'estimated_days', e.target.value)}
                   />
                 </div>
                 <div className="col-span-1">
