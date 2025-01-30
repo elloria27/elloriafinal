@@ -8,6 +8,8 @@ import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { Routes } from "./Routes";
 
 function App() {
+  console.log('App component rendering'); // Debug log
+
   return (
     <BrowserRouter>
       <CartProvider>
@@ -15,7 +17,9 @@ function App() {
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">
           <Header />
-          <Routes />
+          <main className="flex-grow">
+            <Routes />
+          </main>
           <Footer />
         </div>
         <Toaster position="top-right" expand={true} richColors />
