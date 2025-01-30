@@ -26,25 +26,29 @@ const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'deli
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
+    console.error('Invalid shipping address format:', address);
     throw new Error('Invalid shipping address format');
   }
   
   const typedAddress = address as Record<string, unknown>;
   
-  if (
-    typeof typedAddress.address !== 'string' ||
-    typeof typedAddress.region !== 'string' ||
-    typeof typedAddress.country !== 'string' ||
-    typeof typedAddress.phone !== 'string'
-  ) {
-    throw new Error('Missing required shipping address fields');
+  // Log the address data for debugging
+  console.log('Validating shipping address:', typedAddress);
+  
+  // Check required fields
+  const requiredFields = ['address', 'region', 'country', 'phone'];
+  for (const field of requiredFields) {
+    if (typeof typedAddress[field] !== 'string') {
+      console.error(`Missing or invalid ${field} in shipping address:`, typedAddress[field]);
+      throw new Error(`Missing required shipping address field: ${field}`);
+    }
   }
 
   return {
-    address: typedAddress.address,
-    region: typedAddress.region,
-    country: typedAddress.country,
-    phone: typedAddress.phone,
+    address: typedAddress.address as string,
+    region: typedAddress.region as string,
+    country: typedAddress.country as string,
+    phone: typedAddress.phone as string,
     first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
     last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
     email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
@@ -53,10 +57,13 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
   if (!Array.isArray(items)) {
+    console.error('Items must be an array:', items);
     throw new Error('Items must be an array');
   }
 
-  return items.map(item => {
+  console.log('Validating order items:', items);
+
+  return items.map((item, index) => {
     if (
       typeof item !== 'object' ||
       !item ||
@@ -65,7 +72,8 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       typeof (item as any).quantity !== 'number' ||
       typeof (item as any).price !== 'number'
     ) {
-      throw new Error('Invalid order item format');
+      console.error(`Invalid order item at index ${index}:`, item);
+      throw new Error(`Invalid order item format at index ${index}`);
     }
 
     return {
@@ -80,6 +88,7 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
 
 const validateOrderStatus = (status: string): OrderStatus => {
   if (!ORDER_STATUSES.includes(status as OrderStatus)) {
+    console.error('Invalid order status:', status);
     throw new Error(`Invalid order status: ${status}`);
   }
   return status as OrderStatus;
@@ -124,37 +133,47 @@ export const OrderManagement = () => {
         return;
       }
 
-      const validatedOrders: OrderData[] = ordersData.map(order => {
+      const validatedOrders: OrderData[] = [];
+
+      for (const order of ordersData) {
         try {
+          console.log('Validating order:', order.order_number);
+          
+          // Validate shipping address
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
+          const items = validateOrderItems(order.items);
+          const status = validateOrderStatus(order.status);
+
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
             total_amount: order.total_amount,
-            status: validateOrderStatus(order.status),
+            status: status,
             shipping_address: shippingAddress,
-            billing_address: validateShippingAddress(order.billing_address),
-            items: validateOrderItems(order.items),
+            billing_address: billingAddress,
+            items: items,
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            profile: order.user_id ? {
-              full_name: order.profiles?.full_name || 'Guest',
-              email: order.profiles?.email || 'Anonymous Order'
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || 'Anonymous Order'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
-          return validatedOrder;
+
+          validatedOrders.push(validatedOrder);
+          console.log('Successfully validated order:', order.order_number);
         } catch (error) {
           console.error("Error validating order:", error, order);
-          toast.error(`Error validating order ${order.order_number}`);
-          return null;
+          toast.error(`Error validating order ${order.order_number}: ${error.message}`);
         }
-      }).filter((order): order is OrderData => order !== null);
+      }
 
       console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
