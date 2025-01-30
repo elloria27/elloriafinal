@@ -99,7 +99,8 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
     }
   };
 
-  const handleNavigate = () => {
+  const handleNavigate = (href: string) => {
+    navigate(href);
     if (onClose) {
       onClose();
     }
@@ -153,16 +154,12 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                           <Button
                             variant="ghost"
                             className="w-full justify-start"
-                            asChild
+                            onClick={() => handleNavigate(subItem.href)}
                           >
-                            <Link
-                              to={subItem.href}
-                              className="flex items-center gap-2"
-                              onClick={handleNavigate}
-                            >
+                            <span className="flex items-center gap-2">
                               <subItem.icon className="h-4 w-4" />
                               {subItem.title}
-                            </Link>
+                            </span>
                           </Button>
                         </li>
                       ))}
@@ -173,16 +170,12 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
-                  asChild
+                  onClick={() => handleNavigate(item.href!)}
                 >
-                  <Link
-                    to={item.href!}
-                    className="flex items-center gap-2"
-                    onClick={handleNavigate}
-                  >
+                  <span className="flex items-center gap-2">
                     <item.icon className="h-4 w-4" />
                     {item.title}
-                  </Link>
+                  </span>
                 </Button>
               )}
             </li>
@@ -203,4 +196,3 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
     </div>
   );
 };
-
