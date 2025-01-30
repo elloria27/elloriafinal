@@ -156,7 +156,8 @@ const Checkout = () => {
     id: method.id,
     name: method.name,
     price: method.base_price,
-    estimatedDays: method.estimated_days
+    estimatedDays: method.estimated_days,
+    currency: country === "US" ? "USD" : "CAD"
   }));
 
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
