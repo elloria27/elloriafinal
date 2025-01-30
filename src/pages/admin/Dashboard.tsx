@@ -12,11 +12,6 @@ interface DashboardCounts {
   products: number;
 }
 
-interface AppliedPromoCode {
-  final_amount: number;
-  [key: string]: any;
-}
-
 const Dashboard = () => {
   const [counts, setCounts] = useState<DashboardCounts>({
     users: 0,
@@ -38,10 +33,10 @@ const Dashboard = () => {
 
         if (usersError) throw usersError;
         
-        // Fetch only paid orders and calculate revenue
+        // Fetch only paid orders
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount, status, applied_promo_code')
+          .select('total_amount, applied_promo_code')
           .eq('status', 'paid');
 
         if (ordersError) {
@@ -51,14 +46,31 @@ const Dashboard = () => {
 
         console.log('Fetched paid orders:', orders);
         
+        // Calculate total revenue considering promo codes
         const totalRevenue = orders?.reduce((sum, order) => {
-          const promoCode = order.applied_promo_code as AppliedPromoCode | null;
-          // Get the final amount after any promo code discounts
-          const finalAmount = promoCode?.final_amount ?? order.total_amount;
-          return sum + Number(finalAmount);
+          if (order.applied_promo_code) {
+            // If there's a promo code, use the discounted amount
+            const promoCode = order.applied_promo_code as {
+              discounted_amount: number;
+            };
+            console.log('Order with promo code:', {
+              orderId: order.id,
+              promoCode,
+              discountedAmount: promoCode.discounted_amount
+            });
+            return sum + (promoCode.discounted_amount || 0);
+          } else {
+            // If no promo code, use the original total amount
+            console.log('Order without promo code:', {
+              orderId: order.id,
+              totalAmount: order.total_amount
+            });
+            return sum + (order.total_amount || 0);
+          }
         }, 0) || 0;
 
         console.log('Calculated total revenue:', totalRevenue);
+        console.log('Total number of paid orders:', orders?.length || 0);
         
         // Fetch products count
         const { count: productsCount, error: productsError } = await supabase
@@ -66,13 +78,6 @@ const Dashboard = () => {
           .select('*', { count: 'exact', head: true });
 
         if (productsError) throw productsError;
-
-        console.log('Dashboard data fetched successfully:', {
-          users: usersCount,
-          orders: orders?.length || 0,
-          revenue: totalRevenue,
-          products: productsCount
-        });
 
         setCounts({
           users: usersCount || 0,
@@ -91,7 +96,7 @@ const Dashboard = () => {
   }, []);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-CA', {
       style: 'currency',
       currency: 'CAD'
     }).format(amount);

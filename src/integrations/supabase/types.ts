@@ -6,53 +6,9 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          full_name: string | null
-          email: string | null
-          phone_number: string | null
-          address: string | null
-          country: string | null
-          region: string | null
-          email_notifications: boolean | null
-          marketing_emails: boolean | null
-          language: string | null
-          currency: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id: string
-          full_name?: string | null
-          email?: string | null
-          phone_number?: string | null
-          address?: string | null
-          country?: string | null
-          region?: string | null
-          email_notifications?: boolean | null
-          marketing_emails?: boolean | null
-          language?: string | null
-          currency?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          full_name?: string | null
-          email?: string | null
-          phone_number?: string | null
-          address?: string | null
-          country?: string | null
-          region?: string | null
-          email_notifications?: boolean | null
-          marketing_emails?: boolean | null
-          language?: string | null
-          currency?: string | null
-          updated_at?: string | null
-        }
-      }
       blog_categories: {
         Row: {
           created_at: string | null
@@ -269,7 +225,7 @@ export interface Database {
           expires_at?: string | null
           file_paths: string[]
           id?: string
-          share_token: string;
+          share_token: string
         }
         Update: {
           access_level?: string
@@ -278,7 +234,7 @@ export interface Database {
           expires_at?: string | null
           file_paths?: string[]
           id?: string
-          share_token?: string;
+          share_token?: string
         }
         Relationships: []
       }
@@ -385,7 +341,7 @@ export interface Database {
           file_path?: string
           folder_path?: string | null
           id?: string
-          share_token: string
+          share_token?: string
         }
         Relationships: []
       }
@@ -410,9 +366,9 @@ export interface Database {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          name: string
+          name?: string
           parent_path?: string | null
-          path: string
+          path?: string
         }
         Relationships: [
           {
@@ -465,7 +421,7 @@ export interface Database {
           payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
-          status: string
+          status?: string
           stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
@@ -588,8 +544,8 @@ export interface Database {
           parent_id?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
-          slug: string
-          title: string
+          slug?: string
+          title?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -641,6 +597,51 @@ export interface Database {
           specifications?: Json
           updated_at?: string | null
           why_choose_features?: Json | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          country: string | null
+          currency: string | null
+          email: string | null
+          email_notifications: boolean | null
+          full_name: string | null
+          id: string
+          language: string | null
+          marketing_emails: boolean | null
+          phone_number: string | null
+          region: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          country?: string | null
+          currency?: string | null
+          email?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
+          id: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          phone_number?: string | null
+          region?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          country?: string | null
+          currency?: string | null
+          email?: string | null
+          email_notifications?: boolean | null
+          full_name?: string | null
+          id?: string
+          language?: string | null
+          marketing_emails?: boolean | null
+          phone_number?: string | null
+          region?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -981,28 +982,99 @@ export interface Database {
   }
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
-export interface PaymentMethods {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-}
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
-export interface StripeSettings {
-  secret_key: string;
-  publishable_key: string;
-}
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
-export interface ShippingMethod {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-}
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
-export type ShippingMethods = Record<string, ShippingMethod[]>;
+export type Enums<
+  PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
 
-// Helper type for JSON data
-export type JsonValue = string | number | boolean | { [key: string]: JsonValue } | JsonValue[];
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
