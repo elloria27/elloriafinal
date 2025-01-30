@@ -286,11 +286,10 @@ export const OrderManagement = () => {
     });
   };
 
-  const formatCurrency = (amount: number, withCurrency = true) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'CAD',
-      currencyDisplay: withCurrency ? 'symbol' : 'none',
     }).format(amount);
   };
 
