@@ -67,7 +67,7 @@ export type Database = {
           id?: string
           post_id?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -192,7 +192,7 @@ export type Database = {
           created_at?: string | null
           hero_background_image?: string | null
           hero_subtitle?: string
-          hero_title: string
+          hero_title?: string
           id?: string
           instagram_profile_url?: string | null
           updated_at?: string | null
@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id: string
+          id?: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -686,7 +686,7 @@ export type Database = {
           max_uses?: number | null
           min_purchase_amount?: number | null
           start_date?: string | null
-          type: Database["public"]["Enums"]["promo_code_type"]
+          type?: Database["public"]["Enums"]["promo_code_type"]
           updated_at?: string | null
           uses_count?: number | null
           value?: number
@@ -730,7 +730,6 @@ export type Database = {
           shipping_methods: Json | null
           stripe_settings: Json | null
           tax_rate: number | null
-          tax_settings: Json | null
           updated_at: string
         }
         Insert: {
@@ -745,7 +744,6 @@ export type Database = {
           shipping_methods?: Json | null
           stripe_settings?: Json | null
           tax_rate?: number | null
-          tax_settings?: Json | null
           updated_at?: string
         }
         Update: {
@@ -760,7 +758,6 @@ export type Database = {
           shipping_methods?: Json | null
           stripe_settings?: Json | null
           tax_rate?: number | null
-          tax_settings?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -982,25 +979,47 @@ export type Database = {
   }
 }
 
-export interface ShippingMethod {
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type PaymentMethods = {
+  stripe: boolean;
+  cash_on_delivery: boolean;
+};
+
+export type StripeSettings = {
+  secret_key: string;
+  publishable_key: string;
+};
+
+export type ShippingMethod = {
   id: string;
   name: string;
   price: number;
   currency: string;
   estimatedDays: string;
-}
-
-export interface PaymentMethods {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-}
-
-export interface StripeSettings {
-  secret_key: string;
-  publishable_key: string;
-}
-
-export type Tables<
-  TableName extends keyof Database["public"]["Tables"],
-  Type extends "Row" | "Insert" | "Update" = "Row"
-> = Database["public"]["Tables"][TableName][Type];
+};

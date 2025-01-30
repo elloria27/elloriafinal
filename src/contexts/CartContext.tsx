@@ -197,11 +197,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const subtotal = items.reduce((sum, item) => {
-        const itemTotal = item.price * item.quantity;
-        return isNaN(itemTotal) ? sum : sum + itemTotal;
-      }, 0);
-
       if (subtotal < promoCode.min_purchase_amount) {
         toast.error(`Minimum purchase amount of $${promoCode.min_purchase_amount} required`);
         return;
@@ -210,11 +205,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Increment uses_count
       const { error: updateError } = await supabase
         .from('promo_codes')
-        .update({ 
-          uses_count: (promoCode.uses_count || 0) + 1,
-          type: promoCode.type, // adding required field type
-          value: promoCode.value // adding required field value
-        })
+        .update({ uses_count: promoCode.uses_count + 1 })
         .eq('id', promoCode.id);
 
       if (updateError) {
