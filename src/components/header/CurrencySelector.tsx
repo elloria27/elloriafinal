@@ -6,16 +6,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
-type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
+type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
 
 export const CurrencySelector = () => {
   const [currentCurrency, setCurrentCurrency] = useState<Database['public']['Enums']['supported_currency']>("USD");
 
   useEffect(() => {
-    const fetchSiteSettings = async () => {
+    const fetchShopSettings = async () => {
       try {
         const { data, error } = await supabase
-          .from('site_settings')
+          .from('shop_settings')
           .select('default_currency')
           .single();
 
@@ -26,12 +26,12 @@ export const CurrencySelector = () => {
           setCurrentCurrency(data.default_currency);
         }
       } catch (error) {
-        console.error('Error fetching site settings:', error);
+        console.error('Error fetching shop settings:', error);
         toast.error("Failed to load currency settings");
       }
     };
 
-    fetchSiteSettings();
+    fetchShopSettings();
 
     // Subscribe to realtime changes
     const channel = supabase
@@ -41,11 +41,11 @@ export const CurrencySelector = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'site_settings'
+          table: 'shop_settings'
         },
         (payload) => {
-          console.log('Site settings changed:', payload);
-          const newData = payload.new as SiteSettings;
+          console.log('Shop settings changed:', payload);
+          const newData = payload.new as ShopSettings;
           if (newData) {
             setCurrentCurrency(newData.default_currency);
           }

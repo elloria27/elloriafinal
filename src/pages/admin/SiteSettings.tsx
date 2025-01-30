@@ -18,7 +18,6 @@ type SiteSettings = {
   id: string;
   site_title: string;
   default_language: Database['public']['Enums']['supported_language'];
-  default_currency: Database['public']['Enums']['supported_currency'];
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
@@ -131,7 +130,6 @@ export default function SiteSettings() {
         .update({
           site_title: settings.site_title,
           default_language: settings.default_language,
-          default_currency: settings.default_currency,
           enable_registration: settings.enable_registration,
           enable_search_indexing: settings.enable_search_indexing,
           meta_description: settings.meta_description,
@@ -245,24 +243,6 @@ export default function SiteSettings() {
                     <SelectItem value="en">English</SelectItem>
                     <SelectItem value="fr">Français</SelectItem>
                     <SelectItem value="uk">Українська</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="default_currency">Default Currency</Label>
-                <Select 
-                  value={settings.default_currency}
-                  onValueChange={(value: 'USD' | 'EUR' | 'UAH' | 'CAD') => setSettings({ ...settings, default_currency: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="UAH">UAH (₴)</SelectItem>
-                    <SelectItem value="CAD">CAD ($)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
