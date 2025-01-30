@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id?: string
+          id: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -982,6 +982,9 @@ export type Database = {
   }
 }
 
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
+
 export interface PaymentMethods {
   stripe: boolean;
   cash_on_delivery: boolean;
@@ -999,3 +1002,5 @@ export interface ShippingMethod {
   currency: string;
   estimatedDays: string;
 }
+
+export type ShippingMethods = Record<string, ShippingMethod[]>;
