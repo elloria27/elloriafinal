@@ -149,7 +149,6 @@ export const OrderManagement = () => {
             email
           )
         `)
-        .eq('status', 'paid') // Only fetch paid orders
         .order('created_at', { ascending: false });
 
       if (error) {
