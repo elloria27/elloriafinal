@@ -63,7 +63,7 @@ export const CartSummary = ({
             <div className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-primary" />
               <span className="text-sm text-primary font-medium">
-                {activePromoCode.code} ({activePromoCode.discount}% OFF)
+                {activePromoCode.code} ({activePromoCode.type === 'percentage' ? `${activePromoCode.value}%` : `$${activePromoCode.value}`} OFF)
               </span>
             </div>
             <Button
@@ -88,7 +88,7 @@ export const CartSummary = ({
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Discount</span>
             <span className="text-primary font-medium">
-              -{formatPrice((subtotal * activePromoCode.discount) / 100)}
+              -{formatPrice(activePromoCode.type === 'percentage' ? (subtotal * activePromoCode.value / 100) : activePromoCode.value)}
             </span>
           </div>
         )}
