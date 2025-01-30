@@ -67,7 +67,7 @@ export type Database = {
           id?: string
           post_id?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -421,7 +421,7 @@ export type Database = {
           payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
-          status: string
+          status?: string
           stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id: string
+          id?: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -991,7 +991,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -1003,10 +1003,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
@@ -1024,10 +1024,10 @@ export type TablesInsert<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
 
 export type TablesUpdate<
@@ -1045,10 +1045,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+        Update: infer U
+      }
+      ? U
+      : never
     : never
 
 export type Enums<
@@ -1078,26 +1078,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export type ShippingMethod = {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-};
-
-export type ShippingMethods = {
-  CA: ShippingMethod[];
-  US: ShippingMethod[];
-};
-
-export type PaymentMethods = {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-};
-
-export type StripeSettings = {
-  secret_key: string;
-  publishable_key: string;
-};

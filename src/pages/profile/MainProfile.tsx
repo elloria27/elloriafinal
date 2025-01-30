@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tables } from "@/integrations/supabase/types";
 
-type Profile = Tables<"profiles">;
+type Profile = Tables<"profiles", "Row">;
 
 export default function MainProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
