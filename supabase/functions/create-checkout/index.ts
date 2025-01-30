@@ -22,8 +22,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Get user data from the request
     const { data } = await req.json();
-    const { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost, userId, profileId } = data;
+    const { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } = data;
 
     console.log('Creating checkout session with data:', {
       items,
@@ -31,10 +32,42 @@ serve(async (req) => {
       taxes,
       activePromoCode,
       shippingAddress,
-      shippingCost,
-      userId,
-      profileId
+      shippingCost
     });
+
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    let userProfile = null;
+
+    if (authHeader) {
+      // Extract the token
+      const token = authHeader.replace('Bearer ', '');
+      
+      // Get user data
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+      }
+
+      if (user) {
+        userId = user.id;
+        
+        // Fetch user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          userProfile = profileData;
+        }
+      }
+    }
 
     // Generate a unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -72,7 +105,7 @@ serve(async (req) => {
           description: item.description,
           images: [item.image],
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
       tax_rates: [taxRate.id],
@@ -100,10 +133,8 @@ serve(async (req) => {
       
       let coupon;
       try {
-        // Try to retrieve existing coupon
         coupon = await stripe.coupons.retrieve(activePromoCode.code);
       } catch {
-        // Create new coupon if it doesn't exist
         const couponData = {
           name: activePromoCode.code,
           id: activePromoCode.code,
@@ -131,8 +162,8 @@ serve(async (req) => {
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userId || null,
-        profile_id: profileId || null,
+        user_id: userId,
+        profile_id: userId,
         order_number: orderNumber,
         total_amount: total,
         status: 'pending',
@@ -161,12 +192,11 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       currency: 'cad',
-      automatic_tax: {
-        enabled: false, // We're manually specifying tax rates
-      },
+      customer_email: userProfile?.email || shippingAddress.email,
       metadata: {
         order_id: order.id,
         order_number: orderNumber,
+        user_id: userId,
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
       },
@@ -180,7 +210,6 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Error updating order with Stripe session:', updateError);
-      // Continue anyway as the order is created
     }
 
     console.log('Checkout session created:', session.id);
