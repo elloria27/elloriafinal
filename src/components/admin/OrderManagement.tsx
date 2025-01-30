@@ -24,6 +24,29 @@ import { RefreshCw } from "lucide-react";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
+// Utility functions
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
+
+const getPaymentStatusBadge = (order: OrderData) => {
+  const method = order.payment_method || 'Not specified';
+  const variant = order.stripe_session_id ? 'success' : 'secondary';
+  return <Badge variant={variant}>{method}</Badge>;
+};
+
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
     console.error('Invalid shipping address format:', address);
@@ -42,7 +65,6 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   console.log('Processing shipping address:', typedAddress);
   
-  // Return validated address with all fields, using empty strings as fallbacks
   return {
     address: String(typedAddress.address || ''),
     region: String(typedAddress.region || ''),
@@ -81,95 +103,6 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
   });
 };
 
-const fetchOrders = async () => {
-  try {
-    console.log("Fetching orders...");
-    setRefreshing(true);
-    
-    const { data: ordersData, error } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        profiles:profiles!left (
-          id,
-          full_name,
-          email
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching orders:", error);
-      toast.error("Failed to fetch orders");
-      return;
-    }
-
-    console.log("Raw orders data:", ordersData);
-
-    if (!ordersData || ordersData.length === 0) {
-      console.log("No orders found");
-      setOrders([]);
-      return;
-    }
-
-    const validatedOrders: OrderData[] = [];
-
-    for (const order of ordersData) {
-      try {
-        console.log('Processing order:', order.order_number);
-        
-        const shippingAddress = validateShippingAddress(order.shipping_address);
-        const billingAddress = validateShippingAddress(order.billing_address);
-        const items = validateOrderItems(order.items);
-
-        // Get customer name from shipping address if not a registered user
-        const customerName = order.profiles?.full_name || 
-          `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 
-          'Guest';
-        
-        // Get customer email from shipping address if not a registered user
-        const customerEmail = order.profiles?.email || 
-          shippingAddress.email || 
-          'N/A';
-
-        const validatedOrder: OrderData = {
-          id: order.id,
-          user_id: order.user_id,
-          profile_id: order.profile_id,
-          order_number: order.order_number,
-          total_amount: order.total_amount,
-          status: order.status as OrderStatus,
-          shipping_address: shippingAddress,
-          billing_address: billingAddress,
-          items: items,
-          created_at: order.created_at,
-          payment_method: order.payment_method || 'Not specified',
-          stripe_session_id: order.stripe_session_id,
-          profile: {
-            full_name: customerName,
-            email: customerEmail
-          }
-        };
-
-        validatedOrders.push(validatedOrder);
-        console.log('Successfully validated order:', order.order_number);
-      } catch (error) {
-        console.error("Error processing order:", error, order);
-        toast.error(`Error processing order ${order.order_number}`);
-      }
-    }
-
-    console.log("Validated orders:", validatedOrders);
-    setOrders(validatedOrders);
-  } catch (error) {
-    console.error("Error in fetchOrders:", error);
-    toast.error("An unexpected error occurred while fetching orders");
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,6 +110,120 @@ export const OrderManagement = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const isMobile = useIsMobile();
+
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error updating order status:', error);
+        toast.error('Failed to update order status');
+        return;
+      }
+
+      // Update local state
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+
+      toast.success('Order status updated successfully');
+    } catch (error) {
+      console.error('Error in handleStatusUpdate:', error);
+      toast.error('An unexpected error occurred');
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      console.log("Fetching orders...");
+      setRefreshing(true);
+      
+      const { data: ordersData, error } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          profiles:profiles!left (
+            id,
+            full_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching orders:", error);
+        toast.error("Failed to fetch orders");
+        return;
+      }
+
+      console.log("Raw orders data:", ordersData);
+
+      if (!ordersData || ordersData.length === 0) {
+        console.log("No orders found");
+        setOrders([]);
+        return;
+      }
+
+      const validatedOrders: OrderData[] = [];
+
+      for (const order of ordersData) {
+        try {
+          console.log('Processing order:', order.order_number);
+          
+          const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
+          const items = validateOrderItems(order.items);
+
+          const customerName = order.profiles?.full_name || 
+            `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 
+            'Guest';
+          
+          const customerEmail = order.profiles?.email || 
+            shippingAddress.email || 
+            'N/A';
+
+          const validatedOrder: OrderData = {
+            id: order.id,
+            user_id: order.user_id,
+            profile_id: order.profile_id,
+            order_number: order.order_number,
+            total_amount: order.total_amount,
+            status: order.status as OrderStatus,
+            shipping_address: shippingAddress,
+            billing_address: billingAddress,
+            items: items,
+            created_at: order.created_at,
+            payment_method: order.payment_method || 'Not specified',
+            stripe_session_id: order.stripe_session_id,
+            profile: {
+              full_name: customerName,
+              email: customerEmail
+            }
+          };
+
+          validatedOrders.push(validatedOrder);
+          console.log('Successfully validated order:', order.order_number);
+        } catch (error) {
+          console.error("Error processing order:", error, order);
+          toast.error(`Error processing order ${order.order_number}`);
+        }
+      }
+
+      console.log("Validated orders:", validatedOrders);
+      setOrders(validatedOrders);
+    } catch (error) {
+      console.error("Error in fetchOrders:", error);
+      toast.error("An unexpected error occurred while fetching orders");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
