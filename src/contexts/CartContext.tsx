@@ -34,7 +34,6 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'elloria_cart';
-const PROMO_CODE_STORAGE_KEY = 'elloria_promo_code';
 const CART_EXPIRY_DAYS = 7;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -57,40 +56,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(null);
   const [isCartAnimating, setIsCartAnimating] = useState(false);
-
-  // Load saved promo code on mount
-  useEffect(() => {
-    const loadSavedPromoCode = async () => {
-      const savedPromoCode = localStorage.getItem(PROMO_CODE_STORAGE_KEY);
-      if (savedPromoCode) {
-        try {
-          const promoCode = JSON.parse(savedPromoCode);
-          // Verify the promo code is still valid
-          const { data: validPromoCode, error } = await supabase
-            .from('promo_codes')
-            .select('*')
-            .eq('code', promoCode.code)
-            .eq('is_active', true)
-            .single();
-
-          if (validPromoCode) {
-            const now = new Date();
-            if ((!validPromoCode.end_date || new Date(validPromoCode.end_date) > now) &&
-                (!validPromoCode.max_uses || validPromoCode.uses_count < validPromoCode.max_uses)) {
-              setActivePromoCode(validPromoCode);
-            } else {
-              localStorage.removeItem(PROMO_CODE_STORAGE_KEY);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading saved promo code:', error);
-          localStorage.removeItem(PROMO_CODE_STORAGE_KEY);
-        }
-      }
-    };
-
-    loadSavedPromoCode();
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -155,7 +120,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
     setActivePromoCode(null);
     localStorage.removeItem(CART_STORAGE_KEY);
-    localStorage.removeItem(PROMO_CODE_STORAGE_KEY);
     toast.success('Cart cleared');
   };
 
@@ -215,8 +179,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
 
       setActivePromoCode(promoCode);
-      // Save promo code to localStorage
-      localStorage.setItem(PROMO_CODE_STORAGE_KEY, JSON.stringify(promoCode));
       toast.success('Promo code applied successfully!');
     } catch (error) {
       console.error('Error applying promo code:', error);
@@ -226,7 +188,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removePromoCode = () => {
     setActivePromoCode(null);
-    localStorage.removeItem(PROMO_CODE_STORAGE_KEY);
     toast.success('Promo code removed');
   };
 

@@ -1,4 +1,4 @@
-export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 export type ShippingAddress = {
   address: string;
@@ -23,14 +23,6 @@ export type OrderProfile = {
   email: string;
 };
 
-export type AppliedPromoCode = {
-  code: string;
-  type: 'percentage' | 'fixed';
-  value: number;
-  original_amount: number;
-  discounted_amount: number;
-};
-
 export type OrderData = {
   id: string;
   user_id: string | null;
@@ -43,7 +35,4 @@ export type OrderData = {
   items: OrderItem[];
   created_at: string;
   profile?: OrderProfile;
-  payment_method?: string;
-  stripe_session_id?: string;
-  applied_promo_code?: AppliedPromoCode | null;
 };

@@ -22,7 +22,7 @@ interface OrderItem {
   quantity: number;
 }
 
-const Invoices = () => {
+export default function Invoices() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -156,6 +156,4 @@ const Invoices = () => {
       </div>
     </div>
   );
-};
-
-export default Invoices;
+}

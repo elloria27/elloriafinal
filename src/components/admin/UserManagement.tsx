@@ -132,7 +132,6 @@ export const UserManagement = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
-        id: selectedUser.id,
         full_name: formData.get('full_name')?.toString() || '',
         phone_number: formData.get('phone_number')?.toString() || '',
         address: formData.get('address')?.toString() || '',

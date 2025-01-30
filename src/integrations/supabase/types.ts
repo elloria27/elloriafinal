@@ -382,47 +382,38 @@ export type Database = {
       }
       orders: {
         Row: {
-          applied_promo_code: Json | null
           billing_address: Json
           created_at: string | null
           id: string
           items: Json
           order_number: string
-          payment_method: string | null
           profile_id: string | null
           shipping_address: Json
           status: string
-          stripe_session_id: string | null
           total_amount: number
           user_id: string | null
         }
         Insert: {
-          applied_promo_code?: Json | null
           billing_address: Json
           created_at?: string | null
           id?: string
           items: Json
           order_number: string
-          payment_method?: string | null
           profile_id?: string | null
           shipping_address: Json
           status: string
-          stripe_session_id?: string | null
           total_amount: number
           user_id?: string | null
         }
         Update: {
-          applied_promo_code?: Json | null
           billing_address?: Json
           created_at?: string | null
           id?: string
           items?: Json
           order_number?: string
-          payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
           status?: string
-          stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
         }
@@ -717,59 +708,12 @@ export type Database = {
         }
         Relationships: []
       }
-      shop_settings: {
-        Row: {
-          created_at: string
-          default_currency: Database["public"]["Enums"]["supported_currency"]
-          enable_guest_checkout: boolean | null
-          id: string
-          max_order_amount: number | null
-          min_order_amount: number | null
-          payment_methods: Json | null
-          shipping_countries: string[] | null
-          shipping_methods: Json | null
-          stripe_settings: Json | null
-          tax_rate: number | null
-          tax_settings: Json | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
-          enable_guest_checkout?: boolean | null
-          id?: string
-          max_order_amount?: number | null
-          min_order_amount?: number | null
-          payment_methods?: Json | null
-          shipping_countries?: string[] | null
-          shipping_methods?: Json | null
-          stripe_settings?: Json | null
-          tax_rate?: number | null
-          tax_settings?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
-          enable_guest_checkout?: boolean | null
-          id?: string
-          max_order_amount?: number | null
-          min_order_amount?: number | null
-          payment_methods?: Json | null
-          shipping_countries?: string[] | null
-          shipping_methods?: Json | null
-          stripe_settings?: Json | null
-          tax_rate?: number | null
-          tax_settings?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       site_settings: {
         Row: {
           contact_email: string | null
           created_at: string
           custom_scripts: Json | null
+          default_currency: Database["public"]["Enums"]["supported_currency"]
           default_language: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent: boolean | null
           enable_https_redirect: boolean | null
@@ -791,6 +735,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
+          default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
@@ -812,6 +757,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
+          default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null

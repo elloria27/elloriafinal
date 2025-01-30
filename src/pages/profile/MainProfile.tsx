@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { MainProfileContent } from "@/components/profile/MainProfileContent";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Database } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type Profile = Tables<"profiles">;
 
-const MainProfile = () => {
+export default function MainProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
@@ -145,6 +145,4 @@ const MainProfile = () => {
       handleSave={handleSave}
     />
   );
-};
-
-export default MainProfile;
+}

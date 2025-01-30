@@ -3,9 +3,8 @@ import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
-import { Image, Video, Plus, Trash } from "lucide-react";
+import { Image, Video } from "lucide-react";
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -70,75 +69,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     </div>
   );
 
-  const renderFeaturesList = (features: any[] = [], updateKey: string) => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Label>Features</Label>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            const newFeature = {
-              icon: "Star",
-              title: "New Feature",
-              description: "Feature description",
-            };
-            handleChange(updateKey, [...features, newFeature]);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Feature
-        </Button>
-      </div>
-      {features.map((feature, index) => (
-        <div key={index} className="p-4 border rounded-lg space-y-4">
-          <div className="flex justify-between">
-            <Label>Feature {index + 1}</Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const updatedFeatures = features.filter((_, i) => i !== index);
-                handleChange(updateKey, updatedFeatures);
-              }}
-            >
-              <Trash className="h-4 w-4 text-red-500" />
-            </Button>
-          </div>
-          <Input
-            value={feature.title}
-            onChange={(e) => {
-              const updatedFeatures = [...features];
-              updatedFeatures[index] = { ...feature, title: e.target.value };
-              handleChange(updateKey, updatedFeatures);
-            }}
-            placeholder="Feature title"
-          />
-          <Input
-            value={feature.icon}
-            onChange={(e) => {
-              const updatedFeatures = [...features];
-              updatedFeatures[index] = { ...feature, icon: e.target.value };
-              handleChange(updateKey, updatedFeatures);
-            }}
-            placeholder="Feature icon"
-          />
-          <Textarea
-            value={feature.description}
-            onChange={(e) => {
-              const updatedFeatures = [...features];
-              updatedFeatures[index] = { ...feature, description: e.target.value };
-              handleChange(updateKey, updatedFeatures);
-            }}
-            placeholder="Feature description"
-          />
-        </div>
-      ))}
-    </div>
-  );
-
   switch (block.type) {
     case "hero":
       return (
@@ -148,7 +78,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Input
               value={block.content.title as string || ""}
               onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="Enter hero title"
             />
           </div>
           <div className="space-y-2">
@@ -156,7 +85,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Input
               value={block.content.subtitle as string || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
-              placeholder="Enter hero subtitle"
             />
           </div>
           {renderMediaField("Video", "videoUrl", "video")}
@@ -169,7 +97,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
         </div>
       );
 
-    case "features":
     case "game_changer":
       return (
         <div className="space-y-4">
@@ -180,14 +107,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label>Subtitle</Label>
-            <Input
-              value={block.content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          {renderFeaturesList(block.content.features as any[], "features")}
+          {renderMediaField("Image", "image", "image")}
           <MediaLibraryModal
             open={showMediaLibrary}
             onClose={() => setShowMediaLibrary(false)}
@@ -197,13 +117,127 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
         </div>
       );
 
-    // ... Add similar sections for other block types
-
-    default:
+    case "store_brands":
       return (
-        <div className="p-4 text-center text-gray-500">
-          Editor not implemented for this component type yet
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
         </div>
       );
+
+    case "sustainability":
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
+        </div>
+      );
+
+    case "product_carousel":
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
+        </div>
+      );
+
+    case "testimonials":
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
+        </div>
+      );
+
+    case "blog_preview":
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
+        </div>
+      );
+
+    case "newsletter":
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={block.content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          {renderMediaField("Image", "image", "image")}
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleMediaSelect}
+            type={mediaType}
+          />
+        </div>
+      );
+
+    default:
+      return null;
   }
 };

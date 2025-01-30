@@ -18,26 +18,8 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
-import { Badge } from "@/components/ui/badge";
-import { Database } from "@/integrations/supabase/types";
 
-type AppliedPromoCode = {
-  code: string;
-  type: 'percentage' | 'fixed';
-  value: number;
-  original_amount: number;
-  discounted_amount: number;
-};
-
-type OrderRow = Database["public"]["Tables"]["orders"]["Row"] & {
-  profiles?: {
-    id: string;
-    full_name: string | null;
-    email: string | null;
-  } | null;
-};
-
-const ORDER_STATUSES: OrderStatus[] = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
+const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
@@ -100,36 +82,6 @@ const validateOrderStatus = (status: string): OrderStatus => {
   return status as OrderStatus;
 };
 
-const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null => {
-  if (!promoCode) return null;
-  
-  if (typeof promoCode !== 'object' || promoCode === null) {
-    console.error('Invalid promo code format:', promoCode);
-    return null;
-  }
-
-  const typedPromoCode = promoCode as Record<string, unknown>;
-
-  if (
-    typeof typedPromoCode.code !== 'string' ||
-    (typedPromoCode.type !== 'percentage' && typedPromoCode.type !== 'fixed') ||
-    typeof typedPromoCode.value !== 'number' ||
-    typeof typedPromoCode.original_amount !== 'number' ||
-    typeof typedPromoCode.discounted_amount !== 'number'
-  ) {
-    console.error('Invalid promo code structure:', typedPromoCode);
-    return null;
-  }
-
-  return {
-    code: typedPromoCode.code,
-    type: typedPromoCode.type,
-    value: typedPromoCode.value,
-    original_amount: typedPromoCode.original_amount,
-    discounted_amount: typedPromoCode.discounted_amount,
-  };
-};
-
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,7 +111,7 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map((order: OrderRow) => {
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
@@ -173,16 +125,13 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            payment_method: order.payment_method || 'cash',
-            stripe_session_id: order.stripe_session_id,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || 'Anonymous Order'
+            profile: order.user_id ? {
+              full_name: order.profiles?.full_name || 'Guest',
+              email: order.profiles?.email || 'Anonymous Order'
             } : {
               full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
               email: shippingAddress.email || 'Anonymous Order'
-            },
-            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code)
+            }
           };
           return validatedOrder;
         } catch (error) {
@@ -218,26 +167,10 @@ export const OrderManagement = () => {
 
       console.log("Current user session:", session.user.id);
       
-      // First get the current order to preserve payment_method
-      const { data: currentOrder, error: fetchError } = await supabase
-        .from("orders")
-        .select("payment_method")
-        .eq("id", orderId)
-        .single();
-
-      if (fetchError) {
-        console.error("Error fetching current order:", fetchError);
-        toast.error("Failed to update order status");
-        return;
-      }
-
-      // Update order while preserving payment_method
+      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
-        .update({ 
-          status: newStatus,
-          payment_method: currentOrder.payment_method // Preserve the original payment method
-        })
+        .update({ status: newStatus })
         .eq("id", orderId)
         .select(`
           *,
@@ -253,6 +186,7 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
+      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -264,36 +198,32 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
-        payment_method: updatedOrder.payment_method,
-        stripe_session_id: updatedOrder.stripe_session_id,
-        profile: updatedOrder.profile || undefined,
-        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
+        profile: updatedOrder.profile || undefined
       };
 
+      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
+      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
+      // Send email notification using Supabase Edge Function
       try {
         console.log("Attempting to send email notification");
-        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
-        
-        if (customerEmail) {
-          console.log("Sending email to:", customerEmail);
+        if (validatedOrder.profile?.email) {
+          console.log("Sending email to:", validatedOrder.profile.email);
           const { data: emailData, error: emailError } = await supabase.functions.invoke(
             'send-order-status-email',
             {
               body: {
-                customerEmail,
-                customerName: validatedOrder.profile?.full_name || 
-                  `${validatedOrder.shipping_address.first_name} ${validatedOrder.shipping_address.last_name}`.trim() || 
-                  'Valued Customer',
+                customerEmail: validatedOrder.profile.email,
+                customerName: validatedOrder.profile.full_name || 'Valued Customer',
                 orderId: validatedOrder.id,
                 orderNumber: validatedOrder.order_number,
                 newStatus: validatedOrder.status
@@ -337,23 +267,8 @@ export const OrderManagement = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'CAD',
+      currency: 'USD'
     }).format(amount);
-  };
-
-  const getPaymentMethodDisplay = (order: OrderData) => {
-    if (order.stripe_session_id) {
-      return (
-        <Badge variant="secondary" className="bg-green-100 text-green-800">
-          Stripe
-        </Badge>
-      );
-    }
-    return (
-      <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-        Cash
-      </Badge>
-    );
   };
 
   if (loading) {
@@ -371,7 +286,6 @@ export const OrderManagement = () => {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Payment</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -401,22 +315,7 @@ export const OrderManagement = () => {
                   ))}
                 </select>
               </TableCell>
-              <TableCell>{getPaymentMethodDisplay(order)}</TableCell>
-              <TableCell>
-                {order.applied_promo_code ? (
-                  <div className="text-sm">
-                    <span className="line-through text-gray-500">
-                      {formatCurrency(order.applied_promo_code.original_amount)}
-                    </span>
-                    <br />
-                    <span className="text-green-600">
-                      {formatCurrency(order.applied_promo_code.discounted_amount)}
-                    </span>
-                  </div>
-                ) : (
-                  formatCurrency(order.total_amount)
-                )}
-              </TableCell>
+              <TableCell>{formatCurrency(order.total_amount)}</TableCell>
               <TableCell>
                 <Button
                   variant="outline"
@@ -449,22 +348,7 @@ export const OrderManagement = () => {
                   <p>Order Number: {selectedOrder.order_number}</p>
                   <p>Date: {formatDate(selectedOrder.created_at)}</p>
                   <p>Status: {selectedOrder.status}</p>
-                  <p>Payment Method: {selectedOrder.stripe_session_id ? 'Stripe' : 'Cash'}</p>
-                  {selectedOrder.applied_promo_code ? (
-                    <>
-                      <p className="mt-2 font-semibold">Applied Promo Code:</p>
-                      <p>Code: {selectedOrder.applied_promo_code.code}</p>
-                      <p>Discount: {
-                        selectedOrder.applied_promo_code.type === 'percentage'
-                          ? `${selectedOrder.applied_promo_code.value}%`
-                          : formatCurrency(selectedOrder.applied_promo_code.value)
-                      }</p>
-                      <p>Original Total: {formatCurrency(selectedOrder.applied_promo_code.original_amount)}</p>
-                      <p>Final Total: {formatCurrency(selectedOrder.applied_promo_code.discounted_amount)}</p>
-                    </>
-                  ) : (
-                    <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
-                  )}
+                  <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
