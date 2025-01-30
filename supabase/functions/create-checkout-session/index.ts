@@ -68,9 +68,11 @@ serve(async (req) => {
     // Calculate any discount from promo code
     let discountAmount = 0;
     if (activePromoCode) {
+      console.log('Calculating discount for promo code:', activePromoCode)
       discountAmount = activePromoCode.type === 'percentage'
         ? (total * activePromoCode.value) / 100
         : activePromoCode.value;
+      console.log('Calculated discount amount:', discountAmount)
     }
 
     // Create line items for Stripe
@@ -88,6 +90,7 @@ serve(async (req) => {
 
     // Add shipping as a line item if provided
     if (shippingOption) {
+      console.log('Adding shipping cost:', shippingOption.price)
       lineItems.push({
         price_data: {
           currency: 'usd',
@@ -109,6 +112,7 @@ serve(async (req) => {
       ) * total / 100
 
       if (totalTaxAmount > 0) {
+        console.log('Adding tax amount:', totalTaxAmount)
         lineItems.push({
           price_data: {
             currency: 'usd',
@@ -124,6 +128,7 @@ serve(async (req) => {
 
     // Add discount as a negative line item if there's an active promo code
     if (discountAmount > 0) {
+      console.log('Adding discount line item:', discountAmount)
       lineItems.push({
         price_data: {
           currency: 'usd',
@@ -176,7 +181,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 400, // Changed from 500 to 400 for client errors
       }
     )
   }
