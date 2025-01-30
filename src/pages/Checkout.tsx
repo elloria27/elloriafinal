@@ -168,7 +168,9 @@ const Checkout = () => {
           body: {
             items,
             customerDetails,
-            total
+            total: subtotalInCurrentCurrency,
+            taxes: calculateTaxes(),
+            shippingOption: selectedShippingOption
           }
         });
 

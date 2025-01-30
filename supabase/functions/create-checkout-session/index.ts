@@ -14,9 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { items, customerDetails, total } = await req.json()
+    const { items, customerDetails, total, taxes, shippingOption } = await req.json()
     
-    console.log('Creating checkout session with:', { items, customerDetails, total })
+    console.log('Creating checkout session with:', { 
+      items, 
+      customerDetails, 
+      total,
+      taxes,
+      shippingOption 
+    })
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -70,6 +76,42 @@ serve(async (req) => {
       },
       quantity: item.quantity,
     }))
+
+    // Add shipping as a line item if provided
+    if (shippingOption) {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Shipping (${shippingOption.name})`,
+          },
+          unit_amount: Math.round(shippingOption.price * 100),
+        },
+        quantity: 1,
+      })
+    }
+
+    // Add taxes as a line item if provided
+    if (taxes) {
+      const totalTaxAmount = (
+        (taxes.gst || 0) + 
+        (taxes.pst || 0) + 
+        (taxes.hst || 0)
+      ) * total / 100
+
+      if (totalTaxAmount > 0) {
+        lineItems.push({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Taxes',
+            },
+            unit_amount: Math.round(totalTaxAmount * 100),
+          },
+          quantity: 1,
+        })
+      }
+    }
 
     console.log('Creating Stripe session with line items:', lineItems)
 
