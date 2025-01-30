@@ -8,9 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import type { Database, PaymentMethods, StripeSettings, ShippingMethod, ShippingMethods } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
+import type { PaymentMethods, StripeSettings, ShippingMethod } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
+type ShippingMethods = Record<string, ShippingMethod[]>;
 
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
@@ -46,16 +48,19 @@ export const ShopSettings = () => {
       console.log('Shop settings loaded:', data);
       setSettings(data);
       
+      // Initialize shipping methods from settings if they exist
       if (data.shipping_methods) {
-        setShippingMethods(data.shipping_methods as ShippingMethods);
+        setShippingMethods(data.shipping_methods as ShippingMethods || { CA: [], US: [] });
       }
 
+      // Initialize payment methods
       if (data.payment_methods) {
-        setPaymentMethods(data.payment_methods as PaymentMethods);
+        setPaymentMethods(data.payment_methods as PaymentMethods || { stripe: false, cash_on_delivery: false });
       }
 
+      // Initialize stripe settings
       if (data.stripe_settings) {
-        setStripeSettings(data.stripe_settings as StripeSettings);
+        setStripeSettings(data.stripe_settings as StripeSettings || { secret_key: '', publishable_key: '' });
       }
     } catch (error) {
       console.error('Error loading shop settings:', error);
@@ -81,9 +86,9 @@ export const ShopSettings = () => {
           max_order_amount: settings.max_order_amount,
           shipping_countries: settings.shipping_countries,
           tax_rate: settings.tax_rate,
-          payment_methods: paymentMethods as unknown as Json,
-          stripe_settings: stripeSettings as unknown as Json,
-          shipping_methods: shippingMethods as unknown as Json
+          payment_methods: paymentMethods,
+          stripe_settings: stripeSettings,
+          shipping_methods: shippingMethods
         })
         .eq('id', settings.id);
 

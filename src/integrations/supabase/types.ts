@@ -6,9 +6,53 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          id: string
+          full_name: string | null
+          email: string | null
+          phone_number: string | null
+          address: string | null
+          country: string | null
+          region: string | null
+          email_notifications: boolean | null
+          marketing_emails: boolean | null
+          language: string | null
+          currency: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          full_name?: string | null
+          email?: string | null
+          phone_number?: string | null
+          address?: string | null
+          country?: string | null
+          region?: string | null
+          email_notifications?: boolean | null
+          marketing_emails?: boolean | null
+          language?: string | null
+          currency?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          full_name?: string | null
+          email?: string | null
+          phone_number?: string | null
+          address?: string | null
+          country?: string | null
+          region?: string | null
+          email_notifications?: boolean | null
+          marketing_emails?: boolean | null
+          language?: string | null
+          currency?: string | null
+          updated_at?: string | null
+        }
+      }
       blog_categories: {
         Row: {
           created_at: string | null
@@ -225,7 +269,7 @@ export type Database = {
           expires_at?: string | null
           file_paths: string[]
           id?: string
-          share_token: string
+          share_token: string;
         }
         Update: {
           access_level?: string
@@ -234,7 +278,7 @@ export type Database = {
           expires_at?: string | null
           file_paths?: string[]
           id?: string
-          share_token?: string
+          share_token?: string;
         }
         Relationships: []
       }
@@ -341,7 +385,7 @@ export type Database = {
           file_path?: string
           folder_path?: string | null
           id?: string
-          share_token?: string
+          share_token: string
         }
         Relationships: []
       }
@@ -368,7 +412,7 @@ export type Database = {
           id?: string
           name: string
           parent_path?: string | null
-          path?: string
+          path: string
         }
         Relationships: [
           {
@@ -421,7 +465,7 @@ export type Database = {
           payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
-          status?: string
+          status: string
           stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
@@ -544,8 +588,8 @@ export type Database = {
           parent_id?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
-          slug?: string
-          title?: string
+          slug: string
+          title: string
           updated_at?: string | null
         }
         Relationships: [
@@ -597,51 +641,6 @@ export type Database = {
           specifications?: Json
           updated_at?: string | null
           why_choose_features?: Json | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          address: string | null
-          country: string | null
-          currency: string | null
-          email: string | null
-          email_notifications: boolean | null
-          full_name: string | null
-          id: string
-          language: string | null
-          marketing_emails: boolean | null
-          phone_number: string | null
-          region: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          country?: string | null
-          currency?: string | null
-          email?: string | null
-          email_notifications?: boolean | null
-          full_name?: string | null
-          id: string
-          language?: string | null
-          marketing_emails?: boolean | null
-          phone_number?: string | null
-          region?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          country?: string | null
-          currency?: string | null
-          email?: string | null
-          email_notifications?: boolean | null
-          full_name?: string | null
-          id: string
-          language?: string | null
-          marketing_emails?: boolean | null
-          phone_number?: string | null
-          region?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1004,3 +1003,6 @@ export interface ShippingMethod {
 }
 
 export type ShippingMethods = Record<string, ShippingMethod[]>;
+
+// Helper type for JSON data
+export type JsonValue = string | number | boolean | { [key: string]: JsonValue } | JsonValue[];
