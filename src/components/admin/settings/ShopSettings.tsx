@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 import type { PaymentMethods, StripeSettings, ShippingMethod, ShippingMethods } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
