@@ -2,7 +2,7 @@ import { Tag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { PromoCode } from "@/contexts/CartContext";
+import type { PromoCode } from "@/types/promo-code";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CartSummaryProps {
