@@ -37,8 +37,6 @@ const CART_STORAGE_KEY = 'elloria_cart';
 const CART_EXPIRY_DAYS = 7;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  console.log('CartProvider initialized'); // Debug log
-
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === 'undefined') return [];
     
@@ -46,7 +44,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (savedCart) {
       try {
         const { items, expiryDate } = JSON.parse(savedCart);
-        console.log('Loaded saved cart:', items); // Debug log
         if (new Date().getTime() < expiryDate) {
           return items;
         }
@@ -69,7 +66,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       items,
       expiryDate: expiryDate.getTime()
     }));
-    console.log('Cart updated in localStorage:', items); // Debug log
   }, [items]);
 
   const addItem = (newItem: CartItem) => {
@@ -238,8 +234,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     isCartAnimating
   };
 
-  console.log('CartProvider rendering with value:', value); // Debug log
-
   return (
     <CartContext.Provider value={value}>
       {children}
@@ -250,8 +244,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    console.error('useCart must be used within a CartProvider'); // Debug log
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-};
+}

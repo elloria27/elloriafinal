@@ -9,7 +9,6 @@ import { Header } from "@/components/Header";
 import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
-import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 import { sendOrderEmails } from "@/utils/emailService";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -30,7 +29,6 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [paymentMethods, setPaymentMethods] = useState<any>(null);
 
   useEffect(() => {
     // Get initial session
@@ -52,28 +50,8 @@ const Checkout = () => {
       }
     });
 
-    // Fetch payment methods configuration
-    fetchPaymentMethods();
-
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchPaymentMethods = async () => {
-    const { data, error } = await supabase
-      .from('shop_settings')
-      .select('payment_methods')
-      .single();
-
-    if (error) {
-      console.error('Error fetching payment methods:', error);
-      return;
-    }
-
-    if (data) {
-      console.log('Payment methods fetched:', data.payment_methods);
-      setPaymentMethods(data.payment_methods);
-    }
-  };
 
   const fetchProfile = async (userId: string) => {
     console.log('Fetching profile for user:', userId);
@@ -157,11 +135,6 @@ const Checkout = () => {
       toast.error("Please select a shipping method");
       return;
     }
-
-    // If Stripe is enabled and selected as the payment method, don't process the order here
-    if (paymentMethods?.stripe) {
-      return;
-    }
     
     setIsSubmitting(true);
     
@@ -177,6 +150,9 @@ const Checkout = () => {
         region
       };
 
+      console.log('Customer details:', customerDetails);
+
+      // Generate order number
       const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
       console.log('Generated order number:', orderNumber);
 
@@ -260,7 +236,6 @@ const Checkout = () => {
 
       clearCart();
       navigate("/order-success");
-
     } catch (error: any) {
       console.error('Error processing order:', error);
       toast.error(error.message || "There was an error processing your order. Please try again.");
@@ -318,23 +293,13 @@ const Checkout = () => {
                 />
               )}
 
-              {paymentMethods?.stripe ? (
-                <StripeCheckout
-                  total={total}
-                  subtotal={subtotalInCurrentCurrency}
-                  taxes={taxes}
-                  shippingAddress={{ country, region }}
-                  shippingCost={shippingCost}
-                />
-              ) : (
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isSubmitting || !country || !region || !selectedShipping}
-                >
-                  {isSubmitting ? "Processing..." : "Place Order"}
-                </Button>
-              )}
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting || !country || !region || !selectedShipping}
+              >
+                {isSubmitting ? "Processing..." : "Place Order"}
+              </Button>
             </form>
           </motion.div>
           
