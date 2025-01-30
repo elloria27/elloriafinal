@@ -25,7 +25,7 @@ serve(async (req) => {
     console.log('Starting checkout session creation...');
     const { items, customerDetails, total, taxes, shippingOption, activePromoCode } = await req.json();
     
-    console.log('Request data:', { customerDetails, total, taxes, shippingOption });
+    console.log('Request data:', { customerDetails, total, taxes, shippingOption, activePromoCode });
 
     // Get user ID from auth header if it exists
     let userId = null;
@@ -60,7 +60,7 @@ serve(async (req) => {
 
     const lineItems = items.map((item: any) => ({
       price_data: {
-        currency: 'usd',
+        currency: 'cad', // Changed to CAD
         product_data: {
           name: item.name,
           images: item.image ? [item.image] : [],
@@ -74,7 +74,7 @@ serve(async (req) => {
     if (totalTaxAmount > 0) {
       lineItems.push({
         price_data: {
-          currency: 'usd',
+          currency: 'cad', // Changed to CAD
           product_data: {
             name: 'Taxes',
             description: `GST: ${taxes.gst}%, PST: ${taxes.pst}%, HST: ${taxes.hst}%`,
@@ -86,6 +86,7 @@ serve(async (req) => {
     }
 
     let discounts = [];
+    let appliedPromoCode = null;
     if (activePromoCode) {
       console.log('Processing promo code:', activePromoCode);
       const { data: promoData } = await supabase
@@ -95,10 +96,12 @@ serve(async (req) => {
         .single();
 
       if (promoData) {
+        appliedPromoCode = promoData;
         const coupon = await stripe.coupons.create({
           [promoData.type === 'percentage' ? 'percent_off' : 'amount_off']: 
             promoData.type === 'percentage' ? promoData.value : Math.round(promoData.value * 100),
           duration: 'once',
+          currency: promoData.type === 'fixed' ? 'cad' : undefined, // Only set currency for fixed amounts
         });
         discounts.push({ coupon: coupon.id });
       }
@@ -112,12 +115,13 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
+      currency: 'cad', // Set currency to CAD
       shipping_options: [{
         shipping_rate_data: {
           type: 'fixed_amount',
           fixed_amount: {
             amount: Math.round(shippingOption.price * 100),
-            currency: 'usd',
+            currency: 'cad', // Changed to CAD
           },
           display_name: shippingOption.name,
         },
@@ -134,7 +138,7 @@ serve(async (req) => {
     const orderData = {
       order_number: orderNumber,
       user_id: userId,
-      profile_id: userId, // Using the same ID for both since they match
+      profile_id: userId,
       total_amount: finalAmount,
       status: 'pending',
       items: items,
@@ -157,7 +161,16 @@ serve(async (req) => {
         region: customerDetails.region
       },
       payment_method: 'stripe',
-      stripe_session_id: session.id
+      stripe_session_id: session.id,
+      applied_promo_code: appliedPromoCode ? {
+        code: appliedPromoCode.code,
+        type: appliedPromoCode.type,
+        value: appliedPromoCode.value,
+        original_amount: finalAmount,
+        discounted_amount: appliedPromoCode.type === 'percentage' 
+          ? finalAmount * (1 - appliedPromoCode.value / 100)
+          : finalAmount - appliedPromoCode.value
+      } : null
     };
 
     console.log('Creating order in database:', orderData);
