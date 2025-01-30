@@ -45,6 +45,19 @@ serve(async (req) => {
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
     console.log('Generated order number:', orderNumber);
 
+    // Calculate tax amounts
+    const gstAmount = (total * (taxes.gst || 0)) / 100;
+    const pstAmount = (total * (taxes.pst || 0)) / 100;
+    const hstAmount = (total * (taxes.hst || 0)) / 100;
+    const totalTaxAmount = gstAmount + pstAmount + hstAmount;
+    
+    console.log('Tax calculations:', {
+      gstAmount,
+      pstAmount,
+      hstAmount,
+      totalTaxAmount
+    });
+
     const lineItems = items.map((item: any) => ({
       price_data: {
         currency: 'usd',
@@ -56,6 +69,21 @@ serve(async (req) => {
       },
       quantity: item.quantity,
     }));
+
+    // Add tax line item if there are taxes
+    if (totalTaxAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Taxes',
+            description: `GST: ${taxes.gst}%, PST: ${taxes.pst}%, HST: ${taxes.hst}%`,
+          },
+          unit_amount: Math.round(totalTaxAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
 
     let discounts = [];
     if (activePromoCode) {
@@ -75,6 +103,9 @@ serve(async (req) => {
         discounts.push({ coupon: coupon.id });
       }
     }
+
+    const finalAmount = total + totalTaxAmount + shippingOption.price;
+    console.log('Final amount with taxes and shipping:', finalAmount);
 
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
@@ -104,7 +135,7 @@ serve(async (req) => {
       order_number: orderNumber,
       user_id: userId,
       profile_id: userId, // Using the same ID for both since they match
-      total_amount: total,
+      total_amount: finalAmount,
       status: 'pending',
       items: items,
       shipping_address: {
