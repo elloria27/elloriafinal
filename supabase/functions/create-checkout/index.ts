@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,15 +15,8 @@ serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
-      httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Get user data from the request
     const { data } = await req.json();
     const { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } = data;
 
@@ -35,43 +28,6 @@ serve(async (req) => {
       shippingAddress,
       shippingCost
     });
-
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
-    let userProfile = null;
-
-    if (authHeader) {
-      // Extract the token
-      const token = authHeader.replace('Bearer ', '');
-      
-      // Get user data
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      
-      if (userError) {
-        console.error('Error getting user:', userError);
-      }
-
-      if (user) {
-        userId = user.id;
-        
-        // Fetch user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          userProfile = profileData;
-        }
-      }
-    }
-
-    // Generate a unique order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Calculate tax rates based on location
     const totalTaxRate = taxes.gst / 100;
@@ -106,7 +62,7 @@ serve(async (req) => {
           description: item.description,
           images: [item.image],
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round(item.price * 100), // Convert to cents
       },
       quantity: item.quantity,
       tax_rates: [taxRate.id],
@@ -134,8 +90,10 @@ serve(async (req) => {
       
       let coupon;
       try {
+        // Try to retrieve existing coupon
         coupon = await stripe.coupons.retrieve(activePromoCode.code);
       } catch {
+        // Create new coupon if it doesn't exist
         const couponData = {
           name: activePromoCode.code,
           id: activePromoCode.code,
@@ -159,59 +117,23 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    // First create the order in pending status
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        user_id: userId,
-        profile_id: userId,
-        order_number: orderNumber,
-        total_amount: total,
-        status: 'pending',
-        items: items,
-        shipping_address: shippingAddress,
-        billing_address: shippingAddress,
-        payment_method: 'stripe',
-        applied_promo_code: activePromoCode || null
-      })
-      .select()
-      .single();
-
-    if (orderError) {
-      console.error('Error creating order:', orderError);
-      throw new Error('Failed to create order');
-    }
-
-    console.log('Order created:', order);
-
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       discounts: discounts,
-      success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
+      success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       currency: 'cad',
-      customer_email: userProfile?.email || shippingAddress.email,
+      automatic_tax: {
+        enabled: false, // We're manually specifying tax rates
+      },
       metadata: {
-        order_id: order.id,
-        order_number: orderNumber,
-        user_id: userId,
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
       },
     });
-
-    // Update order with Stripe session ID
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({ stripe_session_id: session.id })
-      .eq('id', order.id);
-
-    if (updateError) {
-      console.error('Error updating order with Stripe session:', updateError);
-    }
 
     console.log('Checkout session created:', session.id);
 
