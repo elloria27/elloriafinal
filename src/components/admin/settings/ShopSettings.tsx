@@ -85,8 +85,8 @@ export const ShopSettings = () => {
           max_order_amount: settings.max_order_amount,
           shipping_countries: settings.shipping_countries,
           tax_rate: settings.tax_rate,
-          payment_methods: settings.payment_methods,
-          stripe_settings: settings.stripe_settings,
+          payment_methods: paymentMethods,
+          stripe_settings: stripeSettings,
           shipping_methods: shippingMethods
         })
         .eq('id', settings.id);
@@ -432,3 +432,6 @@ export const ShopSettings = () => {
       </Card>
     </div>
   );
+};
+
+export default ShopSettings;
