@@ -73,23 +73,26 @@ serve(async (req) => {
 
     console.log('Creating Stripe session with line items:', lineItems)
 
+    // Store minimal metadata that won't exceed the 500 character limit
+    const minimalMetadata = {
+      customer_email: customerDetails.email,
+      customer_name: `${customerDetails.firstName} ${customerDetails.lastName}`,
+      shipping_country: customerDetails.country,
+      shipping_region: customerDetails.region,
+      total_amount: total.toString()
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: customerDetails?.email,
+      customer_email: customerDetails.email,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
-      metadata: {
-        order_details: JSON.stringify({
-          items,
-          customerDetails,
-          total,
-        }),
-      },
+      metadata: minimalMetadata,
     })
 
     console.log('Checkout session created:', session.id)
