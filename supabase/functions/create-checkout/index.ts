@@ -7,37 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CartItem {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  quantity: number;
-  price: number;
-}
-
-interface CheckoutData {
-  items: CartItem[];
-  total: number;
-  subtotal: number;
-  taxes: {
-    gst: number;
-    pst: number;
-    hst: number;
-  };
-  activePromoCode: {
-    id: string;
-    code: string;
-    type: 'percentage' | 'fixed_amount';
-    value: number;
-  } | null;
-  shippingAddress: {
-    country: string;
-    region: string;
-  };
-  shippingCost: number;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -48,7 +17,7 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { data } = await req.json() as { data: CheckoutData };
+    const { data } = await req.json();
     const { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } = data;
 
     console.log('Creating checkout session with data:', {
@@ -56,7 +25,8 @@ serve(async (req) => {
       total,
       taxes,
       activePromoCode,
-      shippingAddress
+      shippingAddress,
+      shippingCost
     });
 
     // Calculate tax rates based on location
@@ -86,7 +56,7 @@ serve(async (req) => {
     // Create line items with tax rates
     const lineItems = items.map(item => ({
       price_data: {
-        currency: 'usd',
+        currency: 'cad',
         product_data: {
           name: item.name,
           description: item.description,
@@ -102,7 +72,7 @@ serve(async (req) => {
     if (shippingCost > 0) {
       lineItems.push({
         price_data: {
-          currency: 'usd',
+          currency: 'cad',
           product_data: {
             name: 'Shipping',
             description: 'Shipping cost',
@@ -138,7 +108,7 @@ serve(async (req) => {
         } else {
           Object.assign(couponData, {
             amount_off: Math.round(activePromoCode.value * 100),
-            currency: 'usd',
+            currency: 'cad',
           });
         }
 
@@ -156,6 +126,7 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
+      currency: 'cad',
       automatic_tax: {
         enabled: false, // We're manually specifying tax rates
       },

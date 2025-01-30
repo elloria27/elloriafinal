@@ -25,7 +25,7 @@ export const StripeCheckout = ({
   shippingAddress,
   shippingCost,
 }: StripeCheckoutProps) => {
-  const { items, activePromoCode } = useCart();
+  const { items, activePromoCode, clearCart } = useCart();
 
   const handleCheckout = async () => {
     try {
@@ -56,6 +56,8 @@ export const StripeCheckout = ({
 
       if (url) {
         console.log('Redirecting to Stripe checkout:', url);
+        // Store cart data in localStorage before redirect
+        localStorage.setItem('pending_cart_clear', 'true');
         window.location.href = url;
       }
     } catch (error) {
