@@ -117,7 +117,8 @@ const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null =
     typeof typedPromoCode.original_amount !== 'number' ||
     typeof typedPromoCode.discounted_amount !== 'number'
   ) {
-    throw new Error('Invalid promo code data structure');
+    console.error('Invalid promo code structure:', typedPromoCode);
+    return null;
   }
 
   return {
