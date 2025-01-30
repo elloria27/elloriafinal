@@ -49,7 +49,9 @@ const Dashboard = () => {
         const totalRevenue = orders?.reduce((sum, order) => {
           // If there's an applied promo code, use the discounted amount
           const orderAmount = order.applied_promo_code 
-            ? order.applied_promo_code.final_amount 
+            ? (typeof order.applied_promo_code === 'object' && order.applied_promo_code !== null
+                ? (order.applied_promo_code as { final_amount?: number }).final_amount || order.total_amount
+                : order.total_amount)
             : order.total_amount;
             
           // Ensure we're working with numbers

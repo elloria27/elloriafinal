@@ -9,26 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import type { PaymentMethods, StripeSettings, ShippingMethod } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
-
-interface PaymentMethods {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-}
-
-interface StripeSettings {
-  secret_key: string;
-  publishable_key: string;
-}
-
-interface ShippingMethod {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-}
 
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
@@ -37,6 +20,14 @@ export const ShopSettings = () => {
   const [shippingMethods, setShippingMethods] = useState<Record<string, ShippingMethod[]>>({
     CA: [],
     US: []
+  });
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethods>({
+    stripe: false,
+    cash_on_delivery: false
+  });
+  const [stripeSettings, setStripeSettings] = useState<StripeSettings>({
+    secret_key: '',
+    publishable_key: ''
   });
 
   useEffect(() => {
@@ -59,6 +50,16 @@ export const ShopSettings = () => {
       // Initialize shipping methods from settings if they exist
       if (data.shipping_methods) {
         setShippingMethods(data.shipping_methods as Record<string, ShippingMethod[]>);
+      }
+
+      // Initialize payment methods
+      if (data.payment_methods) {
+        setPaymentMethods(data.payment_methods as PaymentMethods);
+      }
+
+      // Initialize stripe settings
+      if (data.stripe_settings) {
+        setStripeSettings(data.stripe_settings as StripeSettings);
       }
     } catch (error) {
       console.error('Error loading shop settings:', error);
@@ -135,41 +136,17 @@ export const ShopSettings = () => {
   };
 
   const handlePaymentMethodToggle = (method: keyof PaymentMethods, enabled: boolean) => {
-    if (!settings) return;
-    
-    const currentMethods = (settings.payment_methods as unknown) as PaymentMethods || {
-      stripe: false,
-      cash_on_delivery: false
-    };
-    
-    const updatedPaymentMethods = {
-      ...currentMethods,
+    setPaymentMethods(prev => ({
+      ...prev,
       [method]: enabled
-    };
-    
-    setSettings({
-      ...settings,
-      payment_methods: updatedPaymentMethods
-    });
+    }));
   };
 
   const handleStripeSettingsChange = (key: keyof StripeSettings, value: string) => {
-    if (!settings) return;
-
-    const currentStripeSettings = (settings.stripe_settings as unknown) as StripeSettings || {
-      secret_key: '',
-      publishable_key: ''
-    };
-
-    const updatedStripeSettings = {
-      ...currentStripeSettings,
+    setStripeSettings(prev => ({
+      ...prev,
       [key]: value
-    };
-
-    setSettings({
-      ...settings,
-      stripe_settings: updatedStripeSettings
-    });
+    }));
   };
 
   if (loading) {
@@ -455,4 +432,3 @@ export const ShopSettings = () => {
       </Card>
     </div>
   );
-};
