@@ -145,14 +145,7 @@ export const OrderManagement = () => {
       
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          profiles:profiles!left (
-            id,
-            full_name,
-            email
-          )
-        `)
+        .select("*")
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -173,15 +166,11 @@ export const OrderManagement = () => {
           const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
 
-          // Get customer name from shipping address if not a registered user
-          const customerName = order.profiles?.full_name || 
-            `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 
-            'Guest';
+          // Get customer name from shipping address
+          const customerName = `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 'Guest';
           
-          // Get customer email from shipping address if not a registered user
-          const customerEmail = order.profiles?.email || 
-            shippingAddress.email || 
-            'N/A';
+          // Get customer email from shipping address
+          const customerEmail = shippingAddress.email || 'N/A';
 
           const validatedOrder: OrderData = {
             id: order.id,
