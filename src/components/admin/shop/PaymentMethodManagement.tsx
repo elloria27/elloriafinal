@@ -93,7 +93,7 @@ export const PaymentMethodManagement = () => {
             secret_key: stripeSecretKey
           }
         })
-        .eq('id', 1); // Assuming there's only one settings record
+        .eq('id', '1'); // Convert number to string to match expected type
 
       if (error) throw error;
       toast.success('Payment settings saved successfully');
