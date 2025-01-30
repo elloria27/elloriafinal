@@ -83,7 +83,7 @@ serve(async (req) => {
           name: item.name,
           images: [item.image],
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
+        unit_amount: Math.round(item.price * 100), // Convert to cents and ensure integer
       },
       quantity: item.quantity,
     }))
@@ -97,7 +97,7 @@ serve(async (req) => {
           product_data: {
             name: `Shipping (${shippingOption.name})`,
           },
-          unit_amount: Math.round(shippingOption.price * 100),
+          unit_amount: Math.round(shippingOption.price * 100), // Convert to cents and ensure integer
         },
         quantity: 1,
       })
@@ -119,7 +119,7 @@ serve(async (req) => {
             product_data: {
               name: 'Taxes',
             },
-            unit_amount: Math.round(totalTaxAmount * 100),
+            unit_amount: Math.round(totalTaxAmount * 100), // Convert to cents and ensure integer
           },
           quantity: 1,
         })
@@ -135,7 +135,7 @@ serve(async (req) => {
           product_data: {
             name: `Discount (${activePromoCode.code})`,
           },
-          unit_amount: -Math.round(discountAmount * 100), // Negative amount for discount
+          unit_amount: Math.round(-discountAmount * 100), // Convert to cents, ensure integer, and make negative
         },
         quantity: 1,
       })
