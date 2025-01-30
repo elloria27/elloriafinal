@@ -158,7 +158,7 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map((order: OrderRow) => {
+      const validatedOrders: OrderData[] = (ordersData || []).map((order: Database["public"]["Tables"]["orders"]["Row"] & { profiles?: { id: string; full_name: string | null; email: string | null; } | null }) => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
