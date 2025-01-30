@@ -13,8 +13,11 @@ interface DashboardCounts {
 }
 
 interface AppliedPromoCode {
-  final_amount: number;
-  [key: string]: any;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  original_amount: number;
+  discounted_amount: number;
 }
 
 const Dashboard = () => {
@@ -52,10 +55,19 @@ const Dashboard = () => {
         console.log('Fetched paid orders:', orders);
         
         const totalRevenue = orders?.reduce((sum, order) => {
-          const promoCode = order.applied_promo_code as AppliedPromoCode | null;
-          // Get the final amount after any promo code discounts
-          const finalAmount = promoCode?.final_amount ?? order.total_amount;
-          return sum + Number(finalAmount);
+          if (order.applied_promo_code) {
+            const promoCode = order.applied_promo_code as AppliedPromoCode;
+            console.log('Order with promo code:', {
+              orderTotal: order.total_amount,
+              promoCode: promoCode,
+              discountedAmount: promoCode.discounted_amount
+            });
+            return sum + promoCode.discounted_amount;
+          }
+          console.log('Order without promo code:', {
+            orderTotal: order.total_amount
+          });
+          return sum + Number(order.total_amount);
         }, 0) || 0;
 
         console.log('Calculated total revenue:', totalRevenue);
@@ -91,7 +103,7 @@ const Dashboard = () => {
   }, []);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-CA', {
       style: 'currency',
       currency: 'CAD'
     }).format(amount);
