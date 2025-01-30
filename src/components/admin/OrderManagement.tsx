@@ -20,88 +20,68 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { RefreshCw } from "lucide-react";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
-// Utility functions
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-};
-
-const getPaymentStatusBadge = (order: OrderData) => {
-  const method = order.payment_method || 'Not specified';
-  const variant = order.stripe_session_id ? 'default' : 'secondary';
-  return <Badge variant={variant}>{method}</Badge>;
-};
-
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
-    console.error('Invalid shipping address format:', address);
-    return {
-      address: '',
-      region: '',
-      country: '',
-      phone: '',
-      first_name: '',
-      last_name: '',
-      email: ''
-    };
+    throw new Error('Invalid shipping address format');
   }
   
   const typedAddress = address as Record<string, unknown>;
   
-  console.log('Validating shipping address:', typedAddress);
-  
+  if (
+    typeof typedAddress.address !== 'string' ||
+    typeof typedAddress.region !== 'string' ||
+    typeof typedAddress.country !== 'string' ||
+    typeof typedAddress.phone !== 'string'
+  ) {
+    throw new Error('Missing required shipping address fields');
+  }
+
   return {
-    address: String(typedAddress.address || ''),
-    region: String(typedAddress.region || ''),
-    country: String(typedAddress.country || ''),
-    phone: String(typedAddress.phone || ''),
-    first_name: String(typedAddress.first_name || ''),
-    last_name: String(typedAddress.last_name || ''),
-    email: String(typedAddress.email || '')
+    address: typedAddress.address,
+    region: typedAddress.region,
+    country: typedAddress.country,
+    phone: typedAddress.phone,
+    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
+    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
+    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
   };
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
   if (!Array.isArray(items)) {
-    console.error('Items must be an array:', items);
-    return [];
+    throw new Error('Items must be an array');
   }
 
-  return items.map((item, index) => {
-    if (typeof item !== 'object' || !item) {
-      console.error(`Invalid order item at index ${index}:`, item);
-      return {
-        id: '',
-        name: 'Unknown Product',
-        quantity: 0,
-        price: 0
-      };
+  return items.map(item => {
+    if (
+      typeof item !== 'object' ||
+      !item ||
+      typeof (item as any).id !== 'string' ||
+      typeof (item as any).name !== 'string' ||
+      typeof (item as any).quantity !== 'number' ||
+      typeof (item as any).price !== 'number'
+    ) {
+      throw new Error('Invalid order item format');
     }
 
-    const typedItem = item as Record<string, unknown>;
     return {
-      id: String(typedItem.id || ''),
-      name: String(typedItem.name || 'Unknown Product'),
-      quantity: Number(typedItem.quantity || 0),
-      price: Number(typedItem.price || 0),
-      image: typedItem.image ? String(typedItem.image) : undefined,
+      id: (item as any).id,
+      name: (item as any).name,
+      quantity: (item as any).quantity,
+      price: (item as any).price,
+      image: (item as any).image,
     };
   });
+};
+
+const validateOrderStatus = (status: string): OrderStatus => {
+  if (!ORDER_STATUSES.includes(status as OrderStatus)) {
+    throw new Error(`Invalid order status: ${status}`);
+  }
+  return status as OrderStatus;
 };
 
 export const OrderManagement = () => {
@@ -109,43 +89,21 @@ export const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const isMobile = useIsMobile();
-
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (error) {
-        console.error('Error updating order status:', error);
-        toast.error('Failed to update order status');
-        return;
-      }
-
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-
-      toast.success('Order status updated successfully');
-    } catch (error) {
-      console.error('Error in handleStatusUpdate:', error);
-      toast.error('An unexpected error occurred');
-    }
-  };
 
   const fetchOrders = async () => {
     try {
       console.log("Fetching orders...");
-      setRefreshing(true);
-      
       const { data: ordersData, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          profiles:profiles!left (
+            id,
+            full_name,
+            email
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -156,47 +114,36 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = [];
-
-      for (const order of ordersData || []) {
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
-          console.log('Processing order:', order);
-          
           const shippingAddress = validateShippingAddress(order.shipping_address);
-          const billingAddress = validateShippingAddress(order.billing_address);
-          const items = validateOrderItems(order.items);
-
-          // Get customer name from shipping address
-          const customerName = `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 'Guest';
-          
-          // Get customer email from shipping address
-          const customerEmail = shippingAddress.email || 'N/A';
-
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
-            total_amount: Number(order.total_amount) || 0,
-            status: order.status as OrderStatus,
+            total_amount: order.total_amount,
+            status: validateOrderStatus(order.status),
             shipping_address: shippingAddress,
-            billing_address: billingAddress,
-            items: items,
+            billing_address: validateShippingAddress(order.billing_address),
+            items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            profile: {
-              full_name: customerName,
-              email: customerEmail
+            profile: order.user_id ? {
+              full_name: order.profiles?.full_name || 'Guest',
+              email: order.profiles?.email || 'Anonymous Order'
+            } : {
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              email: shippingAddress.email || 'Anonymous Order'
             }
           };
-
-          console.log('Validated order:', validatedOrder);
-          validatedOrders.push(validatedOrder);
+          return validatedOrder;
         } catch (error) {
-          console.error("Error processing order:", error, order);
+          console.error("Error validating order:", error, order);
+          throw error;
         }
-      }
+      });
 
       console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
@@ -205,7 +152,6 @@ export const OrderManagement = () => {
       toast.error("An unexpected error occurred while fetching orders");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -213,86 +159,232 @@ export const OrderManagement = () => {
     fetchOrders();
   }, []);
 
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      console.log("Starting order status update:", { orderId, newStatus });
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error("No active session found");
+        toast.error("You must be logged in to update orders");
+        return;
+      }
+
+      // Find the current order to preserve payment information
+      const currentOrder = orders.find(order => order.id === orderId);
+      if (!currentOrder) {
+        console.error("Order not found");
+        toast.error("Order not found");
+        return;
+      }
+
+      // First update the order status in the database
+      const { data: updatedOrder, error: updateError } = await supabase
+        .from("orders")
+        .update({ 
+          status: newStatus,
+          // Preserve existing payment information
+          payment_method: currentOrder.payment_method,
+          stripe_session_id: currentOrder.stripe_session_id
+        })
+        .eq("id", orderId)
+        .select(`
+          *,
+          profiles:profiles!left(
+            id,
+            full_name,
+            email
+          )
+        `)
+        .single();
+
+      if (updateError) {
+        console.error("Error updating order:", updateError);
+        toast.error("Failed to update order status");
+        return;
+      }
+
+      console.log("Order updated successfully:", updatedOrder);
+
+      // Validate the updated order data
+      const validatedOrder: OrderData = {
+        id: updatedOrder.id,
+        user_id: updatedOrder.user_id,
+        profile_id: updatedOrder.profile_id,
+        order_number: updatedOrder.order_number,
+        total_amount: updatedOrder.total_amount,
+        status: validateOrderStatus(updatedOrder.status),
+        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
+        billing_address: validateShippingAddress(updatedOrder.billing_address),
+        items: validateOrderItems(updatedOrder.items),
+        created_at: updatedOrder.created_at,
+        payment_method: updatedOrder.payment_method,
+        stripe_session_id: updatedOrder.stripe_session_id,
+        profile: updatedOrder.profiles || undefined
+      };
+
+      // Update the orders state
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId ? validatedOrder : order
+        )
+      );
+
+      // Update selected order if it's currently being viewed
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(validatedOrder);
+      }
+
+      // Send email notification
+      try {
+        console.log("Attempting to send email notification");
+        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
+        const customerName = validatedOrder.profile?.full_name || 
+          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
+          'Valued Customer';
+
+        if (customerEmail) {
+          console.log("Sending email to:", customerEmail);
+          const { data: emailData, error: emailError } = await supabase.functions.invoke(
+            'send-order-status-email',
+            {
+              body: {
+                customerEmail,
+                customerName,
+                orderId: validatedOrder.id,
+                orderNumber: validatedOrder.order_number,
+                newStatus: validatedOrder.status
+              }
+            }
+          );
+
+          if (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            throw emailError;
+          }
+
+          console.log('Email notification sent successfully:', emailData);
+        } else {
+          console.warn('No customer email found for order:', validatedOrder.id);
+        }
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
+        toast.error('Order updated but failed to send email notification');
+        return;
+      }
+
+      toast.success("Order status updated successfully");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update order status");
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getPaymentStatusBadge = (order: OrderData) => {
+    const baseClasses = "whitespace-nowrap text-xs px-2 py-1 rounded-full font-medium";
+    
+    if (order.stripe_session_id) {
+      return (
+        <Badge className={`${baseClasses} bg-green-500 text-white`}>
+          {isMobile ? "Stripe" : "Paid with Stripe"}
+        </Badge>
+      );
+    }
+    if (order.payment_method === 'cash_on_delivery') {
+      return (
+        <Badge className={`${baseClasses} bg-yellow-500 text-white`}>
+          {isMobile ? "Cash" : "Cash on Delivery"}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className={`${baseClasses} bg-gray-500 text-white`}>
+        {isMobile ? "Pending" : "Payment Pending"}
+      </Badge>
+    );
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Order Management</h2>
-        <Button 
-          onClick={fetchOrders} 
-          variant="outline"
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
+      <h2 className="text-2xl font-bold">Order Management</h2>
       
-      {orders.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No orders found</p>
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order Number</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Actions</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Order Number</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => (
+            <TableRow key={order.id}>
+              <TableCell>{order.order_number}</TableCell>
+              <TableCell>
+                {order.user_id ? (
+                  order.profile?.full_name || 'N/A'
+                ) : (
+                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
+                )}
+              </TableCell>
+              <TableCell>{formatDate(order.created_at)}</TableCell>
+              <TableCell>
+                <select
+                  value={order.status}
+                  onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
+                  className="border rounded p-1"
+                >
+                  {ORDER_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </TableCell>
+              <TableCell>{getPaymentStatusBadge(order)}</TableCell>
+              <TableCell>{formatCurrency(order.total_amount)}</TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setIsDetailsOpen(true);
+                  }}
+                >
+                  View Details
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.order_number}</TableCell>
-                <TableCell>
-                  {order.user_id ? (
-                    order.profile?.full_name || 'N/A'
-                  ) : (
-                    `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
-                  )}
-                </TableCell>
-                <TableCell>{formatDate(order.created_at)}</TableCell>
-                <TableCell>
-                  <select
-                    value={order.status}
-                    onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-                    className="border rounded p-1"
-                  >
-                    {ORDER_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </TableCell>
-                <TableCell>{getPaymentStatusBadge(order)}</TableCell>
-                <TableCell>{formatCurrency(order.total_amount)}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setIsDetailsOpen(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+          ))}
+        </TableBody>
+      </Table>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

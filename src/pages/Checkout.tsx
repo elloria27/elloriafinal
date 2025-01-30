@@ -207,27 +207,12 @@ const Checkout = () => {
         region
       };
 
-      console.log('Customer details:', customerDetails);
-
       const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
       console.log('Generated order number:', orderNumber);
 
       // Get current session
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-      
-      // Prepare shipping address with all customer details
-      const shippingAddress = {
-        address: customerDetails.address,
-        country: customerDetails.country,
-        region: customerDetails.region,
-        phone: customerDetails.phone,
-        first_name: customerDetails.firstName,
-        last_name: customerDetails.lastName,
-        email: customerDetails.email
-      };
-
-      console.log('Prepared shipping address:', shippingAddress);
       
       // Prepare order data
       const orderData = {
@@ -237,8 +222,24 @@ const Checkout = () => {
         total_amount: total,
         status: 'pending',
         items: items,
-        shipping_address: shippingAddress,
-        billing_address: shippingAddress, // Using same address for billing
+        shipping_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
+        },
+        billing_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
+        },
         payment_method: 'cash_on_delivery',
         applied_promo_code: activePromoCode
       };
