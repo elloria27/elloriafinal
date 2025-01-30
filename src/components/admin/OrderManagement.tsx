@@ -135,8 +135,10 @@ const validateOrderData = (order: any): order is OrderData => {
     }
 
     // Validate status
-    if (!ORDER_STATUSES.includes(order.status as OrderStatus)) {
-      console.error("Invalid status:", order.status);
+    try {
+      validateOrderStatus(order.status);
+    } catch (error) {
+      console.error("Status validation failed:", error);
       return false;
     }
 
@@ -204,6 +206,7 @@ export const OrderManagement = () => {
         .filter(validateOrderData)
         .map(order => ({
           ...order,
+          status: validateOrderStatus(order.status),
           payment_method: order.payment_method || 'Not specified',
           stripe_session_id: order.stripe_session_id || null,
           profile: order.profiles ? {
