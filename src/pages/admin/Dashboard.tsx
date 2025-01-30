@@ -56,7 +56,7 @@ const Dashboard = () => {
         
         const totalRevenue = orders?.reduce((sum, order) => {
           if (order.applied_promo_code) {
-            const promoCode = order.applied_promo_code as AppliedPromoCode;
+            const promoCode = order.applied_promo_code as unknown as AppliedPromoCode;
             console.log('Order with promo code:', {
               orderTotal: order.total_amount,
               promoCode: promoCode,
