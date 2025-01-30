@@ -35,15 +35,20 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   // Log the address data for debugging
   console.log('Validating shipping address:', typedAddress);
   
-  // Check required fields
+  // Check required fields with more detailed error messages
   const requiredFields = ['address', 'region', 'country', 'phone'];
   for (const field of requiredFields) {
-    if (typeof typedAddress[field] !== 'string') {
-      console.error(`Missing or invalid ${field} in shipping address:`, typedAddress[field]);
+    if (!typedAddress[field]) {
+      console.error(`Missing ${field} in shipping address:`, typedAddress);
       throw new Error(`Missing required shipping address field: ${field}`);
+    }
+    if (typeof typedAddress[field] !== 'string') {
+      console.error(`Invalid ${field} type in shipping address:`, typedAddress[field]);
+      throw new Error(`Invalid shipping address field type: ${field} must be a string`);
     }
   }
 
+  // Return validated address with all fields
   return {
     address: typedAddress.address as string,
     region: typedAddress.region as string,
@@ -139,9 +144,26 @@ export const OrderManagement = () => {
         try {
           console.log('Validating order:', order.order_number);
           
-          // Validate shipping address
-          const shippingAddress = validateShippingAddress(order.shipping_address);
-          const billingAddress = validateShippingAddress(order.billing_address);
+          // Validate shipping address with better error handling
+          let shippingAddress;
+          try {
+            shippingAddress = validateShippingAddress(order.shipping_address);
+          } catch (addressError) {
+            console.error(`Error validating shipping address for order ${order.order_number}:`, addressError);
+            toast.error(`Error validating order ${order.order_number}: ${addressError.message}`);
+            continue; // Skip this order and continue with the next one
+          }
+
+          // Validate billing address with better error handling
+          let billingAddress;
+          try {
+            billingAddress = validateShippingAddress(order.billing_address);
+          } catch (addressError) {
+            console.error(`Error validating billing address for order ${order.order_number}:`, addressError);
+            toast.error(`Error validating order ${order.order_number}: ${addressError.message}`);
+            continue;
+          }
+
           const items = validateOrderItems(order.items);
           const status = validateOrderStatus(order.status);
 
