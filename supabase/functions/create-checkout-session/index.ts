@@ -60,7 +60,7 @@ serve(async (req) => {
 
     const lineItems = items.map((item: any) => ({
       price_data: {
-        currency: 'cad', // Changed to CAD
+        currency: 'cad',
         product_data: {
           name: item.name,
           images: item.image ? [item.image] : [],
@@ -74,7 +74,7 @@ serve(async (req) => {
     if (totalTaxAmount > 0) {
       lineItems.push({
         price_data: {
-          currency: 'cad', // Changed to CAD
+          currency: 'cad',
           product_data: {
             name: 'Taxes',
             description: `GST: ${taxes.gst}%, PST: ${taxes.pst}%, HST: ${taxes.hst}%`,
@@ -101,7 +101,7 @@ serve(async (req) => {
           [promoData.type === 'percentage' ? 'percent_off' : 'amount_off']: 
             promoData.type === 'percentage' ? promoData.value : Math.round(promoData.value * 100),
           duration: 'once',
-          currency: promoData.type === 'fixed' ? 'cad' : undefined, // Only set currency for fixed amounts
+          currency: promoData.type === 'fixed_amount' ? 'cad' : undefined,
         });
         discounts.push({ coupon: coupon.id });
       }
@@ -115,13 +115,13 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      currency: 'cad', // Set currency to CAD
+      currency: 'cad',
       shipping_options: [{
         shipping_rate_data: {
           type: 'fixed_amount',
           fixed_amount: {
             amount: Math.round(shippingOption.price * 100),
-            currency: 'cad', // Changed to CAD
+            currency: 'cad',
           },
           display_name: shippingOption.name,
         },
@@ -131,6 +131,7 @@ serve(async (req) => {
         orderNumber,
         customerEmail: customerDetails.email,
         customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+        promoCode: activePromoCode ? JSON.stringify(activePromoCode) : null
       },
     });
 
@@ -162,14 +163,14 @@ serve(async (req) => {
       },
       payment_method: 'stripe',
       stripe_session_id: session.id,
-      applied_promo_code: appliedPromoCode ? {
-        code: appliedPromoCode.code,
-        type: appliedPromoCode.type,
-        value: appliedPromoCode.value,
+      applied_promo_code: activePromoCode ? {
+        code: activePromoCode.code,
+        type: activePromoCode.type,
+        value: activePromoCode.value,
         original_amount: finalAmount,
-        discounted_amount: appliedPromoCode.type === 'percentage' 
-          ? finalAmount * (1 - appliedPromoCode.value / 100)
-          : finalAmount - appliedPromoCode.value
+        discounted_amount: activePromoCode.type === 'percentage' 
+          ? finalAmount * (1 - activePromoCode.value / 100)
+          : finalAmount - activePromoCode.value
       } : null
     };
 
