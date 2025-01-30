@@ -387,9 +387,11 @@ export type Database = {
           id: string
           items: Json
           order_number: string
+          payment_method: string | null
           profile_id: string | null
           shipping_address: Json
           status: string
+          stripe_session_id: string | null
           total_amount: number
           user_id: string | null
         }
@@ -399,9 +401,11 @@ export type Database = {
           id?: string
           items: Json
           order_number: string
+          payment_method?: string | null
           profile_id?: string | null
           shipping_address: Json
           status: string
+          stripe_session_id?: string | null
           total_amount: number
           user_id?: string | null
         }
@@ -411,9 +415,11 @@ export type Database = {
           id?: string
           items?: Json
           order_number?: string
+          payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
           status?: string
+          stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
         }

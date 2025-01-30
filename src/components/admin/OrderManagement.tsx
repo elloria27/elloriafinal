@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 import { Badge } from "@/components/ui/badge";
+import { Database } from "@/integrations/supabase/types";
+
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -112,7 +115,7 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
+      const validatedOrders: OrderData[] = (ordersData || []).map((order: OrderRow) => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
@@ -126,11 +129,11 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            payment_method: order.payment_method || 'cash', // Default to cash if not specified
-            stripe_session_id: order.stripe_session_id, // Add Stripe session ID
-            profile: order.user_id ? {
-              full_name: order.profiles?.full_name || 'Guest',
-              email: order.profiles?.email || 'Anonymous Order'
+            payment_method: order.payment_method || 'cash',
+            stripe_session_id: order.stripe_session_id,
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || 'Anonymous Order'
             } : {
               full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
               email: shippingAddress.email || 'Anonymous Order'
