@@ -13,7 +13,7 @@ interface DashboardCounts {
   products: number;
 }
 
-type Order = Tables<'orders'>;
+type Order = Tables<'orders', 'Row'>;
 
 const Dashboard = () => {
   const [counts, setCounts] = useState<DashboardCounts>({

@@ -7,7 +7,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 
-type Order = Tables<"orders">;
+type Order = Tables<"orders", "Row">;
 
 interface ShippingAddress {
   address: string;
@@ -157,4 +157,5 @@ export default function Invoices() {
     </div>
   );
 }
+
 

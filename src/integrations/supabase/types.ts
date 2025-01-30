@@ -366,7 +366,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          name: string
+          name?: string
           parent_path?: string | null
           path?: string
         }
@@ -544,8 +544,8 @@ export type Database = {
           parent_id?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
-          slug: string
-          title: string
+          slug?: string
+          title?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id: string
+          id?: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -991,7 +991,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -1045,10 +1045,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+        Update: infer U
+      }
+      ? U
+      : never
     : never
 
 export type Enums<
@@ -1078,26 +1078,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export interface ShippingMethod {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-}
-
-export interface ShippingMethods {
-  CA: ShippingMethod[];
-  US: ShippingMethod[];
-}
-
-export interface StripeSettings {
-  secret_key: string;
-  publishable_key: string;
-}
-
-export interface PaymentMethods {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-}
