@@ -24,13 +24,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
-  console.log("Validating shipping address:", address);
-  
-  if (typeof address !== 'object' || !address) {
+  if (!address || typeof address !== 'object') {
     console.error("Invalid address format:", address);
     throw new Error('Invalid shipping address format');
   }
-  
+
   const typedAddress = address as Record<string, unknown>;
   
   if (
@@ -55,8 +53,6 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
-  console.log("Validating order items:", items);
-  
   if (!Array.isArray(items)) {
     console.error("Items must be an array:", items);
     throw new Error('Items must be an array');
@@ -85,16 +81,6 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
   });
 };
 
-const validateOrderStatus = (status: unknown): OrderStatus => {
-  console.log("Validating order status:", status);
-  
-  if (typeof status !== 'string' || !ORDER_STATUSES.includes(status as OrderStatus)) {
-    console.error("Invalid order status:", status);
-    throw new Error(`Invalid order status: ${status}`);
-  }
-  return status as OrderStatus;
-};
-
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +95,7 @@ export const OrderManagement = () => {
         .from("orders")
         .select(`
           *,
-          profiles:profiles!left (
+          profiles (
             id,
             full_name,
             email
@@ -133,20 +119,17 @@ export const OrderManagement = () => {
 
       const validatedOrders: OrderData[] = ordersData.map(order => {
         try {
-          console.log("Processing order:", order);
-          
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const billingAddress = validateShippingAddress(order.billing_address);
-          const status = validateOrderStatus(order.status);
           const items = validateOrderItems(order.items);
           
-          const validatedOrder: OrderData = {
+          return {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
             total_amount: order.total_amount,
-            status: status,
+            status: order.status as OrderStatus,
             shipping_address: shippingAddress,
             billing_address: billingAddress,
             items: items,
@@ -161,9 +144,6 @@ export const OrderManagement = () => {
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
-
-          console.log("Validated order:", validatedOrder);
-          return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
           throw error;
