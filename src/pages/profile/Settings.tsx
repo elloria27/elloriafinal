@@ -72,9 +72,14 @@ export default function Settings() {
         return;
       }
 
+      const updates = {
+        id: user.id, // Add this line to include the required id
+        [setting]: value
+      };
+
       const { error } = await supabase
         .from("profiles")
-        .update({ [setting]: value })
+        .update(updates)
         .eq("id", user.id);
 
       if (error) {

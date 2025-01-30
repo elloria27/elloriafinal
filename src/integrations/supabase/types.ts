@@ -31,7 +31,7 @@ export type Database = {
           id?: string
           name?: string
           parent_id?: string | null
-          slug: string
+          slug?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -192,7 +192,7 @@ export type Database = {
           created_at?: string | null
           hero_background_image?: string | null
           hero_subtitle?: string
-          hero_title: string
+          hero_title?: string
           id?: string
           instagram_profile_url?: string | null
           updated_at?: string | null
@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id: string
+          id?: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -670,7 +670,7 @@ export type Database = {
           is_active?: boolean | null
           max_uses?: number | null
           min_purchase_amount?: number | null
-          start_date: string | null
+          start_date?: string | null
           type: Database["public"]["Enums"]["promo_code_type"]
           updated_at?: string | null
           uses_count?: number | null
@@ -805,8 +805,8 @@ export type Database = {
           max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
-          site_title: string
-          updated_at?: string;
+          site_title?: string
+          updated_at?: string
         }
         Update: {
           contact_email?: string | null
@@ -826,8 +826,8 @@ export type Database = {
           max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
-          site_title?: string;
-          updated_at?: string;
+          site_title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1003,10 +1003,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
@@ -1024,10 +1024,10 @@ export type TablesInsert<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
 
 export type TablesUpdate<
@@ -1045,10 +1045,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+        Update: infer U
+      }
+      ? U
+      : never
     : never
 
 export type Enums<
@@ -1078,21 +1078,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export type PaymentMethods = {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-};
-
-export type StripeSettings = {
-  secret_key: string;
-  publishable_key: string;
-};
-
-export type ShippingMethod = {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-};
