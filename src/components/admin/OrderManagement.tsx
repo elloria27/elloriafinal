@@ -127,50 +127,49 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data from Supabase:", ordersData);
 
-      if (!ordersData) {
-        console.log("No orders data returned from Supabase");
-        setOrders([]);
+      if (!Array.isArray(ordersData)) {
+        console.error("Orders data is not an array:", ordersData);
+        toast.error("Invalid orders data format");
         return;
       }
 
-      const validatedOrders: OrderData[] = ordersData.map((order, index) => {
-        console.log(`Processing order ${index}:`, order);
-        
+      const validatedOrders: OrderData[] = ordersData.map((order) => {
         try {
-          const shippingAddress = validateShippingAddress(order.shipping_address);
-          const billingAddress = validateShippingAddress(order.billing_address);
-          const items = validateOrderItems(order.items);
-          const status = validateOrderStatus(order.status);
+          if (!order || typeof order !== 'object') {
+            throw new Error('Invalid order data format');
+          }
 
-          const validatedOrder: OrderData = {
+          const totalAmount = typeof order.total_amount === 'string' 
+            ? parseFloat(order.total_amount) 
+            : Number(order.total_amount);
+
+          if (isNaN(totalAmount)) {
+            throw new Error('Invalid total amount');
+          }
+
+          return {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
             order_number: order.order_number,
-            total_amount: Number(order.total_amount),
-            status: status,
-            shipping_address: shippingAddress,
-            billing_address: billingAddress,
-            items: items,
+            total_amount: totalAmount,
+            status: validateOrderStatus(order.status),
+            shipping_address: validateShippingAddress(order.shipping_address),
+            billing_address: validateShippingAddress(order.billing_address),
+            items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || 'Anonymous Order'
-            } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
-              email: shippingAddress.email || 'Anonymous Order'
-            }
+            } : undefined
           };
-
-          console.log(`Successfully validated order ${index}:`, validatedOrder);
-          return validatedOrder;
         } catch (error) {
-          console.error(`Error validating order ${index}:`, error, order);
-          throw error;
+          console.error("Error validating order:", error, order);
+          return null;
         }
-      });
+      }).filter((order): order is OrderData => order !== null);
 
       console.log("Final validated orders:", validatedOrders);
       setOrders(validatedOrders);
@@ -374,11 +373,7 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.user_id ? (
-                  order.profile?.full_name || 'N/A'
-                ) : (
-                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
-                )}
+                {order.profile?.full_name || `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -433,16 +428,10 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.full_name || 'N/A'
-                  ) : (
-                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 'Guest'
-                  )}</p>
-                  <p>Email: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.email || 'N/A'
-                  ) : (
-                    selectedOrder.shipping_address.email || 'N/A'
-                  )}</p>
+                  <p>Name: {selectedOrder.profile?.full_name || 
+                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 
+                    'Guest'}</p>
+                  <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'N/A'}</p>
                 </div>
               </div>
 
