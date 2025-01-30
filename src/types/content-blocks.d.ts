@@ -1,301 +1,194 @@
-import { Json } from "@/integrations/supabase/types";
-
-// Base types
-export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | Json;
-}
-
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
-}
-
-// Common block types
-
-export type BlockType =
-  | "hero"
-  | "features"
-  | "game_changer"
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel"
-  | "competitor_comparison"
-  | "testimonials"
-  | "blog_preview"
-  | "newsletter"
-  | "product_gallery"
-  | "about_hero_section"
-  | "about_story"
-  | "about_mission"
-  | "about_sustainability"
-  | "about_team"
-  | "about_customer_impact"
-  | "contact_hero"
-  | "contact_details"
-  | "contact_form"
-  | "contact_faq"
-  | "contact_business"
+export type BlockType = 
   | "heading"
   | "text"
   | "image"
   | "video"
-  | "button";
+  | "button"
+  | "hero"
+  | "features"
+  | "testimonials"
+  | "newsletter"
+  | "product_gallery"
+  | "blog_preview"
+  | "store_brands"
+  | "sustainability"
+  | "elevating_essentials"
+  | "contact_business"
+  | "contact_form"
+  | "contact_details"
+  | "contact_faq";
 
-// Home page specific content types
-export interface HeroContent extends BaseBlockContent {
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BlockContent =
+  | HeroContent
+  | FeaturesContent
+  | TestimonialsContent
+  | NewsletterContent
+  | ProductGalleryContent
+  | BlogPreviewContent
+  | StoreBrandsContent
+  | SustainabilityContent
+  | ElevatingEssentialsContent
+  | ContactBusinessContent
+  | ContactFormContent
+  | ContactDetailsContent
+  | ContactFAQContent;
+
+export interface HeroContent {
   title?: string;
   subtitle?: string;
-  videoUrl?: string;
+  description?: string;
   buttonText?: string;
-  buttonUrl?: string;
+  secondaryButtonText?: string;
+  imageUrl?: string;
+  backgroundUrl?: string;
 }
 
-export interface FeaturesContent extends BaseBlockContent {
+export interface FeatureItem {
+  icon?: string;
+  title: string;
+  description: string;
+}
+
+export interface FeaturesContent {
   title?: string;
   subtitle?: string;
   description?: string;
-  features?: FeatureItem[];
+  features: FeatureItem[];
 }
 
-export interface GameChangerContent extends BaseBlockContent {
+export interface TestimonialItem {
+  author: string;
+  role?: string;
+  content: string;
+  avatar?: string;
+  rating?: number;
+}
+
+export interface TestimonialsContent {
+  title?: string;
+  subtitle?: string;
+  testimonials: TestimonialItem[];
+}
+
+export interface NewsletterContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  imageUrl?: string;
+}
+
+export interface ProductItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl: string;
+  category?: string;
+}
+
+export interface ProductGalleryContent {
+  title?: string;
+  subtitle?: string;
+  products: ProductItem[];
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt?: string;
+  imageUrl?: string;
+  author?: string;
+  date?: string;
+  category?: string;
+}
+
+export interface BlogPreviewContent {
+  title?: string;
+  subtitle?: string;
+  posts: BlogPost[];
+}
+
+export interface StoreBrandsContent {
   title?: string;
   subtitle?: string;
   description?: string;
-  features?: FeatureItem[];
-}
-
-export interface StoreBrandsContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  features?: {
+  features: {
     title: string;
     description: string;
     detail?: string;
   }[];
 }
 
-export interface SustainabilityContent extends BaseBlockContent {
+export interface SustainabilityContent {
   title?: string;
+  subtitle?: string;
   description?: string;
-  stats?: {
+  initiatives: {
+    title: string;
+    description: string;
+    icon?: string;
+  }[];
+}
+
+export interface ElevatingEssentialsContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  items: {
+    title: string;
+    description: string;
+    imageUrl?: string;
+  }[];
+}
+
+export interface ContactBusinessContent {
+  title?: string;
+  subtitle?: string;
+  features: {
     icon: string;
     title: string;
     description: string;
-    color: string;
   }[];
-  timelineItems?: string[];
 }
 
-export interface ProductCarouselContent extends BaseBlockContent {
+export interface ContactFormContent {
   title?: string;
-  subtitle?: string;
   description?: string;
-  products?: {
-    id: string;
-    name: string;
-    image: string;
-    price: number;
-  }[];
-}
-
-export interface CompetitorComparisonContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  metrics?: {
-    category: string;
-    elloria: number;
-    competitors: number;
-    icon: string;
-    description: string;
-  }[];
   buttonText?: string;
-  buttonUrl?: string;
-}
-
-export interface TestimonialsContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  testimonials?: {
-    name: string;
-    rating: number;
-    text: string;
-    source: string;
-  }[];
-}
-
-export interface BlogPreviewContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  articles?: {
-    title: string;
-    category: string;
-    image: string;
-  }[];
-}
-
-export interface NewsletterContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  buttonText?: string;
-}
-
-// About page content types
-export interface AboutHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  backgroundImage?: string;
-}
-
-export interface AboutStoryContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  content?: string;
-  videoUrl?: string;
-  videoThumbnail?: string;
-}
-
-export interface AboutMissionContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  values?: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
-export interface AboutSustainabilityContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  stats?: {
-    icon: string;
-    value: string;
-    label: string;
-    description: string;
-  }[];
-}
-
-export interface AboutTeamContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  members?: {
-    name: string;
-    role: string;
-    image: string;
-    quote: string;
-  }[];
-}
-
-export interface AboutCustomerImpactContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  stats?: {
-    value: string;
-    label: string;
-  }[];
-  testimonials?: {
-    quote: string;
-    author: string;
-    role: string;
-    rating: number;
-  }[];
-}
-
-export interface AboutCtaContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  primaryButtonText?: string;
-  primaryButtonLink?: string;
   secondaryButtonText?: string;
-  secondaryButtonLink?: string;
 }
 
-// Contact page content types
-export interface ContactHeroContent extends BaseBlockContent {
+export interface ContactDetailsContent {
   title?: string;
   subtitle?: string;
-  backgroundImage?: string;
-}
-
-export interface ContactDetailsContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  contactInfo?: {
-    address?: string;
-    email?: string;
-    phone?: string;
-    hours?: string;
-  };
-}
-
-export interface ContactFormContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  submitButtonText?: string;
-}
-
-export interface ContactFAQContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  faqs?: {
-    question: string;
-    answer: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  hours?: string[];
+  socialLinks?: {
+    platform: string;
+    url: string;
   }[];
 }
 
-export interface ContactBusinessContent extends BaseBlockContent {
+export interface FAQItem {
+  question: string;
+  answer: string;
+  category?: string;
+}
+
+export interface ContactFAQContent {
   title?: string;
   subtitle?: string;
-  features?: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
-// Combined content type
-export type BlockContent =
-  | HeroContent
-  | FeaturesContent
-  | GameChangerContent
-  | StoreBrandsContent
-  | SustainabilityContent
-  | ProductCarouselContent
-  | CompetitorComparisonContent
-  | TestimonialsContent
-  | BlogPreviewContent
-  | NewsletterContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
-  | AboutCtaContent
-  | ContactHeroContent
-  | ContactDetailsContent
-  | ContactFormContent
-  | ContactFAQContent
-  | ContactBusinessContent;
-
-// Main content block interface
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// Props interfaces for components
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
+  faqs: FAQItem[];
 }

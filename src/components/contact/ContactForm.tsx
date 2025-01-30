@@ -129,7 +129,7 @@ export const ContactForm = ({ content }: ContactFormProps) => {
                   htmlFor="newsletter"
                   className="text-sm text-gray-600 cursor-pointer"
                 >
-                  {content.description || "Subscribe to our newsletter for updates and offers"}
+                  {typeof content.description === 'string' ? content.description : "Subscribe to our newsletter for updates and offers"}
                 </label>
               </div>
             </div>
@@ -139,7 +139,7 @@ export const ContactForm = ({ content }: ContactFormProps) => {
               className="w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : (content.buttonText || "Send Message")}
+              {isSubmitting ? "Sending..." : (typeof content.buttonText === 'string' ? content.buttonText : "Send Message")}
             </Button>
           </form>
         </motion.div>

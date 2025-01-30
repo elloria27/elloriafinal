@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type OrderRow = Database['public']['Tables']['orders']['Row'];
+type ReviewRow = Database['public']['Tables']['reviews']['Row'];
 
 export const Activity = () => {
-  const [orders, setOrders] = useState<Tables<'orders'>[]>([]);
-  const [reviews, setReviews] = useState<Tables<'reviews'>[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
 
   useEffect(() => {
     const fetchActivity = async () => {
