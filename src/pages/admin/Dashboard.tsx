@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WeatherWidget } from "@/components/admin/dashboard/WeatherWidget";
 import { AnalyticsWidget } from "@/components/admin/dashboard/AnalyticsWidget";
@@ -10,6 +10,11 @@ interface DashboardCounts {
   orders: number;
   revenue: number;
   products: number;
+}
+
+interface AppliedPromoCode {
+  final_amount: number;
+  [key: string]: any;
 }
 
 const Dashboard = () => {
@@ -47,8 +52,9 @@ const Dashboard = () => {
         console.log('Fetched paid orders:', orders);
         
         const totalRevenue = orders?.reduce((sum, order) => {
+          const promoCode = order.applied_promo_code as AppliedPromoCode | null;
           // Get the final amount after any promo code discounts
-          const finalAmount = order.applied_promo_code?.final_amount ?? order.total_amount;
+          const finalAmount = promoCode?.final_amount ?? order.total_amount;
           return sum + Number(finalAmount);
         }, 0) || 0;
 
