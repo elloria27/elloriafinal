@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
@@ -14,13 +14,14 @@ import { sendOrderEmails } from "@/utils/emailService";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
-  US_TAX_RATES,
+  US_TAX_RATES, 
+  SHIPPING_OPTIONS,
   USD_TO_CAD 
 } from "@/utils/locationData";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal, activePromoCode, clearCart, calculateDiscount } = useCart();
+  const { items, subtotal, activePromoCode, clearCart } = useCart();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
@@ -30,9 +31,9 @@ const Checkout = () => {
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [paymentMethods, setPaymentMethods] = useState<any>(null);
-  const [deliveryMethods, setDeliveryMethods] = useState<any[]>([]);
 
   useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -53,29 +54,9 @@ const Checkout = () => {
 
     // Fetch payment methods configuration
     fetchPaymentMethods();
-    // Fetch delivery methods
-    fetchDeliveryMethods();
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchDeliveryMethods = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('delivery_methods')
-        .select('*')
-        .eq('is_active', true)
-        .order('base_price', { ascending: true });
-
-      if (error) throw error;
-
-      console.log('Fetched delivery methods:', data);
-      setDeliveryMethods(data || []);
-    } catch (error) {
-      console.error('Error fetching delivery methods:', error);
-      toast.error('Failed to load delivery methods');
-    }
-  };
 
   const fetchPaymentMethods = async () => {
     const { data, error } = await supabase
@@ -143,40 +124,29 @@ const Checkout = () => {
     
     const taxRates = country === "CA" 
       ? CANADIAN_TAX_RATES[region] 
-      : US_TAX_RATES[region] || { gst: 5 }; // Default to 5% GST for Canadian regions
+      : US_TAX_RATES[region] || { pst: 0 };
     
     return {
       gst: taxRates.gst || 0,
-      pst: 0, // We're only using GST now
-      hst: 0  // We're only using GST now
+      pst: taxRates.pst || 0,
+      hst: taxRates.hst || 0
     };
   };
 
-  const shippingOptions = deliveryMethods.map(method => ({
-    id: method.id,
-    name: method.name,
-    price: method.base_price,
-    estimatedDays: method.estimated_days,
-    currency: country === "US" ? "USD" : "CAD"
-  }));
-
+  const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
 
   const taxes = calculateTaxes();
   const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
   const shippingCost = selectedShippingOption?.price || 0;
   
-  // Calculate discount only on items, not shipping
-  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
-  const subtotalAfterDiscount = Math.max(0, subtotalInCurrentCurrency - discountAmount);
-  
-  const taxAmount = subtotalAfterDiscount * (
+  const taxAmount = subtotalInCurrentCurrency * (
     (taxes.hst || 0) / 100 +
     (taxes.gst || 0) / 100 +
     (taxes.pst || 0) / 100
   );
 
-  const total = subtotalAfterDiscount + taxAmount + shippingCost;
+  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
   const currencySymbol = country === "US" ? "$" : "CAD $";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -239,9 +209,7 @@ const Checkout = () => {
           first_name: customerDetails.firstName,
           last_name: customerDetails.lastName,
           email: customerDetails.email
-        },
-        payment_method: 'cash_on_delivery',
-        applied_promo_code: activePromoCode
+        }
       };
 
       console.log('Saving order to database:', orderData);
@@ -275,10 +243,20 @@ const Checkout = () => {
 
       if (emailResult.error) {
         console.error('Error sending email:', emailResult.error);
+        // Don't throw error here, continue with order success
         toast.error('Order placed but confirmation email failed to send');
       } else {
         console.log('Email sent successfully');
       }
+
+      // Store order details and redirect
+      localStorage.setItem('lastOrder', JSON.stringify({
+        orderNumber,
+        customerDetails,
+        items,
+        total,
+        shipping: selectedShippingOption
+      }));
 
       clearCart();
       navigate("/order-success");
@@ -331,19 +309,19 @@ const Checkout = () => {
                 onFormChange={updateProfile}
               />
 
-              {country && shippingOptions.length > 0 && (
+              {country && (
                 <ShippingOptions
-                  shippingOptions={shippingOptions}
+                  shippingOptions={SHIPPING_OPTIONS[country] || []}
                   selectedShipping={selectedShipping}
                   setSelectedShipping={setSelectedShipping}
-                  currencySymbol={currencySymbol}
+                  currencySymbol={country === "US" ? "$" : "CAD $"}
                 />
               )}
 
               {paymentMethods?.stripe ? (
                 <StripeCheckout
                   total={total}
-                  subtotal={subtotalAfterDiscount}
+                  subtotal={subtotalInCurrentCurrency}
                   taxes={taxes}
                   shippingAddress={{ country, region }}
                   shippingCost={shippingCost}

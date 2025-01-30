@@ -7,7 +7,6 @@ import { CurrencySelector } from "./header/CurrencySelector";
 import { CartPopover } from "./header/CartPopover";
 import { MobileMenu } from "./header/MobileMenu";
 import { useLocation } from "react-router-dom";
-import { CartProvider } from "@/contexts/CartContext";
 
 export const Header = () => {
   const location = useLocation();
@@ -30,19 +29,17 @@ export const Header = () => {
           <div className="flex items-center justify-end flex-1 space-x-6">
             <Navigation />
             
-            <CartProvider>
-              <div className="hidden md:flex items-center space-x-6">
-                <UserMenu />
-                <LanguageSelector />
-                <CurrencySelector />
-                <CartPopover />
-              </div>
+            <div className="hidden md:flex items-center space-x-6">
+              <UserMenu />
+              <LanguageSelector />
+              <CurrencySelector />
+              <CartPopover />
+            </div>
 
-              <div className="md:hidden flex items-center gap-4">
-                <CartPopover />
-                <MobileMenu />
-              </div>
-            </CartProvider>
+            <div className="md:hidden flex items-center gap-4">
+              <CartPopover />
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </div>

@@ -34,5 +34,40 @@ export const US_TAX_RATES: Record<string, TaxRate> = {
   // Add more states as needed
 };
 
+export const SHIPPING_OPTIONS: Record<string, ShippingOption[]> = {
+  CA: [
+    {
+      id: "standard",
+      name: "Standard Shipping",
+      price: 5.00,
+      currency: "CAD",
+      estimatedDays: "3-7 business days"
+    },
+    {
+      id: "express",
+      name: "Express Shipping",
+      price: 8.00,
+      currency: "CAD",
+      estimatedDays: "1-2 business days"
+    }
+  ],
+  US: [
+    {
+      id: "standard",
+      name: "Standard Shipping",
+      price: 5.00,
+      currency: "USD",
+      estimatedDays: "5-8 business days"
+    },
+    {
+      id: "express",
+      name: "Express Shipping",
+      price: 8.00,
+      currency: "USD",
+      estimatedDays: "2-3 business days"
+    }
+  ]
+};
+
 // Exchange rate (simplified - in real app would come from an API)
 export const USD_TO_CAD = 1.35;
