@@ -47,19 +47,9 @@ const Dashboard = () => {
         console.log('Fetched paid orders:', orders);
         
         const totalRevenue = orders?.reduce((sum, order) => {
-          // If there's an applied promo code, use the discounted amount
-          const orderAmount = order.applied_promo_code 
-            ? (typeof order.applied_promo_code === 'object' && order.applied_promo_code !== null
-                ? (order.applied_promo_code as { final_amount?: number }).final_amount || order.total_amount
-                : order.total_amount)
-            : order.total_amount;
-            
-          // Ensure we're working with numbers
-          const amount = typeof orderAmount === 'string' 
-            ? parseFloat(orderAmount) 
-            : Number(orderAmount);
-            
-          return sum + amount;
+          // Get the final amount after any promo code discounts
+          const finalAmount = order.applied_promo_code?.final_amount ?? order.total_amount;
+          return sum + Number(finalAmount);
         }, 0) || 0;
 
         console.log('Calculated total revenue:', totalRevenue);
@@ -97,7 +87,7 @@ const Dashboard = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'CAD'
     }).format(amount);
   };
 
