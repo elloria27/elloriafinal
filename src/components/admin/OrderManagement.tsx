@@ -141,7 +141,7 @@ export const OrderManagement = () => {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || 'Anonymous Order'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
