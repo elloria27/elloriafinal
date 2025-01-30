@@ -103,7 +103,7 @@ const validateOrderStatus = (status: string): OrderStatus => {
 const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null => {
   if (!promoCode) return null;
   
-  if (typeof promoCode !== 'object') {
+  if (typeof promoCode !== 'object' || promoCode === null) {
     console.error('Invalid promo code format:', promoCode);
     return null;
   }
