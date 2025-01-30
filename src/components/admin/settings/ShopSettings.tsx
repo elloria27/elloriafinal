@@ -71,15 +71,10 @@ export const ShopSettings = () => {
       const { error } = await supabase
         .from('shop_settings')
         .update({
-          default_currency: settings.default_currency,
-          enable_guest_checkout: settings.enable_guest_checkout,
-          min_order_amount: settings.min_order_amount,
-          max_order_amount: settings.max_order_amount,
-          shipping_countries: settings.shipping_countries,
-          tax_rate: settings.tax_rate,
-          payment_methods: paymentMethods,
-          stripe_settings: stripeSettings,
-          shipping_methods: shippingMethods
+          ...settings,
+          payment_methods: paymentMethods as any,
+          stripe_settings: stripeSettings as any,
+          shipping_methods: shippingMethods as any
         })
         .eq('id', settings.id);
 

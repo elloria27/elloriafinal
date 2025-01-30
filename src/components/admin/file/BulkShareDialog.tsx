@@ -37,10 +37,11 @@ export const BulkShareDialog = ({ fileNames, onClose }: BulkShareDialogProps) =>
       const { error } = await supabase
         .from('bulk_file_shares')
         .insert({
+          id: crypto.randomUUID(),
           file_paths: fileNames,
           access_level: accessLevel,
           share_token: shareToken,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: (await supabase.auth.getUser()).data.user?.id
         });
 
       if (error) throw error;
