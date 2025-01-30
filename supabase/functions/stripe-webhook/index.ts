@@ -37,10 +37,10 @@ serve(async (req) => {
       const session = event.data.object;
       console.log('Processing successful checkout session:', session.id);
 
-      // Update order status in database
+      // Update order status to paid in database
       const { error: updateError } = await supabase
         .from('orders')
-        .update({ status: 'processing' })
+        .update({ status: 'paid' })
         .eq('stripe_session_id', session.id);
 
       if (updateError) {
@@ -48,7 +48,7 @@ serve(async (req) => {
         throw updateError;
       }
 
-      console.log('Order status updated successfully');
+      console.log('Order status updated to paid successfully');
 
       // Send order confirmation email
       try {
@@ -58,7 +58,7 @@ serve(async (req) => {
             customerName: session.metadata.customerName,
             orderId: session.metadata.orderNumber,
             orderNumber: session.metadata.orderNumber,
-            newStatus: 'processing'
+            newStatus: 'paid'
           }
         });
         console.log('Order confirmation email sent');

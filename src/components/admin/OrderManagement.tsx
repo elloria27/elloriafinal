@@ -29,7 +29,7 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"] & {
   } | null;
 };
 
-const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+const ORDER_STATUSES: OrderStatus[] = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
@@ -439,3 +439,4 @@ export const OrderManagement = () => {
     </div>
   );
 };
+
