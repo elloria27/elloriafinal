@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
+import { Badge } from "@/components/ui/badge";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -125,6 +126,8 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
+            payment_method: order.payment_method || 'cash', // Default to cash if not specified
+            stripe_session_id: order.stripe_session_id, // Add Stripe session ID
             profile: order.user_id ? {
               full_name: order.profiles?.full_name || 'Guest',
               email: order.profiles?.email || 'Anonymous Order'
@@ -271,6 +274,21 @@ export const OrderManagement = () => {
     }).format(amount);
   };
 
+  const getPaymentMethodDisplay = (order: OrderData) => {
+    if (order.stripe_session_id) {
+      return (
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          Stripe
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+        Cash
+      </Badge>
+    );
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
@@ -286,6 +304,7 @@ export const OrderManagement = () => {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -315,6 +334,7 @@ export const OrderManagement = () => {
                   ))}
                 </select>
               </TableCell>
+              <TableCell>{getPaymentMethodDisplay(order)}</TableCell>
               <TableCell>{formatCurrency(order.total_amount)}</TableCell>
               <TableCell>
                 <Button
@@ -348,6 +368,7 @@ export const OrderManagement = () => {
                   <p>Order Number: {selectedOrder.order_number}</p>
                   <p>Date: {formatDate(selectedOrder.created_at)}</p>
                   <p>Status: {selectedOrder.status}</p>
+                  <p>Payment Method: {selectedOrder.stripe_session_id ? 'Stripe' : 'Cash'}</p>
                   <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
                 </div>
                 <div>
