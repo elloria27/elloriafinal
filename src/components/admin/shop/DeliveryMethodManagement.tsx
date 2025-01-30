@@ -15,6 +15,24 @@ interface DeliveryMethod {
   estimated_days: string | null;
 }
 
+interface ShopSettings {
+  id: string;
+  shipping_methods: {
+    CA: Array<{
+      id: string;
+      name: string;
+      price: number;
+      estimatedDays: string | null;
+    }>;
+    US: Array<{
+      id: string;
+      name: string;
+      price: number;
+      estimatedDays: string | null;
+    }>;
+  };
+}
+
 export const DeliveryMethodManagement = () => {
   const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,23 +84,30 @@ export const DeliveryMethodManagement = () => {
       // Update shop settings to trigger checkout page refresh
       const { data: shopSettings } = await supabase
         .from('shop_settings')
-        .select('shipping_methods')
+        .select('*')
         .single();
 
       if (shopSettings) {
-        const { error: updateError } = await supabase
-          .from('shop_settings')
-          .update({
-            updated_at: new Date().toISOString(),
-            shipping_methods: {
-              ...shopSettings.shipping_methods,
-              CA: deliveryMethods.filter(m => m.is_active).map(m => ({
+        const updatedShopSettings: ShopSettings = {
+          ...shopSettings,
+          shipping_methods: {
+            CA: deliveryMethods
+              .filter(m => m.is_active)
+              .map(m => ({
                 id: m.id,
                 name: m.name,
                 price: m.base_price,
                 estimatedDays: m.estimated_days
-              }))
-            }
+              })),
+            US: [] // Keep US methods unchanged
+          }
+        };
+
+        const { error: updateError } = await supabase
+          .from('shop_settings')
+          .update({
+            updated_at: new Date().toISOString(),
+            shipping_methods: updatedShopSettings.shipping_methods
           })
           .eq('id', shopSettings.id);
 
