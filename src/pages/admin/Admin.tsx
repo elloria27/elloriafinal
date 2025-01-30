@@ -9,10 +9,11 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, Store } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
+import { ShopSettings } from "@/components/admin/settings/ShopSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -108,7 +109,7 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-8 gap-1">
+            <TabsList className="w-full grid grid-cols-9 gap-1">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="hidden md:inline">Dashboard</span>
@@ -136,6 +137,10 @@ const Admin = () => {
               <TabsTrigger value="settings" className="flex items-center gap-2 py-3 px-4">
                 <Settings className="h-5 w-5" />
                 <span className="hidden md:inline">Settings</span>
+              </TabsTrigger>
+              <TabsTrigger value="shop-settings" className="flex items-center gap-2 py-3 px-4">
+                <Store className="h-5 w-5" />
+                <span className="hidden md:inline">Shop Settings</span>
               </TabsTrigger>
               <TabsTrigger value="promo-codes" className="flex items-center gap-2 py-3 px-4">
                 <Tag className="h-5 w-5" />
@@ -171,6 +176,10 @@ const Admin = () => {
 
             <TabsContent value="settings">
               <SiteSettings />
+            </TabsContent>
+
+            <TabsContent value="shop-settings">
+              <ShopSettings />
             </TabsContent>
 
             <TabsContent value="promo-codes">
