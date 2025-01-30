@@ -68,14 +68,16 @@ export const ShopSettings = () => {
       setSaving(true);
       console.log('Saving shop settings:', settings);
 
+      const updateData = {
+        ...settings,
+        payment_methods: paymentMethods,
+        stripe_settings: stripeSettings,
+        shipping_methods: shippingMethods
+      };
+
       const { error } = await supabase
         .from('shop_settings')
-        .update({
-          ...settings,
-          payment_methods: paymentMethods as any,
-          stripe_settings: stripeSettings as any,
-          shipping_methods: shippingMethods as any
-        })
+        .update(updateData)
         .eq('id', settings.id);
 
       if (error) throw error;
