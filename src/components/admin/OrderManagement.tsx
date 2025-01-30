@@ -108,21 +108,13 @@ export const OrderManagement = () => {
 
       if (error) {
         console.error("Error fetching orders:", error);
-        toast.error(`Failed to fetch orders: ${error.message}`);
-        return;
-      }
-
-      if (!ordersData) {
-        console.log("No orders found");
-        setOrders([]);
+        toast.error("Failed to fetch orders");
         return;
       }
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = [];
-
-      for (const order of ordersData) {
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
@@ -146,18 +138,18 @@ export const OrderManagement = () => {
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
-          validatedOrders.push(validatedOrder);
+          return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
-          toast.error(`Error validating order ${order.order_number}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          throw error;
         }
-      }
+      });
 
       console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
     } catch (error) {
       console.error("Error in fetchOrders:", error);
-      toast.error(`An unexpected error occurred while fetching orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error("An unexpected error occurred while fetching orders");
     } finally {
       setLoading(false);
     }
@@ -336,81 +328,63 @@ export const OrderManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Order Management</h2>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            console.log("Manually refreshing orders...");
-            setLoading(true);
-            fetchOrders();
-          }}
-        >
-          Refresh Orders
-        </Button>
-      </div>
+      <h2 className="text-2xl font-bold">Order Management</h2>
       
-      {orders.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No orders found. New orders will appear here when customers make purchases.
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order Number</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Actions</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Order Number</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Payment</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => (
+            <TableRow key={order.id}>
+              <TableCell>{order.order_number}</TableCell>
+              <TableCell>
+                {order.user_id ? (
+                  order.profile?.full_name || 'N/A'
+                ) : (
+                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
+                )}
+              </TableCell>
+              <TableCell>{formatDate(order.created_at)}</TableCell>
+              <TableCell>
+                <select
+                  value={order.status}
+                  onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
+                  className="border rounded p-1"
+                >
+                  {ORDER_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </TableCell>
+              <TableCell>{getPaymentStatusBadge(order)}</TableCell>
+              <TableCell>{formatCurrency(order.total_amount)}</TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setIsDetailsOpen(true);
+                  }}
+                >
+                  View Details
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.order_number}</TableCell>
-                <TableCell>
-                  {order.user_id ? (
-                    order.profile?.full_name || 'N/A'
-                  ) : (
-                    `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
-                  )}
-                </TableCell>
-                <TableCell>{formatDate(order.created_at)}</TableCell>
-                <TableCell>
-                  <select
-                    value={order.status}
-                    onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-                    className="border rounded p-1"
-                  >
-                    {ORDER_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </TableCell>
-                <TableCell>{getPaymentStatusBadge(order)}</TableCell>
-                <TableCell>{formatCurrency(order.total_amount)}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setIsDetailsOpen(true);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+          ))}
+        </TableBody>
+      </Table>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
