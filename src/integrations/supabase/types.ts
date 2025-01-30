@@ -708,12 +708,47 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_settings: {
+        Row: {
+          created_at: string
+          default_currency: Database["public"]["Enums"]["supported_currency"]
+          enable_guest_checkout: boolean | null
+          id: string
+          max_order_amount: number | null
+          min_order_amount: number | null
+          shipping_countries: string[] | null
+          tax_rate: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_currency?: Database["public"]["Enums"]["supported_currency"]
+          enable_guest_checkout?: boolean | null
+          id?: string
+          max_order_amount?: number | null
+          min_order_amount?: number | null
+          shipping_countries?: string[] | null
+          tax_rate?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_currency?: Database["public"]["Enums"]["supported_currency"]
+          enable_guest_checkout?: boolean | null
+          id?: string
+          max_order_amount?: number | null
+          min_order_amount?: number | null
+          shipping_countries?: string[] | null
+          tax_rate?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           contact_email: string | null
           created_at: string
           custom_scripts: Json | null
-          default_currency: Database["public"]["Enums"]["supported_currency"]
           default_language: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent: boolean | null
           enable_https_redirect: boolean | null
@@ -735,7 +770,6 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
@@ -757,7 +791,6 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           custom_scripts?: Json | null
-          default_currency?: Database["public"]["Enums"]["supported_currency"]
           default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
