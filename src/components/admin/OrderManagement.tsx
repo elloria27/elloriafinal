@@ -32,31 +32,17 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   const typedAddress = address as Record<string, unknown>;
   
-  // Log the address data for debugging
-  console.log('Validating shipping address:', typedAddress);
+  console.log('Raw address data:', typedAddress);
   
-  // Check required fields with more detailed error messages
-  const requiredFields = ['address', 'region', 'country', 'phone'];
-  for (const field of requiredFields) {
-    if (!typedAddress[field]) {
-      console.error(`Missing ${field} in shipping address:`, typedAddress);
-      throw new Error(`Missing required shipping address field: ${field}`);
-    }
-    if (typeof typedAddress[field] !== 'string') {
-      console.error(`Invalid ${field} type in shipping address:`, typedAddress[field]);
-      throw new Error(`Invalid shipping address field type: ${field} must be a string`);
-    }
-  }
-
-  // Return validated address with all fields
+  // Return validated address with all fields, using optional chaining and type coercion
   return {
-    address: typedAddress.address as string,
-    region: typedAddress.region as string,
-    country: typedAddress.country as string,
-    phone: typedAddress.phone as string,
-    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
-    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
-    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
+    address: String(typedAddress.address || ''),
+    region: String(typedAddress.region || ''),
+    country: String(typedAddress.country || ''),
+    phone: String(typedAddress.phone || ''),
+    first_name: typedAddress.first_name ? String(typedAddress.first_name) : undefined,
+    last_name: typedAddress.last_name ? String(typedAddress.last_name) : undefined,
+    email: typedAddress.email ? String(typedAddress.email) : undefined,
   };
 };
 
@@ -66,27 +52,25 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
     throw new Error('Items must be an array');
   }
 
-  console.log('Validating order items:', items);
-
   return items.map((item, index) => {
     if (
       typeof item !== 'object' ||
       !item ||
-      typeof (item as any).id !== 'string' ||
-      typeof (item as any).name !== 'string' ||
-      typeof (item as any).quantity !== 'number' ||
-      typeof (item as any).price !== 'number'
+      !item.hasOwnProperty('id') ||
+      !item.hasOwnProperty('name') ||
+      !item.hasOwnProperty('quantity') ||
+      !item.hasOwnProperty('price')
     ) {
       console.error(`Invalid order item at index ${index}:`, item);
       throw new Error(`Invalid order item format at index ${index}`);
     }
 
     return {
-      id: (item as any).id,
-      name: (item as any).name,
-      quantity: (item as any).quantity,
-      price: (item as any).price,
-      image: (item as any).image,
+      id: String(item.id),
+      name: String(item.name),
+      quantity: Number(item.quantity),
+      price: Number(item.price),
+      image: item.image ? String(item.image) : undefined,
     };
   });
 };
@@ -142,28 +126,10 @@ export const OrderManagement = () => {
 
       for (const order of ordersData) {
         try {
-          console.log('Validating order:', order.order_number);
+          console.log('Processing order:', order.order_number);
           
-          // Validate shipping address with better error handling
-          let shippingAddress;
-          try {
-            shippingAddress = validateShippingAddress(order.shipping_address);
-          } catch (addressError) {
-            console.error(`Error validating shipping address for order ${order.order_number}:`, addressError);
-            toast.error(`Error validating order ${order.order_number}: ${addressError.message}`);
-            continue; // Skip this order and continue with the next one
-          }
-
-          // Validate billing address with better error handling
-          let billingAddress;
-          try {
-            billingAddress = validateShippingAddress(order.billing_address);
-          } catch (addressError) {
-            console.error(`Error validating billing address for order ${order.order_number}:`, addressError);
-            toast.error(`Error validating order ${order.order_number}: ${addressError.message}`);
-            continue;
-          }
-
+          const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
           const status = validateOrderStatus(order.status);
 
@@ -192,8 +158,8 @@ export const OrderManagement = () => {
           validatedOrders.push(validatedOrder);
           console.log('Successfully validated order:', order.order_number);
         } catch (error) {
-          console.error("Error validating order:", error, order);
-          toast.error(`Error validating order ${order.order_number}: ${error.message}`);
+          console.error("Error processing order:", error, order);
+          toast.error(`Error processing order ${order.order_number}: ${error.message}`);
         }
       }
 
@@ -207,10 +173,6 @@ export const OrderManagement = () => {
       setRefreshing(false);
     }
   };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
@@ -374,6 +336,10 @@ export const OrderManagement = () => {
       </Badge>
     );
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
