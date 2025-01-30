@@ -20,6 +20,7 @@ const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
 serve(async (req) => {
   try {
+    // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -74,7 +75,7 @@ serve(async (req) => {
         .update({ 
           status: 'paid',
           payment_method: 'stripe',
-          total_amount: totalAmount, // Update with the actual paid amount
+          total_amount: totalAmount,
           applied_promo_code: discountAmount > 0 ? {
             ...checkoutSession.metadata.promoCode ? JSON.parse(checkoutSession.metadata.promoCode) : {},
             original_amount: originalAmount,
