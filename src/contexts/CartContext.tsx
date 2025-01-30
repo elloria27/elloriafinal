@@ -34,6 +34,7 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'elloria_cart';
+const PROMO_CODE_STORAGE_KEY = 'elloria_promo_code';
 const CART_EXPIRY_DAYS = 7;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -54,7 +55,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(null);
+  const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(() => {
+    if (typeof window === 'undefined') return null;
+    
+    const savedPromoCode = localStorage.getItem(PROMO_CODE_STORAGE_KEY);
+    if (savedPromoCode) {
+      try {
+        return JSON.parse(savedPromoCode);
+      } catch (error) {
+        console.error('Error parsing promo code:', error);
+      }
+    }
+    return null;
+  });
+
   const [isCartAnimating, setIsCartAnimating] = useState(false);
 
   useEffect(() => {
@@ -67,6 +81,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       expiryDate: expiryDate.getTime()
     }));
   }, [items]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    if (activePromoCode) {
+      localStorage.setItem(PROMO_CODE_STORAGE_KEY, JSON.stringify(activePromoCode));
+    } else {
+      localStorage.removeItem(PROMO_CODE_STORAGE_KEY);
+    }
+  }, [activePromoCode]);
 
   const addItem = (newItem: CartItem) => {
     console.log('Adding item to cart:', newItem);

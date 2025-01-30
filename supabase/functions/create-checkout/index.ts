@@ -30,7 +30,7 @@ serve(async (req) => {
     });
 
     // Calculate tax rates based on location
-    const totalTaxRate = (taxes.gst + taxes.pst + taxes.hst) / 100;
+    const totalTaxRate = taxes.gst / 100;
     
     // Create or retrieve tax rate in Stripe
     let taxRate;
@@ -44,8 +44,8 @@ serve(async (req) => {
       taxRate = existingTaxRates.data[0];
     } else {
       taxRate = await stripe.taxRates.create({
-        display_name: `${shippingAddress.region} Tax`,
-        description: `Combined tax rate for ${shippingAddress.region}`,
+        display_name: `GST`,
+        description: `GST for ${shippingAddress.region}`,
         percentage: totalTaxRate * 100,
         inclusive: false,
         country: shippingAddress.country,
@@ -80,7 +80,6 @@ serve(async (req) => {
           unit_amount: Math.round(shippingCost * 100),
         },
         quantity: 1,
-        tax_rates: [taxRate.id],
       });
     }
 

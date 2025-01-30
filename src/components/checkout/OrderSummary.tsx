@@ -42,6 +42,10 @@ export const OrderSummary = ({
     }
   };
 
+  // Calculate discount only on items, not shipping
+  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
+  const subtotalAfterDiscount = Math.max(0, subtotalInCurrentCurrency - discountAmount);
+
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
       <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
@@ -93,28 +97,14 @@ export const OrderSummary = ({
           {activePromoCode && (
             <div className="flex justify-between text-green-600">
               <span>Discount ({getDiscountDisplay(activePromoCode)})</span>
-              <span>-{currencySymbol}{calculateDiscount(activePromoCode, subtotalInCurrentCurrency).toFixed(2)}</span>
+              <span>-{currencySymbol}{discountAmount.toFixed(2)}</span>
             </div>
           )}
 
           {taxes.gst > 0 && (
             <div className="flex justify-between">
               <span>GST ({taxes.gst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.gst / 100).toFixed(2)}</span>
-            </div>
-          )}
-          
-          {taxes.pst > 0 && (
-            <div className="flex justify-between">
-              <span>PST ({taxes.pst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.pst / 100).toFixed(2)}</span>
-            </div>
-          )}
-          
-          {taxes.hst > 0 && (
-            <div className="flex justify-between">
-              <span>HST ({taxes.hst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.hst / 100).toFixed(2)}</span>
+              <span>{currencySymbol}{(subtotalAfterDiscount * taxes.gst / 100).toFixed(2)}</span>
             </div>
           )}
           
