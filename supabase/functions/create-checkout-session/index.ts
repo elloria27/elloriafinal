@@ -60,44 +60,50 @@ serve(async (req) => {
       throw new Error('Stripe secret key not configured')
     }
 
-    console.log('Initializing Stripe with secret key...')
+    console.log('Initializing Stripe...')
     const stripe = new Stripe(stripeSettings.secret_key, {
       apiVersion: '2023-10-16',
     })
 
     // Calculate any discount from promo code
-    let discountAmount = 0;
+    let discountAmount = 0
     if (activePromoCode) {
       console.log('Calculating discount for promo code:', activePromoCode)
       discountAmount = activePromoCode.type === 'percentage'
         ? (total * activePromoCode.value) / 100
-        : activePromoCode.value;
+        : activePromoCode.value
       console.log('Calculated discount amount:', discountAmount)
     }
 
     // Create line items for Stripe
-    const lineItems = items.map((item: any) => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name,
-          images: [item.image],
+    console.log('Creating line items...')
+    const lineItems = items.map((item: any) => {
+      const amount = Math.round(item.price * 100)
+      console.log(`Line item: ${item.name}, price: ${item.price}, amount in cents: ${amount}`)
+      return {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.name,
+            images: [item.image],
+          },
+          unit_amount: amount,
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents and ensure integer
-      },
-      quantity: item.quantity,
-    }))
+        quantity: item.quantity,
+      }
+    })
 
     // Add shipping as a line item if provided
     if (shippingOption) {
-      console.log('Adding shipping cost:', shippingOption.price)
+      const shippingAmount = Math.round(shippingOption.price * 100)
+      console.log(`Adding shipping: ${shippingOption.name}, amount in cents: ${shippingAmount}`)
       lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
             name: `Shipping (${shippingOption.name})`,
           },
-          unit_amount: Math.round(shippingOption.price * 100), // Convert to cents and ensure integer
+          unit_amount: shippingAmount,
         },
         quantity: 1,
       })
@@ -112,14 +118,15 @@ serve(async (req) => {
       ) * total / 100
 
       if (totalTaxAmount > 0) {
-        console.log('Adding tax amount:', totalTaxAmount)
+        const taxAmount = Math.round(totalTaxAmount * 100)
+        console.log(`Adding tax amount in cents: ${taxAmount}`)
         lineItems.push({
           price_data: {
             currency: 'usd',
             product_data: {
               name: 'Taxes',
             },
-            unit_amount: Math.round(totalTaxAmount * 100), // Convert to cents and ensure integer
+            unit_amount: taxAmount,
           },
           quantity: 1,
         })
@@ -128,20 +135,21 @@ serve(async (req) => {
 
     // Add discount as a negative line item if there's an active promo code
     if (discountAmount > 0) {
-      console.log('Adding discount line item:', discountAmount)
+      const discountInCents = Math.round(discountAmount * 100)
+      console.log(`Adding discount in cents: -${discountInCents}`)
       lineItems.push({
         price_data: {
           currency: 'usd',
           product_data: {
             name: `Discount (${activePromoCode.code})`,
           },
-          unit_amount: Math.round(-discountAmount * 100), // Convert to cents, ensure integer, and make negative
+          unit_amount: -discountInCents,
         },
         quantity: 1,
       })
     }
 
-    console.log('Creating Stripe session with line items:', lineItems)
+    console.log('Final line items:', JSON.stringify(lineItems, null, 2))
 
     // Store minimal metadata that won't exceed the 500 character limit
     const minimalMetadata = {
@@ -153,6 +161,7 @@ serve(async (req) => {
       promo_code: activePromoCode?.code || ''
     }
 
+    console.log('Creating Stripe session...')
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
@@ -178,10 +187,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error creating checkout session:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.raw || error
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400, // Changed from 500 to 400 for client errors
+        status: 400,
       }
     )
   }
