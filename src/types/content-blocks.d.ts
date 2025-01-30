@@ -13,6 +13,7 @@ export interface FeatureItem {
 }
 
 // Common block types
+
 export type BlockType =
   | "hero"
   | "features"
@@ -24,6 +25,7 @@ export type BlockType =
   | "testimonials"
   | "blog_preview"
   | "newsletter"
+  | "product_gallery"
   | "about_hero_section"
   | "about_story"
   | "about_mission"

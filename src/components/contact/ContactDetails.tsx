@@ -22,7 +22,7 @@ export const ContactDetails = ({ content }: ContactDetailsProps) => {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Address</h3>
                 <p className="text-gray-600">
-                  {content.address || "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada"}
+                  {content.contactInfo?.address || "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada"}
                 </p>
               </div>
             </div>
@@ -31,7 +31,7 @@ export const ContactDetails = ({ content }: ContactDetailsProps) => {
               <Phone className="w-6 h-6 text-primary mt-1" />
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                <p className="text-gray-600">{content.phone || "+1 (204) 930-2019"}</p>
+                <p className="text-gray-600">{content.contactInfo?.phone || "+1 (204) 930-2019"}</p>
               </div>
             </div>
             
@@ -39,7 +39,7 @@ export const ContactDetails = ({ content }: ContactDetailsProps) => {
               <Mail className="w-6 h-6 text-primary mt-1" />
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                <p className="text-gray-600">{content.email || "support@elloria.ca"}</p>
+                <p className="text-gray-600">{content.contactInfo?.email || "support@elloria.ca"}</p>
               </div>
             </div>
           </motion.div>

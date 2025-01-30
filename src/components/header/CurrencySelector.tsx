@@ -31,7 +31,6 @@ export const CurrencySelector = () => {
 
   const handleCurrencyChange = async (currency: SupportedCurrency) => {
     setSelectedCurrency(currency);
-    // Add any additional logic for currency change
   };
 
   return (
@@ -48,8 +47,8 @@ export const CurrencySelector = () => {
         <DropdownMenuItem onClick={() => handleCurrencyChange("EUR")}>
           EUR
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleCurrencyChange("GBP")}>
-          GBP
+        <DropdownMenuItem onClick={() => handleCurrencyChange("UAH")}>
+          UAH
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleCurrencyChange("CAD")}>
           CAD
