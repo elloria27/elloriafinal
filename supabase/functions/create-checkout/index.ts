@@ -18,25 +18,20 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    // Get the request body
-    const { data } = await req.json();
-    const { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } = data;
+    const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress } } = await req.json();
+    
+    console.log('Processing checkout for items:', items);
+    console.log('Shipping address:', shippingAddress);
 
-    console.log('Received checkout data:', {
-      shippingAddress,
-      items,
-      total,
-      taxes,
-      activePromoCode,
-      shippingCost
-    });
-
-    // Get user data from auth header if available
+    // Get authentication status and user data
     const authHeader = req.headers.get('Authorization');
     let userId = null;
     let userProfile = null;
+    let customerEmail = shippingAddress.email;
 
     if (authHeader) {
+      console.log('User is authenticated, fetching profile data');
+      
       const supabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -49,13 +44,11 @@ serve(async (req) => {
         }
       );
 
-      // Set auth header
       supabase.auth.setSession({
         access_token: authHeader.replace('Bearer ', ''),
         refresh_token: '',
       });
 
-      // Get user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
@@ -64,7 +57,6 @@ serve(async (req) => {
         userId = user.id;
         console.log('Found authenticated user:', userId);
 
-        // Get user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -75,13 +67,16 @@ serve(async (req) => {
           console.error('Error getting user profile:', profileError);
         } else {
           userProfile = profile;
+          customerEmail = profile.email || shippingAddress.email;
           console.log('Found user profile:', userProfile);
         }
       }
+    } else {
+      console.log('Processing as guest checkout');
     }
 
     // Calculate tax rates based on location
-    const totalTaxRate = taxes.gst / 100;
+    const totalTaxRate = (taxes.gst || 0) / 100;
     
     // Create or retrieve tax rate in Stripe
     let taxRate;
@@ -119,22 +114,8 @@ serve(async (req) => {
       tax_rates: [taxRate.id],
     }));
 
-    if (shippingCost > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'cad',
-          product_data: {
-            name: 'Shipping',
-            description: 'Shipping cost',
-          },
-          unit_amount: Math.round(shippingCost * 100),
-        },
-        quantity: 1,
-      });
-    }
-
     // Handle promo code discount
-    let discounts = [];
+    const discounts = [];
     if (activePromoCode) {
       console.log('Applying promo code:', activePromoCode);
       
@@ -165,10 +146,10 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    // Generate a unique order number
+    // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    // Create order data
+    // Create order data with complete customer information
     const orderData = {
       user_id: userId,
       profile_id: userId,
@@ -176,8 +157,14 @@ serve(async (req) => {
       total_amount: total,
       status: 'pending',
       items: items,
-      shipping_address: shippingAddress,
-      billing_address: shippingAddress, // Using same address for billing
+      shipping_address: {
+        ...shippingAddress,
+        email: customerEmail,
+      },
+      billing_address: {
+        ...shippingAddress,
+        email: customerEmail,
+      },
       payment_method: 'stripe',
       applied_promo_code: activePromoCode
     };
@@ -190,11 +177,7 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      currency: 'cad',
-      automatic_tax: {
-        enabled: false,
-      },
-      customer_email: userProfile?.email || shippingAddress.email,
+      customer_email: customerEmail,
       metadata: {
         order_number: orderNumber,
         user_id: userId || 'guest',
@@ -206,7 +189,7 @@ serve(async (req) => {
 
     console.log('Created Stripe session:', session.id);
 
-    // Create order in database
+    // Save order to database
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -224,7 +207,7 @@ serve(async (req) => {
       throw new Error('Failed to create order in database');
     }
 
-    console.log('Order created successfully');
+    console.log('Order created successfully:', orderNumber);
 
     return new Response(
       JSON.stringify({ url: session.url }),
