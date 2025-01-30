@@ -17,6 +17,11 @@ interface PaymentMethods {
   cash_on_delivery: boolean;
 }
 
+interface StripeSettings {
+  secret_key: string;
+  publishable_key: string;
+}
+
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +86,6 @@ export const ShopSettings = () => {
   const handlePaymentMethodToggle = (method: keyof PaymentMethods, enabled: boolean) => {
     if (!settings) return;
     
-    // Cast the payment_methods to unknown first, then to PaymentMethods
     const currentMethods = (settings.payment_methods as unknown) as PaymentMethods || {
       stripe: false,
       cash_on_delivery: false
@@ -95,6 +99,25 @@ export const ShopSettings = () => {
     setSettings({
       ...settings,
       payment_methods: updatedPaymentMethods
+    });
+  };
+
+  const handleStripeSettingsChange = (key: keyof StripeSettings, value: string) => {
+    if (!settings) return;
+
+    const currentStripeSettings = (settings.stripe_settings as unknown) as StripeSettings || {
+      secret_key: '',
+      publishable_key: ''
+    };
+
+    const updatedStripeSettings = {
+      ...currentStripeSettings,
+      [key]: value
+    };
+
+    setSettings({
+      ...settings,
+      stripe_settings: updatedStripeSettings
     });
   };
 
@@ -114,10 +137,14 @@ export const ShopSettings = () => {
     );
   }
 
-  // Cast payment_methods to PaymentMethods type with a default value
   const paymentMethods = ((settings.payment_methods as unknown) as PaymentMethods) || {
     stripe: false,
     cash_on_delivery: false
+  };
+
+  const stripeSettings = ((settings.stripe_settings as unknown) as StripeSettings) || {
+    secret_key: '',
+    publishable_key: ''
   };
 
   return (
@@ -223,6 +250,31 @@ export const ShopSettings = () => {
               />
               <Label htmlFor="enable_stripe">Enable Stripe Payments</Label>
             </div>
+
+            {paymentMethods.stripe && (
+              <div className="ml-6 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stripe_secret_key">Stripe Secret Key</Label>
+                  <Input
+                    id="stripe_secret_key"
+                    type="password"
+                    value={stripeSettings.secret_key}
+                    onChange={(e) => handleStripeSettingsChange('secret_key', e.target.value)}
+                    placeholder="sk_test_..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="stripe_publishable_key">Stripe Publishable Key</Label>
+                  <Input
+                    id="stripe_publishable_key"
+                    type="password"
+                    value={stripeSettings.publishable_key}
+                    onChange={(e) => handleStripeSettingsChange('publishable_key', e.target.value)}
+                    placeholder="pk_test_..."
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center space-x-2">
               <Switch
