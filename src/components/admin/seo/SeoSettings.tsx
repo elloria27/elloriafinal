@@ -77,6 +77,9 @@ export const SeoSettings = () => {
     try {
       const formData = new FormData(e.currentTarget);
       const updates = {
+        id: selectedPage.id,
+        slug: selectedPage.slug,
+        title: selectedPage.title,
         allow_indexing: formData.get('allow_indexing') === 'on',
         meta_title: formData.get('meta_title')?.toString() || null,
         meta_description: formData.get('meta_description')?.toString() || null,

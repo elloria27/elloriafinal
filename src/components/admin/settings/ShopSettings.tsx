@@ -12,12 +12,13 @@ import type { Database } from "@/integrations/supabase/types";
 import type { PaymentMethods, StripeSettings, ShippingMethod } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
+type ShippingMethods = Record<string, ShippingMethod[]>;
 
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [shippingMethods, setShippingMethods] = useState<Record<string, ShippingMethod[]>>({
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethods>({
     CA: [],
     US: []
   });
@@ -49,17 +50,17 @@ export const ShopSettings = () => {
       
       // Initialize shipping methods from settings if they exist
       if (data.shipping_methods) {
-        setShippingMethods(data.shipping_methods as Record<string, ShippingMethod[]>);
+        setShippingMethods(data.shipping_methods as ShippingMethods || { CA: [], US: [] });
       }
 
       // Initialize payment methods
       if (data.payment_methods) {
-        setPaymentMethods(data.payment_methods as PaymentMethods);
+        setPaymentMethods(data.payment_methods as PaymentMethods || { stripe: false, cash_on_delivery: false });
       }
 
       // Initialize stripe settings
       if (data.stripe_settings) {
-        setStripeSettings(data.stripe_settings as StripeSettings);
+        setStripeSettings(data.stripe_settings as StripeSettings || { secret_key: '', publishable_key: '' });
       }
     } catch (error) {
       console.error('Error loading shop settings:', error);
