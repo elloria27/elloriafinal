@@ -1,183 +1,148 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import Stripe from 'https://esm.sh/stripe@14.21.0'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@13.6.0?target=deno'
+
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
+});
+
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { items, customerDetails, total, taxes, shippingOption, activePromoCode } = await req.json()
+    console.log('Starting checkout session creation...');
+    const { items, customerDetails, total, taxes, shippingOption, activePromoCode } = await req.json();
     
-    console.log('Creating checkout session with:', { 
-      items, 
-      customerDetails, 
-      total,
-      taxes,
-      shippingOption,
-      activePromoCode
-    })
+    console.log('Request data:', { customerDetails, total, taxes, shippingOption });
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase environment variables')
-    }
+    // Generate unique order number
+    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+    console.log('Generated order number:', orderNumber);
 
-    const supabaseClient = createClient(supabaseUrl, supabaseKey)
-
-    // Get shop settings to get Stripe keys
-    console.log('Fetching shop settings...')
-    const { data: shopSettings, error: settingsError } = await supabaseClient
-      .from('shop_settings')
-      .select('stripe_settings')
-      .single()
-
-    if (settingsError) {
-      console.error('Error fetching shop settings:', settingsError)
-      throw new Error('Could not fetch shop settings')
-    }
-
-    if (!shopSettings?.stripe_settings) {
-      throw new Error('Stripe settings not configured')
-    }
-
-    const stripeSettings = shopSettings.stripe_settings as {
-      secret_key: string;
-      publishable_key: string;
-    }
-
-    if (!stripeSettings.secret_key) {
-      throw new Error('Stripe secret key not configured')
-    }
-
-    console.log('Initializing Stripe with secret key...')
-    const stripe = new Stripe(stripeSettings.secret_key, {
-      apiVersion: '2023-10-16',
-    })
-
-    // Create line items for Stripe
     const lineItems = items.map((item: any) => ({
       price_data: {
         currency: 'usd',
         product_data: {
           name: item.name,
-          images: [item.image],
+          images: item.image ? [item.image] : [],
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
-    }))
+    }));
 
-    // Add shipping as a line item if provided
-    if (shippingOption) {
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `Shipping (${shippingOption.name})`,
-          },
-          unit_amount: Math.round(shippingOption.price * 100),
-        },
-        quantity: 1,
-      })
-    }
-
-    // Add taxes as a line item if provided
-    if (taxes) {
-      const totalTaxAmount = (
-        (taxes.gst || 0) + 
-        (taxes.pst || 0) + 
-        (taxes.hst || 0)
-      ) * total / 100
-
-      if (totalTaxAmount > 0) {
-        lineItems.push({
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Taxes',
-            },
-            unit_amount: Math.round(totalTaxAmount * 100),
-          },
-          quantity: 1,
-        })
-      }
-    }
-
-    // Handle promo code discount
     let discounts = [];
     if (activePromoCode) {
-      // Create a coupon
-      const coupon = await stripe.coupons.create({
-        name: `Promo: ${activePromoCode.code}`,
-        currency: 'usd',
-        ...(activePromoCode.type === 'percentage' 
-          ? { percent_off: activePromoCode.value }
-          : { amount_off: Math.round(activePromoCode.value * 100) }
-        ),
-        duration: 'once',
-      });
+      console.log('Processing promo code:', activePromoCode);
+      const { data: promoData } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', activePromoCode.code)
+        .single();
 
-      discounts.push({ coupon: coupon.id });
-    }
-
-    console.log('Creating Stripe session with:', {
-      lineItems,
-      discounts,
-      total
-    });
-
-    // Store minimal metadata that won't exceed the 500 character limit
-    const minimalMetadata = {
-      customer_email: customerDetails.email,
-      customer_name: `${customerDetails.firstName} ${customerDetails.lastName}`,
-      shipping_country: customerDetails.country,
-      shipping_region: customerDetails.region,
-      total_amount: total.toString(),
-      promo_code: activePromoCode ? activePromoCode.code : undefined
+      if (promoData) {
+        const coupon = await stripe.coupons.create({
+          [promoData.type === 'percentage' ? 'percent_off' : 'amount_off']: 
+            promoData.type === 'percentage' ? promoData.value : Math.round(promoData.value * 100),
+          duration: 'once',
+        });
+        discounts.push({ coupon: coupon.id });
+      }
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      discounts: discounts,
-      success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: customerDetails.email,
-      shipping_address_collection: {
-        allowed_countries: ['US', 'CA'],
+      shipping_options: [{
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: {
+            amount: Math.round(shippingOption.price * 100),
+            currency: 'usd',
+          },
+          display_name: shippingOption.name,
+        },
+      }],
+      discounts,
+      metadata: {
+        orderNumber,
+        customerEmail: customerDetails.email,
+        customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
       },
-      metadata: minimalMetadata,
-    })
+    });
 
-    console.log('Checkout session created:', session.id)
+    // Create order in database
+    const orderData = {
+      order_number: orderNumber,
+      user_id: req.headers.get('Authorization')?.split('Bearer ')[1] || null,
+      total_amount: total,
+      status: 'pending',
+      items: items,
+      shipping_address: {
+        first_name: customerDetails.firstName,
+        last_name: customerDetails.lastName,
+        email: customerDetails.email,
+        phone: customerDetails.phone,
+        address: customerDetails.address,
+        country: customerDetails.country,
+        region: customerDetails.region
+      },
+      billing_address: {
+        first_name: customerDetails.firstName,
+        last_name: customerDetails.lastName,
+        email: customerDetails.email,
+        phone: customerDetails.phone,
+        address: customerDetails.address,
+        country: customerDetails.country,
+        region: customerDetails.region
+      },
+      payment_method: 'stripe',
+      stripe_session_id: session.id
+    };
+
+    console.log('Creating order in database:', orderData);
+
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData);
+
+    if (orderError) {
+      console.error('Error creating order:', orderError);
+      throw new Error('Failed to create order');
+    }
+
+    console.log('Order created successfully');
+    console.log('Checkout session created:', session.id);
 
     return new Response(
       JSON.stringify({ url: session.url }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
-      }
-    )
+      },
+    );
   } catch (error) {
-    console.error('Error creating checkout session:', error)
+    console.error('Error in create-checkout-session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
-    )
+        status: 500,
+      },
+    );
   }
-})
+});
