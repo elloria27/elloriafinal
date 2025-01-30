@@ -27,6 +27,20 @@ serve(async (req) => {
     
     console.log('Request data:', { customerDetails, total, taxes, shippingOption });
 
+    // Get user ID from auth header if it exists
+    let userId = null;
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      if (userError) {
+        console.error('Error getting user:', userError);
+      } else if (user) {
+        userId = user.id;
+        console.log('User ID retrieved:', userId);
+      }
+    }
+
     // Generate unique order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
     console.log('Generated order number:', orderNumber);
@@ -88,7 +102,8 @@ serve(async (req) => {
     // Create order in database
     const orderData = {
       order_number: orderNumber,
-      user_id: req.headers.get('Authorization')?.split('Bearer ')[1] || null,
+      user_id: userId,
+      profile_id: userId, // Using the same ID for both since they match
       total_amount: total,
       status: 'pending',
       items: items,
