@@ -33,10 +33,11 @@ const Dashboard = () => {
 
         if (usersError) throw usersError;
         
-        // Fetch orders and total revenue
+        // Fetch only paid orders and calculate revenue
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount');
+          .select('total_amount')
+          .eq('status', 'paid'); // Only include paid orders
 
         if (ordersError) throw ordersError;
         
