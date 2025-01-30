@@ -12,6 +12,35 @@ export interface FeatureItem {
   detail?: string;
 }
 
+// Common block types
+export type BlockType =
+  | "hero"
+  | "features"
+  | "game_changer"
+  | "store_brands"
+  | "sustainability"
+  | "product_carousel"
+  | "competitor_comparison"
+  | "testimonials"
+  | "blog_preview"
+  | "newsletter"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business"
+  | "heading"
+  | "text"
+  | "image"
+  | "video"
+  | "button";
+
 // Home page specific content types
 export interface HeroContent extends BaseBlockContent {
   title?: string;
@@ -97,12 +126,10 @@ export interface TestimonialsContent extends BaseBlockContent {
 export interface BlogPreviewContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  posts?: {
+  articles?: {
     title: string;
-    excerpt: string;
-    image: string;
-    date: string;
     category: string;
+    image: string;
   }[];
 }
 
@@ -112,18 +139,119 @@ export interface NewsletterContent extends BaseBlockContent {
   buttonText?: string;
 }
 
-// Block type definition
-export type BlockType = 
-  | "hero"
-  | "features"
-  | "game_changer"
-  | "store_brands"
-  | "sustainability"
-  | "product_carousel"
-  | "competitor_comparison"
-  | "testimonials"
-  | "blog_preview"
-  | "newsletter";
+// About page content types
+export interface AboutHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface AboutStoryContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  videoUrl?: string;
+  videoThumbnail?: string;
+}
+
+export interface AboutMissionContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  values?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+}
+
+export interface AboutSustainabilityContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: {
+    icon: string;
+    value: string;
+    label: string;
+    description: string;
+  }[];
+}
+
+export interface AboutTeamContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  members?: {
+    name: string;
+    role: string;
+    image: string;
+    quote: string;
+  }[];
+}
+
+export interface AboutCustomerImpactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: {
+    value: string;
+    label: string;
+  }[];
+  testimonials?: {
+    quote: string;
+    author: string;
+    role: string;
+    rating: number;
+  }[];
+}
+
+export interface AboutCtaContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+}
+
+// Contact page content types
+export interface ContactHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface ContactDetailsContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  contactInfo?: {
+    address?: string;
+    email?: string;
+    phone?: string;
+    hours?: string;
+  };
+}
+
+export interface ContactFormContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  submitButtonText?: string;
+}
+
+export interface ContactFAQContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  faqs?: {
+    question: string;
+    answer: string;
+  }[];
+}
+
+export interface ContactBusinessContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+}
 
 // Combined content type
 export type BlockContent =
@@ -136,7 +264,19 @@ export type BlockContent =
   | CompetitorComparisonContent
   | TestimonialsContent
   | BlogPreviewContent
-  | NewsletterContent;
+  | NewsletterContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent;
 
 // Main content block interface
 export interface ContentBlock {
