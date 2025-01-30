@@ -30,6 +30,8 @@ export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
     applyPromoCode,
     removePromoCode,
     activePromoCode,
+    calculateDiscount,
+    getDiscountDisplay,
   } = useCart();
 
   const [promoCode, setPromoCode] = useState("");
@@ -171,7 +173,7 @@ export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4 text-primary" />
                         <span className="text-sm font-medium text-primary">
-                          {activePromoCode.code} ({activePromoCode.discount}% OFF)
+                          {activePromoCode.code} ({getDiscountDisplay(activePromoCode)} OFF)
                         </span>
                       </div>
                       <Button
@@ -189,14 +191,14 @@ export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">{formatPrice(subtotal)}</span>
+                    <span className="font-medium">{formatPrice(subtotal || 0)}</span>
                   </div>
                   
                   {activePromoCode && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
-                      <span className="text-primary font-medium">
-                        -{formatPrice((subtotal * activePromoCode.discount) / 100)}
+                      <span className="text-primary">
+                        -{formatPrice(calculateDiscount(activePromoCode, subtotal))}
                       </span>
                     </div>
                   )}
@@ -205,7 +207,7 @@ export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
                   
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span className="text-primary">{formatPrice(total)}</span>
+                    <span className="text-primary">{formatPrice(total || 0)}</span>
                   </div>
                 </div>
 

@@ -27,6 +27,8 @@ type CartContextType = {
   activePromoCode: PromoCode | null;
   total: number;
   isCartAnimating: boolean;
+  calculateDiscount: (promoCode: PromoCode, subtotal: number) => number;
+  getDiscountDisplay: (promoCode: PromoCode) => string;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -189,15 +191,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     toast.success('Promo code removed');
   };
 
+  const calculateDiscount = (promoCode: PromoCode, subtotal: number) => {
+    if (!promoCode) return 0;
+    
+    if (promoCode.type === 'percentage') {
+      return (subtotal * promoCode.value) / 100;
+    } else {
+      return promoCode.value;
+    }
+  };
+
+  const getDiscountDisplay = (promoCode: PromoCode) => {
+    if (!promoCode) return '';
+    return promoCode.type === 'percentage' ? `${promoCode.value}%` : `$${promoCode.value}`;
+  };
+
   const subtotal = items.reduce((sum, item) => {
     const itemTotal = item.price * item.quantity;
     return isNaN(itemTotal) ? sum : sum + itemTotal;
   }, 0);
 
   const total = activePromoCode
-    ? activePromoCode.type === 'percentage'
-      ? subtotal * (1 - activePromoCode.value / 100)
-      : Math.max(0, subtotal - activePromoCode.value)
+    ? Math.max(0, subtotal - calculateDiscount(activePromoCode, subtotal))
     : subtotal;
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -214,6 +229,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     applyPromoCode,
     removePromoCode,
     activePromoCode,
+    calculateDiscount,
+    getDiscountDisplay,
     isCartAnimating
   };
 
@@ -230,4 +247,4 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-};
+}

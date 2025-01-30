@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { PromoCode } from '@/types/promo-code';
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -18,10 +19,7 @@ interface OrderSummaryProps {
     name: string;
   } | undefined;
   total: number;
-  activePromoCode: {
-    code: string;
-    discount: number;
-  } | null;
+  activePromoCode: PromoCode | null;
 }
 
 export const OrderSummary = ({
@@ -34,7 +32,7 @@ export const OrderSummary = ({
   activePromoCode
 }: OrderSummaryProps) => {
   const [promoCode, setPromoCode] = useState("");
-  const { applyPromoCode, removePromoCode } = useCart();
+  const { applyPromoCode, removePromoCode, calculateDiscount, getDiscountDisplay } = useCart();
 
   const handlePromoCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +59,7 @@ export const OrderSummary = ({
           {activePromoCode ? (
             <div className="flex justify-between items-center bg-accent-green p-2 rounded">
               <span className="text-sm">
-                Code <strong>{activePromoCode.code}</strong> applied ({activePromoCode.discount}% off)
+                Code <strong>{activePromoCode.code}</strong> applied ({getDiscountDisplay(activePromoCode)} off)
               </span>
               <Button
                 variant="ghost"
@@ -94,8 +92,8 @@ export const OrderSummary = ({
           
           {activePromoCode && (
             <div className="flex justify-between text-green-600">
-              <span>Discount ({activePromoCode.discount}%)</span>
-              <span>-{currencySymbol}{(subtotalInCurrentCurrency * activePromoCode.discount / 100).toFixed(2)}</span>
+              <span>Discount ({getDiscountDisplay(activePromoCode)})</span>
+              <span>-{currencySymbol}{calculateDiscount(activePromoCode, subtotalInCurrentCurrency).toFixed(2)}</span>
             </div>
           )}
 
