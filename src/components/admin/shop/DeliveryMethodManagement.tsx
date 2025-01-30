@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface DeliveryMethod {
   id: string;
@@ -37,6 +38,14 @@ export const DeliveryMethodManagement = () => {
   const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newMethod, setNewMethod] = useState<Partial<DeliveryMethod>>({
+    name: '',
+    description: '',
+    is_active: true,
+    base_price: 0,
+    estimated_days: ''
+  });
 
   useEffect(() => {
     fetchDeliveryMethods();
@@ -62,6 +71,41 @@ export const DeliveryMethodManagement = () => {
     }
   };
 
+  const addDeliveryMethod = async () => {
+    try {
+      setSaving(true);
+      console.log('Adding new delivery method:', newMethod);
+
+      const { data, error } = await supabase
+        .from('delivery_methods')
+        .insert([newMethod])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliveryMethods(prev => [data, ...prev]);
+      setIsDialogOpen(false);
+      setNewMethod({
+        name: '',
+        description: '',
+        is_active: true,
+        base_price: 0,
+        estimated_days: ''
+      });
+
+      // Update shop settings
+      await updateShopSettings([data, ...deliveryMethods]);
+      
+      toast.success('Delivery method added successfully');
+    } catch (error) {
+      console.error('Error adding delivery method:', error);
+      toast.error('Failed to add delivery method');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const updateDeliveryMethod = async (id: string, updates: Partial<DeliveryMethod>) => {
     try {
       setSaving(true);
@@ -74,14 +118,25 @@ export const DeliveryMethodManagement = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setDeliveryMethods(methods =>
-        methods.map(method =>
-          method.id === id ? { ...method, ...updates } : method
-        )
+      const updatedMethods = deliveryMethods.map(method =>
+        method.id === id ? { ...method, ...updates } : method
       );
+      setDeliveryMethods(updatedMethods);
 
-      // Update shop settings to trigger checkout page refresh
+      // Update shop settings
+      await updateShopSettings(updatedMethods);
+
+      toast.success('Delivery method updated successfully');
+    } catch (error) {
+      console.error('Error updating delivery method:', error);
+      toast.error('Failed to update delivery method');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateShopSettings = async (methods: DeliveryMethod[]) => {
+    try {
       const { data: shopSettings } = await supabase
         .from('shop_settings')
         .select('*')
@@ -91,7 +146,7 @@ export const DeliveryMethodManagement = () => {
         const updatedShopSettings: ShopSettings = {
           ...shopSettings,
           shipping_methods: {
-            CA: deliveryMethods
+            CA: methods
               .filter(m => m.is_active)
               .map(m => ({
                 id: m.id,
@@ -113,13 +168,9 @@ export const DeliveryMethodManagement = () => {
 
         if (updateError) throw updateError;
       }
-
-      toast.success('Delivery method updated successfully');
     } catch (error) {
-      console.error('Error updating delivery method:', error);
-      toast.error('Failed to update delivery method');
-    } finally {
-      setSaving(false);
+      console.error('Error updating shop settings:', error);
+      toast.error('Failed to update shop settings');
     }
   };
 
@@ -135,9 +186,66 @@ export const DeliveryMethodManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Delivery Methods</h2>
-        <Button disabled={saving}>
-          {saving ? 'Saving...' : 'Add New Method'}
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Add New Method</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Delivery Method</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  value={newMethod.name}
+                  onChange={(e) => setNewMethod(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Standard Shipping"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Input
+                  value={newMethod.description || ''}
+                  onChange={(e) => setNewMethod(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Optional description"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Base Price ($)</Label>
+                <Input
+                  type="number"
+                  value={newMethod.base_price}
+                  onChange={(e) => setNewMethod(prev => ({ ...prev, base_price: parseFloat(e.target.value) }))}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Estimated Days</Label>
+                <Input
+                  value={newMethod.estimated_days || ''}
+                  onChange={(e) => setNewMethod(prev => ({ ...prev, estimated_days: e.target.value }))}
+                  placeholder="e.g. 2-3 business days"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={newMethod.is_active}
+                  onCheckedChange={(checked) => setNewMethod(prev => ({ ...prev, is_active: checked }))}
+                />
+                <Label>Active</Label>
+              </div>
+              <Button 
+                className="w-full" 
+                onClick={addDeliveryMethod}
+                disabled={saving || !newMethod.name}
+              >
+                {saving ? 'Adding...' : 'Add Delivery Method'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       
       <div className="bg-white rounded-lg shadow">
