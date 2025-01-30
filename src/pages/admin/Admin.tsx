@@ -8,8 +8,10 @@ import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
+import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodManagement";
+import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag } from "lucide-react";
+import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck } from "lucide-react";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
@@ -108,7 +110,7 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-8 gap-1">
+            <TabsList className="w-full grid grid-cols-10 gap-1">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="hidden md:inline">Dashboard</span>
@@ -120,6 +122,14 @@ const Admin = () => {
               <TabsTrigger value="orders" className="flex items-center gap-2 py-3 px-4">
                 <ShoppingCart className="h-5 w-5" />
                 <span className="hidden md:inline">Orders</span>
+              </TabsTrigger>
+              <TabsTrigger value="payment-methods" className="flex items-center gap-2 py-3 px-4">
+                <CreditCard className="h-5 w-5" />
+                <span className="hidden md:inline">Payment</span>
+              </TabsTrigger>
+              <TabsTrigger value="delivery-methods" className="flex items-center gap-2 py-3 px-4">
+                <Truck className="h-5 w-5" />
+                <span className="hidden md:inline">Delivery</span>
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2 py-3 px-4">
                 <Users className="h-5 w-5" />
@@ -155,6 +165,14 @@ const Admin = () => {
 
             <TabsContent value="orders">
               <OrderManagement />
+            </TabsContent>
+
+            <TabsContent value="payment-methods">
+              <PaymentMethodManagement />
+            </TabsContent>
+
+            <TabsContent value="delivery-methods">
+              <DeliveryMethodManagement />
             </TabsContent>
 
             <TabsContent value="users">
