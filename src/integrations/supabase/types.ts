@@ -636,6 +636,54 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_purchase_amount: number | null
+          start_date: string | null
+          type: Database["public"]["Enums"]["promo_code_type"]
+          updated_at: string | null
+          uses_count: number | null
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          start_date?: string | null
+          type: Database["public"]["Enums"]["promo_code_type"]
+          updated_at?: string | null
+          uses_count?: number | null
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          start_date?: string | null
+          type?: Database["public"]["Enums"]["promo_code_type"]
+          updated_at?: string | null
+          uses_count?: number | null
+          value?: number
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           content: string | null
@@ -869,6 +917,7 @@ export type Database = {
         | "contact_business"
       page_view_type: "page_view" | "exit"
       post_status: "draft" | "published"
+      promo_code_type: "percentage" | "fixed_amount"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
       user_role: "admin" | "client"

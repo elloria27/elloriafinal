@@ -2,25 +2,17 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import type { PromoCode } from '@/types/promo-code';
 
 export type CartItem = {
-  id: string;  // Explicitly defined as string
+  id: string;
   name: string;
   description: string;
   image: string;
   quantity: number;
   price: number;
 };
-
-export type PromoCode = {
-  code: string;
-  discount: number;
-};
-
-const VALID_PROMO_CODES: PromoCode[] = [
-  { code: 'WELCOME10', discount: 10 },
-  { code: 'SAVE20', discount: 20 },
-];
 
 type CartContextType = {
   items: CartItem[];
@@ -30,7 +22,7 @@ type CartContextType = {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
-  applyPromoCode: (code: string) => void;
+  applyPromoCode: (code: string) => Promise<void>;
   removePromoCode: () => void;
   activePromoCode: PromoCode | null;
   total: number;
@@ -129,16 +121,66 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     toast.success('Cart cleared');
   };
 
-  const applyPromoCode = (code: string) => {
-    const promoCode = VALID_PROMO_CODES.find(
-      promo => promo.code.toLowerCase() === code.toLowerCase()
-    );
+  const applyPromoCode = async (code: string) => {
+    try {
+      console.log('Applying promo code:', code);
+      
+      const { data: promoCode, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
 
-    if (promoCode) {
+      if (error) {
+        console.error('Error fetching promo code:', error);
+        toast.error('Invalid promo code');
+        return;
+      }
+
+      if (!promoCode) {
+        toast.error('Invalid promo code');
+        return;
+      }
+
+      const now = new Date();
+      if (promoCode.start_date && new Date(promoCode.start_date) > now) {
+        toast.error('This promo code is not active yet');
+        return;
+      }
+
+      if (promoCode.end_date && new Date(promoCode.end_date) < now) {
+        toast.error('This promo code has expired');
+        return;
+      }
+
+      if (promoCode.max_uses && promoCode.uses_count >= promoCode.max_uses) {
+        toast.error('This promo code has reached its maximum uses');
+        return;
+      }
+
+      if (subtotal < promoCode.min_purchase_amount) {
+        toast.error(`Minimum purchase amount of $${promoCode.min_purchase_amount} required`);
+        return;
+      }
+
+      // Increment uses_count
+      const { error: updateError } = await supabase
+        .from('promo_codes')
+        .update({ uses_count: promoCode.uses_count + 1 })
+        .eq('id', promoCode.id);
+
+      if (updateError) {
+        console.error('Error updating promo code uses:', updateError);
+        toast.error('Failed to apply promo code');
+        return;
+      }
+
       setActivePromoCode(promoCode);
       toast.success('Promo code applied successfully!');
-    } else {
-      toast.error('Invalid promo code');
+    } catch (error) {
+      console.error('Error applying promo code:', error);
+      toast.error('Failed to apply promo code');
     }
   };
 
@@ -153,7 +195,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, 0);
 
   const total = activePromoCode
-    ? subtotal * (1 - activePromoCode.discount / 100)
+    ? activePromoCode.type === 'percentage'
+      ? subtotal * (1 - activePromoCode.value / 100)
+      : Math.max(0, subtotal - activePromoCode.value)
     : subtotal;
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
