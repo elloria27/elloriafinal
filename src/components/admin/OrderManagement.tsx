@@ -117,6 +117,8 @@ export const OrderManagement = () => {
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
+          
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -125,7 +127,7 @@ export const OrderManagement = () => {
             total_amount: order.total_amount,
             status: validateOrderStatus(order.status),
             shipping_address: shippingAddress,
-            billing_address: validateShippingAddress(order.billing_address),
+            billing_address: billingAddress,
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
