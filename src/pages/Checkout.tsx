@@ -123,12 +123,12 @@ const Checkout = () => {
     
     const taxRates = country === "CA" 
       ? CANADIAN_TAX_RATES[region] 
-      : US_TAX_RATES[region] || { pst: 0 };
+      : US_TAX_RATES[region] || { gst: 5 }; // Default to 5% GST for Canadian regions
     
     return {
       gst: taxRates.gst || 0,
-      pst: taxRates.pst || 0,
-      hst: taxRates.hst || 0
+      pst: 0, // We're only using GST now
+      hst: 0  // We're only using GST now
     };
   };
 
