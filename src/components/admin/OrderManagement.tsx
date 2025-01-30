@@ -15,11 +15,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -89,49 +87,10 @@ export const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const isMobile = useIsMobile();
 
   const fetchOrders = async () => {
     try {
-      console.log("Starting to fetch orders...");
-      
-      // First check if user is authenticated
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError) {
-        console.error("Auth error:", authError);
-        toast.error("Authentication error. Please try logging in again.");
-        return;
-      }
-
-      if (!session) {
-        console.error("No active session");
-        toast.error("Please log in to view orders");
-        return;
-      }
-
-      console.log("User is authenticated, fetching orders...");
-
-      // Check if user has admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
-
-      if (roleError) {
-        console.error("Error checking user role:", roleError);
-        toast.error("Error verifying permissions");
-        return;
-      }
-
-      if (!roleData || roleData.role !== 'admin') {
-        console.error("User is not an admin");
-        toast.error("Admin access required");
-        return;
-      }
-
-      console.log("User has admin role, proceeding with order fetch...");
-
+      console.log("Fetching orders...");
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select(`
@@ -152,14 +111,7 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      if (!ordersData) {
-        console.log("No orders found");
-        setOrders([]);
-        setLoading(false);
-        return;
-      }
-
-      const validatedOrders: OrderData[] = ordersData.map(order => {
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
@@ -173,8 +125,6 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            payment_method: order.payment_method || 'Not specified',
-            stripe_session_id: order.stripe_session_id,
             profile: order.user_id ? {
               full_name: order.profiles?.full_name || 'Guest',
               email: order.profiles?.email || 'Anonymous Order'
@@ -215,31 +165,16 @@ export const OrderManagement = () => {
         return;
       }
 
-      // Find the current order to preserve payment information
-      const currentOrder = orders.find(order => order.id === orderId);
-      if (!currentOrder) {
-        console.error("Order not found");
-        toast.error("Order not found");
-        return;
-      }
-
+      console.log("Current user session:", session.user.id);
+      
       // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
-        .update({ 
-          status: newStatus,
-          // Preserve existing payment information
-          payment_method: currentOrder.payment_method,
-          stripe_session_id: currentOrder.stripe_session_id
-        })
+        .update({ status: newStatus })
         .eq("id", orderId)
         .select(`
           *,
-          profiles:profiles!left(
-            id,
-            full_name,
-            email
-          )
+          profile:profiles(full_name, email)
         `)
         .single();
 
@@ -263,9 +198,7 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
-        payment_method: updatedOrder.payment_method,
-        stripe_session_id: updatedOrder.stripe_session_id,
-        profile: updatedOrder.profiles || undefined
+        profile: updatedOrder.profile || undefined
       };
 
       // Update the orders state
@@ -280,22 +213,17 @@ export const OrderManagement = () => {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification
+      // Send email notification using Supabase Edge Function
       try {
         console.log("Attempting to send email notification");
-        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
-        const customerName = validatedOrder.profile?.full_name || 
-          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
-          'Valued Customer';
-
-        if (customerEmail) {
-          console.log("Sending email to:", customerEmail);
+        if (validatedOrder.profile?.email) {
+          console.log("Sending email to:", validatedOrder.profile.email);
           const { data: emailData, error: emailError } = await supabase.functions.invoke(
             'send-order-status-email',
             {
               body: {
-                customerEmail,
-                customerName,
+                customerEmail: validatedOrder.profile.email,
+                customerName: validatedOrder.profile.full_name || 'Valued Customer',
                 orderId: validatedOrder.id,
                 orderNumber: validatedOrder.order_number,
                 newStatus: validatedOrder.status
@@ -343,30 +271,6 @@ export const OrderManagement = () => {
     }).format(amount);
   };
 
-  const getPaymentStatusBadge = (order: OrderData) => {
-    const baseClasses = "whitespace-nowrap text-xs px-2 py-1 rounded-full font-medium";
-    
-    if (order.stripe_session_id) {
-      return (
-        <Badge className={`${baseClasses} bg-green-500 text-white`}>
-          {isMobile ? "Stripe" : "Paid with Stripe"}
-        </Badge>
-      );
-    }
-    if (order.payment_method === 'cash_on_delivery') {
-      return (
-        <Badge className={`${baseClasses} bg-yellow-500 text-white`}>
-          {isMobile ? "Cash" : "Cash on Delivery"}
-        </Badge>
-      );
-    }
-    return (
-      <Badge className={`${baseClasses} bg-gray-500 text-white`}>
-        {isMobile ? "Pending" : "Payment Pending"}
-      </Badge>
-    );
-  };
-
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
@@ -382,7 +286,6 @@ export const OrderManagement = () => {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Payment</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -412,7 +315,6 @@ export const OrderManagement = () => {
                   ))}
                 </select>
               </TableCell>
-              <TableCell>{getPaymentStatusBadge(order)}</TableCell>
               <TableCell>{formatCurrency(order.total_amount)}</TableCell>
               <TableCell>
                 <Button
@@ -447,7 +349,6 @@ export const OrderManagement = () => {
                   <p>Date: {formatDate(selectedOrder.created_at)}</p>
                   <p>Status: {selectedOrder.status}</p>
                   <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
-                  <p>Payment Method: {getPaymentStatusBadge(selectedOrder)}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
