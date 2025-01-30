@@ -1,8 +1,8 @@
+import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
@@ -21,7 +21,7 @@ import {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal, activePromoCode, clearCart } = useCart();
+  const { items, subtotal, activePromoCode, clearCart, calculateDiscount } = useCart();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
@@ -33,7 +33,6 @@ const Checkout = () => {
   const [paymentMethods, setPaymentMethods] = useState<any>(null);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -140,13 +139,17 @@ const Checkout = () => {
   const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
   const shippingCost = selectedShippingOption?.price || 0;
   
-  const taxAmount = subtotalInCurrentCurrency * (
+  // Calculate discount only on items, not shipping
+  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
+  const subtotalAfterDiscount = Math.max(0, subtotalInCurrentCurrency - discountAmount);
+  
+  const taxAmount = subtotalAfterDiscount * (
     (taxes.hst || 0) / 100 +
     (taxes.gst || 0) / 100 +
     (taxes.pst || 0) / 100
   );
 
-  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
+  const total = subtotalAfterDiscount + taxAmount + shippingCost;
   const currencySymbol = country === "US" ? "$" : "CAD $";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -209,7 +212,9 @@ const Checkout = () => {
           first_name: customerDetails.firstName,
           last_name: customerDetails.lastName,
           email: customerDetails.email
-        }
+        },
+        payment_method: 'cash_on_delivery',
+        applied_promo_code: activePromoCode
       };
 
       console.log('Saving order to database:', orderData);
@@ -243,20 +248,10 @@ const Checkout = () => {
 
       if (emailResult.error) {
         console.error('Error sending email:', emailResult.error);
-        // Don't throw error here, continue with order success
         toast.error('Order placed but confirmation email failed to send');
       } else {
         console.log('Email sent successfully');
       }
-
-      // Store order details and redirect
-      localStorage.setItem('lastOrder', JSON.stringify({
-        orderNumber,
-        customerDetails,
-        items,
-        total,
-        shipping: selectedShippingOption
-      }));
 
       clearCart();
       navigate("/order-success");
@@ -321,7 +316,7 @@ const Checkout = () => {
               {paymentMethods?.stripe ? (
                 <StripeCheckout
                   total={total}
-                  subtotal={subtotalInCurrentCurrency}
+                  subtotal={subtotalAfterDiscount}
                   taxes={taxes}
                   shippingAddress={{ country, region }}
                   shippingCost={shippingCost}
