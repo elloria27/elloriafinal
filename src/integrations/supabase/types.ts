@@ -366,7 +366,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          name: string
+          name?: string
           parent_path?: string | null
           path?: string
         }
@@ -421,7 +421,7 @@ export type Database = {
           payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
-          status: string
+          status?: string
           stripe_session_id?: string | null
           total_amount?: number
           user_id?: string | null
@@ -636,7 +636,7 @@ export type Database = {
           email?: string | null
           email_notifications?: boolean | null
           full_name?: string | null
-          id: string
+          id?: string
           language?: string | null
           marketing_emails?: boolean | null
           phone_number?: string | null
@@ -982,29 +982,6 @@ export type Database = {
   }
 }
 
-export interface PaymentMethods {
-  stripe: boolean;
-  cash_on_delivery: boolean;
-}
-
-export interface StripeSettings {
-  secret_key: string;
-  publishable_key: string;
-}
-
-export interface ShippingMethod {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  estimatedDays: string;
-}
-
-export interface ShippingMethods {
-  CA: ShippingMethod[];
-  US: ShippingMethod[];
-}
-
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -1014,7 +991,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -1026,10 +1003,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
@@ -1047,10 +1024,10 @@ export type TablesInsert<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
 
 export type TablesUpdate<
@@ -1068,10 +1045,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+        Update: infer U
+      }
+      ? U
+      : never
     : never
 
 export type Enums<
