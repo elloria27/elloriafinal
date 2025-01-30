@@ -9,6 +9,7 @@ import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
+import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -122,6 +123,8 @@ const Admin = () => {
         return <MediaLibrary />;
       case "settings":
         return <SiteSettings />;
+      case "promo-codes":
+        return <PromoCodeManagement />;
       default:
         return <Dashboard />;
     }
@@ -138,7 +141,7 @@ const Admin = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-80">
-              <AdminSidebar profile={profile} />
+              <AdminSidebar profile={profile} onClose={() => {}} />
             </SheetContent>
           </Sheet>
         ) : (
