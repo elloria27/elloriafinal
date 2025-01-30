@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
@@ -22,10 +22,22 @@ interface StripeSettings {
   publishable_key: string;
 }
 
+interface ShippingMethod {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  estimatedDays: string;
+}
+
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [shippingMethods, setShippingMethods] = useState<Record<string, ShippingMethod[]>>({
+    CA: [],
+    US: []
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -43,6 +55,11 @@ export const ShopSettings = () => {
       
       console.log('Shop settings loaded:', data);
       setSettings(data);
+      
+      // Initialize shipping methods from settings if they exist
+      if (data.shipping_methods) {
+        setShippingMethods(data.shipping_methods as Record<string, ShippingMethod[]>);
+      }
     } catch (error) {
       console.error('Error loading shop settings:', error);
       toast.error("Failed to load shop settings");
@@ -68,7 +85,8 @@ export const ShopSettings = () => {
           shipping_countries: settings.shipping_countries,
           tax_rate: settings.tax_rate,
           payment_methods: settings.payment_methods,
-          stripe_settings: settings.stripe_settings
+          stripe_settings: settings.stripe_settings,
+          shipping_methods: shippingMethods
         })
         .eq('id', settings.id);
 
@@ -81,6 +99,39 @@ export const ShopSettings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const addShippingMethod = (country: string) => {
+    const newMethod: ShippingMethod = {
+      id: crypto.randomUUID(),
+      name: "New Shipping Method",
+      price: 0,
+      currency: country === "US" ? "USD" : "CAD",
+      estimatedDays: "3-5 business days"
+    };
+
+    setShippingMethods(prev => ({
+      ...prev,
+      [country]: [...(prev[country] || []), newMethod]
+    }));
+  };
+
+  const updateShippingMethod = (country: string, methodId: string, field: keyof ShippingMethod, value: string | number) => {
+    setShippingMethods(prev => ({
+      ...prev,
+      [country]: prev[country].map(method => 
+        method.id === methodId 
+          ? { ...method, [field]: value }
+          : method
+      )
+    }));
+  };
+
+  const removeShippingMethod = (country: string, methodId: string) => {
+    setShippingMethods(prev => ({
+      ...prev,
+      [country]: prev[country].filter(method => method.id !== methodId)
+    }));
   };
 
   const handlePaymentMethodToggle = (method: keyof PaymentMethods, enabled: boolean) => {
@@ -137,16 +188,6 @@ export const ShopSettings = () => {
     );
   }
 
-  const paymentMethods = ((settings.payment_methods as unknown) as PaymentMethods) || {
-    stripe: false,
-    cash_on_delivery: false
-  };
-
-  const stripeSettings = ((settings.stripe_settings as unknown) as StripeSettings) || {
-    secret_key: '',
-    publishable_key: ''
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -163,6 +204,7 @@ export const ShopSettings = () => {
         </Button>
       </div>
 
+      {/* General Settings Card */}
       <Card>
         <CardHeader>
           <CardTitle>General Shop Settings</CardTitle>
@@ -236,7 +278,129 @@ export const ShopSettings = () => {
               }
             />
           </div>
+        </CardContent>
+      </Card>
 
+      {/* Shipping Methods Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Shipping Methods</CardTitle>
+          <CardDescription>Configure shipping methods for each country</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* US Shipping Methods */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">United States (USD)</h3>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => addShippingMethod('US')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Method
+              </Button>
+            </div>
+            
+            {shippingMethods.US?.map(method => (
+              <div key={method.id} className="grid grid-cols-12 gap-4 items-center border p-4 rounded-lg">
+                <div className="col-span-3">
+                  <Label>Name</Label>
+                  <Input
+                    value={method.name}
+                    onChange={(e) => updateShippingMethod('US', method.id, 'name', e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Price ($)</Label>
+                  <Input
+                    type="number"
+                    value={method.price}
+                    onChange={(e) => updateShippingMethod('US', method.id, 'price', Number(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <Label>Estimated Days</Label>
+                  <Input
+                    value={method.estimatedDays}
+                    onChange={(e) => updateShippingMethod('US', method.id, 'estimatedDays', e.target.value)}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => removeShippingMethod('US', method.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Canadian Shipping Methods */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium">Canada (CAD)</h3>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => addShippingMethod('CA')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Method
+              </Button>
+            </div>
+            
+            {shippingMethods.CA?.map(method => (
+              <div key={method.id} className="grid grid-cols-12 gap-4 items-center border p-4 rounded-lg">
+                <div className="col-span-3">
+                  <Label>Name</Label>
+                  <Input
+                    value={method.name}
+                    onChange={(e) => updateShippingMethod('CA', method.id, 'name', e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Price ($)</Label>
+                  <Input
+                    type="number"
+                    value={method.price}
+                    onChange={(e) => updateShippingMethod('CA', method.id, 'price', Number(e.target.value))}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <Label>Estimated Days</Label>
+                  <Input
+                    value={method.estimatedDays}
+                    onChange={(e) => updateShippingMethod('CA', method.id, 'estimatedDays', e.target.value)}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => removeShippingMethod('CA', method.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Methods Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Methods</CardTitle>
+          <CardDescription>Configure available payment methods</CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
             <h3 className="font-medium">Payment Methods</h3>
             

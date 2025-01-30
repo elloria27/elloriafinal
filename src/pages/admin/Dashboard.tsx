@@ -36,7 +36,7 @@ const Dashboard = () => {
         // Fetch only paid orders and calculate revenue
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount, status')
+          .select('total_amount, status, applied_promo_code')
           .eq('status', 'paid');
 
         if (ordersError) {
@@ -44,17 +44,23 @@ const Dashboard = () => {
           throw ordersError;
         }
 
-        console.log('Fetched orders:', orders);
+        console.log('Fetched paid orders:', orders);
         
         const totalRevenue = orders?.reduce((sum, order) => {
+          // If there's an applied promo code, use the discounted amount
+          const orderAmount = order.applied_promo_code 
+            ? order.applied_promo_code.final_amount 
+            : order.total_amount;
+            
           // Ensure we're working with numbers
-          const amount = typeof order.total_amount === 'string' 
-            ? parseFloat(order.total_amount) 
-            : Number(order.total_amount);
+          const amount = typeof orderAmount === 'string' 
+            ? parseFloat(orderAmount) 
+            : Number(orderAmount);
+            
           return sum + amount;
         }, 0) || 0;
 
-        console.log('Calculated revenue:', totalRevenue);
+        console.log('Calculated total revenue:', totalRevenue);
         
         // Fetch products count
         const { count: productsCount, error: productsError } = await supabase
