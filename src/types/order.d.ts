@@ -36,5 +36,5 @@ export type OrderData = {
   created_at: string;
   profile?: OrderProfile;
   payment_method: string;
-  stripe_session_id?: string | null;
+  stripe_session_id: string | null;
 };

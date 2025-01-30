@@ -103,6 +103,73 @@ const validateOrderStatus = (status: string): OrderStatus => {
   return status as OrderStatus;
 };
 
+const validateOrderData = (order: any): order is OrderData => {
+  try {
+    if (!order || typeof order !== 'object') {
+      console.error("Invalid order data format:", order);
+      return false;
+    }
+
+    // Validate required string fields
+    const requiredStringFields = ['id', 'order_number', 'payment_method'];
+    for (const field of requiredStringFields) {
+      if (typeof order[field] !== 'string') {
+        console.error(`Missing or invalid ${field}:`, order[field]);
+        return false;
+      }
+    }
+
+    // Validate nullable string fields
+    const nullableStringFields = ['user_id', 'profile_id', 'stripe_session_id'];
+    for (const field of nullableStringFields) {
+      if (order[field] !== null && typeof order[field] !== 'string') {
+        console.error(`Invalid ${field}:`, order[field]);
+        return false;
+      }
+    }
+
+    // Validate total_amount
+    if (typeof order.total_amount !== 'number') {
+      console.error("Invalid total_amount:", order.total_amount);
+      return false;
+    }
+
+    // Validate status
+    if (!ORDER_STATUSES.includes(order.status as OrderStatus)) {
+      console.error("Invalid status:", order.status);
+      return false;
+    }
+
+    // Validate addresses
+    try {
+      validateShippingAddress(order.shipping_address);
+      validateShippingAddress(order.billing_address);
+    } catch (error) {
+      console.error("Address validation failed:", error);
+      return false;
+    }
+
+    // Validate items
+    try {
+      validateOrderItems(order.items);
+    } catch (error) {
+      console.error("Items validation failed:", error);
+      return false;
+    }
+
+    // Validate created_at
+    if (typeof order.created_at !== 'string') {
+      console.error("Invalid created_at:", order.created_at);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Order validation error:", error);
+    return false;
+  }
+};
+
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,43 +200,17 @@ export const OrderManagement = () => {
         return;
       }
 
-      const validatedOrders: OrderData[] = ordersData.map((order) => {
-        try {
-          if (!order || typeof order !== 'object') {
-            throw new Error('Invalid order data format');
-          }
-
-          const totalAmount = typeof order.total_amount === 'string' 
-            ? parseFloat(order.total_amount) 
-            : Number(order.total_amount);
-
-          if (isNaN(totalAmount)) {
-            throw new Error('Invalid total amount');
-          }
-
-          return {
-            id: order.id,
-            user_id: order.user_id,
-            profile_id: order.profile_id,
-            order_number: order.order_number,
-            total_amount: totalAmount,
-            status: validateOrderStatus(order.status),
-            shipping_address: validateShippingAddress(order.shipping_address),
-            billing_address: validateShippingAddress(order.billing_address),
-            items: validateOrderItems(order.items),
-            created_at: order.created_at,
-            payment_method: order.payment_method || 'Not specified',
-            stripe_session_id: order.stripe_session_id,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || 'Anonymous Order'
-            } : undefined
-          };
-        } catch (error) {
-          console.error("Error validating order:", error, order);
-          return null;
-        }
-      }).filter((order): order is OrderData => order !== null);
+      const validatedOrders = ordersData
+        .filter(validateOrderData)
+        .map(order => ({
+          ...order,
+          payment_method: order.payment_method || 'Not specified',
+          stripe_session_id: order.stripe_session_id || null,
+          profile: order.profiles ? {
+            full_name: order.profiles.full_name || 'Guest',
+            email: order.profiles.email || 'Anonymous Order'
+          } : undefined
+        }));
 
       console.log("Final validated orders:", validatedOrders);
       setOrders(validatedOrders);
