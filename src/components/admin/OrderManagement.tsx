@@ -93,7 +93,45 @@ export const OrderManagement = () => {
 
   const fetchOrders = async () => {
     try {
-      console.log("Fetching orders...");
+      console.log("Starting to fetch orders...");
+      
+      // First check if user is authenticated
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      if (authError) {
+        console.error("Auth error:", authError);
+        toast.error("Authentication error. Please try logging in again.");
+        return;
+      }
+
+      if (!session) {
+        console.error("No active session");
+        toast.error("Please log in to view orders");
+        return;
+      }
+
+      console.log("User is authenticated, fetching orders...");
+
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (roleError) {
+        console.error("Error checking user role:", roleError);
+        toast.error("Error verifying permissions");
+        return;
+      }
+
+      if (!roleData || roleData.role !== 'admin') {
+        console.error("User is not an admin");
+        toast.error("Admin access required");
+        return;
+      }
+
+      console.log("User has admin role, proceeding with order fetch...");
+
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select(`
@@ -114,7 +152,14 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
+      if (!ordersData) {
+        console.log("No orders found");
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
+      const validatedOrders: OrderData[] = ordersData.map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
