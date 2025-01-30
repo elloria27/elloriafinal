@@ -101,6 +101,34 @@ const validateOrderStatus = (status: string): OrderStatus => {
   return status as OrderStatus;
 };
 
+const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null => {
+  if (!promoCode) return null;
+  
+  if (typeof promoCode !== 'object') {
+    throw new Error('Invalid promo code format');
+  }
+
+  const typedPromoCode = promoCode as Record<string, unknown>;
+
+  if (
+    typeof typedPromoCode.code !== 'string' ||
+    (typedPromoCode.type !== 'percentage' && typedPromoCode.type !== 'fixed') ||
+    typeof typedPromoCode.value !== 'number' ||
+    typeof typedPromoCode.original_amount !== 'number' ||
+    typeof typedPromoCode.discounted_amount !== 'number'
+  ) {
+    throw new Error('Invalid promo code data structure');
+  }
+
+  return {
+    code: typedPromoCode.code,
+    type: typedPromoCode.type,
+    value: typedPromoCode.value,
+    original_amount: typedPromoCode.original_amount,
+    discounted_amount: typedPromoCode.discounted_amount,
+  };
+};
+
 export const OrderManagement = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +181,7 @@ export const OrderManagement = () => {
               full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
               email: shippingAddress.email || 'Anonymous Order'
             },
-            applied_promo_code: order.applied_promo_code || null
+            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code)
           };
           return validatedOrder;
         } catch (error) {
