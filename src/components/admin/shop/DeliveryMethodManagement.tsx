@@ -1,10 +1,24 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
+interface DeliveryMethod {
+  id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  base_price: number;
+  estimated_days: string | null;
+}
 
 export const DeliveryMethodManagement = () => {
-  const [deliveryMethods, setDeliveryMethods] = useState([]);
+  const [deliveryMethods, setDeliveryMethods] = useState<DeliveryMethod[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchDeliveryMethods();
@@ -12,18 +26,75 @@ export const DeliveryMethodManagement = () => {
 
   const fetchDeliveryMethods = async () => {
     try {
+      console.log('Fetching delivery methods...');
       const { data, error } = await supabase
         .from('delivery_methods')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Fetched delivery methods:', data);
       setDeliveryMethods(data || []);
     } catch (error) {
       console.error('Error fetching delivery methods:', error);
       toast.error('Failed to load delivery methods');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateDeliveryMethod = async (id: string, updates: Partial<DeliveryMethod>) => {
+    try {
+      setSaving(true);
+      console.log('Updating delivery method:', id, updates);
+
+      const { error } = await supabase
+        .from('delivery_methods')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
+      setDeliveryMethods(methods =>
+        methods.map(method =>
+          method.id === id ? { ...method, ...updates } : method
+        )
+      );
+
+      // Update shop settings to trigger checkout page refresh
+      const { data: shopSettings } = await supabase
+        .from('shop_settings')
+        .select('shipping_methods')
+        .single();
+
+      if (shopSettings) {
+        const { error: updateError } = await supabase
+          .from('shop_settings')
+          .update({
+            updated_at: new Date().toISOString(),
+            shipping_methods: {
+              ...shopSettings.shipping_methods,
+              CA: deliveryMethods.filter(m => m.is_active).map(m => ({
+                id: m.id,
+                name: m.name,
+                price: m.base_price,
+                estimatedDays: m.estimated_days
+              }))
+            }
+          })
+          .eq('id', shopSettings.id);
+
+        if (updateError) throw updateError;
+      }
+
+      toast.success('Delivery method updated successfully');
+    } catch (error) {
+      console.error('Error updating delivery method:', error);
+      toast.error('Failed to update delivery method');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -39,6 +110,9 @@ export const DeliveryMethodManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Delivery Methods</h2>
+        <Button disabled={saving}>
+          {saving ? 'Saving...' : 'Add New Method'}
+        </Button>
       </div>
       
       <div className="bg-white rounded-lg shadow">
@@ -48,22 +122,50 @@ export const DeliveryMethodManagement = () => {
           </div>
         ) : (
           <div className="divide-y">
-            {deliveryMethods.map((method: any) => (
-              <div key={method.id} className="p-4">
-                <h3 className="font-medium">{method.name}</h3>
-                <p className="text-sm text-gray-600">{method.description}</p>
-                <div className="mt-2 flex gap-4 text-sm">
-                  <span className={`px-2 py-1 rounded-full ${method.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {method.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                  <span className="text-gray-600">
-                    Base Price: ${method.base_price}
-                  </span>
-                  {method.estimated_days && (
-                    <span className="text-gray-600">
-                      Estimated Days: {method.estimated_days}
-                    </span>
-                  )}
+            {deliveryMethods.map((method) => (
+              <div key={method.id} className="p-6 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <Input
+                      value={method.name}
+                      onChange={(e) => updateDeliveryMethod(method.id, { name: e.target.value })}
+                      className="font-medium text-lg"
+                    />
+                    <Input
+                      value={method.description || ''}
+                      onChange={(e) => updateDeliveryMethod(method.id, { description: e.target.value })}
+                      placeholder="Description"
+                      className="text-sm text-gray-600"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={method.is_active}
+                      onCheckedChange={(checked) => updateDeliveryMethod(method.id, { is_active: checked })}
+                    />
+                    <Label>{method.is_active ? 'Active' : 'Inactive'}</Label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Base Price ($)</Label>
+                    <Input
+                      type="number"
+                      value={method.base_price}
+                      onChange={(e) => updateDeliveryMethod(method.id, { base_price: parseFloat(e.target.value) })}
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Estimated Days</Label>
+                    <Input
+                      value={method.estimated_days || ''}
+                      onChange={(e) => updateDeliveryMethod(method.id, { estimated_days: e.target.value })}
+                      placeholder="e.g. 2-3 business days"
+                    />
+                  </div>
                 </div>
               </div>
             ))}
