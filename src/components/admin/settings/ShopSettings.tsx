@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import type { PaymentMethods, StripeSettings, ShippingMethod } from "@/integrations/supabase/types";
+import { PaymentMethods, StripeSettings, ShippingMethod } from "@/integrations/supabase/types";
 import { GeneralSettings } from "./shop/GeneralSettings";
 import { ShippingSettings } from "./shop/ShippingSettings";
 import { PaymentSettings } from "./shop/PaymentSettings";

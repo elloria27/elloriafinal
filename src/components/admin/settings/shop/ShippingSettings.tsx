@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
-import type { ShippingMethod } from "@/integrations/supabase/types";
+import { ShippingMethod } from "@/integrations/supabase/types";
 
 type Props = {
   shippingMethods: Record<string, ShippingMethod[]>;

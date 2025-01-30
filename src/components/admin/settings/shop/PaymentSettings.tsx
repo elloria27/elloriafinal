@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import type { PaymentMethods, StripeSettings } from "@/integrations/supabase/types";
+import { PaymentMethods, StripeSettings } from "@/integrations/supabase/types";
 
 type Props = {
   paymentMethods: PaymentMethods;
