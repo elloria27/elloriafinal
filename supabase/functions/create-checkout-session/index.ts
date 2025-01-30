@@ -18,7 +18,43 @@ serve(async (req) => {
     
     console.log('Creating checkout session with:', { items, customerDetails, total })
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase environment variables')
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey)
+
+    // Get shop settings to get Stripe keys
+    console.log('Fetching shop settings...')
+    const { data: shopSettings, error: settingsError } = await supabaseClient
+      .from('shop_settings')
+      .select('stripe_settings')
+      .single()
+
+    if (settingsError) {
+      console.error('Error fetching shop settings:', settingsError)
+      throw new Error('Could not fetch shop settings')
+    }
+
+    if (!shopSettings?.stripe_settings) {
+      throw new Error('Stripe settings not configured')
+    }
+
+    const stripeSettings = shopSettings.stripe_settings as {
+      secret_key: string;
+      publishable_key: string;
+    }
+
+    if (!stripeSettings.secret_key) {
+      throw new Error('Stripe secret key not configured')
+    }
+
+    console.log('Initializing Stripe with secret key...')
+    const stripe = new Stripe(stripeSettings.secret_key, {
       apiVersion: '2023-10-16',
     })
 
