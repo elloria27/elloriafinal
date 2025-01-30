@@ -43,7 +43,8 @@ const formatCurrency = (amount: number) => {
 
 const getPaymentStatusBadge = (order: OrderData) => {
   const method = order.payment_method || 'Not specified';
-  const variant = order.stripe_session_id ? 'success' : 'secondary';
+  // Changed from 'success' to 'default' as it's an allowed variant
+  const variant = order.stripe_session_id ? 'default' : 'secondary';
   return <Badge variant={variant}>{method}</Badge>;
 };
 
