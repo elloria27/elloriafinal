@@ -14,14 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { items, customerDetails, total, taxes, shippingOption } = await req.json()
+    const { items, customerDetails, total, taxes, shippingOption, activePromoCode } = await req.json()
     
     console.log('Creating checkout session with:', { 
       items, 
       customerDetails, 
       total,
       taxes,
-      shippingOption 
+      shippingOption,
+      activePromoCode
     })
 
     // Create Supabase client
@@ -63,6 +64,14 @@ serve(async (req) => {
     const stripe = new Stripe(stripeSettings.secret_key, {
       apiVersion: '2023-10-16',
     })
+
+    // Calculate any discount from promo code
+    let discountAmount = 0;
+    if (activePromoCode) {
+      discountAmount = activePromoCode.type === 'percentage'
+        ? (total * activePromoCode.value) / 100
+        : activePromoCode.value;
+    }
 
     // Create line items for Stripe
     const lineItems = items.map((item: any) => ({
@@ -113,6 +122,20 @@ serve(async (req) => {
       }
     }
 
+    // Add discount as a negative line item if there's an active promo code
+    if (discountAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Discount (${activePromoCode.code})`,
+          },
+          unit_amount: -Math.round(discountAmount * 100), // Negative amount for discount
+        },
+        quantity: 1,
+      })
+    }
+
     console.log('Creating Stripe session with line items:', lineItems)
 
     // Store minimal metadata that won't exceed the 500 character limit
@@ -121,7 +144,8 @@ serve(async (req) => {
       customer_name: `${customerDetails.firstName} ${customerDetails.lastName}`,
       shipping_country: customerDetails.country,
       shipping_region: customerDetails.region,
-      total_amount: total.toString()
+      total_amount: total.toString(),
+      promo_code: activePromoCode?.code || ''
     }
 
     const session = await stripe.checkout.sessions.create({
