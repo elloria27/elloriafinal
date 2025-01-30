@@ -12,6 +12,11 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ShopSettings = Database['public']['Tables']['shop_settings']['Row'];
 
+interface PaymentMethods {
+  stripe: boolean;
+  cash_on_delivery: boolean;
+}
+
 export const ShopSettings = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,11 +78,12 @@ export const ShopSettings = () => {
     }
   };
 
-  const handlePaymentMethodToggle = (method: 'stripe' | 'cash_on_delivery', enabled: boolean) => {
-    if (!settings) return;
+  const handlePaymentMethodToggle = (method: keyof PaymentMethods, enabled: boolean) => {
+    if (!settings?.payment_methods) return;
     
+    const currentMethods = settings.payment_methods as PaymentMethods;
     const updatedPaymentMethods = {
-      ...settings.payment_methods,
+      ...currentMethods,
       [method]: enabled
     };
     
@@ -102,6 +108,8 @@ export const ShopSettings = () => {
       </div>
     );
   }
+
+  const paymentMethods = settings.payment_methods as PaymentMethods;
 
   return (
     <div className="space-y-6">
@@ -199,7 +207,7 @@ export const ShopSettings = () => {
             <div className="flex items-center space-x-2">
               <Switch
                 id="enable_stripe"
-                checked={settings.payment_methods?.stripe || false}
+                checked={paymentMethods?.stripe || false}
                 onCheckedChange={(checked) => 
                   handlePaymentMethodToggle('stripe', checked)
                 }
@@ -210,7 +218,7 @@ export const ShopSettings = () => {
             <div className="flex items-center space-x-2">
               <Switch
                 id="enable_cash_on_delivery"
-                checked={settings.payment_methods?.cash_on_delivery || false}
+                checked={paymentMethods?.cash_on_delivery || false}
                 onCheckedChange={(checked) => 
                   handlePaymentMethodToggle('cash_on_delivery', checked)
                 }

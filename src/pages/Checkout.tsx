@@ -158,7 +158,9 @@ const Checkout = () => {
         .select('payment_methods')
         .single();
 
-      if (shopSettings?.payment_methods?.stripe) {
+      const paymentMethods = shopSettings?.payment_methods as { stripe: boolean; cash_on_delivery: boolean } | null;
+
+      if (paymentMethods?.stripe) {
         // Handle Stripe payment
         console.log('Processing Stripe payment...');
         
