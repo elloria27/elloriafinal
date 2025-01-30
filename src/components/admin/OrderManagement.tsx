@@ -35,7 +35,6 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"] & {
     full_name: string | null;
     email: string | null;
   } | null;
-  applied_promo_code?: AppliedPromoCode | null;
 };
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -105,7 +104,8 @@ const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null =
   if (!promoCode) return null;
   
   if (typeof promoCode !== 'object') {
-    throw new Error('Invalid promo code format');
+    console.error('Invalid promo code format:', promoCode);
+    return null;
   }
 
   const typedPromoCode = promoCode as Record<string, unknown>;
@@ -159,7 +159,7 @@ export const OrderManagement = () => {
 
       console.log("Raw orders data:", ordersData);
 
-      const validatedOrders: OrderData[] = (ordersData || []).map((order: Database["public"]["Tables"]["orders"]["Row"] & { profiles?: { id: string; full_name: string | null; email: string | null; } | null }) => {
+      const validatedOrders: OrderData[] = (ordersData || []).map((order: OrderRow) => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const validatedOrder: OrderData = {
