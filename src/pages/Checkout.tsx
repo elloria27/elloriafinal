@@ -179,117 +179,123 @@ const Checkout = () => {
   const total = subtotalAfterDiscount + taxAmount + shippingCost;
   const currencySymbol = country === "US" ? "$" : "CAD $";
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log('Starting order submission process');
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  console.log('Starting order submission process');
 
-    if (!selectedShipping) {
-      toast.error("Please select a shipping method");
+  if (!selectedShipping) {
+    toast.error("Please select a shipping method");
+    return;
+  }
+
+  // If Stripe is enabled and selected as the payment method, don't process the order here
+  if (paymentMethods?.stripe) {
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
+  try {
+    const formData = new FormData(e.currentTarget);
+    const customerDetails = {
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      phone: phoneNumber,
+      address: formData.get('address') as string,
+      country,
+      region
+    };
+
+    if (!customerDetails.firstName || !customerDetails.lastName || !customerDetails.email || 
+        !customerDetails.phone || !customerDetails.address || !country || !region) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
-    // If Stripe is enabled and selected as the payment method, don't process the order here
-    if (paymentMethods?.stripe) {
-      return;
-    }
+    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+    console.log('Generated order number:', orderNumber);
+
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
     
-    setIsSubmitting(true);
-    
-    try {
-      const formData = new FormData(e.currentTarget);
-      const customerDetails = {
-        firstName: formData.get('firstName') as string,
-        lastName: formData.get('lastName') as string,
-        email: formData.get('email') as string,
-        phone: phoneNumber,
-        address: formData.get('address') as string,
-        country,
-        region
-      };
+    // Prepare order data
+    const orderData = {
+      user_id: userId || null,
+      profile_id: userId || null,
+      order_number: orderNumber,
+      total_amount: total,
+      status: 'pending',
+      items: items,
+      shipping_address: {
+        address: customerDetails.address,
+        country: customerDetails.country,
+        region: customerDetails.region,
+        phone: customerDetails.phone,
+        first_name: customerDetails.firstName,
+        last_name: customerDetails.lastName,
+        email: customerDetails.email
+      },
+      billing_address: {
+        address: customerDetails.address,
+        country: customerDetails.country,
+        region: customerDetails.region,
+        phone: customerDetails.phone,
+        first_name: customerDetails.firstName,
+        last_name: customerDetails.lastName,
+        email: customerDetails.email
+      },
+      payment_method: 'cash_on_delivery',
+      applied_promo_code: activePromoCode
+    };
 
-      const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
-      console.log('Generated order number:', orderNumber);
+    console.log('Saving order to database:', orderData);
 
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      
-      // Prepare order data
-      const orderData = {
-        user_id: userId || null,
-        profile_id: userId || null,
-        order_number: orderNumber,
-        total_amount: total,
-        status: 'pending',
-        items: items,
-        shipping_address: {
-          address: customerDetails.address,
-          country: customerDetails.country,
-          region: customerDetails.region,
-          phone: customerDetails.phone,
-          first_name: customerDetails.firstName,
-          last_name: customerDetails.lastName,
-          email: customerDetails.email
-        },
-        billing_address: {
-          address: customerDetails.address,
-          country: customerDetails.country,
-          region: customerDetails.region,
-          phone: customerDetails.phone,
-          first_name: customerDetails.firstName,
-          last_name: customerDetails.lastName,
-          email: customerDetails.email
-        },
-        payment_method: 'cash_on_delivery',
-        applied_promo_code: activePromoCode
-      };
+    // Save order to Supabase
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData);
 
-      console.log('Saving order to database:', orderData);
-
-      // Save order to Supabase
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData);
-
-      if (orderError) {
-        console.error('Error saving order:', orderError);
-        throw new Error('Failed to save order');
-      }
-
-      console.log('Order saved successfully');
-
-      // Send order confirmation email
-      console.log('Sending order confirmation email');
-      const emailResult = await sendOrderEmails({
-        customerEmail: customerDetails.email,
-        customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-        orderId: orderNumber,
-        items,
-        total,
-        shippingAddress: {
-          address: customerDetails.address,
-          region: customerDetails.region,
-          country: customerDetails.country
-        }
-      });
-
-      if (emailResult.error) {
-        console.error('Error sending email:', emailResult.error);
-        toast.error('Order placed but confirmation email failed to send');
-      } else {
-        console.log('Email sent successfully');
-      }
-
-      clearCart();
-      navigate("/order-success");
-
-    } catch (error: any) {
-      console.error('Error processing order:', error);
-      toast.error(error.message || "There was an error processing your order. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    if (orderError) {
+      console.error('Error saving order:', orderError);
+      throw new Error('Failed to save order');
     }
-  };
+
+    console.log('Order saved successfully');
+
+    // Send order confirmation email
+    console.log('Sending order confirmation email');
+    const emailResult = await sendOrderEmails({
+      customerEmail: customerDetails.email,
+      customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+      orderId: orderNumber,
+      items,
+      total,
+      shippingAddress: {
+        address: customerDetails.address,
+        region: customerDetails.region,
+        country: customerDetails.country
+      }
+    });
+
+    if (emailResult.error) {
+      console.error('Error sending email:', emailResult.error);
+      toast.error('Order placed but confirmation email failed to send');
+    } else {
+      console.log('Email sent successfully');
+    }
+
+    clearCart();
+    navigate("/order-success");
+
+  } catch (error: any) {
+    console.error('Error processing order:', error);
+    toast.error(error.message || "There was an error processing your order. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (items.length === 0) {
     return (
