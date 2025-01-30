@@ -170,7 +170,8 @@ const Checkout = () => {
             customerDetails,
             total: subtotalInCurrentCurrency,
             taxes: calculateTaxes(),
-            shippingOption: selectedShippingOption
+            shippingOption: selectedShippingOption,
+            activePromoCode
           }
         });
 

@@ -14,14 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { items, customerDetails, total, taxes, shippingOption } = await req.json()
+    const { items, customerDetails, total, taxes, shippingOption, activePromoCode } = await req.json()
     
     console.log('Creating checkout session with:', { 
       items, 
       customerDetails, 
       total,
       taxes,
-      shippingOption 
+      shippingOption,
+      activePromoCode
     })
 
     // Create Supabase client
@@ -113,7 +114,28 @@ serve(async (req) => {
       }
     }
 
-    console.log('Creating Stripe session with line items:', lineItems)
+    // Calculate discount if promo code is present
+    let discounts = [];
+    if (activePromoCode) {
+      const discountAmount = activePromoCode.type === 'percentage'
+        ? Math.round((total * activePromoCode.value) / 100)
+        : activePromoCode.value;
+
+      discounts.push({
+        coupon: {
+          name: `Promo: ${activePromoCode.code}`,
+          amount_off: Math.round(discountAmount * 100),
+          currency: 'usd',
+          duration: 'once',
+        }
+      });
+    }
+
+    console.log('Creating Stripe session with:', {
+      lineItems,
+      discounts,
+      total
+    });
 
     // Store minimal metadata that won't exceed the 500 character limit
     const minimalMetadata = {
@@ -121,13 +143,15 @@ serve(async (req) => {
       customer_name: `${customerDetails.firstName} ${customerDetails.lastName}`,
       shipping_country: customerDetails.country,
       shipping_region: customerDetails.region,
-      total_amount: total.toString()
+      total_amount: total.toString(),
+      promo_code: activePromoCode ? activePromoCode.code : undefined
     }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: customerDetails.email,
@@ -152,7 +176,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 400,
       }
     )
   }
