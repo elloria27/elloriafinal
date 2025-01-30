@@ -4,12 +4,21 @@ import { WeatherWidget } from "@/components/admin/dashboard/WeatherWidget";
 import { AnalyticsWidget } from "@/components/admin/dashboard/AnalyticsWidget";
 import { Users, ShoppingCart, DollarSign, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface DashboardCounts {
   users: number;
   orders: number;
   revenue: number;
   products: number;
+}
+
+interface Order {
+  id: string;
+  total_amount: number;
+  applied_promo_code: {
+    discounted_amount: number;
+  } | null;
 }
 
 const Dashboard = () => {
@@ -36,7 +45,7 @@ const Dashboard = () => {
         // Fetch only paid orders
         const { data: orders, error: ordersError } = await supabase
           .from('orders')
-          .select('total_amount, applied_promo_code')
+          .select('id, total_amount, applied_promo_code')
           .eq('status', 'paid');
 
         if (ordersError) {
@@ -47,18 +56,15 @@ const Dashboard = () => {
         console.log('Fetched paid orders:', orders);
         
         // Calculate total revenue considering promo codes
-        const totalRevenue = orders?.reduce((sum, order) => {
+        const totalRevenue = orders?.reduce((sum, order: Order) => {
           if (order.applied_promo_code) {
             // If there's a promo code, use the discounted amount
-            const promoCode = order.applied_promo_code as {
-              discounted_amount: number;
-            };
             console.log('Order with promo code:', {
               orderId: order.id,
-              promoCode,
-              discountedAmount: promoCode.discounted_amount
+              promoCode: order.applied_promo_code,
+              discountedAmount: order.applied_promo_code.discounted_amount
             });
-            return sum + (promoCode.discounted_amount || 0);
+            return sum + (order.applied_promo_code.discounted_amount || 0);
           } else {
             // If no promo code, use the original total amount
             console.log('Order without promo code:', {

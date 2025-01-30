@@ -1078,3 +1078,26 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export interface PaymentMethods {
+  stripe: boolean;
+  cash_on_delivery: boolean;
+}
+
+export interface StripeSettings {
+  secret_key: string;
+  publishable_key: string;
+}
+
+export interface ShippingMethod {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  estimatedDays: string;
+}
+
+export interface ShippingMethods {
+  CA: ShippingMethod[];
+  US: ShippingMethod[];
+}
