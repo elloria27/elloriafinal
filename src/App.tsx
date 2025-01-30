@@ -30,8 +30,8 @@ import SharedFile from "@/pages/SharedFile";
 
 function App() {
   return (
-    <Router>
-      <CartProvider>
+    <CartProvider>
+      <Router>
         <ScrollToTop />
         <PageViewTracker />
         <div className="flex flex-col min-h-screen">
@@ -42,8 +42,8 @@ function App() {
           <Footer />
         </div>
         <Toaster />
-      </CartProvider>
-    </Router>
+      </Router>
+    </CartProvider>
   );
 }
 
