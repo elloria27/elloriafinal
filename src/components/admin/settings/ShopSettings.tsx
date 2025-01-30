@@ -79,9 +79,14 @@ export const ShopSettings = () => {
   };
 
   const handlePaymentMethodToggle = (method: keyof PaymentMethods, enabled: boolean) => {
-    if (!settings?.payment_methods) return;
+    if (!settings) return;
     
-    const currentMethods = settings.payment_methods as PaymentMethods;
+    // Cast the payment_methods to unknown first, then to PaymentMethods
+    const currentMethods = (settings.payment_methods as unknown) as PaymentMethods || {
+      stripe: false,
+      cash_on_delivery: false
+    };
+    
     const updatedPaymentMethods = {
       ...currentMethods,
       [method]: enabled
@@ -109,7 +114,11 @@ export const ShopSettings = () => {
     );
   }
 
-  const paymentMethods = settings.payment_methods as PaymentMethods;
+  // Cast payment_methods to PaymentMethods type with a default value
+  const paymentMethods = ((settings.payment_methods as unknown) as PaymentMethods) || {
+    stripe: false,
+    cash_on_delivery: false
+  };
 
   return (
     <div className="space-y-6">
@@ -207,7 +216,7 @@ export const ShopSettings = () => {
             <div className="flex items-center space-x-2">
               <Switch
                 id="enable_stripe"
-                checked={paymentMethods?.stripe || false}
+                checked={paymentMethods.stripe}
                 onCheckedChange={(checked) => 
                   handlePaymentMethodToggle('stripe', checked)
                 }
@@ -218,7 +227,7 @@ export const ShopSettings = () => {
             <div className="flex items-center space-x-2">
               <Switch
                 id="enable_cash_on_delivery"
-                checked={paymentMethods?.cash_on_delivery || false}
+                checked={paymentMethods.cash_on_delivery}
                 onCheckedChange={(checked) => 
                   handlePaymentMethodToggle('cash_on_delivery', checked)
                 }
