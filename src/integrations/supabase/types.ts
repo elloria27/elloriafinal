@@ -312,6 +312,42 @@ export type Database = {
           },
         ]
       }
+      delivery_methods: {
+        Row: {
+          base_price: number | null
+          created_at: string | null
+          description: string | null
+          estimated_days: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          regions: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          estimated_days?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          regions?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          estimated_days?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          regions?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       file_shares: {
         Row: {
           access_level: string
@@ -557,6 +593,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_methods: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          processing_fee: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          processing_fee?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          processing_fee?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       products: {
         Row: {

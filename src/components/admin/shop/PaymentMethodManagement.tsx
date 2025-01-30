@@ -21,15 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2 } from "lucide-react";
-
-interface PaymentMethod {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
-  processing_fee: number;
-  icon_url?: string;
-}
+import { PaymentMethod } from "@/types/content-blocks";
 
 export const PaymentMethodManagement = () => {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);

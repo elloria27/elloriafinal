@@ -21,16 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2 } from "lucide-react";
-
-interface DeliveryMethod {
-  id: string;
-  name: string;
-  description: string;
-  is_active: boolean;
-  base_price: number;
-  estimated_days: string;
-  regions: string[];
-}
+import { DeliveryMethod } from "@/types/content-blocks";
 
 export const DeliveryMethodManagement = () => {
   const [methods, setMethods] = useState<DeliveryMethod[]>([]);
@@ -179,7 +170,7 @@ export const DeliveryMethodManagement = () => {
                 <Input
                   id="regions"
                   name="regions"
-                  defaultValue={selectedMethod?.regions.join(', ')}
+                  defaultValue={selectedMethod?.regions?.join(', ')}
                   placeholder="e.g. US, CA, EU"
                 />
               </div>
@@ -218,7 +209,7 @@ export const DeliveryMethodManagement = () => {
               <TableCell>{method.description}</TableCell>
               <TableCell>${method.base_price}</TableCell>
               <TableCell>{method.estimated_days}</TableCell>
-              <TableCell>{method.regions.join(', ')}</TableCell>
+              <TableCell>{method.regions?.join(', ')}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded text-sm ${method.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {method.is_active ? 'Active' : 'Inactive'}
