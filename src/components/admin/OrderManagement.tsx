@@ -63,6 +63,8 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   const typedAddress = address as Record<string, unknown>;
   
+  console.log('Validating shipping address:', typedAddress);
+  
   return {
     address: String(typedAddress.address || ''),
     region: String(typedAddress.region || ''),
