@@ -27,60 +27,147 @@ const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'deli
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
     console.error('Invalid shipping address format:', address);
-    throw new Error('Invalid shipping address format');
+    return {
+      address: '',
+      region: '',
+      country: '',
+      phone: '',
+      first_name: '',
+      last_name: '',
+      email: ''
+    };
   }
   
   const typedAddress = address as Record<string, unknown>;
   
-  console.log('Raw address data:', typedAddress);
+  console.log('Processing shipping address:', typedAddress);
   
-  // Return validated address with all fields, using optional chaining and type coercion
+  // Return validated address with all fields, using empty strings as fallbacks
   return {
     address: String(typedAddress.address || ''),
     region: String(typedAddress.region || ''),
     country: String(typedAddress.country || ''),
     phone: String(typedAddress.phone || ''),
-    first_name: typedAddress.first_name ? String(typedAddress.first_name) : undefined,
-    last_name: typedAddress.last_name ? String(typedAddress.last_name) : undefined,
-    email: typedAddress.email ? String(typedAddress.email) : undefined,
+    first_name: String(typedAddress.first_name || ''),
+    last_name: String(typedAddress.last_name || ''),
+    email: String(typedAddress.email || '')
   };
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
   if (!Array.isArray(items)) {
     console.error('Items must be an array:', items);
-    throw new Error('Items must be an array');
+    return [];
   }
 
   return items.map((item, index) => {
-    if (
-      typeof item !== 'object' ||
-      !item ||
-      !item.hasOwnProperty('id') ||
-      !item.hasOwnProperty('name') ||
-      !item.hasOwnProperty('quantity') ||
-      !item.hasOwnProperty('price')
-    ) {
+    if (typeof item !== 'object' || !item) {
       console.error(`Invalid order item at index ${index}:`, item);
-      throw new Error(`Invalid order item format at index ${index}`);
+      return {
+        id: '',
+        name: 'Unknown Product',
+        quantity: 0,
+        price: 0
+      };
     }
 
     return {
-      id: String(item.id),
-      name: String(item.name),
-      quantity: Number(item.quantity),
-      price: Number(item.price),
+      id: String(item.id || ''),
+      name: String(item.name || 'Unknown Product'),
+      quantity: Number(item.quantity || 0),
+      price: Number(item.price || 0),
       image: item.image ? String(item.image) : undefined,
     };
   });
 };
 
-const validateOrderStatus = (status: string): OrderStatus => {
-  if (!ORDER_STATUSES.includes(status as OrderStatus)) {
-    console.error('Invalid order status:', status);
-    throw new Error(`Invalid order status: ${status}`);
+const fetchOrders = async () => {
+  try {
+    console.log("Fetching orders...");
+    setRefreshing(true);
+    
+    const { data: ordersData, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        profiles:profiles!left (
+          id,
+          full_name,
+          email
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to fetch orders");
+      return;
+    }
+
+    console.log("Raw orders data:", ordersData);
+
+    if (!ordersData || ordersData.length === 0) {
+      console.log("No orders found");
+      setOrders([]);
+      return;
+    }
+
+    const validatedOrders: OrderData[] = [];
+
+    for (const order of ordersData) {
+      try {
+        console.log('Processing order:', order.order_number);
+        
+        const shippingAddress = validateShippingAddress(order.shipping_address);
+        const billingAddress = validateShippingAddress(order.billing_address);
+        const items = validateOrderItems(order.items);
+
+        // Get customer name from shipping address if not a registered user
+        const customerName = order.profiles?.full_name || 
+          `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() || 
+          'Guest';
+        
+        // Get customer email from shipping address if not a registered user
+        const customerEmail = order.profiles?.email || 
+          shippingAddress.email || 
+          'N/A';
+
+        const validatedOrder: OrderData = {
+          id: order.id,
+          user_id: order.user_id,
+          profile_id: order.profile_id,
+          order_number: order.order_number,
+          total_amount: order.total_amount,
+          status: order.status as OrderStatus,
+          shipping_address: shippingAddress,
+          billing_address: billingAddress,
+          items: items,
+          created_at: order.created_at,
+          payment_method: order.payment_method || 'Not specified',
+          stripe_session_id: order.stripe_session_id,
+          profile: {
+            full_name: customerName,
+            email: customerEmail
+          }
+        };
+
+        validatedOrders.push(validatedOrder);
+        console.log('Successfully validated order:', order.order_number);
+      } catch (error) {
+        console.error("Error processing order:", error, order);
+        toast.error(`Error processing order ${order.order_number}`);
+      }
+    }
+
+    console.log("Validated orders:", validatedOrders);
+    setOrders(validatedOrders);
+  } catch (error) {
+    console.error("Error in fetchOrders:", error);
+    toast.error("An unexpected error occurred while fetching orders");
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
   }
-  return status as OrderStatus;
 };
 
 export const OrderManagement = () => {
@@ -90,252 +177,6 @@ export const OrderManagement = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const isMobile = useIsMobile();
-
-  const fetchOrders = async () => {
-    try {
-      console.log("Fetching orders...");
-      setRefreshing(true);
-      
-      const { data: ordersData, error } = await supabase
-        .from("orders")
-        .select(`
-          *,
-          profiles:profiles!left (
-            id,
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to fetch orders");
-        return;
-      }
-
-      console.log("Raw orders data:", ordersData);
-
-      if (!ordersData || ordersData.length === 0) {
-        console.log("No orders found");
-        setOrders([]);
-        return;
-      }
-
-      const validatedOrders: OrderData[] = [];
-
-      for (const order of ordersData) {
-        try {
-          console.log('Processing order:', order.order_number);
-          
-          const shippingAddress = validateShippingAddress(order.shipping_address);
-          const billingAddress = validateShippingAddress(order.billing_address);
-          const items = validateOrderItems(order.items);
-          const status = validateOrderStatus(order.status);
-
-          const validatedOrder: OrderData = {
-            id: order.id,
-            user_id: order.user_id,
-            profile_id: order.profile_id,
-            order_number: order.order_number,
-            total_amount: order.total_amount,
-            status: status,
-            shipping_address: shippingAddress,
-            billing_address: billingAddress,
-            items: items,
-            created_at: order.created_at,
-            payment_method: order.payment_method || 'Not specified',
-            stripe_session_id: order.stripe_session_id,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || 'Anonymous Order'
-            } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
-              email: shippingAddress.email || 'Anonymous Order'
-            }
-          };
-
-          validatedOrders.push(validatedOrder);
-          console.log('Successfully validated order:', order.order_number);
-        } catch (error) {
-          console.error("Error processing order:", error, order);
-          toast.error(`Error processing order ${order.order_number}: ${error.message}`);
-        }
-      }
-
-      console.log("Validated orders:", validatedOrders);
-      setOrders(validatedOrders);
-    } catch (error) {
-      console.error("Error in fetchOrders:", error);
-      toast.error("An unexpected error occurred while fetching orders");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
-    try {
-      console.log("Starting order status update:", { orderId, newStatus });
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error("No active session found");
-        toast.error("You must be logged in to update orders");
-        return;
-      }
-
-      // Find the current order to preserve payment information
-      const currentOrder = orders.find(order => order.id === orderId);
-      if (!currentOrder) {
-        console.error("Order not found");
-        toast.error("Order not found");
-        return;
-      }
-
-      // First update the order status in the database
-      const { data: updatedOrder, error: updateError } = await supabase
-        .from("orders")
-        .update({ 
-          status: newStatus,
-          // Preserve existing payment information
-          payment_method: currentOrder.payment_method,
-          stripe_session_id: currentOrder.stripe_session_id
-        })
-        .eq("id", orderId)
-        .select(`
-          *,
-          profiles:profiles!left(
-            id,
-            full_name,
-            email
-          )
-        `)
-        .single();
-
-      if (updateError) {
-        console.error("Error updating order:", updateError);
-        toast.error("Failed to update order status");
-        return;
-      }
-
-      console.log("Order updated successfully:", updatedOrder);
-
-      // Validate the updated order data
-      const validatedOrder: OrderData = {
-        id: updatedOrder.id,
-        user_id: updatedOrder.user_id,
-        profile_id: updatedOrder.profile_id,
-        order_number: updatedOrder.order_number,
-        total_amount: updatedOrder.total_amount,
-        status: validateOrderStatus(updatedOrder.status),
-        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
-        billing_address: validateShippingAddress(updatedOrder.billing_address),
-        items: validateOrderItems(updatedOrder.items),
-        created_at: updatedOrder.created_at,
-        payment_method: updatedOrder.payment_method,
-        stripe_session_id: updatedOrder.stripe_session_id,
-        profile: updatedOrder.profiles || undefined
-      };
-
-      // Update the orders state
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === orderId ? validatedOrder : order
-        )
-      );
-
-      // Update selected order if it's currently being viewed
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder(validatedOrder);
-      }
-
-      // Send email notification
-      try {
-        console.log("Attempting to send email notification");
-        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
-        const customerName = validatedOrder.profile?.full_name || 
-          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
-          'Valued Customer';
-
-        if (customerEmail) {
-          console.log("Sending email to:", customerEmail);
-          const { data: emailData, error: emailError } = await supabase.functions.invoke(
-            'send-order-status-email',
-            {
-              body: {
-                customerEmail,
-                customerName,
-                orderId: validatedOrder.id,
-                orderNumber: validatedOrder.order_number,
-                newStatus: validatedOrder.status
-              }
-            }
-          );
-
-          if (emailError) {
-            console.error('Failed to send email notification:', emailError);
-            throw emailError;
-          }
-
-          console.log('Email notification sent successfully:', emailData);
-        } else {
-          console.warn('No customer email found for order:', validatedOrder.id);
-        }
-      } catch (emailError) {
-        console.error('Error sending email notification:', emailError);
-        toast.error('Order updated but failed to send email notification');
-        return;
-      }
-
-      toast.success("Order status updated successfully");
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update order status");
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const getPaymentStatusBadge = (order: OrderData) => {
-    const baseClasses = "whitespace-nowrap text-xs px-2 py-1 rounded-full font-medium";
-    
-    if (order.stripe_session_id) {
-      return (
-        <Badge className={`${baseClasses} bg-green-500 text-white`}>
-          {isMobile ? "Stripe" : "Paid with Stripe"}
-        </Badge>
-      );
-    }
-    if (order.payment_method === 'cash_on_delivery') {
-      return (
-        <Badge className={`${baseClasses} bg-yellow-500 text-white`}>
-          {isMobile ? "Cash" : "Cash on Delivery"}
-        </Badge>
-      );
-    }
-    return (
-      <Badge className={`${baseClasses} bg-gray-500 text-white`}>
-        {isMobile ? "Pending" : "Payment Pending"}
-      </Badge>
-    );
-  };
 
   useEffect(() => {
     fetchOrders();
