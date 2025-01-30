@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +15,7 @@ serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
     const supabase = createClient(
@@ -169,7 +170,7 @@ serve(async (req) => {
         status: 'pending',
         items: items,
         shipping_address: shippingAddress,
-        billing_address: shippingAddress, // Using shipping address as billing address
+        billing_address: shippingAddress,
         payment_method: 'stripe',
         applied_promo_code: activePromoCode || null
       })
