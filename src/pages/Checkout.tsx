@@ -10,7 +10,7 @@ import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { sendOrderEmails } from "@/utils/emailService";
-import { supabase } from "@/integrations/supabase/client"; 
+import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
@@ -170,8 +170,7 @@ const Checkout = () => {
             customerDetails,
             total: subtotalInCurrentCurrency,
             taxes: calculateTaxes(),
-            shippingOption: selectedShippingOption,
-            activePromoCode
+            shippingOption: selectedShippingOption
           }
         });
 
