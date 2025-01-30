@@ -7,8 +7,26 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean | null;
+}
+
+interface ShopSettings {
+  payment_methods: {
+    stripe: boolean;
+    cash_on_delivery: boolean;
+  };
+  stripe_settings: {
+    publishable_key: string;
+    secret_key: string;
+  };
+}
+
 export const PaymentMethodManagement = () => {
-  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [stripeEnabled, setStripeEnabled] = useState(false);
   const [stripePublicKey, setStripePublicKey] = useState("");
@@ -30,13 +48,13 @@ export const PaymentMethodManagement = () => {
       if (error) throw error;
 
       if (data) {
-        const paymentMethods = data.payment_methods || {};
-        const stripeSettings = data.stripe_settings || {};
+        const paymentMethods = data.payment_methods as ShopSettings['payment_methods'];
+        const stripeSettings = data.stripe_settings as ShopSettings['stripe_settings'];
         
-        setStripeEnabled(paymentMethods.stripe || false);
-        setCashOnDeliveryEnabled(paymentMethods.cash_on_delivery || true);
-        setStripePublicKey(stripeSettings.publishable_key || "");
-        setStripeSecretKey(stripeSettings.secret_key || "");
+        setStripeEnabled(paymentMethods?.stripe ?? false);
+        setCashOnDeliveryEnabled(paymentMethods?.cash_on_delivery ?? true);
+        setStripePublicKey(stripeSettings?.publishable_key ?? "");
+        setStripeSecretKey(stripeSettings?.secret_key ?? "");
       }
     } catch (error) {
       console.error('Error fetching shop settings:', error);
@@ -164,7 +182,7 @@ export const PaymentMethodManagement = () => {
           </div>
         ) : (
           <div className="divide-y">
-            {paymentMethods.map((method: any) => (
+            {paymentMethods.map((method) => (
               <div key={method.id} className="py-4 first:pt-0 last:pb-0">
                 <h4 className="font-medium">{method.name}</h4>
                 <p className="text-sm text-gray-600">{method.description}</p>
