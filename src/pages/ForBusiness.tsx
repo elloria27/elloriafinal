@@ -1,11 +1,23 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { BusinessContactDialog } from "@/components/business/BusinessContactDialog";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { BusinessContactForm } from "@/components/business/BusinessContactForm";
 
 const ForBusiness = () => {
-  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    companyName: "",
+    email: "",
+    phone: "",
+    businessType: "",
+    message: "",
+  });
+
+  const handleStepComplete = (stepData: Partial<typeof formData>) => {
+    setFormData((prev) => ({ ...prev, ...stepData }));
+    setCurrentStep((prev) => prev + 1);
+  };
 
   return (
     <motion.main 
@@ -14,6 +26,7 @@ const ForBusiness = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen pt-16"
     >
+      {/* Business Solutions Section */}
       <section className="container mx-auto px-4 py-12 md:py-16">
         <h1 className="text-4xl md:text-5xl font-light text-center mb-8">
           Elloria for Business
@@ -64,30 +77,118 @@ const ForBusiness = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Multi-step Contact Form Section */}
       <section className="bg-gray-50 py-12 md:py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-light text-center mb-8">
-            Get in Touch
-          </h2>
-          <p className="text-gray-600 text-center max-w-2xl mx-auto mb-8">
-            Our team is ready to help you find the perfect solution for your business needs.
-          </p>
-          <div className="flex justify-center">
-            <Button 
-              className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-colors"
-              onClick={() => setShowContactDialog(true)}
-            >
-              Contact Our Business Team
-            </Button>
+        <div className="container mx-auto px-4 max-w-3xl">
+          {/* Progress Steps */}
+          <div className="flex justify-between items-center mb-8 max-w-md mx-auto">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center">
+                <div className={`
+                  w-8 h-8 rounded-full flex items-center justify-center
+                  ${currentStep >= step ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}
+                `}>
+                  {step}
+                </div>
+                {step < 3 && (
+                  <div className={`
+                    w-full h-1 mx-2
+                    ${currentStep > step ? 'bg-primary' : 'bg-gray-200'}
+                  `} />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Step Content */}
+          <div className="bg-white rounded-lg shadow-sm p-8">
+            {currentStep === 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-2xl font-semibold text-center">Contact Our Business Team</h2>
+                <p className="text-gray-600 text-center mb-8">
+                  We'd love to discuss business opportunities with you! Fill out the form below, and our team will get back to you as soon as possible.
+                </p>
+                <Button 
+                  onClick={() => setCurrentStep(2)}
+                  className="w-full"
+                >
+                  Get Started
+                </Button>
+              </motion.div>
+            )}
+
+            {currentStep === 2 && (
+              <BusinessContactForm 
+                onComplete={handleStepComplete}
+                initialData={formData}
+              />
+            )}
+
+            {currentStep === 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-2xl font-semibold text-center">Review Your Information</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="font-medium">{formData.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Company Name</p>
+                      <p className="font-medium">{formData.companyName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium">{formData.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium">{formData.phone || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Business Type</p>
+                      <p className="font-medium">{formData.businessType}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Message</p>
+                    <p className="font-medium">{formData.message}</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1"
+                  >
+                    Edit Information
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      // Handle form submission
+                      console.log("Submitting form:", formData);
+                      // TODO: Implement form submission logic
+                    }}
+                    className="flex-1"
+                  >
+                    Submit
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </section>
-
-      <BusinessContactDialog 
-        open={showContactDialog} 
-        onOpenChange={setShowContactDialog} 
-      />
     </motion.main>
   );
 };
