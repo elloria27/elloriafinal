@@ -79,8 +79,9 @@ export const CustomerForm = ({
         setPhoneNumber(profile.phone_number);
       }
       if (profile.email) {
-        console.log("Setting email:", profile.email);
+        console.log("Setting email from profile:", profile.email);
         setEmail(profile.email);
+        handleInputChange('email', profile.email);
       }
       if (profile.full_name) {
         const [first, last] = profile.full_name.split(' ');
@@ -96,6 +97,7 @@ export const CustomerForm = ({
       if (session?.user?.email) {
         console.log("Setting email from session:", session.user.email);
         setEmail(session.user.email);
+        handleInputChange('email', session.user.email);
         setIsAuthenticated(true);
       }
     };
@@ -103,6 +105,7 @@ export const CustomerForm = ({
   }, []);
 
   const validateEmail = (email: string) => {
+    console.log("Validating email:", email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError("Email is required");
@@ -117,8 +120,10 @@ export const CustomerForm = ({
   };
 
   const handleEmailChange = (email: string) => {
+    console.log("Email changed to:", email);
     setEmail(email);
     if (validateEmail(email)) {
+      console.log("Email is valid, updating form");
       handleInputChange('email', email);
     }
   };

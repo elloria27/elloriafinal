@@ -36,18 +36,14 @@ export const StripeCheckout = ({
 
   const handleCheckout = async () => {
     try {
-      setIsLoading(true);
-      console.log('Initiating checkout with:', {
-        paymentMethodId,
-        items,
-        taxes,
-        shippingCost,
-        activePromoCode,
-        subtotal,
-        shippingAddress
-      });
+      if (!shippingAddress.email) {
+        toast.error("Email address is required");
+        return;
+      }
 
-      // Create checkout session
+      setIsLoading(true);
+      console.log('Initiating checkout with shipping address:', shippingAddress);
+
       const response = await supabase.functions.invoke('create-checkout', {
         body: {
           items,
@@ -82,10 +78,12 @@ export const StripeCheckout = ({
     }
   };
 
+  const isEmailMissing = !shippingAddress?.email;
+
   return (
     <Button 
       onClick={handleCheckout}
-      disabled={isDisabled || isLoading}
+      disabled={isDisabled || isLoading || isEmailMissing}
       className="w-full"
     >
       {isLoading ? "Processing..." : "Proceed to Payment"}

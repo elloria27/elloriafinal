@@ -177,15 +177,24 @@ const Checkout = () => {
       toast.error("Please select a shipping method");
       return;
     }
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    
+    if (!email) {
+      toast.error("Email address is required");
+      return;
+    }
+    
+    console.log('Form email:', email);
     
     setIsSubmitting(true);
     
     try {
-      const formData = new FormData(e.currentTarget);
       const customerDetails = {
         firstName: formData.get('firstName') as string,
         lastName: formData.get('lastName') as string,
-        email: formData.get('email') as string,
+        email,
         phone: phoneNumber,
         address: formData.get('address') as string,
         country,
