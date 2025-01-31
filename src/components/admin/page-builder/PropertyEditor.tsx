@@ -79,6 +79,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
+    if (block.type === "sustainability") {
+      return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (homeComponents.includes(block.type)) {
       return <HomePageEditor block={block} onUpdate={onUpdate} />;
     }
