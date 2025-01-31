@@ -12,6 +12,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const COMPANY_INFO = {
+  name: 'Elloria Eco Products LTD.',
+  address: '229 Dowling Ave W, Winnipeg, MB R3B 2B9',
+  phone: '(204) 930-2019',
+  email: 'sales@elloria.ca',
+  gst: '742031420RT0001',
+  logo: '/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png'
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -54,21 +63,31 @@ serve(async (req) => {
 
     console.log("Order data retrieved:", order);
 
-    // Create PDF
+    // Create PDF with company logo
     const doc = new jsPDF();
     
-    // Company Info
-    doc.setFontSize(10);
-    doc.text('Elloria Inc.', 10, 30);
-    doc.text('123 Business Street', 10, 35);
-    doc.text('Toronto, ON M5V 2T6', 10, 40);
-    doc.text('support@elloria.ca', 10, 45);
+    // Add company logo
+    // Note: In a real implementation, you'd need to handle logo loading and embedding
+    // For now, we'll create space for it
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INVOICE', 105, 20, { align: 'center' });
     
-    // Order Info
-    doc.setFontSize(14);
-    doc.text(`Invoice #${order.order_number}`, 10, 60);
+    // Company Info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(COMPANY_INFO.name, 10, 40);
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 10, 70);
+    doc.text(COMPANY_INFO.address, 10, 45);
+    doc.text(`Phone: ${COMPANY_INFO.phone}`, 10, 50);
+    doc.text(`Email: ${COMPANY_INFO.email}`, 10, 55);
+    doc.text(`GST Number: ${COMPANY_INFO.gst}`, 10, 60);
+    
+    // Invoice Details
+    doc.setFontSize(10);
+    doc.text(`Invoice #: ${order.order_number}`, 150, 40);
+    doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 150, 45);
     
     // Customer Info
     const shippingAddress = order.shipping_address;
@@ -77,34 +96,45 @@ serve(async (req) => {
         ? `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() 
         : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
 
-    doc.text('Bill To:', 10, 85);
-    doc.text(customerName, 10, 90);
-    doc.text(shippingAddress.address, 10, 95);
-    doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 10, 100);
-    doc.text(order.profiles?.email || shippingAddress.email || order.email_address || 'N/A', 10, 105);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Bill To:', 10, 75);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(customerName, 10, 80);
+    doc.text(shippingAddress.address, 10, 85);
+    doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 10, 90);
+    doc.text(order.profiles?.email || shippingAddress.email || order.email_address || 'N/A', 10, 95);
+    doc.text(shippingAddress.phone || 'N/A', 10, 100);
     
-    // Items Table
+    // Items Table Header
     let y = 120;
-    doc.text('Item', 10, y);
+    doc.setFillColor(240, 240, 240);
+    doc.rect(10, y - 5, 190, 10, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.text('Item', 15, y);
     doc.text('Qty', 100, y);
     doc.text('Price', 130, y);
     doc.text('Total', 160, y);
     
+    // Items
+    doc.setFont('helvetica', 'normal');
     y += 10;
     let subtotal = 0;
     order.items.forEach((item: any) => {
       const itemTotal = item.price * item.quantity;
       subtotal += itemTotal;
       
-      doc.text(item.name, 10, y);
+      doc.text(item.name, 15, y);
       doc.text(item.quantity.toString(), 100, y);
       doc.text(`$${item.price.toFixed(2)}`, 130, y);
       doc.text(`$${itemTotal.toFixed(2)}`, 160, y);
       y += 10;
     });
     
+    // Totals
     y += 10;
-    // Subtotal
+    doc.setFont('helvetica', 'bold');
     doc.text('Subtotal:', 130, y);
     doc.text(`$${subtotal.toFixed(2)}`, 160, y);
     
@@ -131,6 +161,11 @@ serve(async (req) => {
     y += 20;
     doc.setFontSize(10);
     doc.text(`Payment Method: ${order.payment_method === 'stripe' ? 'Credit Card (Stripe)' : order.payment_method || 'Standard'}`, 10, y);
+    
+    // Thank you note
+    y += 30;
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for choosing Elloria Eco Products!', 105, y, { align: 'center' });
     
     // Convert to base64
     console.log("Generating PDF output...");
