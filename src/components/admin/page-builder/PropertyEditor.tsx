@@ -7,6 +7,7 @@ import { CommonEditor } from "./editors/CommonEditor";
 import { SustainabilityEditor } from "./editors/SustainabilityEditor";
 import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
+import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -22,7 +23,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "game_changer",
     "store_brands",
     "sustainability",
-    "product_carousel",
     "features",
   ];
 
@@ -79,6 +79,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
+    if (block.type === "product_carousel") {
+      return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (block.type === "sustainability") {
       return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
     }
