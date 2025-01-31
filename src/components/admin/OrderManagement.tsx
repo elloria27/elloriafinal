@@ -151,6 +151,7 @@ export const OrderManagement = () => {
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || null,
+            shipping_cost: order.shipping_cost || 0,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
@@ -207,7 +208,6 @@ export const OrderManagement = () => {
 
       console.log("Received PDF data, initiating download...");
 
-      // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = data.pdf;
       link.download = `invoice-${selectedOrder?.order_number}.pdf`;
@@ -259,35 +259,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Send status update email
-      try {
-        const shippingAddress = validateShippingAddress(updatedOrder.shipping_address);
-        const customerName = updatedOrder.profiles?.full_name || 
-          (shippingAddress.first_name && shippingAddress.last_name 
-            ? `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() 
-            : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
-
-        const emailDetails = {
-          customerEmail: updatedOrder.profiles?.email || shippingAddress.email || updatedOrder.email_address,
-          customerName: customerName,
-          orderId: updatedOrder.id,
-          orderNumber: updatedOrder.order_number,
-          newStatus: newStatus
-        };
-
-        const { error: emailError } = await supabase.functions.invoke('send-order-status-email', {
-          body: emailDetails
-        });
-
-        if (emailError) {
-          console.error("Error sending status update email:", emailError);
-          // Don't throw, just log the error
-        }
-      } catch (emailError) {
-        console.error("Error sending status update email:", emailError);
-        // Don't throw, just log the error
-      }
-
       const validatedShippingAddress = validateShippingAddress(updatedOrder.shipping_address);
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
@@ -301,6 +272,7 @@ export const OrderManagement = () => {
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method || null,
+        shipping_cost: updatedOrder.shipping_cost || 0,
         profile: updatedOrder.profiles ? {
           full_name: updatedOrder.profiles.full_name || 'Guest',
           email: updatedOrder.profiles.email || validatedShippingAddress.email || 'Anonymous Order',
@@ -508,6 +480,22 @@ export const OrderManagement = () => {
                         </TableCell>
                       </TableRow>
                     )}
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-semibold">
+                        Shipping:
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(selectedOrder.shipping_cost || 0)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-semibold">
+                        GST (5%):
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(selectedOrder.total_amount * 0.05)}
+                      </TableCell>
+                    </TableRow>
                     <TableRow>
                       <TableCell colSpan={3} className="text-right font-bold">
                         Total:

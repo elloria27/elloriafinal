@@ -18,11 +18,10 @@ const COMPANY_INFO = {
   phone: '(204) 930-2019',
   email: 'sales@elloria.ca',
   gst: '742031420RT0001',
-  logo: '/lovable-uploads/8fdf5106-b794-4385-a366-9596f10080b4.png'
+  logo: '/lovable-uploads/1b6c4da8-4ccf-4c3f-9df3-198c8ed47ad1.png'
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -36,7 +35,6 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
-    // Fetch order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .select(`
@@ -63,12 +61,9 @@ serve(async (req) => {
 
     console.log("Order data retrieved:", order);
 
-    // Create PDF with company logo
     const doc = new jsPDF();
     
     // Add company logo
-    // Note: In a real implementation, you'd need to handle logo loading and embedding
-    // For now, we'll create space for it
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.text('INVOICE', 105, 20, { align: 'center' });
@@ -150,10 +145,16 @@ serve(async (req) => {
       doc.text(`Discount (${order.applied_promo_code.code}):`, 130, y);
       doc.text(`-$${discount.toFixed(2)}`, 160, y);
     }
+
+    // Add shipping cost
+    const shippingCost = order.shipping_cost || 0;
+    y += 10;
+    doc.text('Shipping:', 130, y);
+    doc.text(`$${shippingCost.toFixed(2)}`, 160, y);
     
     // Calculate GST (5%)
     const gstRate = 0.05;
-    const gstAmount = (subtotal - discount) * gstRate;
+    const gstAmount = (subtotal - discount + shippingCost) * gstRate;
     y += 10;
     doc.text('GST (5%):', 130, y);
     doc.text(`$${gstAmount.toFixed(2)}`, 160, y);
@@ -162,7 +163,7 @@ serve(async (req) => {
     y += 15;
     doc.setFontSize(12);
     doc.text('Total:', 130, y);
-    doc.text(`$${(subtotal - discount + gstAmount).toFixed(2)}`, 160, y);
+    doc.text(`$${(subtotal - discount + shippingCost + gstAmount).toFixed(2)}`, 160, y);
     
     // Payment Method
     y += 20;
