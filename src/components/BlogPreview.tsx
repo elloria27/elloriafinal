@@ -1,71 +1,30 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { BlogPreviewContent } from "@/types/content-blocks";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface BlogPreviewProps {
   content?: BlogPreviewContent;
 }
 
-interface BlogPost {
-  id: string;
-  title: string;
-  category?: string;
-  featured_image: string;
-}
-
 export const BlogPreview = ({ content }: BlogPreviewProps) => {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchLatestPosts = async () => {
-      try {
-        console.log("Fetching latest blog posts...");
-        const { data, error } = await supabase
-          .from("blog_posts")
-          .select("id, title, featured_image")
-          .eq("status", "published")
-          .order("created_at", { ascending: false })
-          .limit(3);
-
-        if (error) {
-          console.error("Error fetching posts:", error);
-          return;
-        }
-
-        console.log("Fetched posts:", data);
-        setPosts(data || []);
-      } catch (error) {
-        console.error("Error in fetchLatestPosts:", error);
-      }
-    };
-
-    fetchLatestPosts();
-
-    // Subscribe to changes
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'blog_posts' },
-        () => {
-          console.log('Blog posts updated, refreshing...');
-          fetchLatestPosts();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const handleViewAllClick = () => {
-    navigate("/blog");
-  };
+  // Use content from props, or fallback to default values
+  const articles = content?.articles || [
+    {
+      title: "Introducing Our Ultra-Thin Maxi Pads Collection",
+      category: "Product Launch",
+      image: "/lovable-uploads/3780f868-91c7-4512-bc4c-6af150baf90d.png"
+    },
+    {
+      title: "The Perfect Pad for Your Daily Routine",
+      category: "Lifestyle",
+      image: "/lovable-uploads/724f13b7-0a36-4896-b19a-e51981befdd3.png"
+    },
+    {
+      title: "Understanding Our Advanced Protection Technology",
+      category: "Education",
+      image: "/lovable-uploads/bf7261ba-df57-413d-b280-3b4b56528e73.png"
+    }
+  ];
 
   return (
     <section className="py-20 bg-white">
@@ -85,25 +44,27 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {posts.map((post, index) => (
+          {articles.map((article, index) => (
             <motion.div
-              key={post.id}
+              key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
               className="group cursor-pointer"
-              onClick={() => navigate(`/blog/${post.id}`)}
             >
               <div className="relative overflow-hidden rounded-lg mb-4">
                 <img
-                  src={post.featured_image}
-                  alt={post.title}
+                  src={article.image}
+                  alt={article.title}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-300"
                 />
+                <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm">
+                  {article.category}
+                </div>
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                {post.title}
+                {article.title}
               </h3>
             </motion.div>
           ))}
@@ -115,13 +76,8 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="border-primary text-primary hover:bg-primary/10"
-            onClick={handleViewAllClick}
-          >
-            {content?.viewAllButtonText || "View All Articles"}
+          <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
+            View All Articles
           </Button>
         </motion.div>
       </div>
