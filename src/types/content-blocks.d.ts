@@ -233,6 +233,32 @@ export interface AboutCtaContent extends BaseBlockContent {
   backgroundGradient?: string;
 }
 
+export interface ForBusinessHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
+export interface BusinessSolutionsContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  solutions?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface BusinessContactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  email?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -254,6 +280,9 @@ export type BlockContent =
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
   | AboutHeroContent
   | AboutStoryContent
   | AboutMissionContent
@@ -291,7 +320,10 @@ export type BlockType =
   | "contact_details"
   | "contact_form"
   | "contact_faq"
-  | "contact_business";
+  | "contact_business"
+  | "business_hero"           // Added new types
+  | "business_solutions"
+  | "business_contact";
 
 export interface ContentBlock {
   id: string;

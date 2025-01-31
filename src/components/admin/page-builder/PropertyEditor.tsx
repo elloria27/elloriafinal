@@ -5,6 +5,7 @@ import { AboutPageEditor } from "./editors/AboutPageEditor";
 import { ContactPageEditor } from "./editors/ContactPageEditor";
 import { CommonEditor } from "./editors/CommonEditor";
 import { SustainabilityEditor } from "./editors/SustainabilityEditor";
+import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -49,6 +50,13 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "sustainability_impact",
   ];
 
+  // Business page components
+  const businessComponents = [
+    "business_hero",
+    "business_solutions",
+    "business_contact",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -75,6 +83,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (sustainabilityComponents.includes(block.type)) {
       return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (businessComponents.includes(block.type)) {
+      return <ForBusinessEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {
