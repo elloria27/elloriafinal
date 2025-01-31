@@ -54,11 +54,13 @@ serve(async (req) => {
 
     // Get auth user if available
     let userEmail = null;
+    let userId = null;
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
       const { data } = await supabaseClient.auth.getUser(token);
       userEmail = data.user?.email;
+      userId = data.user?.id;
     }
 
     // Calculate discount amount if promo code exists
@@ -77,7 +79,7 @@ serve(async (req) => {
           name: item.name,
           images: item.image ? [item.image] : [],
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
@@ -96,10 +98,10 @@ serve(async (req) => {
       });
     }
 
-    // Add GST as a separate line item if exists
-    if (taxes && taxes.gst > 0) {
-      const gstAmount = subtotal * (taxes.gst / 100);
-      if (gstAmount > 0) {
+    // Add taxes as separate line items
+    if (taxes) {
+      if (taxes.gst > 0) {
+        const gstAmount = subtotal * (taxes.gst / 100);
         lineItems.push({
           price_data: {
             currency: 'cad',
@@ -107,6 +109,32 @@ serve(async (req) => {
               name: 'GST (5%)',
             },
             unit_amount: Math.round(gstAmount * 100),
+          },
+          quantity: 1,
+        });
+      }
+      if (taxes.pst > 0) {
+        const pstAmount = subtotal * (taxes.pst / 100);
+        lineItems.push({
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              name: 'PST',
+            },
+            unit_amount: Math.round(pstAmount * 100),
+          },
+          quantity: 1,
+        });
+      }
+      if (taxes.hst > 0) {
+        const hstAmount = subtotal * (taxes.hst / 100);
+        lineItems.push({
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              name: 'HST',
+            },
+            unit_amount: Math.round(hstAmount * 100),
           },
           quantity: 1,
         });
@@ -144,6 +172,30 @@ serve(async (req) => {
     });
 
     console.log('Checkout session created:', session.id);
+
+    // Create initial order record
+    const { error: orderError } = await supabaseClient
+      .from('orders')
+      .insert({
+        user_id: userId,
+        profile_id: userId,
+        order_number: Math.random().toString(36).substr(2, 9).toUpperCase(),
+        total_amount: subtotal + shippingCost + 
+          (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100) - 
+          discountAmount,
+        status: 'pending',
+        items: items,
+        shipping_address: null, // Will be updated from Stripe webhook
+        billing_address: null, // Will be updated from Stripe webhook
+        stripe_session_id: session.id,
+        payment_method: 'stripe',
+        applied_promo_code: promoCode
+      });
+
+    if (orderError) {
+      console.error('Error creating order:', orderError);
+      throw new Error('Failed to create order record');
+    }
 
     return new Response(
       JSON.stringify({ url: session.url }),
