@@ -28,7 +28,6 @@ export const OrderSummary = ({
   currencySymbol,
   taxes,
   selectedShippingOption,
-  total,
   activePromoCode
 }: OrderSummaryProps) => {
   const [promoCode, setPromoCode] = useState("");
@@ -41,6 +40,21 @@ export const OrderSummary = ({
       setPromoCode("");
     }
   };
+
+  // Calculate discount amount if promo code exists
+  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
+  
+  // Calculate subtotal after discount
+  const subtotalAfterDiscount = subtotalInCurrentCurrency - discountAmount;
+
+  // Calculate tax amounts based on discounted subtotal
+  const gstAmount = (taxes.gst / 100) * subtotalAfterDiscount;
+  const pstAmount = (taxes.pst / 100) * subtotalAfterDiscount;
+  const hstAmount = (taxes.hst / 100) * subtotalAfterDiscount;
+
+  // Calculate total with shipping
+  const shippingCost = selectedShippingOption?.price || 0;
+  const total = subtotalAfterDiscount + gstAmount + pstAmount + hstAmount + shippingCost;
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
@@ -93,28 +107,28 @@ export const OrderSummary = ({
           {activePromoCode && (
             <div className="flex justify-between text-green-600">
               <span>Discount ({getDiscountDisplay(activePromoCode)})</span>
-              <span>-{currencySymbol}{calculateDiscount(activePromoCode, subtotalInCurrentCurrency).toFixed(2)}</span>
+              <span>-{currencySymbol}{discountAmount.toFixed(2)}</span>
             </div>
           )}
 
           {taxes.gst > 0 && (
             <div className="flex justify-between">
               <span>GST ({taxes.gst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.gst / 100).toFixed(2)}</span>
+              <span>{currencySymbol}{gstAmount.toFixed(2)}</span>
             </div>
           )}
           
           {taxes.pst > 0 && (
             <div className="flex justify-between">
               <span>PST ({taxes.pst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.pst / 100).toFixed(2)}</span>
+              <span>{currencySymbol}{pstAmount.toFixed(2)}</span>
             </div>
           )}
           
           {taxes.hst > 0 && (
             <div className="flex justify-between">
               <span>HST ({taxes.hst}%)</span>
-              <span>{currencySymbol}{(subtotalInCurrentCurrency * taxes.hst / 100).toFixed(2)}</span>
+              <span>{currencySymbol}{hstAmount.toFixed(2)}</span>
             </div>
           )}
           
