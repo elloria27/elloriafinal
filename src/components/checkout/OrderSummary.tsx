@@ -52,7 +52,8 @@ export const OrderSummary = ({
 
   // Calculate tax amounts based on original subtotal (BEFORE discount)
   const gstAmount = (taxes.gst / 100) * subtotalInCurrentCurrency;
-  const pstAmount = (taxes.pst / 100) * subtotalInCurrentCurrency;
+  // Only apply PST if not Manitoba (Manitoba only has GST)
+  const pstAmount = taxes.region !== "Manitoba" ? (taxes.pst / 100) * subtotalInCurrentCurrency : 0;
   const hstAmount = (taxes.hst / 100) * subtotalInCurrentCurrency;
   
   // Calculate shipping cost
@@ -132,7 +133,7 @@ export const OrderSummary = ({
             </div>
           )}
 
-          {taxes.pst > 0 && (
+          {taxes.pst > 0 && taxes.region !== "Manitoba" && (
             <div className="flex justify-between">
               <span>PST ({taxes.pst}%)</span>
               <span>{currencySymbol}{pstAmount.toFixed(2)}</span>
