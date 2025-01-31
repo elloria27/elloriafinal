@@ -5,12 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { HeroContent } from "@/types/content-blocks";
 
-interface HeroProps {
+interface HomeHeroProps {
   content: HeroContent;
 }
 
-export const Hero = ({ content }: HeroProps) => {
-  console.log('Hero content received:', content);
+export const HomeHero = ({ content }: HomeHeroProps) => {
+  console.log('HomeHero content received:', content);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);

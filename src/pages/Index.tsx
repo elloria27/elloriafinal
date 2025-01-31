@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Hero } from "@/components/Hero";
+import { HomeHero } from "@/components/home/HomeHero";
 import { Features } from "@/components/Features";
 import { StoreBrands } from "@/components/StoreBrands";
 import { Sustainability } from "@/components/Sustainability";
@@ -125,7 +125,7 @@ const Index = () => {
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
       case 'hero':
-        return <Hero content={block.content as HeroContent} />;
+        return <HomeHero content={block.content as HeroContent} />;
       case 'features':
         return <Features content={block.content as FeaturesContent} />;
       case 'game_changer':
@@ -159,7 +159,7 @@ const Index = () => {
   }
 
   return (
-    <main className="flex-grow pt-20"> {/* Added pt-20 for header spacing */}
+    <main className="flex-grow pt-20">
       {blocks.map((block) => (
         <div key={block.id}>
           {renderBlock(block)}
