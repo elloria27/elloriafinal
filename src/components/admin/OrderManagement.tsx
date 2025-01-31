@@ -23,34 +23,41 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
+interface AddressJson {
+  address: string;
+  region: string;
+  country: string;
+  phone: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+}
+
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
     throw new Error('Invalid shipping address format');
   }
   
-  const typedAddress = address as Record<string, unknown>;
+  const addressData = address as AddressJson;
   
-  // Ensure required fields exist and are strings
   if (
-    typeof typedAddress.address !== 'string' ||
-    typeof typedAddress.region !== 'string' ||
-    typeof typedAddress.country !== 'string' ||
-    typeof typedAddress.phone !== 'string'
+    typeof addressData.address !== 'string' ||
+    typeof addressData.region !== 'string' ||
+    typeof addressData.country !== 'string' ||
+    typeof addressData.phone !== 'string'
   ) {
-    console.error('Invalid address data:', typedAddress);
+    console.error('Invalid address data:', addressData);
     throw new Error('Missing required shipping address fields');
   }
 
-  // Create validated shipping address object
   const validatedAddress: ShippingAddress = {
-    address: typedAddress.address,
-    region: typedAddress.region,
-    country: typedAddress.country,
-    phone: typedAddress.phone,
-    // Optional fields
-    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
-    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
-    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
+    address: addressData.address,
+    region: addressData.region,
+    country: addressData.country,
+    phone: addressData.phone,
+    first_name: typeof addressData.first_name === 'string' ? addressData.first_name : undefined,
+    last_name: typeof addressData.last_name === 'string' ? addressData.last_name : undefined,
+    email: typeof addressData.email === 'string' ? addressData.email : undefined,
   };
 
   return validatedAddress;
@@ -122,11 +129,9 @@ export const OrderManagement = () => {
 
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
-          // Validate shipping and billing addresses
           const shippingAddress = validateShippingAddress(order.shipping_address);
           const billingAddress = validateShippingAddress(order.billing_address);
 
-          // Create the validated order object
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -140,7 +145,6 @@ export const OrderManagement = () => {
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            // Handle profile information with proper fallbacks
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'No email provided'
@@ -183,7 +187,6 @@ export const OrderManagement = () => {
         return;
       }
 
-      // Find the current order to preserve payment information
       const currentOrder = orders.find(order => order.id === orderId);
       if (!currentOrder) {
         console.error("Order not found");
@@ -191,7 +194,6 @@ export const OrderManagement = () => {
         return;
       }
 
-      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ 
@@ -218,7 +220,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -241,19 +242,16 @@ export const OrderManagement = () => {
         }
       };
 
-      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
-      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification
       try {
         console.log("Attempting to send email notification");
         const customerEmail = validatedOrder.shipping_address.email || validatedOrder.profile?.email;
