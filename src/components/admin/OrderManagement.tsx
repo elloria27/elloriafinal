@@ -193,8 +193,19 @@ export const OrderManagement = () => {
         body: { orderId }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Invoice generation error:", error);
+        throw error;
+      }
 
+      if (!data || !data.pdf) {
+        console.error("No PDF data received");
+        throw new Error("Failed to generate invoice");
+      }
+
+      console.log("Received PDF data:", data);
+
+      // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = data.pdf;
       link.download = `invoice-${selectedOrder?.order_number}.pdf`;
@@ -239,6 +250,31 @@ export const OrderManagement = () => {
       }
 
       console.log("Order updated successfully:", updatedOrder);
+
+      // Send status update email
+      try {
+        const emailDetails = {
+          customerEmail: updatedOrder.profile?.email || updatedOrder.shipping_address.email || updatedOrder.email_address,
+          customerName: updatedOrder.profile?.full_name || 
+            `${updatedOrder.shipping_address.first_name || ''} ${updatedOrder.shipping_address.last_name || ''}`.trim() || 
+            'Valued Customer',
+          orderId: updatedOrder.id,
+          orderNumber: updatedOrder.order_number,
+          newStatus: newStatus
+        };
+
+        const { error: emailError } = await supabase.functions.invoke('send-order-status-email', {
+          body: emailDetails
+        });
+
+        if (emailError) {
+          console.error("Error sending status update email:", emailError);
+          // Don't throw, just log the error
+        }
+      } catch (emailError) {
+        console.error("Error sending status update email:", emailError);
+        // Don't throw, just log the error
+      }
 
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
@@ -397,7 +433,7 @@ export const OrderManagement = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
                   <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
-                  <p>Email: {selectedOrder.profile?.email || 'N/A'}</p>
+                  <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'N/A'}</p>
                   <p>Phone: {selectedOrder.profile?.phone_number || selectedOrder.shipping_address.phone || 'N/A'}</p>
                   <p>Address: {selectedOrder.profile?.address || selectedOrder.shipping_address.address || 'N/A'}</p>
                 </div>
@@ -425,6 +461,36 @@ export const OrderManagement = () => {
                         </TableCell>
                       </TableRow>
                     ))}
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-semibold">
+                        Subtotal:
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(selectedOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                      </TableCell>
+                    </TableRow>
+                    {selectedOrder.applied_promo_code && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-right text-primary">
+                          Discount ({selectedOrder.applied_promo_code.code}):
+                        </TableCell>
+                        <TableCell className="text-primary">
+                          -{formatCurrency(
+                            selectedOrder.applied_promo_code.type === 'percentage'
+                              ? (selectedOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * selectedOrder.applied_promo_code.value / 100)
+                              : selectedOrder.applied_promo_code.value
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-bold">
+                        Total:
+                      </TableCell>
+                      <TableCell className="font-bold">
+                        {formatCurrency(selectedOrder.total_amount)}
+                      </TableCell>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>

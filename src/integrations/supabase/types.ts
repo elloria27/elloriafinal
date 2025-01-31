@@ -421,6 +421,7 @@ export type Database = {
           applied_promo_code: Json | null
           billing_address: Json
           created_at: string | null
+          email_address: string | null
           id: string
           items: Json
           order_number: string
@@ -436,6 +437,7 @@ export type Database = {
           applied_promo_code?: Json | null
           billing_address: Json
           created_at?: string | null
+          email_address?: string | null
           id?: string
           items: Json
           order_number: string
@@ -451,6 +453,7 @@ export type Database = {
           applied_promo_code?: Json | null
           billing_address?: Json
           created_at?: string | null
+          email_address?: string | null
           id?: string
           items?: Json
           order_number?: string
