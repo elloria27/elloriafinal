@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { BusinessContactDialog } from "@/components/business/BusinessContactDialog";
+import { useState } from "react";
 
 const ForBusiness = () => {
+  const [showContactDialog, setShowContactDialog] = useState(false);
+
   return (
     <motion.main 
       initial={{ opacity: 0 }}
@@ -70,12 +74,20 @@ const ForBusiness = () => {
             Our team is ready to help you find the perfect solution for your business needs.
           </p>
           <div className="flex justify-center">
-            <Button className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-colors">
+            <Button 
+              className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-colors"
+              onClick={() => setShowContactDialog(true)}
+            >
               Contact Our Business Team
             </Button>
           </div>
         </div>
       </section>
+
+      <BusinessContactDialog 
+        open={showContactDialog} 
+        onOpenChange={setShowContactDialog} 
+      />
     </motion.main>
   );
 };
