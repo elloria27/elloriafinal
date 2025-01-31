@@ -163,8 +163,8 @@ export const OrderManagement = () => {
               address: shippingAddress.address
             },
             applied_promo_code: validateAppliedPromoCode(order.applied_promo_code),
-            shipping_cost: typeof order.shipping_cost === 'number' ? order.shipping_cost : 0,
-            gst: typeof order.gst === 'number' ? order.gst : 0
+            shipping_cost: typeof order.shipping_cost === 'number' ? Number(order.shipping_cost) : 0,
+            gst: typeof order.gst === 'number' ? Number(order.gst) : 0
           };
           return validatedOrder;
         } catch (error) {
