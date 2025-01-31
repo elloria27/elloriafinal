@@ -111,7 +111,7 @@ function AppRoutes() {
           <Profile />
         </ProtectedRoute>
       } />
-      <Route path="/product/:id" element={
+      <Route path="/products/:slug" element={
         <ProtectedRoute slug="product">
           <ProductDetail />
         </ProtectedRoute>

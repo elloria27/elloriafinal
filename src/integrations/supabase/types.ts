@@ -649,6 +649,7 @@ export type Database = {
           media: Json | null
           name: string
           price: number
+          slug: string
           specifications: Json
           updated_at: string | null
           why_choose_features: Json | null
@@ -662,6 +663,7 @@ export type Database = {
           media?: Json | null
           name: string
           price: number
+          slug: string
           specifications?: Json
           updated_at?: string | null
           why_choose_features?: Json | null
@@ -675,6 +677,7 @@ export type Database = {
           media?: Json | null
           name?: string
           price?: number
+          slug?: string
           specifications?: Json
           updated_at?: string | null
           why_choose_features?: Json | null

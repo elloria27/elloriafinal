@@ -14,7 +14,7 @@ import { Features } from "@/components/Features";
 import { Header } from "@/components/Header";
 
 const ProductDetailContent = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
@@ -26,10 +26,11 @@ const ProductDetailContent = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        console.log('Fetching product with slug:', slug);
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('id', id)
+          .eq('slug', slug)
           .single();
 
         if (error) {
@@ -40,7 +41,7 @@ const ProductDetailContent = () => {
 
         if (data) {
           const parsedProduct = parseProduct(data);
-          console.log('Parsed product media:', parsedProduct.media);
+          console.log('Parsed product:', parsedProduct);
           setProduct(parsedProduct);
         }
         setLoading(false);
@@ -52,7 +53,7 @@ const ProductDetailContent = () => {
 
     setLoading(true);
     fetchProduct();
-  }, [id]);
+  }, [slug]);
 
   const handleShare = async () => {
     try {

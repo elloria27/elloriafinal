@@ -22,7 +22,6 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
     setProducts(updatedProducts);
   }, []);
 
-  // Subscribe to product changes
   useProductSubscription(handleProductsUpdate);
 
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
@@ -64,7 +63,7 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
             <div className="relative z-10">
               <div className="relative mb-6 aspect-square">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/products/${product.slug}`}>
                   <motion.img
                     src={product.image}
                     alt={product.name}
@@ -76,7 +75,7 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
               </div>
 
               <div className="space-y-2 mb-4">
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/products/${product.slug}`}>
                   <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                     {product.name}
                   </h3>
@@ -104,7 +103,7 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
                 className="flex-1 border-primary/20 hover:border-primary/40 text-primary"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/products/${product.slug}`}>
                   View Details
                 </Link>
               </Button>
