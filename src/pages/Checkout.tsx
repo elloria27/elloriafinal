@@ -18,6 +18,7 @@ import {
   USD_TO_CAD 
 } from "@/utils/locationData";
 import { StripeCheckout } from "@/components/checkout/StripeCheckout";
+import { ShippingOption } from "@/utils/locationData";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const Checkout = () => {
   const [user, setUser] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [availableShippingMethods, setAvailableShippingMethods] = useState<ShippingOption[]>([]);
 
   useEffect(() => {
     // Get initial session
@@ -113,6 +115,42 @@ const Checkout = () => {
       hst: taxRates.hst || 0
     };
   };
+
+  const fetchShippingMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('delivery_methods')
+        .select('*')
+        .eq('is_active', true)
+        .contains('regions', [region]);
+
+      if (error) throw error;
+
+      const formattedMethods: ShippingOption[] = (data || []).map(method => ({
+        id: method.id,
+        name: method.name,
+        price: method.base_price,
+        currency: country === "US" ? "USD" : "CAD",
+        estimatedDays: method.estimated_days || "Standard delivery"
+      }));
+
+      setAvailableShippingMethods(formattedMethods);
+      
+      // Reset selected shipping if it's not available in the new region
+      if (!formattedMethods.find(m => m.id === selectedShipping)) {
+        setSelectedShipping("");
+      }
+    } catch (error) {
+      console.error('Error fetching shipping methods:', error);
+      toast.error('Failed to load shipping options');
+    }
+  };
+
+  useEffect(() => {
+    if (country && region) {
+      fetchShippingMethods();
+    }
+  }, [country, region]);
 
   const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
@@ -308,7 +346,7 @@ const Checkout = () => {
 
               {country && (
                 <ShippingOptions
-                  shippingOptions={SHIPPING_OPTIONS[country] || []}
+                  shippingOptions={availableShippingMethods}
                   selectedShipping={selectedShipping}
                   setSelectedShipping={setSelectedShipping}
                   currencySymbol={country === "US" ? "$" : "CAD $"}

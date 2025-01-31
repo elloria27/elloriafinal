@@ -15,6 +15,14 @@ export const ShippingOptions = ({
   setSelectedShipping,
   currencySymbol
 }: ShippingOptionsProps) => {
+  if (!shippingOptions || shippingOptions.length === 0) {
+    return (
+      <div className="text-sm text-gray-500">
+        No shipping options available for your region
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       <Label>Shipping Method</Label>
