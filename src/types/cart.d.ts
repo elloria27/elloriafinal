@@ -1,3 +1,5 @@
+import { PromoCode } from './promo-code';
+
 export interface CartItem {
   id: string;
   name: string;

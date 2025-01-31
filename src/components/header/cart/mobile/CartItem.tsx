@@ -1,6 +1,6 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CartItem as CartItemType } from "@/contexts/CartContext";
+import { CartItem as CartItemType } from "@/types/cart";
 import { motion } from "framer-motion";
 
 interface CartItemProps {

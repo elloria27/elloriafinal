@@ -1,4 +1,4 @@
-import { CartItem } from "@/contexts/CartContext";
+import { CartItem } from "@/types/cart";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
