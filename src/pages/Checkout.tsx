@@ -103,7 +103,7 @@ const Checkout = () => {
   };
 
   const calculateTaxes = () => {
-    if (!region) return { gst: 0, pst: 0, hst: 0 };
+    if (!region) return { gst: 0, pst: 0, hst: 0, region: '' };
     
     const taxRates = country === "CA" 
       ? CANADIAN_TAX_RATES[region] 
@@ -112,7 +112,8 @@ const Checkout = () => {
     return {
       gst: taxRates.gst || 0,
       pst: taxRates.pst || 0,
-      hst: taxRates.hst || 0
+      hst: taxRates.hst || 0,
+      region: region
     };
   };
 
