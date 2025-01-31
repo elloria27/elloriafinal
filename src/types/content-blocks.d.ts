@@ -1,5 +1,5 @@
-import { Json } from "@/integrations/supabase/types";
 import { ReactNode } from "react";
+import { Json } from "@/integrations/supabase/types";
 
 // Base types
 export interface BlockContent {
@@ -22,6 +22,7 @@ export type BlockType =
   | "image"
   | "video"
   | "button"
+  | "product_gallery"
   | "about_hero_section"
   | "about_story"
   | "about_mission"
@@ -50,27 +51,152 @@ export interface ContentBlock {
   updated_at?: string;
 }
 
-// Newsletter section
+// Component-specific content types
+export interface HeroContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  videoUrl?: string;
+}
+
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
+export interface FeaturesContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+  features?: FeatureItem[];
+}
+
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface GameChangerContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+    detail?: string;
+  }[];
+}
+
+export interface StoreBrandsContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  features?: {
+    title: string;
+    description: string;
+    detail?: string;
+  }[];
+}
+
+export interface ProductCarouselContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+}
+
+export interface CompetitorComparisonContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  metrics?: {
+    category: string;
+    elloria: number;
+    competitors: number;
+    icon: string;
+    description: string;
+  }[];
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
+export interface TestimonialsContent extends BlockContent {
+  title?: ReactNode;
+  testimonials?: {
+    name: string;
+    rating: number;
+    text: string;
+    source: string;
+  }[];
+}
+
+export interface BlogPreviewContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  articles?: {
+    title: string;
+    category: string;
+    image: string;
+  }[];
+}
+
 export interface NewsletterContent extends BlockContent {
   title?: ReactNode;
   subtitle?: ReactNode;
   description?: ReactNode;
 }
 
-// Sustainability section
-export interface SustainabilityContent extends BlockContent {
+// About page content types
+export interface AboutHeroContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  backgroundImage?: string;
+}
+
+export interface AboutStoryContent extends BlockContent {
+  title?: ReactNode;
+  content?: ReactNode;
+  videoUrl?: string;
+}
+
+export interface AboutMissionContent extends BlockContent {
+  title?: ReactNode;
+  description?: ReactNode;
+  values?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
+export interface AboutTeamContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  team?: {
+    name: string;
+    role: string;
+    image: string;
+    bio?: string;
+  }[];
+}
+
+export interface AboutCustomerImpactContent extends BlockContent {
   title?: ReactNode;
   description?: ReactNode;
   stats?: {
-    icon: string;
-    title: string;
-    description: string;
-    color: string;
+    value: string;
+    label: string;
   }[];
-  timelineItems?: string[];
 }
 
-// Contact sections
+export interface AboutSustainabilityContent extends BlockContent {
+  title?: ReactNode;
+  description?: ReactNode;
+  initiatives?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
+// Contact page content types
 export interface ContactHeroContent extends BlockContent {
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -105,5 +231,64 @@ export interface ContactBusinessContent extends BlockContent {
   subtitle?: ReactNode;
   description?: ReactNode;
   buttonText?: ReactNode;
+  buttonUrl?: string;
+}
+
+// Custom Solutions content types
+export interface CustomSolutionsHeroContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+}
+
+export interface CustomSolutionsServicesContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  services?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
+export interface CustomSolutionsProcessContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  steps?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
+export interface CustomSolutionsCtaContent extends BlockContent {
+  title?: ReactNode;
+  description?: ReactNode;
+  buttonText?: string;
+  buttonUrl?: string;
+}
+
+// Business page content types
+export interface BusinessSolutionsContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  solutions?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
+}
+
+export interface ForBusinessHeroContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+}
+
+export interface BusinessContactContent extends BlockContent {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  description?: ReactNode;
+  buttonText?: string;
   buttonUrl?: string;
 }
