@@ -30,71 +30,83 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get authentication status and user data
-    const authHeader = req.headers.get('Authorization');
-    let userId = null;
+    // Generate a UUID for the user (guest or authenticated)
+    const userId = crypto.randomUUID();
     let userProfile = null;
 
+    // Get authentication status and user data
+    const authHeader = req.headers.get('Authorization');
+    
     if (authHeader) {
       console.log('User is authenticated, fetching profile data');
       
-      const authSupabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-            detectSessionInUrl: false,
-          },
+      try {
+        const authSupabase = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false,
+              detectSessionInUrl: false,
+            },
+          }
+        );
+
+        await authSupabase.auth.setSession({
+          access_token: authHeader.replace('Bearer ', ''),
+          refresh_token: '',
+        });
+
+        const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+        
+        if (userError) {
+          console.error('Error getting authenticated user:', userError);
+          throw userError;
         }
-      );
 
-      authSupabase.auth.setSession({
-        access_token: authHeader.replace('Bearer ', ''),
-        refresh_token: '',
-      });
+        if (user) {
+          console.log('Found authenticated user:', user.id);
 
-      const { data: { user }, error: userError } = await authSupabase.auth.getUser();
-      
-      if (userError) {
-        console.error('Error getting user:', userError);
-      } else if (user) {
-        userId = user.id;
-        console.log('Found authenticated user:', userId);
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
+          if (profileError) {
+            console.error('Error getting user profile:', profileError);
+            throw profileError;
+          }
 
-        if (profileError) {
-          console.error('Error getting user profile:', profileError);
-        } else {
           userProfile = profile;
-          console.log('Found user profile:', userProfile);
+          console.log('Found authenticated user profile:', userProfile);
         }
+      } catch (error) {
+        console.error('Error in auth process:', error);
+        // Continue as guest if auth fails
       }
-    } else {
-      console.log('Processing as guest checkout');
-      
-      // Generate a UUID for the guest user
-      const guestUserId = crypto.randomUUID();
-      userId = guestUserId;
+    }
 
-      // Create a profile for the guest user with all shipping details
+    // If no authenticated user or auth failed, create guest profile
+    if (!userProfile) {
+      console.log('Creating guest profile');
+      
+      const guestProfile = {
+        id: userId,
+        full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
+        email: shippingAddress.email,
+        phone_number: shippingAddress.phone,
+        address: shippingAddress.address,
+        country: shippingAddress.country,
+        region: shippingAddress.region
+      };
+
+      console.log('Inserting guest profile:', guestProfile);
+
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: guestUserId,
-          full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
-          email: shippingAddress.email,
-          phone_number: shippingAddress.phone,
-          address: shippingAddress.address,
-          country: shippingAddress.country,
-          region: shippingAddress.region
-        })
+        .insert(guestProfile)
         .select()
         .single();
 
@@ -197,10 +209,10 @@ serve(async (req) => {
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    // Create complete order data with all customer information
+    // Create order data with complete customer information
     const orderData = {
-      user_id: userId,
-      profile_id: userId, // Using the same ID for both user and profile
+      user_id: userProfile.id,
+      profile_id: userProfile.id,
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
@@ -238,8 +250,8 @@ serve(async (req) => {
       customer_email: userProfile.email,
       metadata: {
         order_number: orderNumber,
-        user_id: userId,
-        profile_id: userId,
+        user_id: userProfile.id,
+        profile_id: userProfile.id,
         shipping_address: JSON.stringify(shippingAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
