@@ -166,8 +166,8 @@ serve(async (req) => {
 
     // Prepare complete address data
     const completeAddress = {
-      first_name: shippingAddress.firstName || '',
-      last_name: shippingAddress.lastName || '',
+      firstName: shippingAddress.firstName || '',
+      lastName: shippingAddress.lastName || '',
       email: shippingAddress.email || '',
       phone: shippingAddress.phone || '',
       address: shippingAddress.address || '',
@@ -186,7 +186,7 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: completeAddress.email,
-      shipping_address_collection: null, // Disable Stripe's address collection
+      shipping_address_collection: null,
       billing_address_collection: 'required',
       metadata: {
         order_number: orderNumber,
@@ -200,14 +200,14 @@ serve(async (req) => {
 
     // Save order to database with complete information
     const orderData = {
-      user_id: userId, // Will be null for guest checkout
-      profile_id: userId, // Will be null for guest checkout
+      user_id: userId,
+      profile_id: userId,
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
       items: items,
       shipping_address: completeAddress,
-      billing_address: completeAddress, // Using same address for billing
+      billing_address: completeAddress,
       payment_method: 'stripe',
       stripe_session_id: session.id,
       applied_promo_code: activePromoCode
