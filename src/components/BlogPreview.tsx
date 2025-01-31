@@ -12,7 +12,7 @@ interface BlogPreviewProps {
 interface BlogPost {
   id: string;
   title: string;
-  category: string;
+  category?: string;
   featured_image: string;
 }
 
