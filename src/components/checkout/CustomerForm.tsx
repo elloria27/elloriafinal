@@ -57,7 +57,7 @@ export const CustomerForm = ({
   profile,
   onFormChange
 }: CustomerFormProps) => {
-  const [userEmail, setUserEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
   const [firstName, setFirstName] = useState("");
@@ -80,7 +80,7 @@ export const CustomerForm = ({
       }
       if (profile.email) {
         console.log("Setting email:", profile.email);
-        setUserEmail(profile.email);
+        setEmail(profile.email);
       }
       if (profile.full_name) {
         const [first, last] = profile.full_name.split(' ');
@@ -94,8 +94,8 @@ export const CustomerForm = ({
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email) {
-        console.log("Setting user email from session:", session.user.email);
-        setUserEmail(session.user.email);
+        console.log("Setting email from session:", session.user.email);
+        setEmail(session.user.email);
         setIsAuthenticated(true);
       }
     };
@@ -117,7 +117,7 @@ export const CustomerForm = ({
   };
 
   const handleEmailChange = (email: string) => {
-    setUserEmail(email);
+    setEmail(email);
     if (validateEmail(email)) {
       handleInputChange('email', email);
     }
@@ -176,7 +176,7 @@ export const CustomerForm = ({
           id="email" 
           name="email" 
           type="email" 
-          value={userEmail}
+          value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           readOnly={isAuthenticated}
           required 
