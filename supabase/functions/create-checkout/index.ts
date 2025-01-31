@@ -49,10 +49,24 @@ serve(async (req) => {
     }
 
     // Validate email
-    if (!shippingAddress.email || !validateEmail(shippingAddress.email)) {
-      console.error('Invalid email address:', shippingAddress.email);
+    if (!shippingAddress.email) {
+      console.error('Email address is missing');
       return new Response(
-        JSON.stringify({ error: 'Invalid email address provided' }),
+        JSON.stringify({ error: 'Email address is required' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
+    const email = shippingAddress.email.trim();
+    console.log('Using email address:', email);
+
+    if (!validateEmail(email)) {
+      console.error('Invalid email format:', email);
+      return new Response(
+        JSON.stringify({ error: 'Please enter a valid email address' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -71,33 +85,6 @@ serve(async (req) => {
         },
       }
     );
-
-    // Create temporary user for guest checkout
-    console.log('Creating temporary user with email:', shippingAddress.email);
-
-    // First create the user in auth.users
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: shippingAddress.email,
-      password: crypto.randomUUID(),
-      email_confirm: true,
-      user_metadata: {
-        full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
-        is_guest: true
-      }
-    });
-
-    if (authError) {
-      console.error('Error creating temporary user:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create temporary user' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
-        }
-      );
-    }
-
-    console.log('Temporary user created successfully:', authUser);
 
     // Get payment method details
     const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
@@ -217,15 +204,16 @@ serve(async (req) => {
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
+    console.log('Creating Stripe checkout session with email:', email);
+
     // Create Stripe checkout session
-    console.log('Creating Stripe checkout session');
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: shippingAddress.email,
+      customer_email: email,
       discounts: discounts,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
@@ -242,9 +230,7 @@ serve(async (req) => {
       billing_address: shippingAddress,
       stripe_session_id: session.id,
       payment_method: 'stripe',
-      applied_promo_code: promoCode,
-      user_id: authUser.user.id,
-      profile_id: authUser.user.id
+      applied_promo_code: promoCode
     };
 
     const { error: orderError } = await supabaseAdmin
