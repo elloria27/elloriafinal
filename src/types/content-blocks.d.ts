@@ -1,7 +1,15 @@
 import { Json } from "@/integrations/supabase/types";
 
+// Base interfaces
 export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
+}
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
 }
 
 export interface FeatureItem {
@@ -11,6 +19,16 @@ export interface FeatureItem {
   detail?: string;
 }
 
+export interface FeaturesProps {
+  content?: {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    features?: FeatureItem[];
+  };
+}
+
+// Basic block content types
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -36,6 +54,7 @@ export interface ButtonBlockContent extends BaseBlockContent {
   variant?: 'default' | 'outline' | 'ghost';
 }
 
+// Page-specific content types
 export interface HeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
