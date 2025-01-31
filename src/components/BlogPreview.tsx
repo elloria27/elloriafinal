@@ -37,7 +37,14 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
         if (data) {
           console.log('Raw blog posts data:', data);
-          setPosts(data);
+          // Transform the data to include the full storage URL for featured images
+          const postsWithFullImageUrls = data.map(post => ({
+            ...post,
+            featured_image: post.featured_image 
+              ? `${supabase.storage.from('files').getPublicUrl(`blog/${post.featured_image}`).data.publicUrl}`
+              : '/placeholder.svg'
+          }));
+          setPosts(postsWithFullImageUrls);
         }
       } catch (error) {
         console.error('Error fetching blog posts:', error);
