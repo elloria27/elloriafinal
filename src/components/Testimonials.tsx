@@ -46,29 +46,59 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
   if (content) {
     if (Array.isArray(content.testimonials)) {
       // Convert Json array to Testimonial array
-      testimonials = content.testimonials.map((item: Json): Testimonial => ({
-        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
-        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
-        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
-        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
-      }));
+      testimonials = content.testimonials.map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          return {
+            name: String(item.name || item.author || ''),
+            rating: Number(item.rating || 5),
+            text: String(item.text || item.content || ''),
+            source: String(item.source || '')
+          };
+        }
+        return {
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: ''
+        };
+      });
     } else if (Array.isArray(content.items)) {
       // Convert items array to Testimonial array
-      testimonials = content.items.map((item: Json): Testimonial => ({
-        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
-        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
-        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
-        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
-      }));
+      testimonials = content.items.map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          return {
+            name: String(item.name || item.author || ''),
+            rating: Number(item.rating || 5),
+            text: String(item.text || item.content || ''),
+            source: String(item.source || '')
+          };
+        }
+        return {
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: ''
+        };
+      });
     } else if (typeof content.testimonials === 'object' && content.testimonials !== null) {
       // Handle case where testimonials might be an object with numeric keys
       const testimonialsObj = content.testimonials as Record<string, Json>;
-      testimonials = Object.values(testimonialsObj).map((item): Testimonial => ({
-        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
-        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
-        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
-        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
-      }));
+      testimonials = Object.values(testimonialsObj).map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          return {
+            name: String(item.name || item.author || ''),
+            rating: Number(item.rating || 5),
+            text: String(item.text || item.content || ''),
+            source: String(item.source || '')
+          };
+        }
+        return {
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: ''
+        };
+      });
     }
   }
   
