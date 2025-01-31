@@ -1,7 +1,7 @@
 import { CartItem } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { PromoCode } from '@/types/promo-code';
 
@@ -33,28 +33,38 @@ export const OrderSummary = ({
   const [promoCode, setPromoCode] = useState("");
   const { applyPromoCode, removePromoCode, calculateDiscount, getDiscountDisplay } = useCart();
 
+  // Load saved promo code from localStorage on component mount
+  useEffect(() => {
+    const savedPromoCode = localStorage.getItem('activePromoCode');
+    if (savedPromoCode && !activePromoCode) {
+      applyPromoCode(savedPromoCode);
+    }
+  }, []);
+
   const handlePromoCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (promoCode.trim()) {
       applyPromoCode(promoCode.trim());
+      // Save promo code to localStorage
+      localStorage.setItem('activePromoCode', promoCode.trim());
       setPromoCode("");
     }
   };
 
-  // Calculate discount amount if promo code exists
+  // Calculate discount amount if promo code exists (only on subtotal)
   const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
   
   // Calculate subtotal after discount
   const subtotalAfterDiscount = subtotalInCurrentCurrency - discountAmount;
 
-  // Calculate tax amounts based on discounted subtotal
+  // Calculate tax amounts based on original subtotal (before discount)
   const gstAmount = (taxes.gst / 100) * subtotalAfterDiscount;
-  const pstAmount = (taxes.pst / 100) * subtotalAfterDiscount;
-  const hstAmount = (taxes.hst / 100) * subtotalAfterDiscount;
-
-  // Calculate total with shipping
+  
+  // Calculate shipping cost
   const shippingCost = selectedShippingOption?.price || 0;
-  const total = subtotalAfterDiscount + gstAmount + pstAmount + hstAmount + shippingCost;
+
+  // Calculate total (subtotal after discount + GST + shipping)
+  const total = subtotalAfterDiscount + gstAmount + shippingCost;
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
@@ -78,7 +88,10 @@ export const OrderSummary = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={removePromoCode}
+                onClick={() => {
+                  removePromoCode();
+                  localStorage.removeItem('activePromoCode');
+                }}
                 className="text-sm hover:bg-red-100"
               >
                 Remove
@@ -115,20 +128,6 @@ export const OrderSummary = ({
             <div className="flex justify-between">
               <span>GST ({taxes.gst}%)</span>
               <span>{currencySymbol}{gstAmount.toFixed(2)}</span>
-            </div>
-          )}
-          
-          {taxes.pst > 0 && (
-            <div className="flex justify-between">
-              <span>PST ({taxes.pst}%)</span>
-              <span>{currencySymbol}{pstAmount.toFixed(2)}</span>
-            </div>
-          )}
-          
-          {taxes.hst > 0 && (
-            <div className="flex justify-between">
-              <span>HST ({taxes.hst}%)</span>
-              <span>{currencySymbol}{hstAmount.toFixed(2)}</span>
             </div>
           )}
           
