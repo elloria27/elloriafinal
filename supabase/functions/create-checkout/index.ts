@@ -43,6 +43,18 @@ serve(async (req) => {
       );
     }
 
+    // Validate email
+    if (!shippingAddress.email || !shippingAddress.email.includes('@')) {
+      console.error('Invalid email address:', shippingAddress.email);
+      return new Response(
+        JSON.stringify({ error: 'Invalid email address provided' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
     // Initialize Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -56,7 +68,7 @@ serve(async (req) => {
     );
 
     // Create temporary user for guest checkout
-    const tempEmail = `guest_${crypto.randomUUID()}@temporary.com`;
+    const tempEmail = shippingAddress.email;
     const tempPassword = crypto.randomUUID();
 
     console.log('Creating temporary user with email:', tempEmail);
