@@ -166,8 +166,8 @@ serve(async (req) => {
 
     // Prepare complete address data
     const completeAddress = {
-      first_name: shippingAddress.first_name || '',
-      last_name: shippingAddress.last_name || '',
+      first_name: shippingAddress.firstName || '',
+      last_name: shippingAddress.lastName || '',
       email: shippingAddress.email || '',
       phone: shippingAddress.phone || '',
       address: shippingAddress.address || '',
