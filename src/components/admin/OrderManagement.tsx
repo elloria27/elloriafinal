@@ -30,6 +30,7 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   const typedAddress = address as Record<string, unknown>;
   
+  // Ensure required fields are present and of correct type
   if (
     typeof typedAddress.address !== 'string' ||
     typeof typedAddress.region !== 'string' ||
@@ -39,6 +40,7 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     throw new Error('Missing required shipping address fields');
   }
 
+  // Create validated shipping address with optional fields
   return {
     address: typedAddress.address,
     region: typedAddress.region,
@@ -52,7 +54,8 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
   if (!Array.isArray(items)) {
-    throw new Error('Items must be an array');
+    console.error('Items is not an array:', items);
+    return [];
   }
 
   return items.map(item => {
@@ -64,6 +67,7 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       typeof (item as any).quantity !== 'number' ||
       typeof (item as any).price !== 'number'
     ) {
+      console.error('Invalid order item:', item);
       throw new Error('Invalid order item format');
     }
 
@@ -117,6 +121,22 @@ export const OrderManagement = () => {
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const items = validateOrderItems(order.items);
+          
+          // Determine customer name and email with fallbacks
+          let customerName = 'Guest';
+          let customerEmail = 'Anonymous Order';
+          
+          if (order.profiles) {
+            customerName = order.profiles.full_name || 'Guest';
+            customerEmail = order.profiles.email || 'Anonymous Order';
+          } else if (shippingAddress) {
+            const firstName = shippingAddress.first_name || '';
+            const lastName = shippingAddress.last_name || '';
+            customerName = `${firstName} ${lastName}`.trim() || 'Guest';
+            customerEmail = shippingAddress.email || 'Anonymous Order';
+          }
+
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -126,23 +146,20 @@ export const OrderManagement = () => {
             status: validateOrderStatus(order.status),
             shipping_address: shippingAddress,
             billing_address: validateShippingAddress(order.billing_address),
-            items: validateOrderItems(order.items),
+            items: items,
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || 'Anonymous Order'
-            } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
-              email: shippingAddress.email || 'Anonymous Order'
+            profile: {
+              full_name: customerName,
+              email: customerEmail
             }
           };
           return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
-          // Instead of throwing, return a default order object with available data
-          const fallbackOrder: OrderData = {
+          // Return a fallback order object with available data
+          return {
             id: order.id,
             user_id: null,
             profile_id: null,
@@ -170,7 +187,6 @@ export const OrderManagement = () => {
               email: 'Anonymous Order'
             }
           };
-          return fallbackOrder;
         }
       });
 
@@ -355,6 +371,8 @@ export const OrderManagement = () => {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
 
+  // ... keep existing code (render JSX)
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Order Management</h2>
@@ -432,7 +450,7 @@ export const OrderManagement = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
                   <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
-                  <p>Email: {selectedOrder.profile?.email || 'Anonymous Order'}</p>
+                  <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'Anonymous Order'}</p>
                 </div>
               </div>
 
