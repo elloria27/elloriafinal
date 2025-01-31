@@ -63,48 +63,42 @@ export const CustomerForm = ({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
+  const [formInitialized, setFormInitialized] = useState(false);
 
+  // Initialize form with profile data only once
   useEffect(() => {
-    console.log("CustomerForm - Profile data received:", profile);
-    if (profile) {
-      if (profile.country) {
-        console.log("Setting country:", profile.country);
-        setCountry(profile.country);
-      }
-      if (profile.region) {
-        console.log("Setting region:", profile.region);
-        setRegion(profile.region);
-      }
-      if (profile.phone_number) {
-        console.log("Setting phone number:", profile.phone_number);
-        setPhoneNumber(profile.phone_number);
-      }
+    if (profile && !formInitialized) {
+      console.log("CustomerForm - Initializing form with profile data:", profile);
+      
+      if (profile.country) setCountry(profile.country);
+      if (profile.region) setRegion(profile.region);
+      if (profile.phone_number) setPhoneNumber(profile.phone_number);
       if (profile.email) {
-        console.log("Setting email from profile:", profile.email);
         setEmail(profile.email);
         handleInputChange('email', profile.email);
       }
       if (profile.address) {
-        console.log("Setting address from profile:", profile.address);
         setAddress(profile.address);
         handleInputChange('address', profile.address);
       }
       if (profile.full_name) {
         const [first, last] = profile.full_name.split(' ');
-        console.log("Setting names from profile - first:", first, "last:", last);
         setFirstName(first || '');
         setLastName(last || '');
         handleNameChange('first', first || '');
         handleNameChange('last', last || '');
       }
+      
+      setFormInitialized(true);
     }
-  }, [profile, setCountry, setRegion, setPhoneNumber]);
+  }, [profile]);
 
+  // Handle authentication state
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.email) {
-        console.log("Setting email from session:", session.user.email);
+        console.log("CustomerForm - Setting email from session:", session.user.email);
         setEmail(session.user.email);
         handleInputChange('email', session.user.email);
         setIsAuthenticated(true);
@@ -114,7 +108,7 @@ export const CustomerForm = ({
   }, []);
 
   const validateEmail = (email: string) => {
-    console.log("Validating email:", email);
+    console.log("CustomerForm - Validating email:", email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError("Email is required");
@@ -129,25 +123,23 @@ export const CustomerForm = ({
   };
 
   const handleEmailChange = (email: string) => {
-    console.log("Email changed to:", email);
+    console.log("CustomerForm - Email changed to:", email);
     setEmail(email);
     if (validateEmail(email)) {
-      console.log("Email is valid, updating form");
       handleInputChange('email', email);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     console.log(`CustomerForm - handleInputChange - ${field}:`, value);
-    
     if (onFormChange) {
-      console.log(`CustomerForm - calling onFormChange with ${field}:`, value);
       onFormChange(field, value);
     }
   };
 
   const handleNameChange = (type: 'first' | 'last', value: string) => {
     console.log(`CustomerForm - handleNameChange - ${type}:`, value);
+    
     if (type === 'first') {
       setFirstName(value);
     } else {
@@ -157,10 +149,8 @@ export const CustomerForm = ({
     const newFullName = type === 'first' 
       ? `${value} ${lastName}`.trim()
       : `${firstName} ${value}`.trim();
-      
-    console.log('CustomerForm - updating full_name:', newFullName);
+    
     handleInputChange('full_name', newFullName);
-    console.log(`CustomerForm - updating ${type === 'first' ? 'first_name' : 'last_name'}:`, value);
     handleInputChange(type === 'first' ? 'first_name' : 'last_name', value);
   };
 
@@ -169,22 +159,6 @@ export const CustomerForm = ({
     setAddress(value);
     handleInputChange('address', value);
   };
-
-  useEffect(() => {
-    if (email) {
-      console.log("Initial email set:", email);
-      handleInputChange('email', email);
-    }
-    if (firstName) {
-      handleInputChange('first_name', firstName);
-    }
-    if (lastName) {
-      handleInputChange('last_name', lastName);
-    }
-    if (address) {
-      handleInputChange('address', address);
-    }
-  }, []); 
 
   return (
     <div className="space-y-6">
@@ -243,6 +217,17 @@ export const CustomerForm = ({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="address">Address</Label>
+        <Input 
+          id="address" 
+          name="address" 
+          value={address}
+          onChange={(e) => handleAddressChange(e.target.value)}
+          required 
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
         <Select 
           value={country} 
@@ -290,17 +275,6 @@ export const CustomerForm = ({
           </Select>
         </div>
       )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="address">Address</Label>
-        <Input 
-          id="address" 
-          name="address" 
-          value={address}
-          onChange={(e) => handleAddressChange(e.target.value)}
-          required 
-        />
-      </div>
     </div>
   );
 };

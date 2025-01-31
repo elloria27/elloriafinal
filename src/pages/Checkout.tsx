@@ -41,89 +41,68 @@ const Checkout = () => {
     phone: '',
     first_name: '',
     last_name: '',
-    email: ''
+    email: '',
+    full_name: ''
   });
 
+  // Fetch initial user data and profile
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeCheckout = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        fetchProfile(session.user.id);
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profileData) {
+          console.log('Checkout - Profile loaded:', profileData);
+          setProfile(profileData);
+        }
       }
-    });
+    };
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    initializeCheckout();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
-    console.log('Fetching profile for user:', userId);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
-    }
-
-    if (data) {
-      console.log('Profile fetched successfully:', data);
-      setProfile(data);
-      if (data.country) setCountry(data.country);
-      if (data.region) setRegion(data.region);
-      if (data.phone_number) setPhoneNumber(data.phone_number);
-    }
+  // Handle form field changes
+  const handleFormChange = (field: string, value: string) => {
+    console.log(`Checkout - handleFormChange - ${field}:`, value);
+    
+    setShippingAddress(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Handle special cases
+      if (field === 'first_name' || field === 'last_name') {
+        updated.full_name = `${updated.first_name} ${updated.last_name}`.trim();
+      }
+      
+      console.log('Checkout - Updated shipping address:', updated);
+      return updated;
+    });
   };
 
-  const updateProfile = async (field: string, value: string) => {
-    if (!user) return;
-
-    console.log('Updating profile field:', field, 'with value:', value);
-    const updates = {
-      id: user.id,
-      [field]: value,
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
-      .from('profiles')
-      .upsert(updates);
-
-    if (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    } else {
-      console.log('Profile updated successfully');
+  // Fetch shipping methods when country/region changes
+  useEffect(() => {
+    if (country && region) {
+      fetchShippingMethods();
     }
-  };
+  }, [country, region]);
 
-  const calculateTaxes = () => {
-    if (!region) return { gst: 0, pst: 0, hst: 0, region: '' };
+  // Validate shipping address
+  const validateShippingAddress = () => {
+    const requiredFields = ['address', 'country', 'region', 'phone', 'email', 'first_name', 'last_name'];
+    const missingFields = requiredFields.filter(field => !shippingAddress[field]);
     
-    const taxRates = country === "CA" 
-      ? CANADIAN_TAX_RATES[region] 
-      : US_TAX_RATES[region] || { pst: 0 };
+    if (missingFields.length > 0) {
+      console.log('Checkout - Missing required fields:', missingFields);
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return false;
+    }
     
-    return {
-      gst: taxRates.gst || 0,
-      pst: taxRates.pst || 0,
-      hst: taxRates.hst || 0,
-      region: region
-    };
+    return true;
   };
 
   const fetchShippingMethods = async () => {
@@ -156,56 +135,43 @@ const Checkout = () => {
     }
   };
 
-  useEffect(() => {
-    if (country && region) {
-      fetchShippingMethods();
-    }
-  }, [country, region]);
-
-  const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
-  const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
-
-  const taxes = calculateTaxes();
-  const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
-  const shippingCost = selectedShippingOption?.price || 0;
-  
-  const taxAmount = subtotalInCurrentCurrency * (
-    (taxes.hst || 0) / 100 +
-    (taxes.gst || 0) / 100 +
-    (taxes.pst || 0) / 100
-  );
-
-  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
-  const currencySymbol = country === "US" ? "$" : "CAD $";
+  const calculateTaxes = () => {
+    if (!region) return { gst: 0, pst: 0, hst: 0, region: '' };
+    
+    const taxRates = country === "CA" 
+      ? CANADIAN_TAX_RATES[region] 
+      : US_TAX_RATES[region] || { pst: 0 };
+    
+    return {
+      gst: taxRates.gst || 0,
+      pst: taxRates.pst || 0,
+      hst: taxRates.hst || 0,
+      region: region
+    };
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Starting order submission process');
+    console.log('Starting order submission with shipping address:', shippingAddress);
+
+    if (!validateShippingAddress()) {
+      return;
+    }
 
     if (!selectedShipping) {
       toast.error("Please select a shipping method");
       return;
     }
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    
-    if (!email) {
-      toast.error("Email address is required");
-      return;
-    }
-    
-    console.log('Form email:', email);
-    
     setIsSubmitting(true);
     
     try {
       const customerDetails = {
-        firstName: formData.get('firstName') as string,
-        lastName: formData.get('lastName') as string,
-        email,
-        phone: phoneNumber,
-        address: formData.get('address') as string,
+        firstName: shippingAddress.first_name,
+        lastName: shippingAddress.last_name,
+        email: shippingAddress.email,
+        phone: shippingAddress.phone,
+        address: shippingAddress.address,
         country,
         region
       };
@@ -313,61 +279,6 @@ const Checkout = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPaymentMethods();
-  }, []);
-
-  const fetchPaymentMethods = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('payment_methods')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      console.log('Fetched payment methods:', data);
-      setPaymentMethods(data || []);
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
-      toast.error('Failed to load payment methods');
-    }
-  };
-
-  const handleFormChange = (field: string, value: string) => {
-    console.log(`Checkout - handleFormChange - ${field}:`, value);
-    
-    // Map the field names correctly
-    const fieldMapping: { [key: string]: string } = {
-      'first_name': 'first_name',
-      'last_name': 'last_name',
-      'email': 'email',
-      'address': 'address'
-    };
-
-    const mappedField = fieldMapping[field] || field;
-    console.log('Checkout - Mapped field:', mappedField, 'with value:', value);
-
-    setShippingAddress(prev => {
-      const updated = {
-        ...prev,
-        [mappedField]: value
-      };
-      console.log('Checkout - Updated shipping address:', updated);
-      return updated;
-    });
-
-    // Update profile if user is authenticated
-    if (user) {
-      console.log('Checkout - Updating profile with:', field, value);
-      updateProfile(field, value);
-    }
-  };
-
-  // Log shippingAddress changes
-  useEffect(() => {
-    console.log('Checkout - shippingAddress updated:', shippingAddress);
-  }, [shippingAddress]);
-
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
@@ -381,6 +292,19 @@ const Checkout = () => {
       </div>
     );
   }
+
+  const taxes = calculateTaxes();
+  const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
+  const shippingCost = selectedShippingOption?.price || 0;
+  
+  const taxAmount = subtotalInCurrentCurrency * (
+    (taxes.hst || 0) / 100 +
+    (taxes.gst || 0) / 100 +
+    (taxes.pst || 0) / 100
+  );
+
+  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
+  const currencySymbol = country === "US" ? "$" : "CAD $";
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -461,12 +385,12 @@ const Checkout = () => {
                 taxes={taxes}
                 shippingCost={selectedShippingOption?.price || 0}
                 shippingAddress={{
-                  address: profile?.address || '',
+                  address: shippingAddress.address,
                   country: country,
                   region: region,
                   phone: phoneNumber,
-                  first_name: profile?.full_name?.split(' ')[0] || '',
-                  last_name: profile?.full_name?.split(' ')[1] || '',
+                  first_name: shippingAddress.first_name,
+                  last_name: shippingAddress.last_name,
                   email: shippingAddress.email
                 }}
               />
