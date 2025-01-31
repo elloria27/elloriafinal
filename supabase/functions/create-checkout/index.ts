@@ -18,10 +18,11 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress } } = await req.json();
+    const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } } = await req.json();
     
     console.log('Processing checkout for items:', items);
     console.log('Shipping address:', shippingAddress);
+    console.log('Shipping cost:', shippingCost);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -32,7 +33,6 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     let userId = null;
     let userProfile = null;
-    let customerEmail = shippingAddress.email;
 
     if (authHeader) {
       console.log('User is authenticated, fetching profile data');
@@ -72,7 +72,6 @@ serve(async (req) => {
           console.error('Error getting user profile:', profileError);
         } else {
           userProfile = profile;
-          customerEmail = profile.email || shippingAddress.email;
           console.log('Found user profile:', userProfile);
         }
       }
@@ -83,7 +82,7 @@ serve(async (req) => {
       const guestUserId = crypto.randomUUID();
       userId = guestUserId;
 
-      // Create a profile for the guest user
+      // Create a profile for the guest user with all shipping details
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -146,6 +145,22 @@ serve(async (req) => {
       tax_rates: [taxRate.id],
     }));
 
+    // Add shipping cost as a separate line item if present
+    if (shippingCost > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'Shipping',
+            description: 'Shipping cost',
+          },
+          unit_amount: Math.round(shippingCost * 100),
+        },
+        quantity: 1,
+        tax_rates: [taxRate.id],
+      });
+    }
+
     // Handle promo code discount
     const discounts = [];
     if (activePromoCode) {
@@ -181,7 +196,7 @@ serve(async (req) => {
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    // Create order data with complete customer information
+    // Create complete order data
     const orderData = {
       user_id: userId,
       profile_id: userId, // Using the same ID for both user and profile
@@ -190,12 +205,22 @@ serve(async (req) => {
       status: 'pending',
       items: items,
       shipping_address: {
-        ...shippingAddress,
-        email: customerEmail,
+        first_name: shippingAddress.first_name,
+        last_name: shippingAddress.last_name,
+        email: userProfile?.email || shippingAddress.email,
+        phone: shippingAddress.phone,
+        address: shippingAddress.address,
+        country: shippingAddress.country,
+        region: shippingAddress.region
       },
       billing_address: {
-        ...shippingAddress,
-        email: customerEmail,
+        first_name: shippingAddress.first_name,
+        last_name: shippingAddress.last_name,
+        email: userProfile?.email || shippingAddress.email,
+        phone: shippingAddress.phone,
+        address: shippingAddress.address,
+        country: shippingAddress.country,
+        region: shippingAddress.region
       },
       payment_method: 'stripe',
       applied_promo_code: activePromoCode
@@ -209,10 +234,11 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: customerEmail,
+      customer_email: userProfile?.email || shippingAddress.email,
       metadata: {
         order_number: orderNumber,
         user_id: userId,
+        profile_id: userId,
         shipping_address: JSON.stringify(shippingAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
