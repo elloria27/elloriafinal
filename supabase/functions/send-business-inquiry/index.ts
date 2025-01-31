@@ -18,6 +18,7 @@ interface BusinessInquiry {
   attachments?: {
     name: string;
     content: string;
+    extension: string;
   }[];
 }
 
@@ -35,6 +36,12 @@ const handler = async (req: Request): Promise<Response> => {
       "bogdana_v@elloria.ca"
     ];
 
+    // Map attachments to include the original file extension
+    const formattedAttachments = inquiry.attachments?.map(attachment => ({
+      filename: attachment.name, // This will preserve the original filename with extension
+      content: attachment.content,
+    }));
+
     const emailResponse = await resend.emails.send({
       from: "Elloria Business <business@elloria.ca>",
       to: recipients,
@@ -50,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
         <h2>Message</h2>
         <p>${inquiry.message}</p>
       `,
-      attachments: inquiry.attachments,
+      attachments: formattedAttachments,
     });
 
     console.log("Email sent successfully:", emailResponse);

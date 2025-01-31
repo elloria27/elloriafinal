@@ -56,7 +56,7 @@ const ForBusiness = () => {
           reader.onloadend = () => {
             const base64Content = reader.result as string;
             resolve({
-              name: file.name,
+              name: file.name, // This will include the file extension
               content: base64Content.split(',')[1], // Remove data URL prefix
             });
           };
