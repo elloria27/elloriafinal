@@ -25,6 +25,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log('Fetching blog posts...');
         const { data, error } = await supabase
           .from('blog_posts')
           .select('id, title, featured_image')
@@ -34,16 +35,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
         if (error) throw error;
 
-        // Transform the data to include the full storage URL for featured images
-        const postsWithFullImageUrls = data?.map(post => ({
-          ...post,
-          featured_image: post.featured_image.startsWith('http') 
-            ? post.featured_image 
-            : `${supabase.storage.from('media').getPublicUrl(post.featured_image).data.publicUrl}`
-        })) || [];
-
-        console.log('Fetched blog posts with full image URLs:', postsWithFullImageUrls);
-        setPosts(postsWithFullImageUrls);
+        if (data) {
+          console.log('Raw blog posts data:', data);
+          setPosts(data);
+        }
       } catch (error) {
         console.error('Error fetching blog posts:', error);
         toast.error("Failed to load blog posts");
@@ -111,6 +106,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
                       src={post.featured_image}
                       alt={post.title}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        console.error('Error loading image:', post.featured_image);
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   <h3 className="text-2xl font-semibold mb-2 group-hover:text-primary transition-colors duration-300">
