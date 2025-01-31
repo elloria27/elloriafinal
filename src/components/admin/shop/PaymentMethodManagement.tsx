@@ -53,12 +53,17 @@ export const PaymentMethodManagement = () => {
 
   const handleSave = async () => {
     try {
+      const stripeConfigJson: { [key: string]: string } = {
+        publishable_key: stripeConfig.publishable_key,
+        secret_key: stripeConfig.secret_key
+      };
+
       const { error } = await supabase
         .from('payment_methods')
         .upsert({
           name: 'stripe',
           is_active: stripeEnabled,
-          stripe_config: stripeConfig as Json,
+          stripe_config: stripeConfigJson as Json,
           description: 'Stripe payment gateway'
         });
 
