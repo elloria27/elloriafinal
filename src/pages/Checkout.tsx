@@ -201,6 +201,15 @@ const Checkout = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       
+      // Convert items to JSON-compatible format
+      const jsonItems = items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image
+      }));
+      
       // Prepare order data
       const orderData = {
         user_id: userId || null,
@@ -208,7 +217,7 @@ const Checkout = () => {
         order_number: orderNumber,
         total_amount: total,
         status: 'pending',
-        items: items,
+        items: jsonItems,
         shipping_address: {
           address: customerDetails.address,
           country: customerDetails.country,
