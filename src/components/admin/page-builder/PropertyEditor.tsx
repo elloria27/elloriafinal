@@ -6,6 +6,7 @@ import { ContactPageEditor } from "./editors/ContactPageEditor";
 import { CommonEditor } from "./editors/CommonEditor";
 import { SustainabilityEditor } from "./editors/SustainabilityEditor";
 import { ForBusinessEditor } from "./editors/ForBusinessEditor";
+import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -57,6 +58,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "business_contact",
   ];
 
+  // Custom Solutions page components
+  const customSolutionsComponents = [
+    "custom_solutions_hero",
+    "custom_solutions_services",
+    "custom_solutions_process",
+    "custom_solutions_cta",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -87,6 +96,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (businessComponents.includes(block.type)) {
       return <ForBusinessEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (customSolutionsComponents.includes(block.type)) {
+      return <CustomSolutionsEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {

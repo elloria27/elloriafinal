@@ -259,6 +259,38 @@ export interface BusinessContactContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface CustomSolutionsHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
+export interface CustomSolutionsServicesContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  services?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface CustomSolutionsProcessContent extends BaseBlockContent {
+  title?: string;
+  steps?: Array<{
+    number: number;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface CustomSolutionsCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -283,13 +315,10 @@ export type BlockContent =
   | ForBusinessHeroContent
   | BusinessSolutionsContent
   | BusinessContactContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
-  | AboutCtaContent;
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -321,9 +350,13 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "business_hero"           // Added new types
+  | "business_hero"
   | "business_solutions"
-  | "business_contact";
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta";
 
 export interface ContentBlock {
   id: string;
