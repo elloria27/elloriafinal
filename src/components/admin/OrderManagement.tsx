@@ -451,3 +451,6 @@ export const OrderManagement = () => {
       </Dialog>
     </div>
   );
+};
+
+export default OrderManagement;
