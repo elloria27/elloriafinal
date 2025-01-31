@@ -16,39 +16,63 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
   const [isMuted, setIsMuted] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.playbackRate = 0.5;
+      const video = videoRef.current;
       
       const handleLoadedData = () => {
+        console.log('Video loaded');
         setIsVideoLoaded(true);
+        setIsBuffering(false);
       };
 
-      videoRef.current.addEventListener('loadeddata', handleLoadedData);
+      const handleWaiting = () => {
+        console.log('Video buffering');
+        setIsBuffering(true);
+      };
+
+      const handlePlaying = () => {
+        console.log('Video playing');
+        setIsBuffering(false);
+      };
+
+      const handleError = (e: ErrorEvent) => {
+        console.error('Video error:', e);
+        setIsBuffering(false);
+      };
+
+      video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('waiting', handleWaiting);
+      video.addEventListener('playing', handlePlaying);
+      video.addEventListener('error', handleError as EventListener);
+
       return () => {
-        if (videoRef.current) {
-          videoRef.current.removeEventListener('loadeddata', handleLoadedData);
-        }
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('waiting', handleWaiting);
+        video.removeEventListener('playing', handlePlaying);
+        video.removeEventListener('error', handleError as EventListener);
       };
     }
   }, []);
 
-  const floatingIcons = [
-    { Icon: Leaf, delay: 0, position: { top: "20%", left: "10%" } },
-    { Icon: Heart, delay: 0.2, position: { top: "50%", left: "15%" } },
-    { Icon: Shield, delay: 0.4, position: { top: "30%", left: "80%" } },
-    { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
-  ];
+  const handlePlayVideo = async () => {
+    if (!videoRef.current) return;
 
-  const handlePlayVideo = () => {
-    if (videoRef.current) {
+    try {
       if (!isPlaying) {
-        videoRef.current.play();
+        setIsBuffering(true);
+        await videoRef.current.play();
+        setIsPlaying(true);
       } else {
-        videoRef.current.pause();
+        await videoRef.current.pause();
+        setIsPlaying(false);
       }
-      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Error playing/pausing video:', error);
+    } finally {
+      setIsBuffering(false);
     }
   };
 
@@ -58,6 +82,13 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
       setIsMuted(!isMuted);
     }
   };
+
+  const floatingIcons = [
+    { Icon: Leaf, delay: 0, position: { top: "20%", left: "10%" } },
+    { Icon: Heart, delay: 0.2, position: { top: "50%", left: "15%" } },
+    { Icon: Shield, delay: 0.4, position: { top: "30%", left: "80%" } },
+    { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
+  ];
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden">
@@ -159,19 +190,25 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             </video>
             
             <AnimatePresence>
-              {(!isPlaying || !isVideoLoaded) && (
+              {(isBuffering || !isPlaying || !isVideoLoaded) && (
                 <motion.div 
                   className="absolute inset-0 flex items-center justify-center bg-black/30"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <Button
-                    onClick={handlePlayVideo}
-                    className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
-                  >
-                    <Play className="w-8 h-8 text-primary ml-1" />
-                  </Button>
+                  {isBuffering ? (
+                    <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handlePlayVideo}
+                      className="w-16 h-16 rounded-full bg-white/90 hover:bg-white transition-all duration-300 shadow-lg hover:scale-110"
+                    >
+                      <Play className="w-8 h-8 text-primary ml-1" />
+                    </Button>
+                  )}
                 </motion.div>
               )}
 
