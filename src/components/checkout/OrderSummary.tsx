@@ -45,11 +45,18 @@ export const OrderSummary = ({
     e.preventDefault();
     if (promoCode.trim()) {
       applyPromoCode(promoCode.trim());
-      // Save promo code to localStorage
       localStorage.setItem('activePromoCode', promoCode.trim());
       setPromoCode("");
     }
   };
+
+  // Calculate tax amounts based on original subtotal (BEFORE discount)
+  const gstAmount = (taxes.gst / 100) * subtotalInCurrentCurrency;
+  const pstAmount = (taxes.pst / 100) * subtotalInCurrentCurrency;
+  const hstAmount = (taxes.hst / 100) * subtotalInCurrentCurrency;
+  
+  // Calculate shipping cost
+  const shippingCost = selectedShippingOption?.price || 0;
 
   // Calculate discount amount if promo code exists (only on subtotal)
   const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
@@ -57,14 +64,8 @@ export const OrderSummary = ({
   // Calculate subtotal after discount
   const subtotalAfterDiscount = subtotalInCurrentCurrency - discountAmount;
 
-  // Calculate tax amounts based on original subtotal (before discount)
-  const gstAmount = (taxes.gst / 100) * subtotalAfterDiscount;
-  
-  // Calculate shipping cost
-  const shippingCost = selectedShippingOption?.price || 0;
-
-  // Calculate total (subtotal after discount + GST + shipping)
-  const total = subtotalAfterDiscount + gstAmount + shippingCost;
+  // Calculate total (subtotal after discount + taxes + shipping)
+  const total = subtotalAfterDiscount + gstAmount + pstAmount + hstAmount + shippingCost;
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg space-y-4">
@@ -128,6 +129,20 @@ export const OrderSummary = ({
             <div className="flex justify-between">
               <span>GST ({taxes.gst}%)</span>
               <span>{currencySymbol}{gstAmount.toFixed(2)}</span>
+            </div>
+          )}
+
+          {taxes.pst > 0 && (
+            <div className="flex justify-between">
+              <span>PST ({taxes.pst}%)</span>
+              <span>{currencySymbol}{pstAmount.toFixed(2)}</span>
+            </div>
+          )}
+
+          {taxes.hst > 0 && (
+            <div className="flex justify-between">
+              <span>HST ({taxes.hst}%)</span>
+              <span>{currencySymbol}{hstAmount.toFixed(2)}</span>
             </div>
           )}
           
