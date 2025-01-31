@@ -23,6 +23,7 @@ serve(async (req) => {
     console.log('Processing checkout for items:', items);
     console.log('Shipping address:', shippingAddress);
     console.log('Shipping cost:', shippingCost);
+    console.log('Active promo code:', activePromoCode);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -76,7 +77,7 @@ serve(async (req) => {
         }
       }
     } else {
-      console.log('Processing as guest checkout, creating guest profile');
+      console.log('Processing as guest checkout');
       
       // Generate a UUID for the guest user
       const guestUserId = crypto.randomUUID();
@@ -103,7 +104,7 @@ serve(async (req) => {
       }
 
       userProfile = profile;
-      console.log('Created guest profile:', profile);
+      console.log('Created guest profile:', userProfile);
     }
 
     // Calculate tax rates based on location
@@ -196,7 +197,7 @@ serve(async (req) => {
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    // Create complete order data
+    // Create complete order data with all customer information
     const orderData = {
       user_id: userId,
       profile_id: userId, // Using the same ID for both user and profile
@@ -207,7 +208,7 @@ serve(async (req) => {
       shipping_address: {
         first_name: shippingAddress.first_name,
         last_name: shippingAddress.last_name,
-        email: userProfile?.email || shippingAddress.email,
+        email: userProfile.email,
         phone: shippingAddress.phone,
         address: shippingAddress.address,
         country: shippingAddress.country,
@@ -216,7 +217,7 @@ serve(async (req) => {
       billing_address: {
         first_name: shippingAddress.first_name,
         last_name: shippingAddress.last_name,
-        email: userProfile?.email || shippingAddress.email,
+        email: userProfile.email,
         phone: shippingAddress.phone,
         address: shippingAddress.address,
         country: shippingAddress.country,
@@ -234,7 +235,7 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: userProfile?.email || shippingAddress.email,
+      customer_email: userProfile.email,
       metadata: {
         order_number: orderNumber,
         user_id: userId,
@@ -247,7 +248,7 @@ serve(async (req) => {
 
     console.log('Created Stripe session:', session.id);
 
-    // Save order to database
+    // Save order to database with complete information
     const { error: orderError } = await supabase
       .from('orders')
       .insert({
