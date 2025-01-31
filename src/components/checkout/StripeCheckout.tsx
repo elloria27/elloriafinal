@@ -16,6 +16,7 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
+      console.log('Initiating checkout with payment method:', paymentMethodId);
       
       // Get the current session
       const { data: { session } } = await supabase.auth.getSession();
@@ -36,12 +37,18 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
         }
       );
 
-      const { url, error } = await response.json();
+      const data = await response.json();
       
-      if (error) throw new Error(error);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
       
-      // Redirect to Stripe Checkout
-      window.location.href = url;
+      if (!data.url) {
+        throw new Error('No checkout URL received');
+      }
+      
+      console.log('Redirecting to Stripe checkout:', data.url);
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error initiating checkout:', error);
       toast.error('Failed to initiate checkout. Please try again.');

@@ -15,6 +15,8 @@ serve(async (req) => {
   try {
     const { items, paymentMethodId } = await req.json();
     
+    console.log('Creating checkout session with payment method:', paymentMethodId);
+    
     // Get payment method details from database
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -27,9 +29,12 @@ serve(async (req) => {
       .eq('id', paymentMethodId)
       .single();
 
-    if (paymentMethodError || !paymentMethod) {
-      throw new Error('Payment method not found');
+    if (paymentMethodError || !paymentMethod?.stripe_config) {
+      console.error('Error fetching payment method:', paymentMethodError);
+      throw new Error('Payment method not found or invalid configuration');
     }
+
+    console.log('Retrieved stripe config:', paymentMethod.stripe_config);
 
     const stripe = new Stripe(paymentMethod.stripe_config.secret_key, {
       apiVersion: '2023-10-16',
@@ -57,6 +62,8 @@ serve(async (req) => {
       quantity: item.quantity,
     }));
 
+    console.log('Creating Stripe checkout session with line items:', lineItems);
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -67,6 +74,8 @@ serve(async (req) => {
       customer_email: userEmail,
     });
 
+    console.log('Checkout session created:', session.id);
+
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
@@ -75,7 +84,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error creating checkout session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
