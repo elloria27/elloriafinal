@@ -130,12 +130,12 @@ export const OrderManagement = () => {
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
-            profile: order.user_id ? {
-              full_name: order.profiles?.full_name || 'Guest',
-              email: order.profiles?.email || 'Anonymous Order'
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || shippingAddress.email || 'No email provided'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
-              email: shippingAddress.email || 'Anonymous Order'
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
+              email: shippingAddress.email || 'No email provided'
             }
           };
           return validatedOrder;
@@ -183,7 +183,6 @@ export const OrderManagement = () => {
         .from("orders")
         .update({ 
           status: newStatus,
-          // Preserve existing payment information
           payment_method: currentOrder.payment_method,
           stripe_session_id: currentOrder.stripe_session_id
         })
@@ -220,7 +219,13 @@ export const OrderManagement = () => {
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method,
         stripe_session_id: updatedOrder.stripe_session_id,
-        profile: updatedOrder.profiles || undefined
+        profile: updatedOrder.profiles ? {
+          full_name: updatedOrder.profiles.full_name || 'Guest',
+          email: updatedOrder.profiles.email || updatedOrder.shipping_address.email || 'No email provided'
+        } : {
+          full_name: `${updatedOrder.shipping_address.first_name || ''} ${updatedOrder.shipping_address.last_name || ''}`.trim() || 'Guest',
+          email: updatedOrder.shipping_address.email || 'No email provided'
+        }
       };
 
       // Update the orders state
@@ -238,14 +243,14 @@ export const OrderManagement = () => {
       // Send email notification
       try {
         console.log("Attempting to send email notification");
-        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
-        const customerName = validatedOrder.profile?.full_name || 
-          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
-          'Valued Customer';
+        const customerEmail = validatedOrder.shipping_address.email || validatedOrder.profile?.email;
+        const customerName = validatedOrder.shipping_address.first_name 
+          ? `${validatedOrder.shipping_address.first_name} ${validatedOrder.shipping_address.last_name || ''}`
+          : validatedOrder.profile?.full_name || 'Valued Customer';
 
         if (customerEmail) {
           console.log("Sending email to:", customerEmail);
-          const { data: emailData, error: emailError } = await supabase.functions.invoke(
+          const { error: emailError } = await supabase.functions.invoke(
             'send-order-status-email',
             {
               body: {
@@ -263,7 +268,7 @@ export const OrderManagement = () => {
             throw emailError;
           }
 
-          console.log('Email notification sent successfully:', emailData);
+          console.log('Email notification sent successfully');
         } else {
           console.warn('No customer email found for order:', validatedOrder.id);
         }
@@ -347,11 +352,9 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.user_id ? (
-                  order.profile?.full_name || 'N/A'
-                ) : (
-                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
-                )}
+                {order.shipping_address.first_name 
+                  ? `${order.shipping_address.first_name} ${order.shipping_address.last_name || ''}`
+                  : order.profile?.full_name || 'Guest'}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -406,16 +409,10 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.full_name || 'N/A'
-                  ) : (
-                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 'Guest'
-                  )}</p>
-                  <p>Email: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.email || 'N/A'
-                  ) : (
-                    selectedOrder.shipping_address.email || 'N/A'
-                  )}</p>
+                  <p>Name: {selectedOrder.shipping_address.first_name 
+                    ? `${selectedOrder.shipping_address.first_name} ${selectedOrder.shipping_address.last_name || ''}`
+                    : selectedOrder.profile?.full_name || 'Guest'}</p>
+                  <p>Email: {selectedOrder.shipping_address.email || selectedOrder.profile?.email || 'N/A'}</p>
                 </div>
               </div>
 
