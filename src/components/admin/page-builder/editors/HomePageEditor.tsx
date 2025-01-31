@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent, HeroContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
-import { Image, Video } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { ContentBlock, HeroContent, FeaturesContent } from "@/types/content-blocks";
+import { MediaLibrary } from "../../media/MediaLibrary";
 
 interface HomePageEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: BlockContent) => void;
+  onUpdate: (blockId: string, content: any) => void;
 }
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
@@ -25,13 +25,8 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     onUpdate(block.id, updatedContent);
   };
 
-  const openMediaLibrary = (type: "image" | "video", field: string) => {
-    setMediaType(type);
-    setCurrentField(field);
-    setShowMediaLibrary(true);
-  };
-
   const handleMediaSelect = (url: string) => {
+    console.log('Selected media URL:', url);
     const updatedContent = {
       ...block.content,
       [currentField]: url
@@ -40,230 +35,178 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     setShowMediaLibrary(false);
   };
 
+  const handleFeatureAdd = () => {
+    const content = block.content as FeaturesContent;
+    const features = Array.isArray(content.features) ? content.features : [];
+    const updatedContent = {
+      ...content,
+      features: [
+        ...features,
+        {
+          icon: "Check",
+          title: "New Feature",
+          description: "Feature description"
+        }
+      ]
+    };
+    onUpdate(block.id, updatedContent);
+  };
+
+  const handleFeatureRemove = (index: number) => {
+    const content = block.content as FeaturesContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
+    features.splice(index, 1);
+    onUpdate(block.id, { ...content, features });
+  };
+
+  const handleFeatureUpdate = (index: number, field: string, value: string) => {
+    const content = block.content as FeaturesContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
+    features[index] = { ...features[index], [field]: value };
+    onUpdate(block.id, { ...content, features });
+  };
+
   const renderMediaField = (label: string, field: string, type: "image" | "video") => (
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Input
           value={block.content[field] as string || ""}
-          readOnly
-          placeholder={`Select ${type}...`}
+          onChange={(e) => handleInputChange(e, field)}
+          placeholder={`Enter ${label.toLowerCase()} URL`}
         />
         <Button
           type="button"
           variant="outline"
-          onClick={() => openMediaLibrary(type, field)}
+          onClick={() => {
+            setMediaType(type);
+            setCurrentField(field);
+            setShowMediaLibrary(true);
+          }}
         >
-          {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
+          Browse
         </Button>
       </div>
-      {block.content[field] && (
-        <div className="mt-2">
-          {type === "image" ? (
-            <img
-              src={block.content[field] as string}
-              alt={label}
-              className="max-w-xs rounded"
-            />
-          ) : (
-            <video
-              src={block.content[field] as string}
-              controls
-              className="max-w-xs rounded"
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 
   switch (block.type) {
     case "hero":
-      const heroContent = block.content as HeroContent;
       return (
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div>
             <Label>Title</Label>
             <Input
-              value={heroContent.title || ""}
+              value={block.content.title as string || ""}
               onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
-          
-          <div className="space-y-2">
+          <div>
             <Label>Subtitle</Label>
             <Input
-              value={heroContent.subtitle || ""}
+              value={block.content.subtitle as string || ""}
               onChange={(e) => handleInputChange(e, "subtitle")}
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label>Shop Now Button Text</Label>
+          {renderMediaField("Video URL", "videoUrl", "video")}
+          {renderMediaField("Video Poster", "videoPoster", "image")}
+          <div>
+            <Label>Shop Now Text</Label>
             <Input
-              value={heroContent.shopNowText || "Shop Now"}
+              value={block.content.shopNowText as string || ""}
               onChange={(e) => handleInputChange(e, "shopNowText")}
             />
           </div>
-          
-          <div className="space-y-2">
-            <Label>Learn More Button Text</Label>
+          <div>
+            <Label>Learn More Text</Label>
             <Input
-              value={heroContent.learnMoreText || "Learn More"}
+              value={block.content.learnMoreText as string || ""}
               onChange={(e) => handleInputChange(e, "learnMoreText")}
             />
           </div>
+          {showMediaLibrary && (
+            <MediaLibrary
+              onSelect={handleMediaSelect}
+              onClose={() => setShowMediaLibrary(false)}
+              type={mediaType}
+            />
+          )}
+        </div>
+      );
 
-          {/* Video Settings */}
-          {renderMediaField("Video", "videoUrl", "video")}
-          {renderMediaField("Video Cover (Poster)", "videoPoster", "image")}
+    case "features":
+      const featuresContent = block.content as FeaturesContent;
+      return (
+        <div className="space-y-6">
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={featuresContent.title || ""}
+              onChange={(e) => handleInputChange(e, "title")}
+            />
+          </div>
+          <div>
+            <Label>Subtitle</Label>
+            <Input
+              value={featuresContent.subtitle || ""}
+              onChange={(e) => handleInputChange(e, "subtitle")}
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Input
+              value={featuresContent.description || ""}
+              onChange={(e) => handleInputChange(e, "description")}
+            />
+          </div>
           
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "game_changer":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
+          <div className="space-y-4">
+            <Label>Features</Label>
+            {Array.isArray(featuresContent.features) && featuresContent.features.map((feature, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Feature {index + 1}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeatureRemove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div>
+                  <Label>Icon</Label>
+                  <Input
+                    value={feature.icon}
+                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={feature.title}
+                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={feature.description}
+                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFeatureAdd}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Feature
+            </Button>
           </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "store_brands":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "sustainability":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "product_carousel":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "testimonials":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "blog_preview":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "newsletter":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleInputChange(e, "title")}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
         </div>
       );
 

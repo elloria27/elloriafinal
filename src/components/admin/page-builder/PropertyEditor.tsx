@@ -23,6 +23,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "store_brands",
     "sustainability",
     "product_carousel",
+    "features",
   ];
 
   // About page components
