@@ -150,6 +150,14 @@ export const CustomerForm = ({
     handleInputChange('full_name', newFullName);
   };
 
+  // Immediately call handleInputChange with email when component mounts
+  useEffect(() => {
+    if (email) {
+      console.log("Initial email set:", email);
+      handleInputChange('email', email);
+    }
+  }, []); // Empty dependency array to run only once on mount
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">

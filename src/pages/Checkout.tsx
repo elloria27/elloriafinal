@@ -34,6 +34,15 @@ const Checkout = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   const [availableShippingMethods, setAvailableShippingMethods] = useState<ShippingOption[]>([]);
+  const [shippingAddress, setShippingAddress] = useState({
+    address: '',
+    country: '',
+    region: '',
+    phone: '',
+    first_name: '',
+    last_name: '',
+    email: ''
+  });
 
   useEffect(() => {
     // Get initial session
@@ -324,6 +333,20 @@ const Checkout = () => {
     }
   };
 
+  const handleFormChange = (field: string, value: string) => {
+    console.log(`Form field changed - ${field}:`, value);
+    if (field === 'email') {
+      setShippingAddress(prev => ({
+        ...prev,
+        email: value
+      }));
+    }
+    // Update profile if user is authenticated
+    if (user) {
+      updateProfile(field, value);
+    }
+  };
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
@@ -361,7 +384,7 @@ const Checkout = () => {
                 phoneNumber={phoneNumber}
                 setPhoneNumber={setPhoneNumber}
                 profile={profile}
-                onFormChange={updateProfile}
+                onFormChange={handleFormChange}
               />
 
               {country && (
@@ -423,7 +446,7 @@ const Checkout = () => {
                   phone: phoneNumber,
                   first_name: profile?.full_name?.split(' ')[0] || '',
                   last_name: profile?.full_name?.split(' ')[1] || '',
-                  email: profile?.email || ''
+                  email: shippingAddress.email
                 }}
               />
             </form>
