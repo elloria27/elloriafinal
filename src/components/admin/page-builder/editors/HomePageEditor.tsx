@@ -16,12 +16,12 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [currentField, setCurrentField] = useState<string>("");
 
-  const handleChange = (key: string, value: any) => {
-    console.log('Handling change for', key, 'with value:', value);
-    const updatedContent = { 
-      ...block.content, 
-      [key]: value 
-    } as BlockContent;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof HeroContent) => {
+    const value = e.target.value;
+    const updatedContent = {
+      ...block.content,
+      [field]: value
+    } as HeroContent;
     onUpdate(block.id, updatedContent);
   };
 
@@ -32,7 +32,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const handleMediaSelect = (url: string) => {
-    handleChange(currentField, url);
+    const updatedContent = {
+      ...block.content,
+      [currentField]: url
+    } as HeroContent;
+    onUpdate(block.id, updatedContent);
     setShowMediaLibrary(false);
   };
 
@@ -82,7 +86,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={heroContent.title || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           
@@ -90,7 +94,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Subtitle</Label>
             <Input
               value={heroContent.subtitle || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
+              onChange={(e) => handleInputChange(e, "subtitle")}
             />
           </div>
           
@@ -98,7 +102,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Shop Now Button Text</Label>
             <Input
               value={heroContent.shopNowText || "Shop Now"}
-              onChange={(e) => handleChange("shopNowText", e.target.value)}
+              onChange={(e) => handleInputChange(e, "shopNowText")}
             />
           </div>
           
@@ -106,7 +110,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Learn More Button Text</Label>
             <Input
               value={heroContent.learnMoreText || "Learn More"}
-              onChange={(e) => handleChange("learnMoreText", e.target.value)}
+              onChange={(e) => handleInputChange(e, "learnMoreText")}
             />
           </div>
 
