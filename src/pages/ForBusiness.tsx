@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BusinessContactForm } from "@/components/business/BusinessContactForm";
 import { FileUpload } from "@/components/admin/file/FileUpload";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type BusinessType = "Retailer" | "Distributor" | "Wholesaler" | "Other";
 
@@ -19,6 +21,7 @@ interface FormData {
 
 const ForBusiness = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     companyName: "",
@@ -39,6 +42,65 @@ const ForBusiness = () => {
       ...prev,
       attachments: [...prev.attachments, file],
     }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      console.log("Starting form submission...");
+
+      // Convert files to base64
+      const attachmentPromises = formData.attachments.map(async (file) => {
+        return new Promise<{ name: string; content: string }>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Content = reader.result as string;
+            resolve({
+              name: file.name,
+              content: base64Content.split(',')[1], // Remove data URL prefix
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const attachments = await Promise.all(attachmentPromises);
+      console.log("Files converted to base64");
+
+      const { error } = await supabase.functions.invoke('send-business-inquiry', {
+        body: {
+          fullName: formData.fullName,
+          companyName: formData.companyName,
+          email: formData.email,
+          phoneNumber: formData.phone,
+          businessType: formData.businessType,
+          message: formData.message,
+          attachments,
+        },
+      });
+
+      if (error) throw error;
+
+      console.log("Form submitted successfully");
+      toast.success("Your inquiry has been sent successfully!");
+      
+      // Reset form
+      setFormData({
+        fullName: "",
+        companyName: "",
+        email: "",
+        phone: "",
+        businessType: undefined,
+        message: "",
+        attachments: [],
+      });
+      setCurrentStep(1);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to send your inquiry. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const totalSteps = 4;
@@ -264,14 +326,11 @@ const ForBusiness = () => {
                     Back
                   </Button>
                   <Button 
-                    onClick={() => {
-                      // Handle form submission
-                      console.log("Submitting form:", formData);
-                      // TODO: Implement form submission logic
-                    }}
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
                     className="flex-1"
                   >
-                    Submit
+                    {isSubmitting ? "Submitting..." : "Submit"}
                   </Button>
                 </div>
               </motion.div>
