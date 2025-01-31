@@ -20,7 +20,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     console.log('Handling input change for', field, 'with value:', e.target.value);
     const updatedContent = {
-      ...block.content,
+      ...block.content as Record<string, unknown>,
       [field]: e.target.value
     };
     onUpdate(block.id, updatedContent);
@@ -32,13 +32,13 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       const content = block.content as StoreBrandsContent;
       const brands = Array.isArray(content.features) ? [...content.features] : [];
       brands[currentBrandIndex] = {
-        ...brands[currentBrandIndex],
+        ...brands[currentBrandIndex] as Record<string, unknown>,
         description: url // Logo URL is stored in description field
       };
       onUpdate(block.id, { ...content, features: brands });
     } else {
       const updatedContent = {
-        ...block.content,
+        ...block.content as Record<string, unknown>,
         [currentField]: url
       };
       onUpdate(block.id, updatedContent);
@@ -67,7 +67,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     }
 
     const updatedContent = {
-      ...content,
+      ...content as Record<string, unknown>,
       features: [...features, newFeature]
     };
     onUpdate(block.id, updatedContent);
@@ -77,14 +77,15 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
-    onUpdate(block.id, { ...content, features });
+    onUpdate(block.id, { ...content as Record<string, unknown>, features });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
-    features[index] = { ...features[index], [field]: value };
-    onUpdate(block.id, { ...content, features });
+    const feature = features[index] as Record<string, unknown>;
+    features[index] = { ...feature, [field]: value };
+    onUpdate(block.id, { ...content as Record<string, unknown>, features });
   };
 
   const renderMediaField = (label: string, field: string, type: "image" | "video") => (
@@ -118,14 +119,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title as string || ""}
+              value={(block.content.title as string) || ""}
               onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle as string || ""}
+              value={(block.content.subtitle as string) || ""}
               onChange={(e) => handleInputChange(e, "subtitle")}
             />
           </div>
@@ -134,14 +135,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Shop Now Text</Label>
             <Input
-              value={block.content.shopNowText as string || ""}
+              value={(block.content.shopNowText as string) || ""}
               onChange={(e) => handleInputChange(e, "shopNowText")}
             />
           </div>
           <div>
             <Label>Learn More Text</Label>
             <Input
-              value={block.content.learnMoreText as string || ""}
+              value={(block.content.learnMoreText as string) || ""}
               onChange={(e) => handleInputChange(e, "learnMoreText")}
             />
           </div>
@@ -239,14 +240,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={storeBrandsContent.title || ""}
+              value={(storeBrandsContent.title as string) || ""}
               onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={storeBrandsContent.subtitle || ""}
+              value={(storeBrandsContent.subtitle as string) || ""}
               onChange={(e) => handleInputChange(e, "subtitle")}
             />
           </div>
@@ -268,7 +269,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Brand Name</Label>
                   <Input
-                    value={brand.title}
+                    value={(brand.title as string) || ""}
                     onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
                   />
                 </div>
@@ -276,7 +277,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                   <Label>Logo</Label>
                   <div className="flex gap-2">
                     <Input
-                      value={brand.description || ""} // Logo URL stored in description
+                      value={(brand.description as string) || ""} // Logo URL stored in description
                       onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
                       placeholder="Logo URL"
                     />
@@ -296,7 +297,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Link URL</Label>
                   <Input
-                    value={brand.detail || ""} // Link URL stored in detail
+                    value={(brand.detail as string) || ""} // Link URL stored in detail
                     onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
                     placeholder="https://"
                   />
@@ -331,21 +332,21 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={gameChangerContent.title || ""}
+              value={(gameChangerContent.title as string) || ""}
               onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={gameChangerContent.subtitle || ""}
+              value={(gameChangerContent.subtitle as string) || ""}
               onChange={(e) => handleInputChange(e, "subtitle")}
             />
           </div>
           <div>
             <Label>Description</Label>
             <Input
-              value={gameChangerContent.description || ""}
+              value={(gameChangerContent.description as string) || ""}
               onChange={(e) => handleInputChange(e, "description")}
             />
           </div>
@@ -389,7 +390,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Detail</Label>
                   <Input
-                    value={feature.detail || ""}
+                    value={(feature.detail as string) || ""}
                     onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
                   />
                 </div>
