@@ -23,6 +23,11 @@ serve(async (req) => {
     console.log('Processing checkout for items:', items);
     console.log('Shipping address:', shippingAddress);
 
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     // Get authentication status and user data
     const authHeader = req.headers.get('Authorization');
     let userId = null;
@@ -32,7 +37,7 @@ serve(async (req) => {
     if (authHeader) {
       console.log('User is authenticated, fetching profile data');
       
-      const supabase = createClient(
+      const authSupabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         {
@@ -44,12 +49,12 @@ serve(async (req) => {
         }
       );
 
-      supabase.auth.setSession({
+      authSupabase.auth.setSession({
         access_token: authHeader.replace('Bearer ', ''),
         refresh_token: '',
       });
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await authSupabase.auth.getUser();
       
       if (userError) {
         console.error('Error getting user:', userError);
@@ -72,7 +77,34 @@ serve(async (req) => {
         }
       }
     } else {
-      console.log('Processing as guest checkout');
+      console.log('Processing as guest checkout, creating temporary profile');
+      
+      // Generate a UUID for the guest user
+      const guestUserId = crypto.randomUUID();
+      userId = guestUserId;
+
+      // Create a profile for the guest user
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: guestUserId,
+          full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+          email: shippingAddress.email,
+          phone_number: shippingAddress.phone,
+          address: shippingAddress.address,
+          country: shippingAddress.country,
+          region: shippingAddress.region
+        })
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Error creating guest profile:', profileError);
+        throw new Error('Failed to create guest profile');
+      }
+
+      userProfile = profile;
+      console.log('Created guest profile:', profile);
     }
 
     // Calculate tax rates based on location
@@ -152,7 +184,7 @@ serve(async (req) => {
     // Create order data with complete customer information
     const orderData = {
       user_id: userId,
-      profile_id: userId,
+      profile_id: userId, // Using the same ID for both user and profile
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
@@ -180,7 +212,7 @@ serve(async (req) => {
       customer_email: customerEmail,
       metadata: {
         order_number: orderNumber,
-        user_id: userId || 'guest',
+        user_id: userId,
         shipping_address: JSON.stringify(shippingAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
@@ -190,11 +222,6 @@ serve(async (req) => {
     console.log('Created Stripe session:', session.id);
 
     // Save order to database
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     const { error: orderError } = await supabase
       .from('orders')
       .insert({
