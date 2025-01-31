@@ -19,6 +19,17 @@ interface StripeCheckoutProps {
   shippingCost: number;
 }
 
+interface ShopSettings {
+  payment_methods: {
+    stripe: boolean;
+    cash_on_delivery: boolean;
+  };
+  stripe_settings: {
+    publishable_key: string;
+    secret_key: string;
+  };
+}
+
 export const StripeCheckout = ({
   total,
   subtotal,
@@ -44,7 +55,11 @@ export const StripeCheckout = ({
       if (error) throw error;
 
       if (data) {
-        setStripeEnabled(data.payment_methods?.stripe && data.stripe_settings?.publishable_key);
+        const settings = data as ShopSettings;
+        setStripeEnabled(
+          settings.payment_methods?.stripe && 
+          Boolean(settings.stripe_settings?.publishable_key)
+        );
       }
     } catch (error) {
       console.error('Error fetching Stripe settings:', error);
