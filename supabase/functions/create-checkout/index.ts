@@ -48,9 +48,9 @@ serve(async (req) => {
       );
     }
 
-    // Validate email
+    // Email validation
     if (!shippingAddress.email) {
-      console.error('Email address is missing');
+      console.error('Email is missing from shipping address');
       return new Response(
         JSON.stringify({ error: 'Email address is required' }),
         { 
@@ -61,7 +61,7 @@ serve(async (req) => {
     }
 
     const email = shippingAddress.email.trim();
-    console.log('Using email address:', email);
+    console.log('Processing checkout for email:', email);
 
     if (!validateEmail(email)) {
       console.error('Invalid email format:', email);

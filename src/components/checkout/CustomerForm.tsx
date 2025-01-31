@@ -60,8 +60,9 @@ export const CustomerForm = ({
   const [userEmail, setUserEmail] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [emailError, setEmailError] = useState<string>("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
 
-  // Pre-fill form with profile data when available
   useEffect(() => {
     console.log("Profile data received:", profile);
     if (profile) {
@@ -81,10 +82,14 @@ export const CustomerForm = ({
         console.log("Setting email:", profile.email);
         setUserEmail(profile.email);
       }
+      if (profile.full_name) {
+        const [first, last] = profile.full_name.split(' ');
+        setFirstName(first || '');
+        setLastName(last || '');
+      }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
 
-  // Get user email from auth session
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -96,17 +101,6 @@ export const CustomerForm = ({
     };
     getSession();
   }, []);
-
-  // Split full name into first and last name
-  const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
-
-  const handleInputChange = (field: string, value: string) => {
-    console.log(`Handling input change for ${field}:`, value);
-    
-    if (onFormChange) {
-      onFormChange(field, value);
-    }
-  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -129,6 +123,28 @@ export const CustomerForm = ({
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    console.log(`Handling input change for ${field}:`, value);
+    
+    if (onFormChange) {
+      onFormChange(field, value);
+    }
+  };
+
+  const handleNameChange = (type: 'first' | 'last', value: string) => {
+    if (type === 'first') {
+      setFirstName(value);
+    } else {
+      setLastName(value);
+    }
+    
+    const newFullName = type === 'first' 
+      ? `${value} ${lastName}`.trim()
+      : `${firstName} ${value}`.trim();
+      
+    handleInputChange('full_name', newFullName);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
@@ -137,12 +153,8 @@ export const CustomerForm = ({
           <Input 
             id="firstName" 
             name="firstName" 
-            defaultValue={firstName}
-            onChange={(e) => {
-              const newFirstName = e.target.value;
-              const newFullName = `${newFirstName} ${lastName}`.trim();
-              handleInputChange('full_name', newFullName);
-            }}
+            value={firstName}
+            onChange={(e) => handleNameChange('first', e.target.value)}
             required 
           />
         </div>
@@ -151,12 +163,8 @@ export const CustomerForm = ({
           <Input 
             id="lastName" 
             name="lastName" 
-            defaultValue={lastName}
-            onChange={(e) => {
-              const newLastName = e.target.value;
-              const newFullName = `${firstName} ${newLastName}`.trim();
-              handleInputChange('full_name', newFullName);
-            }}
+            value={lastName}
+            onChange={(e) => handleNameChange('last', e.target.value)}
             required 
           />
         </div>
