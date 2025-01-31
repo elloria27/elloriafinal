@@ -17,7 +17,10 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [currentField, setCurrentField] = useState<string>("");
 
   const handleChange = (key: string, value: any) => {
-    const updatedContent = { ...block.content, [key]: value };
+    const updatedContent = { 
+      ...block.content, 
+      [key]: value 
+    };
     onUpdate(block.id, updatedContent);
   };
 
@@ -77,14 +80,28 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                const updatedContent = {
+                  ...block.content,
+                  title: newValue
+                };
+                onUpdate(block.id, updatedContent);
+              }}
             />
           </div>
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
               value={block.content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                const updatedContent = {
+                  ...block.content,
+                  subtitle: newValue
+                };
+                onUpdate(block.id, updatedContent);
+              }}
             />
           </div>
           
@@ -93,7 +110,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Shop Now Button Text</Label>
             <Input
               value={block.content.shopNowText as string || "Shop Now"}
-              onChange={(e) => handleChange("shopNowText", e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                const updatedContent = {
+                  ...block.content,
+                  shopNowText: newValue
+                };
+                onUpdate(block.id, updatedContent);
+              }}
             />
           </div>
           
@@ -102,7 +126,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Learn More Button Text</Label>
             <Input
               value={block.content.learnMoreText as string || "Learn More"}
-              onChange={(e) => handleChange("learnMoreText", e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                const updatedContent = {
+                  ...block.content,
+                  learnMoreText: newValue
+                };
+                onUpdate(block.id, updatedContent);
+              }}
             />
           </div>
 
