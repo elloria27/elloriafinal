@@ -253,10 +253,11 @@ export const OrderManagement = () => {
 
       // Send status update email
       try {
+        const shippingAddress = validateShippingAddress(updatedOrder.shipping_address);
         const emailDetails = {
-          customerEmail: updatedOrder.profile?.email || updatedOrder.shipping_address.email || updatedOrder.email_address,
+          customerEmail: updatedOrder.profile?.email || shippingAddress.email || updatedOrder.email_address,
           customerName: updatedOrder.profile?.full_name || 
-            `${updatedOrder.shipping_address.first_name || ''} ${updatedOrder.shipping_address.last_name || ''}`.trim() || 
+            `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 
             'Valued Customer',
           orderId: updatedOrder.id,
           orderNumber: updatedOrder.order_number,
