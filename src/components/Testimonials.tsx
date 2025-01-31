@@ -39,13 +39,22 @@ const defaultTestimonials: Testimonial[] = [
 export const Testimonials = ({ content }: TestimonialsProps) => {
   console.log('Testimonials content:', content);
   
-  // Use items from content if available, otherwise use defaultTestimonials
-  const testimonialsData = content?.testimonials || content?.items || defaultTestimonials;
+  // Extract testimonials from content, ensuring we handle both arrays and objects
+  let testimonials: Testimonial[] = defaultTestimonials;
   
-  // Ensure we're working with an array
-  const testimonials = Array.isArray(testimonialsData) ? testimonialsData : defaultTestimonials;
+  if (content) {
+    if (Array.isArray(content.testimonials)) {
+      testimonials = content.testimonials;
+    } else if (Array.isArray(content.items)) {
+      testimonials = content.items;
+    } else if (typeof content.testimonials === 'object' && content.testimonials !== null) {
+      // Handle case where testimonials might be an object with numeric keys
+      const testimonialsObj = content.testimonials as Record<string, Testimonial>;
+      testimonials = Object.values(testimonialsObj);
+    }
+  }
   
-  console.log('Rendered testimonials:', testimonials);
+  console.log('Processed testimonials:', testimonials);
 
   return (
     <section className="py-20 bg-secondary/10">
