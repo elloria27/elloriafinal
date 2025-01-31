@@ -13,7 +13,22 @@ serve(async (req) => {
   }
 
   try {
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Отримуємо налаштування Stripe з таблиці shop_settings
+    const { data: shopSettings, error: settingsError } = await supabase
+      .from('shop_settings')
+      .select('stripe_settings')
+      .single();
+
+    if (settingsError || !shopSettings?.stripe_settings?.secret_key) {
+      throw new Error('Failed to load Stripe settings');
+    }
+
+    const stripe = new Stripe(shopSettings.stripe_settings.secret_key, {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
     });
@@ -22,12 +37,6 @@ serve(async (req) => {
     
     console.log('Processing checkout with shipping address:', shippingAddress);
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
     let userId = null;
     let userProfile = null;
@@ -73,13 +82,12 @@ serve(async (req) => {
       }
     }
 
-    // Prepare shipping address for Stripe
     const stripeShippingAddress = {
       line1: shippingAddress.address || '',
-      city: '', // Add city field to your form if needed
+      city: '', 
       state: shippingAddress.region || '',
       country: shippingAddress.country || '',
-      postal_code: '', // Add postal code field to your form if needed
+      postal_code: '', 
     };
 
     // Calculate tax rates based on location
@@ -188,7 +196,7 @@ serve(async (req) => {
       status: 'pending',
       items: items,
       shipping_address: completeAddress,
-      billing_address: completeAddress, // Using same address for billing
+      billing_address: completeAddress,
       payment_method: 'stripe',
       applied_promo_code: activePromoCode
     };

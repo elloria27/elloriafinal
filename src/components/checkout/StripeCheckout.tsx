@@ -2,6 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
 interface StripeCheckoutProps {
   total: number;
@@ -26,6 +27,32 @@ export const StripeCheckout = ({
   shippingCost,
 }: StripeCheckoutProps) => {
   const { items, activePromoCode, clearCart } = useCart();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+
+  useEffect(() => {
+    fetchStripeSettings();
+  }, []);
+
+  const fetchStripeSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('shop_settings')
+        .select('payment_methods, stripe_settings')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setStripeEnabled(data.payment_methods?.stripe && data.stripe_settings?.publishable_key);
+      }
+    } catch (error) {
+      console.error('Error fetching Stripe settings:', error);
+      toast.error('Failed to load payment settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCheckout = async () => {
     try {
@@ -56,7 +83,6 @@ export const StripeCheckout = ({
 
       if (url) {
         console.log('Redirecting to Stripe checkout:', url);
-        // Store cart data in localStorage before redirect
         localStorage.setItem('pending_cart_clear', 'true');
         window.location.href = url;
       }
@@ -65,6 +91,18 @@ export const StripeCheckout = ({
       toast.error('An unexpected error occurred');
     }
   };
+
+  if (isLoading) {
+    return (
+      <Button disabled className="w-full bg-primary/50">
+        Loading...
+      </Button>
+    );
+  }
+
+  if (!stripeEnabled) {
+    return null;
+  }
 
   return (
     <Button 
