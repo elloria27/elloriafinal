@@ -2,7 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
@@ -149,6 +149,11 @@ const Checkout = () => {
       region: region
     };
   };
+
+  // Find selected shipping option based on selectedShipping ID
+  const selectedShippingOption = useMemo(() => {
+    return availableShippingMethods.find(method => method.id === selectedShipping);
+  }, [selectedShipping, availableShippingMethods]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
