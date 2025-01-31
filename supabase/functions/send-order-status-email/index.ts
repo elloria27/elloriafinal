@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+const companyInfo = {
+  name: 'Elloria Eco Products LTD.',
+  address: '229 Dowling Ave W, Winnipeg, MB R3B 2B9',
+  phone: '(204) 930-2019',
+  email: 'sales@elloria.ca',
+  gst: '742031420RT0001',
+  logo: 'https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/media/logo.png'
 };
 
 interface OrderStatusEmailDetails {
@@ -30,50 +40,58 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('RESEND_API_KEY is not set');
     }
 
-    // Create email HTML content
+    const resend = new Resend(RESEND_API_KEY);
+
+    // Create email HTML content with improved styling
     const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333; text-align: center;">Order Status Update</h1>
-        <p>Dear ${details.customerName},</p>
-        <p>Your order #${details.orderNumber} has been updated.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="${companyInfo.logo}" alt="${companyInfo.name}" style="max-width: 200px; height: auto;" />
+        </div>
         
-        <div style="margin: 20px 0; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
-          <p>The status of your order has been changed to: <strong>${details.newStatus}</strong></p>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+          <h1 style="color: #333; text-align: center; margin-bottom: 20px;">Order Status Update</h1>
+          <p style="font-size: 16px; color: #666; margin-bottom: 10px;">Dear ${details.customerName},</p>
+          <p style="font-size: 16px; color: #666; margin-bottom: 20px;">
+            Your order #${details.orderNumber} has been updated to: 
+            <strong style="color: #0094F4">${details.newStatus}</strong>
+          </p>
         </div>
 
-        <p>If you have any questions about your order, please don't hesitate to contact our customer support.</p>
-        
-        <p style="color: #666; font-size: 14px; margin-top: 30px; text-align: center;">
-          Thank you for shopping with us!
-        </p>
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #333; margin-bottom: 10px;">Company Information</h2>
+          <p style="font-size: 14px; color: #666; margin: 5px 0;">
+            ${companyInfo.name}<br>
+            ${companyInfo.address}<br>
+            Phone: ${companyInfo.phone}<br>
+            Email: ${companyInfo.email}<br>
+            GST Number: ${companyInfo.gst}
+          </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="font-size: 14px; color: #666;">
+            If you have any questions about your order, please don't hesitate to contact our customer support at 
+            <a href="mailto:${companyInfo.email}" style="color: #0094F4; text-decoration: none;">${companyInfo.email}</a>
+          </p>
+          <p style="font-size: 14px; color: #666; margin-top: 20px;">
+            Thank you for choosing ${companyInfo.name}!
+          </p>
+        </div>
       </div>
     `;
 
     console.log('Sending email via Resend');
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: 'Elloria <orders@elloria.ca>',
-        to: [details.customerEmail],
-        subject: `Order Status Update - #${details.orderNumber}`,
-        html: emailHtml,
-      }),
+    const emailResponse = await resend.emails.send({
+      from: `${companyInfo.name} <orders@elloria.ca>`,
+      to: [details.customerEmail],
+      subject: `Order Status Update - #${details.orderNumber}`,
+      html: emailHtml,
     });
 
-    if (!res.ok) {
-      const error = await res.text();
-      console.error('Error response from Resend:', error);
-      throw new Error(`Failed to send email: ${error}`);
-    }
+    console.log('Email sent successfully:', emailResponse);
 
-    const data = await res.json();
-    console.log('Email sent successfully:', data);
-
-    return new Response(JSON.stringify({ success: true, data }), {
+    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
