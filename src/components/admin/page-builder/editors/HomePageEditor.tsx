@@ -30,12 +30,13 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     console.log('Selected media URL:', url);
     if (block.type === 'store_brands') {
       const content = block.content as StoreBrandsContent;
-      const brands = Array.isArray(content.features) ? [...content.features] : [];
-      brands[currentBrandIndex] = {
-        ...brands[currentBrandIndex],
+      const features = Array.isArray(content.features) ? [...content.features] : [];
+      const updatedFeature: FeatureItem = {
+        ...features[currentBrandIndex] as FeatureItem,
         description: url // Logo URL is stored in description field
       };
-      onUpdate(block.id, { ...content, features: brands });
+      features[currentBrandIndex] = updatedFeature;
+      onUpdate(block.id, { ...content, features });
     } else {
       const updatedContent = {
         ...block.content as Record<string, unknown>,
@@ -85,7 +86,8 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     const feature = features[index] as FeatureItem;
-    features[index] = { ...feature, [field]: value };
+    const updatedFeature: FeatureItem = { ...feature, [field]: value };
+    features[index] = updatedFeature;
     onUpdate(block.id, { ...content, features });
   };
 
@@ -255,56 +257,59 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           
           <div className="space-y-4">
             <Label>Brands</Label>
-            {Array.isArray(storeBrandsContent.features) && storeBrandsContent.features.map((brand, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Brand {index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFeatureRemove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div>
-                  <Label>Brand Name</Label>
-                  <Input
-                    value={(brand.title as string) || ""}
-                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Logo</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={(brand.description as string) || ""} // Logo URL stored in description
-                      onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
-                      placeholder="Logo URL"
-                    />
+            {Array.isArray(storeBrandsContent.features) && storeBrandsContent.features.map((brand, index) => {
+              const typedBrand = brand as FeatureItem;
+              return (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Brand {index + 1}</span>
                     <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setMediaType("image");
-                        setCurrentBrandIndex(index);
-                        setShowMediaLibrary(true);
-                      }}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFeatureRemove(index)}
                     >
-                      Browse
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                  <div>
+                    <Label>Brand Name</Label>
+                    <Input
+                      value={typedBrand.title || ""}
+                      onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Logo</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={typedBrand.description || ""} // Logo URL stored in description
+                        onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
+                        placeholder="Logo URL"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setMediaType("image");
+                          setCurrentBrandIndex(index);
+                          setShowMediaLibrary(true);
+                        }}
+                      >
+                        Browse
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Link URL</Label>
+                    <Input
+                      value={typedBrand.detail || ""} // Link URL stored in detail
+                      onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
+                      placeholder="https://"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Link URL</Label>
-                  <Input
-                    value={(brand.detail as string) || ""} // Link URL stored in detail
-                    onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
-                    placeholder="https://"
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <Button
               type="button"
               variant="outline"
