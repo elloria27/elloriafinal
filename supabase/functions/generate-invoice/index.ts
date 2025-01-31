@@ -22,6 +22,7 @@ const COMPANY_INFO = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,6 +36,7 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
+    // Fetch order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .select(`
@@ -61,12 +63,17 @@ serve(async (req) => {
 
     console.log("Order data retrieved:", order);
 
+    // Create PDF with company logo
     const doc = new jsPDF();
     
+    // Add company logo
+    // Note: In a real implementation, you'd need to handle logo loading and embedding
+    // For now, we'll create space for it
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.text('INVOICE', 105, 20, { align: 'center' });
     
+    // Company Info
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(COMPANY_INFO.name, 10, 40);
@@ -77,10 +84,12 @@ serve(async (req) => {
     doc.text(`Email: ${COMPANY_INFO.email}`, 10, 55);
     doc.text(`GST Number: ${COMPANY_INFO.gst}`, 10, 60);
     
+    // Invoice Details
     doc.setFontSize(10);
     doc.text(`Invoice #: ${order.order_number}`, 150, 40);
     doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 150, 45);
     
+    // Customer Info
     const shippingAddress = order.shipping_address;
     const customerName = order.profiles?.full_name || 
       (shippingAddress.first_name && shippingAddress.last_name 
@@ -98,6 +107,7 @@ serve(async (req) => {
     doc.text(order.profiles?.email || shippingAddress.email || order.email_address || 'N/A', 10, 95);
     doc.text(shippingAddress.phone || 'N/A', 10, 100);
     
+    // Items Table Header
     let y = 120;
     doc.setFillColor(240, 240, 240);
     doc.rect(10, y - 5, 190, 10, 'F');
@@ -107,6 +117,7 @@ serve(async (req) => {
     doc.text('Price', 130, y);
     doc.text('Total', 160, y);
     
+    // Items
     doc.setFont('helvetica', 'normal');
     y += 10;
     let subtotal = 0;
@@ -121,11 +132,13 @@ serve(async (req) => {
       y += 10;
     });
     
+    // Totals
     y += 10;
     doc.setFont('helvetica', 'bold');
     doc.text('Subtotal:', 130, y);
     doc.text(`$${subtotal.toFixed(2)}`, 160, y);
     
+    // Promo code if used
     let discount = 0;
     if (order.applied_promo_code) {
       y += 10;
@@ -137,34 +150,24 @@ serve(async (req) => {
       doc.text(`Discount (${order.applied_promo_code.code}):`, 130, y);
       doc.text(`-$${discount.toFixed(2)}`, 160, y);
     }
-
-    // Add shipping cost
-    if (order.shipping_cost) {
-      y += 10;
-      doc.text('Shipping:', 130, y);
-      doc.text(`$${order.shipping_cost.toFixed(2)}`, 160, y);
-    }
-
-    // Add GST
-    if (order.gst) {
-      y += 10;
-      doc.text('GST (5%):', 130, y);
-      doc.text(`$${order.gst.toFixed(2)}`, 160, y);
-    }
     
+    // Total
     y += 15;
     doc.setFontSize(12);
     doc.text('Total:', 130, y);
     doc.text(`$${order.total_amount.toFixed(2)}`, 160, y);
     
+    // Payment Method
     y += 20;
     doc.setFontSize(10);
     doc.text(`Payment Method: ${order.payment_method === 'stripe' ? 'Credit Card (Stripe)' : order.payment_method || 'Standard'}`, 10, y);
     
+    // Thank you note
     y += 30;
     doc.setFont('helvetica', 'italic');
     doc.text('Thank you for choosing Elloria Eco Products!', 105, y, { align: 'center' });
     
+    // Convert to base64
     console.log("Generating PDF output...");
     const pdfOutput = doc.output('datauristring');
     console.log("PDF generated successfully");
