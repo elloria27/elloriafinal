@@ -87,7 +87,29 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </div>
+          
+          {/* Shop Now Button Settings */}
+          <div className="space-y-2">
+            <Label>Shop Now Button Text</Label>
+            <Input
+              value={block.content.shopNowText as string || "Shop Now"}
+              onChange={(e) => handleChange("shopNowText", e.target.value)}
+            />
+          </div>
+          
+          {/* Learn More Button Settings */}
+          <div className="space-y-2">
+            <Label>Learn More Button Text</Label>
+            <Input
+              value={block.content.learnMoreText as string || "Learn More"}
+              onChange={(e) => handleChange("learnMoreText", e.target.value)}
+            />
+          </div>
+
+          {/* Video Settings */}
           {renderMediaField("Video", "videoUrl", "video")}
+          {renderMediaField("Video Cover (Poster)", "videoPoster", "image")}
+          
           <MediaLibraryModal
             open={showMediaLibrary}
             onClose={() => setShowMediaLibrary(false)}
