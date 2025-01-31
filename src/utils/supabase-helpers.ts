@@ -77,6 +77,7 @@ export const parseProduct = (data: any): Product => {
     media: parseMedia(data.media),
     why_choose_features: parseWhyChooseFeatures(data.why_choose_features),
     created_at: data.created_at,
-    updated_at: data.updated_at
+    updated_at: data.updated_at,
+    slug: data.slug
   };
 };

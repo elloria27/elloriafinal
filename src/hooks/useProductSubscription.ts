@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '@/types/product';
-import { parseSpecifications } from '@/utils/supabase-helpers';
+import { parseProduct } from '@/utils/supabase-helpers';
 
 export const useProductSubscription = (
   onProductsUpdate: (products: Product[]) => void
@@ -10,25 +10,15 @@ export const useProductSubscription = (
     console.log('Fetching products from Supabase');
     const { data, error } = await supabase
       .from('products')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching products:', error);
       return;
     }
 
-    const products = data.map(p => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      image: p.image,
-      price: p.price,
-      features: p.features,
-      specifications: parseSpecifications(p.specifications),
-      created_at: p.created_at,
-      updated_at: p.updated_at
-    }));
-
+    const products = data.map(parseProduct);
     console.log('Products fetched:', products);
     onProductsUpdate(products);
   }, [onProductsUpdate]);

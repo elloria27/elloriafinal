@@ -46,7 +46,8 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
     features: [],
     specifications: DEFAULT_SPECIFICATIONS,
     media: [],
-    why_choose_features: []
+    why_choose_features: [],
+    slug: ""
   });
 
   const [uploading, setUploading] = useState(false);
@@ -61,7 +62,8 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
         features: product.features,
         specifications: product.specifications || DEFAULT_SPECIFICATIONS,
         media: product.media || [],
-        why_choose_features: product.why_choose_features || []
+        why_choose_features: product.why_choose_features || [],
+        slug: product.slug
       });
     }
   }, [product]);

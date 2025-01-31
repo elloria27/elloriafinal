@@ -7,6 +7,7 @@ export const initialProducts: Product[] = [
     description: "Perfect for light to medium flow days. Features our innovative ultra-thin design for maximum comfort.",
     image: "/lovable-uploads/0df96e81-8434-4436-b873-45aa9c6814cf.png",
     price: 6.99,
+    slug: "ultra-thin-290mm",
     features: [
       "Ultra-thin design for maximum comfort",
       "Suitable for light to medium flow",
@@ -28,6 +29,7 @@ export const initialProducts: Product[] = [
     description: "Ideal for medium to heavy flow days. Enhanced absorption technology for complete confidence.",
     image: "/lovable-uploads/5064d341-66ba-411d-8a91-8781d383f256.png",
     price: 7.99,
+    slug: "maxi-pads-350mm",
     features: [
       "Enhanced absorption technology",
       "Ideal for medium to heavy flow",
@@ -49,6 +51,7 @@ export const initialProducts: Product[] = [
     description: "Maximum protection for peaceful nights. Up to 600ml capacity for ultimate security.",
     image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png",
     price: 8.99,
+    slug: "overnight-425mm",
     features: [
       "Maximum overnight protection",
       "Up to 600ml absorption capacity",
