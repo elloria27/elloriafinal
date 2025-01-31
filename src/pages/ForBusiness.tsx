@@ -41,6 +41,8 @@ const ForBusiness = () => {
     }));
   };
 
+  const totalSteps = 4;
+
   return (
     <motion.main 
       initial={{ opacity: 0 }}
@@ -104,25 +106,28 @@ const ForBusiness = () => {
         <div className="container mx-auto px-4 max-w-3xl">
           {/* Progress Steps */}
           <div className="flex justify-between items-center mb-12 max-w-md mx-auto relative">
-            {[1, 2, 3].map((step) => (
+            {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex flex-col items-center relative z-10">
                 <div 
                   className={`
                     w-10 h-10 rounded-full flex items-center justify-center
-                    transition-all duration-300
+                    transition-all duration-300 border-2
                     ${currentStep >= step 
-                      ? 'bg-primary text-white shadow-lg' 
-                      : 'bg-gray-200 text-gray-600'
+                      ? 'bg-primary border-primary text-white' 
+                      : 'bg-white border-gray-300 text-gray-500'
                     }
                   `}
                 >
                   {step}
                 </div>
                 <span className={`
-                  mt-2 text-sm font-medium
+                  mt-2 text-sm font-medium whitespace-nowrap
                   ${currentStep >= step ? 'text-primary' : 'text-gray-500'}
                 `}>
-                  {step === 1 ? 'Start' : step === 2 ? 'Details' : 'Review'}
+                  {step === 1 ? 'Start' 
+                    : step === 2 ? 'Details' 
+                    : step === 3 ? 'Documents' 
+                    : 'Review'}
                 </span>
               </div>
             ))}
@@ -130,7 +135,7 @@ const ForBusiness = () => {
             <div className="absolute top-5 left-0 h-[2px] bg-gray-200 w-full -z-0">
               <div 
                 className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+                style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
               />
             </div>
           </div>
@@ -158,31 +163,57 @@ const ForBusiness = () => {
             )}
 
             {currentStep === 2 && (
-              <div className="space-y-6">
-                <BusinessContactForm 
-                  onComplete={handleStepComplete}
-                  initialData={formData}
-                />
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-4">Attach Documents (Optional)</h3>
+              <BusinessContactForm 
+                onComplete={handleStepComplete}
+                initialData={formData}
+              />
+            )}
+
+            {currentStep === 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <h2 className="text-2xl font-semibold text-center">Attach Documents</h2>
+                <p className="text-gray-600 text-center mb-8">
+                  Upload any relevant documents to support your business inquiry (optional).
+                </p>
+                <div className="space-y-4">
                   <FileUpload onUpload={handleFileUpload} />
                   {formData.attachments.length > 0 && (
                     <div className="mt-4">
                       <h4 className="text-sm font-medium mb-2">Attached Files:</h4>
                       <ul className="space-y-2">
                         {formData.attachments.map((file, index) => (
-                          <li key={index} className="text-sm text-gray-600">
-                            {file.name}
+                          <li key={index} className="text-sm text-gray-600 flex items-center">
+                            <span className="truncate">{file.name}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </div>
-              </div>
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={() => setCurrentStep(4)}
+                    className="flex-1"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </motion.div>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -227,10 +258,10 @@ const ForBusiness = () => {
                 <div className="flex gap-4">
                   <Button 
                     variant="outline"
-                    onClick={() => setCurrentStep(2)}
+                    onClick={() => setCurrentStep(3)}
                     className="flex-1"
                   >
-                    Edit Information
+                    Back
                   </Button>
                   <Button 
                     onClick={() => {
