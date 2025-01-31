@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, HeroContent, FeaturesContent } from "@/types/content-blocks";
-import { MediaLibrary } from "../../media/MediaLibrary";
+import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -125,9 +125,10 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             />
           </div>
           {showMediaLibrary && (
-            <MediaLibrary
-              onSelect={handleMediaSelect}
+            <MediaLibraryModal
+              open={showMediaLibrary}
               onClose={() => setShowMediaLibrary(false)}
+              onSelect={handleMediaSelect}
               type={mediaType}
             />
           )}
