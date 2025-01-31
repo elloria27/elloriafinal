@@ -39,15 +39,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
-    // Get auth user if available
+    // Get auth user if available, but don't require it
     let userEmail = null;
     let userId = null;
     const authHeader = req.headers.get('Authorization');
+    
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
-      const { data } = await supabaseClient.auth.getUser(token);
-      userEmail = data.user?.email;
-      userId = data.user?.id;
+      const { data: { user } } = await supabaseClient.auth.getUser(token);
+      if (user) {
+        userEmail = user.email;
+        userId = user.id;
+      }
     }
 
     // Get payment method details from database
@@ -150,7 +153,6 @@ serve(async (req) => {
         });
       }
       
-      // Only add PST if not Manitoba
       if (taxes.pst > 0 && taxes.region !== 'Manitoba') {
         const pstAmount = subtotal * (taxes.pst / 100);
         lineItems.push({
@@ -206,18 +208,24 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: userEmail || shippingAddress.email, // Use shipping address email for guest checkout
+      customer_email: userEmail || shippingAddress.email,
       discounts: discounts,
       currency: 'cad',
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA'],
+      },
     });
 
     console.log('Checkout session created:', session.id);
+
+    // Generate order number
+    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
     // Create initial order record
     const orderData = {
       user_id: userId, // Will be null for guest checkout
       profile_id: userId, // Will be null for guest checkout
-      order_number: Math.random().toString(36).substr(2, 9).toUpperCase(),
+      order_number: orderNumber,
       total_amount: totalAmount - discountAmount,
       status: 'pending',
       items: items,
