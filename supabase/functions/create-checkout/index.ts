@@ -52,7 +52,12 @@ serve(async (req) => {
           }
         );
 
-        const { data: { user }, error: userError } = await authSupabase.auth.getUser(authHeader.replace('Bearer ', ''));
+        await authSupabase.auth.setSession({
+          access_token: authHeader.replace('Bearer ', ''),
+          refresh_token: '',
+        });
+
+        const { data: { user }, error: userError } = await authSupabase.auth.getUser();
         
         if (userError) {
           console.error('Error getting authenticated user:', userError);
@@ -168,7 +173,7 @@ serve(async (req) => {
     // Create order data
     const orderData = {
       user_id: userId,
-      profile_id: userId,
+      profile_id: userId, // Use the same ID for both user and profile if authenticated
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',

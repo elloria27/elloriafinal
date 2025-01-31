@@ -23,41 +23,30 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
-// Define the shape of shipping address data as it comes from the database
-interface ShippingAddressJson {
-  address: string;
-  region: string;
-  country: string;
-  phone: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-}
-
 const validateShippingAddress = (address: unknown): ShippingAddress => {
-  if (!address || typeof address !== 'object') {
+  if (typeof address !== 'object' || !address) {
     throw new Error('Invalid shipping address format');
   }
-
-  const addressData = address as ShippingAddressJson;
-
+  
+  const typedAddress = address as Record<string, unknown>;
+  
   if (
-    typeof addressData.address !== 'string' ||
-    typeof addressData.region !== 'string' ||
-    typeof addressData.country !== 'string' ||
-    typeof addressData.phone !== 'string'
+    typeof typedAddress.address !== 'string' ||
+    typeof typedAddress.region !== 'string' ||
+    typeof typedAddress.country !== 'string' ||
+    typeof typedAddress.phone !== 'string'
   ) {
     throw new Error('Missing required shipping address fields');
   }
 
   return {
-    address: addressData.address,
-    region: addressData.region,
-    country: addressData.country,
-    phone: addressData.phone,
-    first_name: addressData.first_name,
-    last_name: addressData.last_name,
-    email: addressData.email,
+    address: typedAddress.address,
+    region: typedAddress.region,
+    country: typedAddress.country,
+    phone: typedAddress.phone,
+    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
+    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
+    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
   };
 };
 
@@ -104,6 +93,7 @@ export const OrderManagement = () => {
 
   const fetchOrders = async () => {
     try {
+      console.log("Fetching orders...");
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select(`
@@ -122,35 +112,40 @@ export const OrderManagement = () => {
         return;
       }
 
-      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
-        const shippingAddress = validateShippingAddress(order.shipping_address);
-        const billingAddress = validateShippingAddress(order.billing_address);
+      console.log("Raw orders data:", ordersData);
 
-        return {
-          id: order.id,
-          user_id: order.user_id,
-          profile_id: order.profile_id,
-          order_number: order.order_number,
-          total_amount: order.total_amount,
-          status: validateOrderStatus(order.status),
-          shipping_address: shippingAddress,
-          billing_address: billingAddress,
-          items: validateOrderItems(order.items),
-          created_at: order.created_at,
-          payment_method: order.payment_method || 'Not specified',
-          stripe_session_id: order.stripe_session_id,
-          profile: order.profiles ? {
-            full_name: order.profiles.full_name || 'Guest',
-            email: order.profiles.email || shippingAddress.email || 'No email provided'
-          } : {
-            full_name: shippingAddress.first_name && shippingAddress.last_name
-              ? `${shippingAddress.first_name} ${shippingAddress.last_name}`
-              : 'Guest',
-            email: shippingAddress.email || 'No email provided'
-          }
-        };
+      const validatedOrders: OrderData[] = (ordersData || []).map(order => {
+        try {
+          const shippingAddress = validateShippingAddress(order.shipping_address);
+          const validatedOrder: OrderData = {
+            id: order.id,
+            user_id: order.user_id,
+            profile_id: order.profile_id,
+            order_number: order.order_number,
+            total_amount: order.total_amount,
+            status: validateOrderStatus(order.status),
+            shipping_address: shippingAddress,
+            billing_address: validateShippingAddress(order.billing_address),
+            items: validateOrderItems(order.items),
+            created_at: order.created_at,
+            payment_method: order.payment_method || 'Not specified',
+            stripe_session_id: order.stripe_session_id,
+            profile: order.user_id ? {
+              full_name: order.profiles?.full_name || 'Guest',
+              email: order.profiles?.email || 'Anonymous Order'
+            } : {
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
+              email: shippingAddress.email || 'Anonymous Order'
+            }
+          };
+          return validatedOrder;
+        } catch (error) {
+          console.error("Error validating order:", error, order);
+          throw error;
+        }
       });
 
+      console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
     } catch (error) {
       console.error("Error in fetchOrders:", error);
@@ -175,6 +170,7 @@ export const OrderManagement = () => {
         return;
       }
 
+      // Find the current order to preserve payment information
       const currentOrder = orders.find(order => order.id === orderId);
       if (!currentOrder) {
         console.error("Order not found");
@@ -182,10 +178,12 @@ export const OrderManagement = () => {
         return;
       }
 
+      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ 
           status: newStatus,
+          // Preserve existing payment information
           payment_method: currentOrder.payment_method,
           stripe_session_id: currentOrder.stripe_session_id
         })
@@ -208,6 +206,7 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
+      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -221,35 +220,32 @@ export const OrderManagement = () => {
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method,
         stripe_session_id: updatedOrder.stripe_session_id,
-        profile: updatedOrder.profiles ? {
-          full_name: updatedOrder.profiles.full_name || 'Guest',
-          email: updatedOrder.profiles.email || updatedOrder.shipping_address.email || 'No email provided'
-        } : {
-          full_name: `${updatedOrder.shipping_address.first_name || ''} ${updatedOrder.shipping_address.last_name || ''}`.trim() || 'Guest',
-          email: updatedOrder.shipping_address.email || 'No email provided'
-        }
+        profile: updatedOrder.profiles || undefined
       };
 
+      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
+      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
+      // Send email notification
       try {
         console.log("Attempting to send email notification");
-        const customerEmail = validatedOrder.shipping_address.email || validatedOrder.profile?.email;
-        const customerName = validatedOrder.shipping_address.first_name 
-          ? `${validatedOrder.shipping_address.first_name} ${validatedOrder.shipping_address.last_name || ''}`
-          : validatedOrder.profile?.full_name || 'Valued Customer';
+        const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
+        const customerName = validatedOrder.profile?.full_name || 
+          `${validatedOrder.shipping_address.first_name || ''} ${validatedOrder.shipping_address.last_name || ''}`.trim() || 
+          'Valued Customer';
 
         if (customerEmail) {
           console.log("Sending email to:", customerEmail);
-          const { error: emailError } = await supabase.functions.invoke(
+          const { data: emailData, error: emailError } = await supabase.functions.invoke(
             'send-order-status-email',
             {
               body: {
@@ -267,7 +263,7 @@ export const OrderManagement = () => {
             throw emailError;
           }
 
-          console.log('Email notification sent successfully');
+          console.log('Email notification sent successfully:', emailData);
         } else {
           console.warn('No customer email found for order:', validatedOrder.id);
         }
@@ -351,9 +347,11 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.shipping_address.first_name 
-                  ? `${order.shipping_address.first_name} ${order.shipping_address.last_name || ''}`
-                  : order.profile?.full_name || 'Guest'}
+                {order.user_id ? (
+                  order.profile?.full_name || 'N/A'
+                ) : (
+                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
+                )}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -408,10 +406,16 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.shipping_address.first_name 
-                    ? `${selectedOrder.shipping_address.first_name} ${selectedOrder.shipping_address.last_name || ''}`
-                    : selectedOrder.profile?.full_name || 'Guest'}</p>
-                  <p>Email: {selectedOrder.shipping_address.email || selectedOrder.profile?.email || 'N/A'}</p>
+                  <p>Name: {selectedOrder.user_id ? (
+                    selectedOrder.profile?.full_name || 'N/A'
+                  ) : (
+                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 'Guest'
+                  )}</p>
+                  <p>Email: {selectedOrder.user_id ? (
+                    selectedOrder.profile?.email || 'N/A'
+                  ) : (
+                    selectedOrder.shipping_address.email || 'N/A'
+                  )}</p>
                 </div>
               </div>
 
