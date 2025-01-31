@@ -137,15 +137,16 @@ export const CustomerForm = ({
   };
 
   const handleInputChange = (field: string, value: string) => {
-    console.log(`Handling input change for ${field}:`, value);
+    console.log(`CustomerForm - handleInputChange - ${field}:`, value);
     
     if (onFormChange) {
+      console.log(`CustomerForm - calling onFormChange with ${field}:`, value);
       onFormChange(field, value);
     }
   };
 
   const handleNameChange = (type: 'first' | 'last', value: string) => {
-    console.log(`Handling ${type} name change:`, value);
+    console.log(`CustomerForm - handleNameChange - ${type}:`, value);
     if (type === 'first') {
       setFirstName(value);
     } else {
@@ -156,12 +157,14 @@ export const CustomerForm = ({
       ? `${value} ${lastName}`.trim()
       : `${firstName} ${value}`.trim();
       
+    console.log('CustomerForm - updating full_name:', newFullName);
     handleInputChange('full_name', newFullName);
+    console.log(`CustomerForm - updating ${type === 'first' ? 'first_name' : 'last_name'}:`, value);
     handleInputChange(type === 'first' ? 'first_name' : 'last_name', value);
   };
 
   const handleAddressChange = (value: string) => {
-    console.log("Address changed to:", value);
+    console.log("CustomerForm - handleAddressChange:", value);
     setAddress(value);
     handleInputChange('address', value);
   };

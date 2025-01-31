@@ -14,7 +14,7 @@ const validateEmail = (email: string) => {
 };
 
 serve(async (req) => {
-  console.log('Received checkout request');
+  console.log('Create-checkout - Received request');
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { 
@@ -25,7 +25,7 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('Create-checkout - Request body:', JSON.stringify(requestBody, null, 2));
     
     const { 
       items, 
@@ -37,8 +37,10 @@ serve(async (req) => {
       shippingAddress
     } = requestBody;
 
+    console.log('Create-checkout - Shipping address:', shippingAddress);
+
     if (!items?.length || !paymentMethodId || !shippingAddress) {
-      console.error('Missing required fields');
+      console.error('Create-checkout - Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -50,7 +52,7 @@ serve(async (req) => {
 
     // Email validation
     if (!shippingAddress.email) {
-      console.error('Email is missing from shipping address');
+      console.error('Create-checkout - Email is missing from shipping address');
       return new Response(
         JSON.stringify({ error: 'Email address is required' }),
         { 
@@ -61,10 +63,10 @@ serve(async (req) => {
     }
 
     const email = shippingAddress.email.trim();
-    console.log('Processing checkout for email:', email);
+    console.log('Create-checkout - Processing checkout for email:', email);
 
     if (!validateEmail(email)) {
-      console.error('Invalid email format:', email);
+      console.error('Create-checkout - Invalid email format:', email);
       return new Response(
         JSON.stringify({ error: 'Please enter a valid email address' }),
         { 
@@ -94,7 +96,7 @@ serve(async (req) => {
       .single();
 
     if (paymentMethodError || !paymentMethod?.stripe_config?.secret_key) {
-      console.error('Invalid payment method:', paymentMethodError || 'Missing Stripe config');
+      console.error('Create-checkout - Invalid payment method:', paymentMethodError || 'Missing Stripe config');
       return new Response(
         JSON.stringify({ error: 'Invalid payment method configuration' }),
         { 
@@ -204,7 +206,7 @@ serve(async (req) => {
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    console.log('Creating Stripe checkout session with email:', email);
+    console.log('Create-checkout - Creating Stripe checkout session with email:', email);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -233,12 +235,14 @@ serve(async (req) => {
       applied_promo_code: promoCode
     };
 
+    console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
+
     const { error: orderError } = await supabaseAdmin
       .from('orders')
       .insert(orderData);
 
     if (orderError) {
-      console.error('Error creating order:', orderError);
+      console.error('Create-checkout - Error creating order:', orderError);
       return new Response(
         JSON.stringify({ error: 'Failed to create order record' }),
         { 
@@ -248,6 +252,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('Create-checkout - Order created successfully');
+
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
@@ -256,7 +262,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error processing checkout:', error);
+    console.error('Create-checkout - Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

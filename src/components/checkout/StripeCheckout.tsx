@@ -36,29 +36,36 @@ export const StripeCheckout = ({
 
   const handleCheckout = async () => {
     try {
+      console.log('StripeCheckout - Starting checkout with shipping address:', shippingAddress);
+
       if (!shippingAddress.email) {
         toast.error("Email address is required");
         return;
       }
 
       setIsLoading(true);
-      console.log('Initiating checkout with shipping address:', shippingAddress);
+      
+      const checkoutData = {
+        items,
+        paymentMethodId,
+        shippingCost,
+        taxes,
+        promoCode: activePromoCode,
+        subtotal,
+        shippingAddress,
+        billingAddress: shippingAddress
+      };
+      
+      console.log('StripeCheckout - Sending checkout data:', checkoutData);
 
       const response = await supabase.functions.invoke('create-checkout', {
-        body: {
-          items,
-          paymentMethodId,
-          shippingCost,
-          taxes,
-          promoCode: activePromoCode,
-          subtotal,
-          shippingAddress,
-          billingAddress: shippingAddress
-        }
+        body: checkoutData
       });
 
+      console.log('StripeCheckout - Received response:', response);
+
       if (response.error) {
-        console.error('Checkout error:', response.error);
+        console.error('StripeCheckout - Checkout error:', response.error);
         throw new Error(response.error.message || 'Failed to create checkout session');
       }
       
@@ -68,10 +75,10 @@ export const StripeCheckout = ({
         throw new Error('No checkout URL received');
       }
       
-      console.log('Redirecting to Stripe checkout:', data.url);
+      console.log('StripeCheckout - Redirecting to:', data.url);
       window.location.href = data.url;
     } catch (error: any) {
-      console.error('Error initiating checkout:', error);
+      console.error('StripeCheckout - Error:', error);
       toast.error(error.message || 'Failed to initiate checkout. Please try again.');
     } finally {
       setIsLoading(false);

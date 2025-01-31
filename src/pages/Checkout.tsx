@@ -334,18 +334,25 @@ const Checkout = () => {
   };
 
   const handleFormChange = (field: string, value: string) => {
-    console.log(`Form field changed - ${field}:`, value);
-    if (field === 'email') {
+    console.log(`Checkout - handleFormChange - ${field}:`, value);
+    if (field === 'email' || field === 'first_name' || field === 'last_name' || field === 'address') {
+      console.log('Checkout - Updating shippingAddress with:', field, value);
       setShippingAddress(prev => ({
         ...prev,
-        email: value
+        [field]: value
       }));
     }
     // Update profile if user is authenticated
     if (user) {
+      console.log('Checkout - Updating profile with:', field, value);
       updateProfile(field, value);
     }
   };
+
+  // Log shippingAddress changes
+  useEffect(() => {
+    console.log('Checkout - shippingAddress updated:', shippingAddress);
+  }, [shippingAddress]);
 
   if (items.length === 0) {
     return (
