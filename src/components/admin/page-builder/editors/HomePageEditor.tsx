@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent } from "@/types/content-blocks";
+import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface HomePageEditorProps {
@@ -32,7 +32,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       const content = block.content as StoreBrandsContent;
       const brands = Array.isArray(content.features) ? [...content.features] : [];
       brands[currentBrandIndex] = {
-        ...brands[currentBrandIndex] as Record<string, unknown>,
+        ...brands[currentBrandIndex],
         description: url // Logo URL is stored in description field
       };
       onUpdate(block.id, { ...content, features: brands });
@@ -50,9 +50,10 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? content.features : [];
     
-    let newFeature;
+    let newFeature: FeatureItem;
     if (block.type === 'store_brands') {
       newFeature = {
+        icon: '',
         title: "New Brand",
         description: "", // Logo URL
         detail: "#" // Link URL
@@ -67,7 +68,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     }
 
     const updatedContent = {
-      ...content as Record<string, unknown>,
+      ...content,
       features: [...features, newFeature]
     };
     onUpdate(block.id, updatedContent);
@@ -77,15 +78,15 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
-    onUpdate(block.id, { ...content as Record<string, unknown>, features });
+    onUpdate(block.id, { ...content, features });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = features[index] as Record<string, unknown>;
+    const feature = features[index] as FeatureItem;
     features[index] = { ...feature, [field]: value };
-    onUpdate(block.id, { ...content as Record<string, unknown>, features });
+    onUpdate(block.id, { ...content, features });
   };
 
   const renderMediaField = (label: string, field: string, type: "image" | "video") => (
