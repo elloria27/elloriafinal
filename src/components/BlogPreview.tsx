@@ -122,7 +122,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
             variant="outline" 
             className="border-primary text-primary hover:bg-primary/10"
           >
-            {content?.buttonText || "View All Articles"}
+            {typeof content?.buttonText === 'string' ? content.buttonText : "View All Articles"}
           </Button>
         </motion.div>
       </div>
