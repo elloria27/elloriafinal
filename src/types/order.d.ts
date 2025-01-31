@@ -25,6 +25,12 @@ export type OrderProfile = {
   address?: string;
 };
 
+export type AppliedPromoCode = {
+  code: string;
+  type: 'percentage' | 'fixed_amount';
+  value: number;
+};
+
 export type OrderData = {
   id: string;
   user_id: string | null;
@@ -38,4 +44,5 @@ export type OrderData = {
   created_at: string;
   profile?: OrderProfile;
   payment_method?: string | null;
+  applied_promo_code?: AppliedPromoCode | null;
 };
