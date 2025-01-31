@@ -55,32 +55,35 @@ serve(async (req) => {
       }
     );
 
-    // Create temporary profile for guest users
-    const tempProfileId = crypto.randomUUID();
-    const tempProfileData = {
-      id: tempProfileId,
-      full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-      email: shippingAddress.email,
-      phone_number: shippingAddress.phone,
-      address: shippingAddress.address,
-      country: shippingAddress.country,
-      region: shippingAddress.region
-    };
+    // Create temporary user for guest checkout
+    const tempEmail = `guest_${crypto.randomUUID()}@temporary.com`;
+    const tempPassword = crypto.randomUUID();
 
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .insert(tempProfileData);
+    console.log('Creating temporary user with email:', tempEmail);
 
-    if (profileError) {
-      console.error('Error creating temporary profile:', profileError);
+    // First create the user in auth.users
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: tempEmail,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
+        is_guest: true
+      }
+    });
+
+    if (authError) {
+      console.error('Error creating temporary user:', authError);
       return new Response(
-        JSON.stringify({ error: 'Failed to create temporary profile' }),
+        JSON.stringify({ error: 'Failed to create temporary user' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500 
         }
       );
     }
+
+    console.log('Temporary user created successfully:', authUser);
 
     // Get payment method details
     const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
@@ -226,7 +229,8 @@ serve(async (req) => {
       stripe_session_id: session.id,
       payment_method: 'stripe',
       applied_promo_code: promoCode,
-      profile_id: tempProfileId
+      user_id: authUser.user.id,
+      profile_id: authUser.user.id
     };
 
     const { error: orderError } = await supabaseAdmin
