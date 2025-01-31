@@ -134,40 +134,42 @@ export const OrderManagement = () => {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || 'Anonymous Order'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
+              full_name: shippingAddress.first_name && shippingAddress.last_name ? 
+                `${shippingAddress.first_name} ${shippingAddress.last_name}` : 'Guest',
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
           return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
-          // Instead of throwing, return a default order object with available data
+          // Return a fallback order with original shipping/billing data if available
           const fallbackOrder: OrderData = {
             id: order.id,
-            user_id: null,
-            profile_id: null,
+            user_id: order.user_id,
+            profile_id: order.profile_id,
             order_number: order.order_number || 'Unknown',
             total_amount: order.total_amount || 0,
             status: 'pending',
-            shipping_address: {
+            shipping_address: order.shipping_address as ShippingAddress || {
               address: 'Unknown',
               region: 'Unknown',
               country: 'Unknown',
               phone: 'Unknown'
             },
-            billing_address: {
+            billing_address: order.billing_address as ShippingAddress || {
               address: 'Unknown',
               region: 'Unknown',
               country: 'Unknown',
               phone: 'Unknown'
             },
-            items: [],
+            items: order.items || [],
             created_at: order.created_at,
-            payment_method: 'Not specified',
-            stripe_session_id: null,
+            payment_method: order.payment_method || 'Not specified',
+            stripe_session_id: order.stripe_session_id,
             profile: {
-              full_name: 'Guest',
-              email: 'Anonymous Order'
+              full_name: order.shipping_address?.first_name && order.shipping_address?.last_name ? 
+                `${order.shipping_address.first_name} ${order.shipping_address.last_name}` : 'Guest',
+              email: order.shipping_address?.email || 'Anonymous Order'
             }
           };
           return fallbackOrder;
@@ -376,7 +378,9 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.profile?.full_name || 'Guest'}
+                {order.shipping_address.first_name && order.shipping_address.last_name ? 
+                  `${order.shipping_address.first_name} ${order.shipping_address.last_name}` :
+                  (order.profile?.full_name || 'Guest')}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -431,8 +435,11 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
-                  <p>Email: {selectedOrder.profile?.email || 'Anonymous Order'}</p>
+                  <p>Name: {selectedOrder.shipping_address.first_name && selectedOrder.shipping_address.last_name ? 
+                    `${selectedOrder.shipping_address.first_name} ${selectedOrder.shipping_address.last_name}` :
+                    (selectedOrder.profile?.full_name || 'Guest')}
+                  </p>
+                  <p>Email: {selectedOrder.shipping_address.email || selectedOrder.profile?.email || 'Anonymous Order'}</p>
                 </div>
               </div>
 
