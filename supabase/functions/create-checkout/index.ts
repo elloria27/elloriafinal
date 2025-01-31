@@ -32,7 +32,7 @@ serve(async (req) => {
     let userId = null;
     let userProfile = null;
 
-    // Check if user is authenticated, but don't throw error if not
+    // Check if user is authenticated
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
       console.log('Authorization header found, checking user authentication');
@@ -69,12 +69,18 @@ serve(async (req) => {
           }
         }
       } catch (error) {
-        // Log the error but continue with guest checkout
         console.error('Error in auth process:', error);
       }
-    } else {
-      console.log('No authorization header, proceeding with guest checkout');
     }
+
+    // Prepare shipping address for Stripe
+    const stripeShippingAddress = {
+      line1: shippingAddress.address || '',
+      city: '', // Add city field to your form if needed
+      state: shippingAddress.region || '',
+      country: shippingAddress.country || '',
+      postal_code: '', // Add postal code field to your form if needed
+    };
 
     // Calculate tax rates based on location
     const totalTaxRate = (taxes.gst || 0) / 100;
@@ -115,7 +121,6 @@ serve(async (req) => {
       tax_rates: [taxRate.id],
     }));
 
-    // Add shipping cost as a separate line item if present
     if (shippingCost > 0) {
       lineItems.push({
         price_data: {
@@ -163,11 +168,18 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    // Prepare customer data
-    const customerName = `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim();
-    const customerEmail = shippingAddress.email || 'guest@example.com';
+    // Prepare complete shipping and billing address data
+    const completeAddress = {
+      first_name: shippingAddress.firstName || '',
+      last_name: shippingAddress.lastName || '',
+      email: shippingAddress.email || '',
+      phone: shippingAddress.phone || '',
+      address: shippingAddress.address || '',
+      country: shippingAddress.country || '',
+      region: shippingAddress.region || ''
+    };
 
-    // Create order data with complete shipping and billing information
+    // Create order data
     const orderData = {
       user_id: userId,
       profile_id: userId,
@@ -175,24 +187,8 @@ serve(async (req) => {
       total_amount: total,
       status: 'pending',
       items: items,
-      shipping_address: {
-        first_name: shippingAddress.firstName || '',
-        last_name: shippingAddress.lastName || '',
-        email: shippingAddress.email || '',
-        phone: shippingAddress.phone || '',
-        address: shippingAddress.address || '',
-        country: shippingAddress.country || '',
-        region: shippingAddress.region || ''
-      },
-      billing_address: {
-        first_name: shippingAddress.firstName || '',
-        last_name: shippingAddress.lastName || '',
-        email: shippingAddress.email || '',
-        phone: shippingAddress.phone || '',
-        address: shippingAddress.address || '',
-        country: shippingAddress.country || '',
-        region: shippingAddress.region || ''
-      },
+      shipping_address: completeAddress,
+      billing_address: completeAddress, // Using same address for billing
       payment_method: 'stripe',
       applied_promo_code: activePromoCode
     };
@@ -207,7 +203,7 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: customerEmail,
+      customer_email: shippingAddress.email || undefined,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
@@ -215,7 +211,7 @@ serve(async (req) => {
         order_number: orderNumber,
         user_id: userId,
         profile_id: userId,
-        shipping_address: JSON.stringify(shippingAddress),
+        shipping_address: JSON.stringify(completeAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
       },
