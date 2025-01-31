@@ -68,15 +68,12 @@ serve(async (req) => {
     );
 
     // Create temporary user for guest checkout
-    const tempEmail = shippingAddress.email;
-    const tempPassword = crypto.randomUUID();
-
-    console.log('Creating temporary user with email:', tempEmail);
+    console.log('Creating temporary user with email:', shippingAddress.email);
 
     // First create the user in auth.users
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: tempEmail,
-      password: tempPassword,
+      email: shippingAddress.email,
+      password: crypto.randomUUID(),
       email_confirm: true,
       user_metadata: {
         full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
@@ -223,7 +220,7 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: tempEmail,
+      customer_email: shippingAddress.email,
       discounts: discounts,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
