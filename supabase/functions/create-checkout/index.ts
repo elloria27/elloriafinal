@@ -77,7 +77,7 @@ serve(async (req) => {
         }
       }
     } else {
-      console.log('Processing as guest checkout, creating temporary profile');
+      console.log('Processing as guest checkout, creating guest profile');
       
       // Generate a UUID for the guest user
       const guestUserId = crypto.randomUUID();
@@ -88,7 +88,7 @@ serve(async (req) => {
         .from('profiles')
         .insert({
           id: guestUserId,
-          full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+          full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
           email: shippingAddress.email,
           phone_number: shippingAddress.phone,
           address: shippingAddress.address,
