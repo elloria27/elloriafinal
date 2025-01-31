@@ -32,10 +32,10 @@ serve(async (req) => {
     let userId = null;
     let userProfile = null;
 
-    // Check if user is authenticated
+    // Check if user is authenticated, but don't throw error if not
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
-      console.log('User is authenticated, fetching profile data');
+      console.log('Authorization header found, checking user authentication');
       try {
         const authSupabase = createClient(
           Deno.env.get('SUPABASE_URL') ?? '',
@@ -49,16 +49,11 @@ serve(async (req) => {
           }
         );
 
-        await authSupabase.auth.setSession({
-          access_token: authHeader.replace('Bearer ', ''),
-          refresh_token: '',
-        });
-
-        const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+        const { data: { user }, error: userError } = await authSupabase.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        );
         
-        if (userError) {
-          console.error('Error getting authenticated user:', userError);
-        } else if (user) {
+        if (!userError && user) {
           console.log('Found authenticated user:', user.id);
           userId = user.id;
 
@@ -68,16 +63,17 @@ serve(async (req) => {
             .eq('id', user.id)
             .single();
 
-          if (profileError) {
-            console.error('Error getting user profile:', profileError);
-          } else {
+          if (!profileError) {
             userProfile = profile;
-            console.log('Found authenticated user profile:', userProfile);
+            console.log('Found user profile:', userProfile);
           }
         }
       } catch (error) {
+        // Log the error but continue with guest checkout
         console.error('Error in auth process:', error);
       }
+    } else {
+      console.log('No authorization header, proceeding with guest checkout');
     }
 
     // Calculate tax rates based on location
@@ -167,6 +163,10 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
+    // Prepare customer data
+    const customerName = `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim();
+    const customerEmail = shippingAddress.email || 'guest@example.com';
+
     // Create order data with complete shipping and billing information
     const orderData = {
       user_id: userId,
@@ -207,7 +207,7 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: shippingAddress.email,
+      customer_email: customerEmail,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
