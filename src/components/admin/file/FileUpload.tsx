@@ -31,7 +31,6 @@ export const FileUpload = ({ onUpload }: FileUploadProps) => {
           id="file"
           type="file"
           onChange={handleFileChange}
-          accept="image/*"
         />
       </div>
       {selectedFile && (
