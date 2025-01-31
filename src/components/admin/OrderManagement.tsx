@@ -162,7 +162,9 @@ export const OrderManagement = () => {
               phone_number: shippingAddress.phone,
               address: shippingAddress.address
             },
-            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code)
+            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code),
+            shipping_cost: order.shipping_cost || 0,
+            gst: order.gst || 0
           };
           return validatedOrder;
         } catch (error) {
@@ -207,7 +209,6 @@ export const OrderManagement = () => {
 
       console.log("Received PDF data, initiating download...");
 
-      // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = data.pdf;
       link.download = `invoice-${selectedOrder?.order_number}.pdf`;
@@ -259,7 +260,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Send status update email
       try {
         const shippingAddress = validateShippingAddress(updatedOrder.shipping_address);
         const customerName = updatedOrder.profiles?.full_name || 
@@ -281,11 +281,9 @@ export const OrderManagement = () => {
 
         if (emailError) {
           console.error("Error sending status update email:", emailError);
-          // Don't throw, just log the error
         }
       } catch (emailError) {
         console.error("Error sending status update email:", emailError);
-        // Don't throw, just log the error
       }
 
       const validatedShippingAddress = validateShippingAddress(updatedOrder.shipping_address);
@@ -312,7 +310,9 @@ export const OrderManagement = () => {
           phone_number: validatedShippingAddress.phone,
           address: validatedShippingAddress.address
         },
-        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
+        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code),
+        shipping_cost: updatedOrder.shipping_cost || 0,
+        gst: updatedOrder.gst || 0
       };
 
       setOrders(prevOrders => 
@@ -505,6 +505,26 @@ export const OrderManagement = () => {
                               ? (selectedOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * selectedOrder.applied_promo_code.value / 100)
                               : selectedOrder.applied_promo_code.value
                           )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {selectedOrder.shipping_cost > 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-right">
+                          Shipping:
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(selectedOrder.shipping_cost)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {selectedOrder.gst > 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-right">
+                          GST (5%):
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(selectedOrder.gst)}
                         </TableCell>
                       </TableRow>
                     )}
