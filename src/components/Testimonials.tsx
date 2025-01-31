@@ -8,12 +8,10 @@ interface TestimonialsProps {
 }
 
 interface Testimonial {
-  name?: string;
-  author?: string;
-  rating?: number;
-  text?: string;
-  content?: string;
-  source?: string;
+  name: string;
+  rating: number;
+  text: string;
+  source: string;
 }
 
 const defaultTestimonials: Testimonial[] = [
@@ -40,19 +38,18 @@ const defaultTestimonials: Testimonial[] = [
 export const Testimonials = ({ content }: TestimonialsProps) => {
   console.log('Testimonials content:', content);
   
-  // Extract testimonials from content, ensuring we handle both arrays and objects
   let testimonials: Testimonial[] = defaultTestimonials;
   
   if (content) {
     if (Array.isArray(content.testimonials)) {
-      // Convert Json array to Testimonial array
       testimonials = content.testimonials.map((item): Testimonial => {
         if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
           return {
-            name: String(item.name || item.author || ''),
-            rating: Number(item.rating || 5),
-            text: String(item.text || item.content || ''),
-            source: String(item.source || '')
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Number(itemObj.rating || 5),
+            text: String(itemObj.text || itemObj.content || ''),
+            source: String(itemObj.source || '')
           };
         }
         return {
@@ -63,14 +60,14 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
         };
       });
     } else if (Array.isArray(content.items)) {
-      // Convert items array to Testimonial array
       testimonials = content.items.map((item): Testimonial => {
         if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
           return {
-            name: String(item.name || item.author || ''),
-            rating: Number(item.rating || 5),
-            text: String(item.text || item.content || ''),
-            source: String(item.source || '')
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Number(itemObj.rating || 5),
+            text: String(itemObj.text || itemObj.content || ''),
+            source: String(itemObj.source || '')
           };
         }
         return {
@@ -81,15 +78,15 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
         };
       });
     } else if (typeof content.testimonials === 'object' && content.testimonials !== null) {
-      // Handle case where testimonials might be an object with numeric keys
       const testimonialsObj = content.testimonials as Record<string, Json>;
       testimonials = Object.values(testimonialsObj).map((item): Testimonial => {
         if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
           return {
-            name: String(item.name || item.author || ''),
-            rating: Number(item.rating || 5),
-            text: String(item.text || item.content || ''),
-            source: String(item.source || '')
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Number(itemObj.rating || 5),
+            text: String(itemObj.text || itemObj.content || ''),
+            source: String(itemObj.source || '')
           };
         }
         return {
@@ -127,13 +124,13 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
               className="bg-white p-6 rounded-lg shadow-lg"
             >
               <div className="flex mb-4">
-                {[...Array(testimonial.rating || 5)].map((_, i) => (
+                {[...Array(testimonial.rating)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-600 mb-4">"{testimonial.text || testimonial.content}"</p>
+              <p className="text-gray-600 mb-4">"{testimonial.text}"</p>
               <div className="flex justify-between items-center">
-                <span className="font-semibold">{testimonial.name || testimonial.author}</span>
+                <span className="font-semibold">{testimonial.name}</span>
                 <span className="text-sm text-gray-500">{testimonial.source}</span>
               </div>
             </motion.div>
