@@ -239,7 +239,13 @@ export const OrderManagement = () => {
         .eq("id", orderId)
         .select(`
           *,
-          profile:profiles(full_name, email)
+          profiles:profiles(
+            id,
+            full_name,
+            email,
+            phone_number,
+            address
+          )
         `)
         .single();
 
@@ -254,11 +260,14 @@ export const OrderManagement = () => {
       // Send status update email
       try {
         const shippingAddress = validateShippingAddress(updatedOrder.shipping_address);
+        const customerName = updatedOrder.profiles?.full_name || 
+          (shippingAddress.first_name && shippingAddress.last_name 
+            ? `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() 
+            : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
+
         const emailDetails = {
-          customerEmail: updatedOrder.profile?.email || shippingAddress.email || updatedOrder.email_address,
-          customerName: updatedOrder.profile?.full_name || 
-            `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 
-            'Valued Customer',
+          customerEmail: updatedOrder.profiles?.email || shippingAddress.email || updatedOrder.email_address,
+          customerName: customerName,
           orderId: updatedOrder.id,
           orderNumber: updatedOrder.order_number,
           newStatus: newStatus
@@ -289,7 +298,17 @@ export const OrderManagement = () => {
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method || null,
-        profile: updatedOrder.profile || undefined,
+        profile: updatedOrder.profiles ? {
+          full_name: updatedOrder.profiles.full_name || 'Guest',
+          email: updatedOrder.profiles.email || shippingAddress.email || 'Anonymous Order',
+          phone_number: updatedOrder.profiles.phone_number || shippingAddress.phone,
+          address: updatedOrder.profiles.address || shippingAddress.address
+        } : {
+          full_name: customerName,
+          email: shippingAddress.email || 'Anonymous Order',
+          phone_number: shippingAddress.phone,
+          address: shippingAddress.address
+        },
         applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
       };
 
@@ -433,7 +452,9 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
+                  <p>Name: {selectedOrder.profile?.full_name || 
+                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 
+                    'Guest'}</p>
                   <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'N/A'}</p>
                   <p>Phone: {selectedOrder.profile?.phone_number || selectedOrder.shipping_address.phone || 'N/A'}</p>
                   <p>Address: {selectedOrder.profile?.address || selectedOrder.shipping_address.address || 'N/A'}</p>
