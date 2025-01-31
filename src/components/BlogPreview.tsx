@@ -41,7 +41,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           const postsWithFullImageUrls = data.map(post => ({
             ...post,
             featured_image: post.featured_image 
-              ? `${supabase.storage.from('files').getPublicUrl(`blog/${post.featured_image}`).data.publicUrl}`
+              ? `https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/files/blog/${post.featured_image}`
               : '/placeholder.svg'
           }));
           console.log('Posts with full image URLs:', postsWithFullImageUrls);
