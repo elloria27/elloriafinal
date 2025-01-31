@@ -15,14 +15,15 @@ serve(async (req) => {
   try {
     const { items, paymentMethodId } = await req.json();
     
-    console.log('Creating checkout session with payment method:', paymentMethodId);
+    console.log('Creating checkout session with items:', items);
+    console.log('Payment method ID:', paymentMethodId);
     
-    // Get payment method details from database
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
+    // Get payment method details from database
     const { data: paymentMethod, error: paymentMethodError } = await supabaseClient
       .from('payment_methods')
       .select('*')
@@ -60,7 +61,7 @@ serve(async (req) => {
         currency: 'usd',
         product_data: {
           name: item.name,
-          images: [item.image],
+          images: item.image ? [item.image] : [],
         },
         unit_amount: Math.round(item.price * 100), // Convert to cents
       },

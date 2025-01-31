@@ -17,33 +17,29 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
     try {
       setIsLoading(true);
       console.log('Initiating checkout with payment method:', paymentMethodId);
+      console.log('Cart items:', items);
       
       // Get the current session
       const { data: { session } } = await supabase.auth.getSession();
       
       // Create checkout session
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token || ''}`,
-          },
-          body: JSON.stringify({
-            items,
-            paymentMethodId,
-          }),
-        }
-      );
+      const response = await supabase.functions.invoke('create-checkout', {
+        body: {
+          items,
+          paymentMethodId,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token || ''}`,
+        },
+      });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create checkout session');
       }
       
-      if (!data.url) {
+      const { data } = response;
+      
+      if (!data?.url) {
         throw new Error('No checkout URL received');
       }
       
@@ -51,7 +47,7 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
       window.location.href = data.url;
     } catch (error: any) {
       console.error('Error initiating checkout:', error);
-      toast.error('Failed to initiate checkout. Please try again.');
+      toast.error(error.message || 'Failed to initiate checkout. Please try again.');
     } finally {
       setIsLoading(false);
     }
