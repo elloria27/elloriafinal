@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Json } from "@/integrations/supabase/types";
 
 interface StripeConfig {
   publishable_key: string;
@@ -35,8 +36,8 @@ export const PaymentMethodManagement = () => {
       
       if (data) {
         setStripeEnabled(data.is_active || false);
-        // Ensure we have a valid stripe_config object
-        const config = data.stripe_config as StripeConfig;
+        // Parse the stripe_config JSON and provide default values
+        const config = data.stripe_config as { publishable_key?: string; secret_key?: string } | null;
         setStripeConfig({
           publishable_key: config?.publishable_key || "",
           secret_key: config?.secret_key || "",
@@ -57,7 +58,7 @@ export const PaymentMethodManagement = () => {
         .upsert({
           name: 'stripe',
           is_active: stripeEnabled,
-          stripe_config: stripeConfig,
+          stripe_config: stripeConfig as Json,
           description: 'Stripe payment gateway'
         });
 
