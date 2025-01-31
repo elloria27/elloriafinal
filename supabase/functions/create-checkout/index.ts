@@ -34,18 +34,40 @@ serve(async (req) => {
       .from('payment_methods')
       .select('*')
       .eq('id', paymentMethodId)
-      .single();
+      .maybeSingle();
 
-    if (paymentMethodError || !paymentMethod?.stripe_config) {
+    if (paymentMethodError) {
       console.error('Error fetching payment method:', paymentMethodError);
-      throw new Error('Payment method not found or invalid configuration');
+      return new Response(
+        JSON.stringify({ error: 'Payment method not found' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
+    if (!paymentMethod?.stripe_config) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid payment method configuration' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     const stripeConfig = paymentMethod.stripe_config;
     console.log('Retrieved stripe config');
 
     if (!stripeConfig.secret_key) {
-      throw new Error('Stripe secret key not configured');
+      return new Response(
+        JSON.stringify({ error: 'Stripe secret key not configured' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     const stripe = new Stripe(stripeConfig.secret_key, {
@@ -63,11 +85,15 @@ serve(async (req) => {
       userId = data.user?.id;
     }
 
+    // Calculate total amount including shipping
+    const totalAmount = subtotal + (shippingCost || 0) + 
+      (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100);
+
     // Calculate discount amount if promo code exists
     let discountAmount = 0;
     if (promoCode) {
       discountAmount = promoCode.type === 'percentage' 
-        ? (subtotal * promoCode.value) / 100
+        ? (totalAmount * promoCode.value) / 100
         : promoCode.value;
     }
 
@@ -113,7 +139,9 @@ serve(async (req) => {
           quantity: 1,
         });
       }
-      if (taxes.pst > 0) {
+      
+      // Only add PST if not Manitoba
+      if (taxes.pst > 0 && taxes.region !== 'Manitoba') {
         const pstAmount = subtotal * (taxes.pst / 100);
         lineItems.push({
           price_data: {
@@ -126,6 +154,7 @@ serve(async (req) => {
           quantity: 1,
         });
       }
+      
       if (taxes.hst > 0) {
         const hstAmount = subtotal * (taxes.hst / 100);
         lineItems.push({
@@ -156,7 +185,8 @@ serve(async (req) => {
     console.log('Creating Stripe checkout session with:', {
       lineItems,
       discounts,
-      currency: 'cad'
+      currency: 'cad',
+      totalAmount
     });
 
     // Create checkout session
@@ -180,13 +210,11 @@ serve(async (req) => {
         user_id: userId,
         profile_id: userId,
         order_number: Math.random().toString(36).substr(2, 9).toUpperCase(),
-        total_amount: subtotal + shippingCost + 
-          (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100) - 
-          discountAmount,
+        total_amount: totalAmount - discountAmount,
         status: 'pending',
         items: items,
-        shipping_address: null, // Will be updated from Stripe webhook
-        billing_address: null, // Will be updated from Stripe webhook
+        shipping_address: null,
+        billing_address: null,
         stripe_session_id: session.id,
         payment_method: 'stripe',
         applied_promo_code: promoCode
@@ -194,7 +222,13 @@ serve(async (req) => {
 
     if (orderError) {
       console.error('Error creating order:', orderError);
-      throw new Error('Failed to create order record');
+      return new Response(
+        JSON.stringify({ error: 'Failed to create order record' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      );
     }
 
     return new Response(
