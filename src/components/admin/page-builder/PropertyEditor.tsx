@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -8,6 +7,7 @@ import { SustainabilityEditor } from "./editors/SustainabilityEditor";
 import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
+import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -79,6 +79,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
+    if (block.type === "competitor_comparison") {
+      return <CompetitorComparisonEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (block.type === "product_carousel") {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
     }
