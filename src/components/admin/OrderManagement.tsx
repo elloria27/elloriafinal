@@ -25,22 +25,25 @@ const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'deli
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
-    console.warn('Invalid shipping address format:', address);
-    return {
-      address: 'Unknown',
-      region: 'Unknown',
-      country: 'Unknown',
-      phone: 'Unknown'
-    };
+    throw new Error('Invalid shipping address format');
   }
   
   const typedAddress = address as Record<string, unknown>;
   
+  if (
+    typeof typedAddress.address !== 'string' ||
+    typeof typedAddress.region !== 'string' ||
+    typeof typedAddress.country !== 'string' ||
+    typeof typedAddress.phone !== 'string'
+  ) {
+    throw new Error('Missing required shipping address fields');
+  }
+
   return {
-    address: typeof typedAddress.address === 'string' ? typedAddress.address : 'Unknown',
-    region: typeof typedAddress.region === 'string' ? typedAddress.region : 'Unknown',
-    country: typeof typedAddress.country === 'string' ? typedAddress.country : 'Unknown',
-    phone: typeof typedAddress.phone === 'string' ? typedAddress.phone : 'Unknown',
+    address: typedAddress.address,
+    region: typedAddress.region,
+    country: typedAddress.country,
+    phone: typedAddress.phone,
     first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
     last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
     email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
@@ -49,8 +52,7 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
   if (!Array.isArray(items)) {
-    console.warn('Items is not an array:', items);
-    return [];
+    throw new Error('Items must be an array');
   }
 
   return items.map(item => {
@@ -62,13 +64,7 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       typeof (item as any).quantity !== 'number' ||
       typeof (item as any).price !== 'number'
     ) {
-      console.warn('Invalid order item format:', item);
-      return {
-        id: 'unknown',
-        name: 'Unknown Item',
-        quantity: 0,
-        price: 0
-      };
+      throw new Error('Invalid order item format');
     }
 
     return {
@@ -121,8 +117,6 @@ export const OrderManagement = () => {
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
-          const items = validateOrderItems(order.items);
-          
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -132,7 +126,7 @@ export const OrderManagement = () => {
             status: validateOrderStatus(order.status),
             shipping_address: shippingAddress,
             billing_address: validateShippingAddress(order.billing_address),
-            items: items,
+            items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
@@ -140,31 +134,40 @@ export const OrderManagement = () => {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || 'Anonymous Order'
             } : {
-              full_name: shippingAddress.first_name && shippingAddress.last_name ? 
-                `${shippingAddress.first_name} ${shippingAddress.last_name}` : 'Guest',
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
               email: shippingAddress.email || 'Anonymous Order'
             }
           };
           return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
+          // Instead of throwing, return a default order object with available data
           const fallbackOrder: OrderData = {
             id: order.id,
-            user_id: order.user_id,
-            profile_id: order.profile_id,
+            user_id: null,
+            profile_id: null,
             order_number: order.order_number || 'Unknown',
             total_amount: order.total_amount || 0,
             status: 'pending',
-            shipping_address: validateShippingAddress(order.shipping_address),
-            billing_address: validateShippingAddress(order.billing_address),
-            items: validateOrderItems(order.items),
+            shipping_address: {
+              address: 'Unknown',
+              region: 'Unknown',
+              country: 'Unknown',
+              phone: 'Unknown'
+            },
+            billing_address: {
+              address: 'Unknown',
+              region: 'Unknown',
+              country: 'Unknown',
+              phone: 'Unknown'
+            },
+            items: [],
             created_at: order.created_at,
-            payment_method: order.payment_method || 'Not specified',
-            stripe_session_id: order.stripe_session_id,
+            payment_method: 'Not specified',
+            stripe_session_id: null,
             profile: {
-              full_name: order.shipping_address?.first_name && order.shipping_address?.last_name ? 
-                `${order.shipping_address.first_name} ${order.shipping_address.last_name}` : 'Guest',
-              email: order.shipping_address?.email || 'Anonymous Order'
+              full_name: 'Guest',
+              email: 'Anonymous Order'
             }
           };
           return fallbackOrder;
@@ -196,6 +199,7 @@ export const OrderManagement = () => {
         return;
       }
 
+      // Find the current order to preserve payment information
       const currentOrder = orders.find(order => order.id === orderId);
       if (!currentOrder) {
         console.error("Order not found");
@@ -203,10 +207,12 @@ export const OrderManagement = () => {
         return;
       }
 
+      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ 
           status: newStatus,
+          // Preserve existing payment information
           payment_method: currentOrder.payment_method,
           stripe_session_id: currentOrder.stripe_session_id
         })
@@ -229,6 +235,7 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
+      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -245,16 +252,19 @@ export const OrderManagement = () => {
         profile: updatedOrder.profiles || undefined
       };
 
+      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
+      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
+      // Send email notification
       try {
         console.log("Attempting to send email notification");
         const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
@@ -366,9 +376,7 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.shipping_address.first_name && order.shipping_address.last_name ? 
-                  `${order.shipping_address.first_name} ${order.shipping_address.last_name}` :
-                  (order.profile?.full_name || 'Guest')}
+                {order.profile?.full_name || 'Guest'}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -423,11 +431,8 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.shipping_address.first_name && selectedOrder.shipping_address.last_name ? 
-                    `${selectedOrder.shipping_address.first_name} ${selectedOrder.shipping_address.last_name}` :
-                    (selectedOrder.profile?.full_name || 'Guest')}
-                  </p>
-                  <p>Email: {selectedOrder.shipping_address.email || selectedOrder.profile?.email || 'Anonymous Order'}</p>
+                  <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
+                  <p>Email: {selectedOrder.profile?.email || 'Anonymous Order'}</p>
                 </div>
               </div>
 
