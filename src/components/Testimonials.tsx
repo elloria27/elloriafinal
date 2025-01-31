@@ -6,7 +6,16 @@ interface TestimonialsProps {
   content?: TestimonialsContent;
 }
 
-const defaultTestimonials = [
+interface Testimonial {
+  name?: string;
+  author?: string;
+  rating?: number;
+  text?: string;
+  content?: string;
+  source?: string;
+}
+
+const defaultTestimonials: Testimonial[] = [
   {
     name: "Sarah M.",
     rating: 5,
@@ -31,7 +40,10 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
   console.log('Testimonials content:', content);
   
   // Use items from content if available, otherwise use defaultTestimonials
-  const testimonials = content?.testimonials || content?.items || defaultTestimonials;
+  const testimonialsData = content?.testimonials || content?.items || defaultTestimonials;
+  
+  // Ensure we're working with an array
+  const testimonials = Array.isArray(testimonialsData) ? testimonialsData : defaultTestimonials;
   
   console.log('Rendered testimonials:', testimonials);
 
@@ -48,7 +60,7 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
           {content?.title || "What Our Customers Say"}
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials?.map((testimonial, index) => (
+          {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
