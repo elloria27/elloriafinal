@@ -1,26 +1,26 @@
-import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { LoginPrompt } from "@/components/checkout/LoginPrompt";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { CustomerForm } from "@/components/checkout/CustomerForm";
 import { ShippingOptions } from "@/components/checkout/ShippingOptions";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
-import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 import { sendOrderEmails } from "@/utils/emailService";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
-  US_TAX_RATES,
+  US_TAX_RATES, 
+  SHIPPING_OPTIONS,
   USD_TO_CAD 
 } from "@/utils/locationData";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal, activePromoCode, clearCart, calculateDiscount } = useCart();
+  const { items, subtotal, activePromoCode, clearCart } = useCart();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [country, setCountry] = useState("");
@@ -29,10 +29,9 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [paymentMethods, setPaymentMethods] = useState<any>(null);
-  const [deliveryMethods, setDeliveryMethods] = useState<any[]>([]);
 
   useEffect(() => {
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -51,48 +50,8 @@ const Checkout = () => {
       }
     });
 
-    // Fetch payment methods configuration
-    fetchPaymentMethods();
-    // Fetch delivery methods
-    fetchDeliveryMethods();
-
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchDeliveryMethods = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('delivery_methods')
-        .select('*')
-        .eq('is_active', true)
-        .order('base_price', { ascending: true });
-
-      if (error) throw error;
-
-      console.log('Fetched delivery methods:', data);
-      setDeliveryMethods(data || []);
-    } catch (error) {
-      console.error('Error fetching delivery methods:', error);
-      toast.error('Failed to load delivery methods');
-    }
-  };
-
-  const fetchPaymentMethods = async () => {
-    const { data, error } = await supabase
-      .from('shop_settings')
-      .select('payment_methods')
-      .single();
-
-    if (error) {
-      console.error('Error fetching payment methods:', error);
-      return;
-    }
-
-    if (data) {
-      console.log('Payment methods fetched:', data.payment_methods);
-      setPaymentMethods(data.payment_methods);
-    }
-  };
 
   const fetchProfile = async (userId: string) => {
     console.log('Fetching profile for user:', userId);
@@ -143,159 +102,147 @@ const Checkout = () => {
     
     const taxRates = country === "CA" 
       ? CANADIAN_TAX_RATES[region] 
-      : US_TAX_RATES[region] || { gst: 5 }; // Default to 5% GST for Canadian regions
+      : US_TAX_RATES[region] || { pst: 0 };
     
     return {
       gst: taxRates.gst || 0,
-      pst: 0, // We're only using GST now
-      hst: 0  // We're only using GST now
+      pst: taxRates.pst || 0,
+      hst: taxRates.hst || 0
     };
   };
 
-  const shippingOptions = deliveryMethods.map(method => ({
-    id: method.id,
-    name: method.name,
-    price: method.base_price,
-    estimatedDays: method.estimated_days,
-    currency: country === "US" ? "USD" : "CAD"
-  }));
-
+  const shippingOptions = country ? SHIPPING_OPTIONS[country] : [];
   const selectedShippingOption = shippingOptions.find(opt => opt.id === selectedShipping);
 
   const taxes = calculateTaxes();
   const subtotalInCurrentCurrency = country === "US" ? subtotal / USD_TO_CAD : subtotal;
   const shippingCost = selectedShippingOption?.price || 0;
   
-  // Calculate discount only on items, not shipping
-  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotalInCurrentCurrency) : 0;
-  const subtotalAfterDiscount = Math.max(0, subtotalInCurrentCurrency - discountAmount);
-  
-  const taxAmount = subtotalAfterDiscount * (
+  const taxAmount = subtotalInCurrentCurrency * (
     (taxes.hst || 0) / 100 +
     (taxes.gst || 0) / 100 +
     (taxes.pst || 0) / 100
   );
 
-  const total = subtotalAfterDiscount + taxAmount + shippingCost;
+  const total = subtotalInCurrentCurrency + taxAmount + shippingCost;
   const currencySymbol = country === "US" ? "$" : "CAD $";
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  console.log('Starting order submission process');
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log('Starting order submission process');
 
-  if (!selectedShipping) {
-    toast.error("Please select a shipping method");
-    return;
-  }
-
-  // If Stripe is enabled and selected as the payment method, don't process the order here
-  if (paymentMethods?.stripe) {
-    return;
-  }
-  
-  setIsSubmitting(true);
-  
-  try {
-    const formData = new FormData(e.currentTarget);
-    const customerDetails = {
-      firstName: formData.get('firstName') as string,
-      lastName: formData.get('lastName') as string,
-      email: formData.get('email') as string,
-      phone: phoneNumber,
-      address: formData.get('address') as string,
-      country,
-      region
-    };
-
-    if (!customerDetails.firstName || !customerDetails.lastName || !customerDetails.email || 
-        !customerDetails.phone || !customerDetails.address || !country || !region) {
-      toast.error("Please fill in all required fields");
+    if (!selectedShipping) {
+      toast.error("Please select a shipping method");
       return;
     }
-
-    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
-    console.log('Generated order number:', orderNumber);
-
-    // Get current session
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
     
-    // Prepare order data
-    const orderData = {
-      user_id: userId || null,
-      profile_id: userId || null,
-      order_number: orderNumber,
-      total_amount: total,
-      status: 'pending',
-      items: items,
-      shipping_address: {
-        address: customerDetails.address,
-        country: customerDetails.country,
-        region: customerDetails.region,
-        phone: customerDetails.phone,
-        first_name: customerDetails.firstName,
-        last_name: customerDetails.lastName,
-        email: customerDetails.email
-      },
-      billing_address: {
-        address: customerDetails.address,
-        country: customerDetails.country,
-        region: customerDetails.region,
-        phone: customerDetails.phone,
-        first_name: customerDetails.firstName,
-        last_name: customerDetails.lastName,
-        email: customerDetails.email
-      },
-      payment_method: 'cash_on_delivery',
-      applied_promo_code: activePromoCode
-    };
+    setIsSubmitting(true);
+    
+    try {
+      const formData = new FormData(e.currentTarget);
+      const customerDetails = {
+        firstName: formData.get('firstName') as string,
+        lastName: formData.get('lastName') as string,
+        email: formData.get('email') as string,
+        phone: phoneNumber,
+        address: formData.get('address') as string,
+        country,
+        region
+      };
 
-    console.log('Saving order to database:', orderData);
+      console.log('Customer details:', customerDetails);
 
-    // Save order to Supabase
-    const { error: orderError } = await supabase
-      .from('orders')
-      .insert(orderData);
+      // Generate order number
+      const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+      console.log('Generated order number:', orderNumber);
 
-    if (orderError) {
-      console.error('Error saving order:', orderError);
-      throw new Error('Failed to save order');
-    }
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      // Prepare order data
+      const orderData = {
+        user_id: userId || null,
+        profile_id: userId || null,
+        order_number: orderNumber,
+        total_amount: total,
+        status: 'pending',
+        items: items,
+        shipping_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
+        },
+        billing_address: {
+          address: customerDetails.address,
+          country: customerDetails.country,
+          region: customerDetails.region,
+          phone: customerDetails.phone,
+          first_name: customerDetails.firstName,
+          last_name: customerDetails.lastName,
+          email: customerDetails.email
+        }
+      };
 
-    console.log('Order saved successfully');
+      console.log('Saving order to database:', orderData);
 
-    // Send order confirmation email
-    console.log('Sending order confirmation email');
-    const emailResult = await sendOrderEmails({
-      customerEmail: customerDetails.email,
-      customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-      orderId: orderNumber,
-      items,
-      total,
-      shippingAddress: {
-        address: customerDetails.address,
-        region: customerDetails.region,
-        country: customerDetails.country
+      // Save order to Supabase
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert(orderData);
+
+      if (orderError) {
+        console.error('Error saving order:', orderError);
+        throw new Error('Failed to save order');
       }
-    });
 
-    if (emailResult.error) {
-      console.error('Error sending email:', emailResult.error);
-      toast.error('Order placed but confirmation email failed to send');
-    } else {
-      console.log('Email sent successfully');
+      console.log('Order saved successfully');
+
+      // Send order confirmation email
+      console.log('Sending order confirmation email');
+      const emailResult = await sendOrderEmails({
+        customerEmail: customerDetails.email,
+        customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+        orderId: orderNumber,
+        items,
+        total,
+        shippingAddress: {
+          address: customerDetails.address,
+          region: customerDetails.region,
+          country: customerDetails.country
+        }
+      });
+
+      if (emailResult.error) {
+        console.error('Error sending email:', emailResult.error);
+        // Don't throw error here, continue with order success
+        toast.error('Order placed but confirmation email failed to send');
+      } else {
+        console.log('Email sent successfully');
+      }
+
+      // Store order details and redirect
+      localStorage.setItem('lastOrder', JSON.stringify({
+        orderNumber,
+        customerDetails,
+        items,
+        total,
+        shipping: selectedShippingOption
+      }));
+
+      clearCart();
+      navigate("/order-success");
+    } catch (error: any) {
+      console.error('Error processing order:', error);
+      toast.error(error.message || "There was an error processing your order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    clearCart();
-    navigate("/order-success");
-
-  } catch (error: any) {
-    console.error('Error processing order:', error);
-    toast.error(error.message || "There was an error processing your order. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   if (items.length === 0) {
     return (
@@ -337,32 +284,22 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 onFormChange={updateProfile}
               />
 
-              {country && shippingOptions.length > 0 && (
+              {country && (
                 <ShippingOptions
-                  shippingOptions={shippingOptions}
+                  shippingOptions={SHIPPING_OPTIONS[country] || []}
                   selectedShipping={selectedShipping}
                   setSelectedShipping={setSelectedShipping}
-                  currencySymbol={currencySymbol}
+                  currencySymbol={country === "US" ? "$" : "CAD $"}
                 />
               )}
 
-              {paymentMethods?.stripe ? (
-                <StripeCheckout
-                  total={total}
-                  subtotal={subtotalAfterDiscount}
-                  taxes={taxes}
-                  shippingAddress={{ country, region }}
-                  shippingCost={shippingCost}
-                />
-              ) : (
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isSubmitting || !country || !region || !selectedShipping}
-                >
-                  {isSubmitting ? "Processing..." : "Place Order"}
-                </Button>
-              )}
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting || !country || !region || !selectedShipping}
+              >
+                {isSubmitting ? "Processing..." : "Place Order"}
+              </Button>
             </form>
           </motion.div>
           

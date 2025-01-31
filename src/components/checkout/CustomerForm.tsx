@@ -57,9 +57,6 @@ export const CustomerForm = ({
 }: CustomerFormProps) => {
   const [userEmail, setUserEmail] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [address, setAddress] = useState(profile?.address || "");
 
   // Pre-fill form with profile data when available
   useEffect(() => {
@@ -77,14 +74,6 @@ export const CustomerForm = ({
         console.log("Setting phone number:", profile.phone_number);
         setPhoneNumber(profile.phone_number);
       }
-      if (profile.full_name) {
-        const [first, ...rest] = profile.full_name.split(' ');
-        setFirstName(first);
-        setLastName(rest.join(' '));
-      }
-      if (profile.address) {
-        setAddress(profile.address);
-      }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
 
@@ -101,24 +90,14 @@ export const CustomerForm = ({
     getSession();
   }, []);
 
+  // Split full name into first and last name
+  const [firstName, lastName] = profile?.full_name?.split(' ') || ['', ''];
+
   const handleInputChange = (field: string, value: string) => {
     console.log(`Handling input change for ${field}:`, value);
     
     if (onFormChange) {
       onFormChange(field, value);
-    }
-
-    // Update local state
-    switch (field) {
-      case 'firstName':
-        setFirstName(value);
-        break;
-      case 'lastName':
-        setLastName(value);
-        break;
-      case 'address':
-        setAddress(value);
-        break;
     }
   };
 
@@ -130,8 +109,12 @@ export const CustomerForm = ({
           <Input 
             id="firstName" 
             name="firstName" 
-            value={firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            defaultValue={firstName}
+            onChange={(e) => {
+              const newFirstName = e.target.value;
+              const newFullName = `${newFirstName} ${lastName}`.trim();
+              handleInputChange('full_name', newFullName);
+            }}
             required 
           />
         </div>
@@ -140,8 +123,12 @@ export const CustomerForm = ({
           <Input 
             id="lastName" 
             name="lastName" 
-            value={lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            defaultValue={lastName}
+            onChange={(e) => {
+              const newLastName = e.target.value;
+              const newFullName = `${firstName} ${newLastName}`.trim();
+              handleInputChange('full_name', newFullName);
+            }}
             required 
           />
         </div>
@@ -233,7 +220,7 @@ export const CustomerForm = ({
         <Input 
           id="address" 
           name="address" 
-          value={address}
+          defaultValue={profile?.address || ''}
           onChange={(e) => handleInputChange('address', e.target.value)}
           required 
         />

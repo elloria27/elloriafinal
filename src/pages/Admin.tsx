@@ -10,8 +10,6 @@ import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
-import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodManagement";
-import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -127,10 +125,6 @@ const Admin = () => {
         return <SiteSettings />;
       case "promo-codes":
         return <PromoCodeManagement />;
-      case "payment-methods":
-        return <PaymentMethodManagement />;
-      case "delivery-methods":
-        return <DeliveryMethodManagement />;
       default:
         return <Dashboard />;
     }
