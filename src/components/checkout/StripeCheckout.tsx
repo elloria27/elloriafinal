@@ -47,7 +47,7 @@ export const StripeCheckout = ({
         shippingAddress
       });
       
-      // Get the current session
+      // Get the current session if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       
       // Create checkout session
@@ -62,12 +62,16 @@ export const StripeCheckout = ({
           shippingAddress,
           billingAddress: shippingAddress // Using shipping address as billing address
         },
-        headers: {
-          Authorization: `Bearer ${session?.access_token || ''}`,
-        },
+        // Only include auth header if user is authenticated
+        ...(session?.access_token ? {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        } : {})
       });
 
       if (response.error) {
+        console.error('Checkout error:', response.error);
         throw new Error(response.error.message || 'Failed to create checkout session');
       }
       
