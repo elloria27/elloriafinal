@@ -38,7 +38,7 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     throw new Error('Invalid shipping address format');
   }
   
-  const addressData = address as AddressJson;
+  const addressData = address as Record<string, unknown>;
   
   if (
     typeof addressData.address !== 'string' ||
