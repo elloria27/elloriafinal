@@ -515,11 +515,27 @@ export const OrderManagement = () => {
                       </TableRow>
                     )}
                     <TableRow>
+                      <TableCell colSpan={3} className="text-right">
+                        Shipping Cost:
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(selectedOrder.shipping_cost)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right">
+                        GST:
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(selectedOrder.gst)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
                       <TableCell colSpan={3} className="text-right font-bold">
                         Total:
                       </TableCell>
                       <TableCell className="font-bold">
-                        {formatCurrency(selectedOrder.total_amount + selectedOrder.shipping_cost)}
+                        {formatCurrency(selectedOrder.total_amount + selectedOrder.shipping_cost + selectedOrder.gst)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
