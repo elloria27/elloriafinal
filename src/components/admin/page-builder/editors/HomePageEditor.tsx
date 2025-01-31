@@ -17,6 +17,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [currentField, setCurrentField] = useState<string>("");
 
   const handleChange = (key: string, value: any) => {
+    console.log('Handling change for', key, 'with value:', value);
     const updatedContent = { 
       ...block.content, 
       [key]: value 
@@ -81,56 +82,31 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={heroContent.title || ""}
-              onChange={(e) => {
-                const updatedContent: HeroContent = {
-                  ...heroContent,
-                  title: e.target.value
-                };
-                onUpdate(block.id, updatedContent);
-              }}
+              onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
+          
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
               value={heroContent.subtitle || ""}
-              onChange={(e) => {
-                const updatedContent: HeroContent = {
-                  ...heroContent,
-                  subtitle: e.target.value
-                };
-                onUpdate(block.id, updatedContent);
-              }}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </div>
           
-          {/* Shop Now Button Settings */}
           <div className="space-y-2">
             <Label>Shop Now Button Text</Label>
             <Input
               value={heroContent.shopNowText || "Shop Now"}
-              onChange={(e) => {
-                const updatedContent: HeroContent = {
-                  ...heroContent,
-                  shopNowText: e.target.value
-                };
-                onUpdate(block.id, updatedContent);
-              }}
+              onChange={(e) => handleChange("shopNowText", e.target.value)}
             />
           </div>
           
-          {/* Learn More Button Settings */}
           <div className="space-y-2">
             <Label>Learn More Button Text</Label>
             <Input
               value={heroContent.learnMoreText || "Learn More"}
-              onChange={(e) => {
-                const updatedContent: HeroContent = {
-                  ...heroContent,
-                  learnMoreText: e.target.value
-                };
-                onUpdate(block.id, updatedContent);
-              }}
+              onChange={(e) => handleChange("learnMoreText", e.target.value)}
             />
           </div>
 
