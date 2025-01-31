@@ -46,10 +46,7 @@ export const StripeCheckout = ({
         subtotal,
         shippingAddress
       });
-      
-      // Get the current session if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      
+
       // Create checkout session
       const response = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -60,14 +57,8 @@ export const StripeCheckout = ({
           promoCode: activePromoCode,
           subtotal,
           shippingAddress,
-          billingAddress: shippingAddress // Using shipping address as billing address
-        },
-        // Only include auth header if user is authenticated
-        ...(session?.access_token ? {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        } : {})
+          billingAddress: shippingAddress
+        }
       });
 
       if (response.error) {
