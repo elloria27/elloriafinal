@@ -25,7 +25,7 @@ serve(async (req) => {
 
     const { data: paymentMethod, error: paymentMethodError } = await supabaseClient
       .from('payment_methods')
-      .select('stripe_config')
+      .select('*')
       .eq('id', paymentMethodId)
       .single();
 
@@ -34,9 +34,14 @@ serve(async (req) => {
       throw new Error('Payment method not found or invalid configuration');
     }
 
-    console.log('Retrieved stripe config:', paymentMethod.stripe_config);
+    const stripeConfig = paymentMethod.stripe_config;
+    console.log('Retrieved stripe config:', stripeConfig);
 
-    const stripe = new Stripe(paymentMethod.stripe_config.secret_key, {
+    if (!stripeConfig.secret_key) {
+      throw new Error('Stripe secret key not configured');
+    }
+
+    const stripe = new Stripe(stripeConfig.secret_key, {
       apiVersion: '2023-10-16',
     });
 

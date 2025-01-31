@@ -49,7 +49,7 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
       
       console.log('Redirecting to Stripe checkout:', data.url);
       window.location.href = data.url;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error initiating checkout:', error);
       toast.error('Failed to initiate checkout. Please try again.');
     } finally {
