@@ -13,7 +13,6 @@ serve(async (req) => {
   console.log('Request method:', req.method);
   console.log('Request headers:', Object.fromEntries(req.headers.entries()));
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request');
     return new Response(null, { 
@@ -37,7 +36,6 @@ serve(async (req) => {
       billingAddress
     } = requestBody;
 
-    // Validate required fields
     if (!items?.length || !paymentMethodId || !shippingAddress) {
       console.error('Missing required fields:', { 
         hasItems: !!items?.length,
@@ -53,7 +51,7 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -64,6 +62,56 @@ serve(async (req) => {
         },
       }
     );
+
+    // Get session to check if user is authenticated
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    let profileId = null;
+
+    if (authHeader) {
+      // For authenticated users, get their user ID from the session
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      if (user) {
+        userId = user.id;
+        profileId = user.id; // Since profile ID is same as user ID
+      }
+    }
+
+    if (!userId) {
+      // For guest users, create a temporary profile using their shipping information
+      console.log('Creating temporary profile for guest user');
+      const tempProfileData = {
+        id: crypto.randomUUID(), // Generate a unique ID
+        full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+        email: shippingAddress.email,
+        phone_number: shippingAddress.phone,
+        address: shippingAddress.address,
+        country: shippingAddress.country,
+        region: shippingAddress.region
+      };
+
+      const { data: tempProfile, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .insert(tempProfileData)
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Error creating temporary profile:', profileError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create temporary profile' }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500 
+          }
+        );
+      }
+
+      userId = tempProfile.id;
+      profileId = tempProfile.id;
+      console.log('Created temporary profile:', { userId, profileId });
+    }
 
     // Get payment method details from database
     console.log('Fetching payment method:', paymentMethodId);
@@ -220,7 +268,7 @@ serve(async (req) => {
 
     console.log('Checkout session created:', session.id);
 
-    // Create order record
+    // Create order record with the temporary or authenticated user ID
     const orderData = {
       order_number: orderNumber,
       total_amount: totalAmount - discountAmount,
@@ -230,7 +278,9 @@ serve(async (req) => {
       billing_address: billingAddress || shippingAddress,
       stripe_session_id: session.id,
       payment_method: 'stripe',
-      applied_promo_code: promoCode
+      applied_promo_code: promoCode,
+      user_id: userId,
+      profile_id: profileId
     };
 
     console.log('Creating order record:', { orderNumber, totalAmount: orderData.total_amount });
