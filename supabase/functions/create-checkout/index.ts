@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,10 +34,17 @@ serve(async (req) => {
       subtotal,
       shippingAddress
     });
-    
+
+    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
     );
 
     // Get auth user if available, but don't require it
@@ -44,7 +52,7 @@ serve(async (req) => {
     let userId = null;
     const authHeader = req.headers.get('Authorization');
     
-    if (authHeader) {
+    if (authHeader && authHeader !== 'null') {
       const token = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabaseClient.auth.getUser(token);
       if (user) {
