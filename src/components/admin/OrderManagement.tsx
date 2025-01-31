@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
+import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -75,6 +75,29 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
   });
 };
 
+const validateAppliedPromoCode = (promoCode: unknown): AppliedPromoCode | null => {
+  if (!promoCode || typeof promoCode !== 'object') {
+    return null;
+  }
+
+  const typedPromoCode = promoCode as Record<string, unknown>;
+
+  if (
+    typeof typedPromoCode.code !== 'string' ||
+    !['percentage', 'fixed_amount'].includes(typedPromoCode.type as string) ||
+    typeof typedPromoCode.value !== 'number'
+  ) {
+    console.error('Invalid promo code format:', promoCode);
+    return null;
+  }
+
+  return {
+    code: typedPromoCode.code,
+    type: typedPromoCode.type as 'percentage' | 'fixed_amount',
+    value: typedPromoCode.value
+  };
+};
+
 const validateOrderStatus = (status: string): OrderStatus => {
   if (!ORDER_STATUSES.includes(status as OrderStatus)) {
     throw new Error(`Invalid order status: ${status}`);
@@ -127,7 +150,7 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            payment_method: order.payment_method,
+            payment_method: order.payment_method || null,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
@@ -139,7 +162,7 @@ export const OrderManagement = () => {
               phone_number: shippingAddress.phone,
               address: shippingAddress.address
             },
-            applied_promo_code: order.applied_promo_code || null
+            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code)
           };
           return validatedOrder;
         } catch (error) {
@@ -228,9 +251,9 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
-        payment_method: updatedOrder.payment_method,
+        payment_method: updatedOrder.payment_method || null,
         profile: updatedOrder.profile || undefined,
-        applied_promo_code: updatedOrder.applied_promo_code || null
+        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
       };
 
       setOrders(prevOrders => 
@@ -428,4 +451,3 @@ export const OrderManagement = () => {
       </Dialog>
     </div>
   );
-};
