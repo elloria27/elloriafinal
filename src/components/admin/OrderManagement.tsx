@@ -98,7 +98,9 @@ export const OrderManagement = () => {
           profiles:profiles!left (
             id,
             full_name,
-            email
+            email,
+            phone_number,
+            address
           )
         `)
         .order('created_at', { ascending: false });
@@ -125,12 +127,16 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
-            profile: order.user_id ? {
-              full_name: order.profiles?.full_name || 'Guest',
-              email: order.profiles?.email || 'Anonymous Order'
+            profile: order.profiles ? {
+              full_name: order.profiles.full_name || 'Guest',
+              email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
+              phone_number: order.profiles.phone_number || shippingAddress.phone,
+              address: order.profiles.address || shippingAddress.address
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim(),
-              email: shippingAddress.email || 'Anonymous Order'
+              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
+              email: shippingAddress.email || 'Anonymous Order',
+              phone_number: shippingAddress.phone,
+              address: shippingAddress.address
             }
           };
           return validatedOrder;
@@ -271,10 +277,6 @@ export const OrderManagement = () => {
     }).format(amount);
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center p-4">Loading orders...</div>;
-  }
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Order Management</h2>
@@ -295,11 +297,7 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.user_id ? (
-                  order.profile?.full_name || 'N/A'
-                ) : (
-                  `${order.shipping_address.first_name || ''} ${order.shipping_address.last_name || ''}`.trim() || 'Guest'
-                )}
+                {order.profile?.full_name || 'Guest'}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -352,16 +350,10 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.full_name || 'N/A'
-                  ) : (
-                    `${selectedOrder.shipping_address.first_name || ''} ${selectedOrder.shipping_address.last_name || ''}`.trim() || 'Guest'
-                  )}</p>
-                  <p>Email: {selectedOrder.user_id ? (
-                    selectedOrder.profile?.email || 'N/A'
-                  ) : (
-                    selectedOrder.shipping_address.email || 'N/A'
-                  )}</p>
+                  <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
+                  <p>Email: {selectedOrder.profile?.email || 'N/A'}</p>
+                  <p>Phone: {selectedOrder.profile?.phone_number || selectedOrder.shipping_address.phone || 'N/A'}</p>
+                  <p>Address: {selectedOrder.profile?.address || selectedOrder.shipping_address.address || 'N/A'}</p>
                 </div>
               </div>
 
