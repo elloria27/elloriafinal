@@ -354,6 +354,20 @@ export const OrderManagement = () => {
     }).format(amount);
   };
 
+  const calculateTotal = (order: OrderData) => {
+    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const discountAmount = order.applied_promo_code
+      ? order.applied_promo_code.type === 'percentage'
+        ? (subtotal * order.applied_promo_code.value / 100)
+        : order.applied_promo_code.value
+      : 0;
+    
+    const shippingCost = order.shipping_cost || 0;
+    const gst = order.gst || 0;
+    
+    return subtotal - discountAmount + shippingCost + gst;
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Order Management</h2>
@@ -535,7 +549,7 @@ export const OrderManagement = () => {
                         Total:
                       </TableCell>
                       <TableCell className="font-bold">
-                        {formatCurrency(selectedOrder.total_amount)}
+                        {formatCurrency(calculateTotal(selectedOrder))}
                       </TableCell>
                     </TableRow>
                   </TableBody>
