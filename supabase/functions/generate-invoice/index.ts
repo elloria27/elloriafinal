@@ -13,30 +13,49 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Starting invoice generation...");
     const { orderId } = await req.json();
+    console.log("Order ID received:", orderId);
+
+    if (!orderId) {
+      throw new Error('Order ID is required');
+    }
 
     // Fetch order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .select(`
         *,
-        profiles:profiles(*)
+        profiles:profiles(
+          full_name,
+          email,
+          phone_number,
+          address
+        )
       `)
       .eq('id', orderId)
       .single();
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.error("Error fetching order:", orderError);
+      throw orderError;
+    }
+
+    if (!order) {
+      console.error("Order not found");
+      throw new Error('Order not found');
+    }
+
+    console.log("Order data retrieved:", order);
 
     // Create PDF
     const doc = new jsPDF();
-    
-    // Add logo
-    // doc.addImage(logoBase64, 'PNG', 10, 10, 50, 50);
     
     // Company Info
     doc.setFontSize(10);
@@ -52,11 +71,17 @@ serve(async (req) => {
     doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 10, 70);
     
     // Customer Info
+    const shippingAddress = order.shipping_address;
+    const customerName = order.profiles?.full_name || 
+      (shippingAddress.first_name && shippingAddress.last_name 
+        ? `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() 
+        : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
+
     doc.text('Bill To:', 10, 85);
-    doc.text(`${order.shipping_address.first_name} ${order.shipping_address.last_name}`, 10, 90);
-    doc.text(order.shipping_address.address, 10, 95);
-    doc.text(`${order.shipping_address.region}, ${order.shipping_address.country}`, 10, 100);
-    doc.text(order.shipping_address.email, 10, 105);
+    doc.text(customerName, 10, 90);
+    doc.text(shippingAddress.address, 10, 95);
+    doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 10, 100);
+    doc.text(order.profiles?.email || shippingAddress.email || order.email_address || 'N/A', 10, 105);
     
     // Items Table
     let y = 120;
@@ -66,36 +91,35 @@ serve(async (req) => {
     doc.text('Total', 160, y);
     
     y += 10;
+    let subtotal = 0;
     order.items.forEach((item: any) => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      
       doc.text(item.name, 10, y);
       doc.text(item.quantity.toString(), 100, y);
       doc.text(`$${item.price.toFixed(2)}`, 130, y);
-      doc.text(`$${(item.price * item.quantity).toFixed(2)}`, 160, y);
+      doc.text(`$${itemTotal.toFixed(2)}`, 160, y);
       y += 10;
     });
     
     y += 10;
     // Subtotal
     doc.text('Subtotal:', 130, y);
-    doc.text(`$${order.total_amount.toFixed(2)}`, 160, y);
+    doc.text(`$${subtotal.toFixed(2)}`, 160, y);
     
     // Promo code if used
+    let discount = 0;
     if (order.applied_promo_code) {
       y += 10;
+      if (order.applied_promo_code.type === 'percentage') {
+        discount = subtotal * (order.applied_promo_code.value / 100);
+      } else {
+        discount = order.applied_promo_code.value;
+      }
       doc.text(`Discount (${order.applied_promo_code.code}):`, 130, y);
-      doc.text(`-$${order.applied_promo_code.discount_amount.toFixed(2)}`, 160, y);
+      doc.text(`-$${discount.toFixed(2)}`, 160, y);
     }
-    
-    // GST
-    const gstAmount = order.total_amount * 0.05; // 5% GST
-    y += 10;
-    doc.text('GST (5%):', 130, y);
-    doc.text(`$${gstAmount.toFixed(2)}`, 160, y);
-    
-    // Shipping
-    y += 10;
-    doc.text('Shipping:', 130, y);
-    doc.text(`$${order.shipping_cost || '0.00'}`, 160, y);
     
     // Total
     y += 15;
@@ -106,10 +130,12 @@ serve(async (req) => {
     // Payment Method
     y += 20;
     doc.setFontSize(10);
-    doc.text(`Payment Method: ${order.payment_method === 'stripe' ? 'Credit Card (Stripe)' : order.payment_method}`, 10, y);
+    doc.text(`Payment Method: ${order.payment_method === 'stripe' ? 'Credit Card (Stripe)' : order.payment_method || 'Standard'}`, 10, y);
     
     // Convert to base64
+    console.log("Generating PDF output...");
     const pdfOutput = doc.output('datauristring');
+    console.log("PDF generated successfully");
     
     return new Response(
       JSON.stringify({ pdf: pdfOutput }),

@@ -195,15 +195,17 @@ export const OrderManagement = () => {
 
       if (error) {
         console.error("Invoice generation error:", error);
-        throw error;
+        toast.error("Failed to generate invoice");
+        return;
       }
 
       if (!data || !data.pdf) {
         console.error("No PDF data received");
-        throw new Error("Failed to generate invoice");
+        toast.error("Failed to generate invoice");
+        return;
       }
 
-      console.log("Received PDF data:", data);
+      console.log("Received PDF data, initiating download...");
 
       // Create a temporary link and trigger download
       const link = document.createElement('a');
@@ -286,6 +288,7 @@ export const OrderManagement = () => {
         // Don't throw, just log the error
       }
 
+      const validatedShippingAddress = validateShippingAddress(updatedOrder.shipping_address);
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -293,21 +296,21 @@ export const OrderManagement = () => {
         order_number: updatedOrder.order_number,
         total_amount: updatedOrder.total_amount,
         status: validateOrderStatus(updatedOrder.status),
-        shipping_address: validateShippingAddress(updatedOrder.shipping_address),
+        shipping_address: validatedShippingAddress,
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method || null,
         profile: updatedOrder.profiles ? {
           full_name: updatedOrder.profiles.full_name || 'Guest',
-          email: updatedOrder.profiles.email || shippingAddress.email || 'Anonymous Order',
-          phone_number: updatedOrder.profiles.phone_number || shippingAddress.phone,
-          address: updatedOrder.profiles.address || shippingAddress.address
+          email: updatedOrder.profiles.email || validatedShippingAddress.email || 'Anonymous Order',
+          phone_number: updatedOrder.profiles.phone_number || validatedShippingAddress.phone,
+          address: updatedOrder.profiles.address || validatedShippingAddress.address
         } : {
-          full_name: customerName,
-          email: shippingAddress.email || 'Anonymous Order',
-          phone_number: shippingAddress.phone,
-          address: shippingAddress.address
+          full_name: `${validatedShippingAddress.first_name || ''} ${validatedShippingAddress.last_name || ''}`.trim() || 'Guest',
+          email: validatedShippingAddress.email || 'Anonymous Order',
+          phone_number: validatedShippingAddress.phone,
+          address: validatedShippingAddress.address
         },
         applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
       };
