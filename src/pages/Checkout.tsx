@@ -14,7 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   CANADIAN_TAX_RATES, 
   US_TAX_RATES, 
-  SHIPPING_OPTIONS,
   USD_TO_CAD 
 } from "@/utils/locationData";
 import { StripeCheckout } from "@/components/checkout/StripeCheckout";
@@ -65,7 +64,31 @@ const Checkout = () => {
     };
 
     initializeCheckout();
+    fetchPaymentMethods();
   }, []);
+
+  // Fetch payment methods
+  const fetchPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error fetching payment methods:', error);
+        throw error;
+      }
+
+      if (data) {
+        console.log('Checkout - Payment methods loaded:', data);
+        setPaymentMethods(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch payment methods:', error);
+      toast.error('Failed to load payment methods');
+    }
+  };
 
   // Handle form field changes
   const handleFormChange = (field: string, value: string) => {
@@ -83,6 +106,11 @@ const Checkout = () => {
       return updated;
     });
   };
+
+  // Find selected shipping option based on selectedShipping ID
+  const selectedShippingOption = useMemo(() => {
+    return availableShippingMethods.find(method => method.id === selectedShipping);
+  }, [selectedShipping, availableShippingMethods]);
 
   // Fetch shipping methods when country/region changes
   useEffect(() => {
@@ -149,11 +177,6 @@ const Checkout = () => {
       region: region
     };
   };
-
-  // Find selected shipping option based on selectedShipping ID
-  const selectedShippingOption = useMemo(() => {
-    return availableShippingMethods.find(method => method.id === selectedShipping);
-  }, [selectedShipping, availableShippingMethods]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
