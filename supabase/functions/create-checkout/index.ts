@@ -52,13 +52,21 @@ serve(async (req) => {
     let userId = null;
     const authHeader = req.headers.get('Authorization');
     
-    if (authHeader && authHeader !== 'null') {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabaseClient.auth.getUser(token);
-      if (user) {
-        userEmail = user.email;
-        userId = user.id;
+    if (authHeader && authHeader !== 'null' && authHeader !== 'undefined') {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabaseClient.auth.getUser(token);
+        if (user) {
+          userEmail = user.email;
+          userId = user.id;
+          console.log('Authenticated user:', { userId, userEmail });
+        }
+      } catch (error) {
+        console.error('Error getting user:', error);
+        // Continue without user authentication
       }
+    } else {
+      console.log('Processing as guest checkout');
     }
 
     // Get payment method details from database
@@ -206,7 +214,8 @@ serve(async (req) => {
       lineItems,
       discounts,
       currency: 'cad',
-      totalAmount
+      totalAmount,
+      customerEmail: userEmail || shippingAddress.email
     });
 
     // Create checkout session
