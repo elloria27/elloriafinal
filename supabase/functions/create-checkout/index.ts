@@ -5,12 +5,6 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-const validateEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
 };
 
 serve(async (req) => {
@@ -65,17 +59,6 @@ serve(async (req) => {
     const email = shippingAddress.email.trim();
     console.log('Create-checkout - Processing checkout for email:', email);
 
-    if (!validateEmail(email)) {
-      console.error('Create-checkout - Invalid email format:', email);
-      return new Response(
-        JSON.stringify({ error: 'Please enter a valid email address' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
-    }
-
     // Initialize Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -110,32 +93,37 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Calculate total amount
-    const totalAmount = subtotal + (shippingCost || 0) + 
-      (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100);
-
-    // Calculate discount if promo code exists
+    // Calculate discount if promo code exists (only on items, not shipping or taxes)
     let discountAmount = 0;
     if (promoCode) {
       discountAmount = promoCode.type === 'percentage' 
-        ? (totalAmount * promoCode.value) / 100
+        ? (subtotal * promoCode.value) / 100
         : promoCode.value;
     }
 
-    // Create line items for Stripe
-    const lineItems = items.map((item: any) => ({
-      price_data: {
-        currency: 'cad',
-        product_data: {
-          name: item.name,
-          images: item.image ? [item.image] : [],
-        },
-        unit_amount: Math.round(item.price * 100),
-      },
-      quantity: item.quantity,
-    }));
+    // Create line items for products with discount applied
+    const lineItems = items.map((item: any) => {
+      const itemTotal = item.price * item.quantity;
+      const itemDiscount = promoCode 
+        ? (promoCode.type === 'percentage' 
+          ? (itemTotal * promoCode.value) / 100 
+          : (itemTotal / subtotal) * promoCode.value)
+        : 0;
 
-    // Add shipping as a line item if applicable
+      return {
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: item.name,
+            images: item.image ? [item.image] : [],
+          },
+          unit_amount: Math.round((item.price - (itemDiscount / item.quantity)) * 100),
+        },
+        quantity: item.quantity,
+      };
+    });
+
+    // Add shipping as a separate line item (no discount)
     if (shippingCost > 0) {
       lineItems.push({
         price_data: {
@@ -149,7 +137,7 @@ serve(async (req) => {
       });
     }
 
-    // Add tax line items
+    // Add tax line items (based on original subtotal, no discount on taxes)
     if (taxes) {
       if (taxes.gst > 0) {
         lineItems.push({
@@ -164,7 +152,8 @@ serve(async (req) => {
         });
       }
       
-      if (taxes.pst > 0) {
+      // Only add PST if not Manitoba
+      if (taxes.pst > 0 && shippingAddress.region !== "Manitoba") {
         lineItems.push({
           price_data: {
             currency: 'cad',
@@ -191,18 +180,6 @@ serve(async (req) => {
       }
     }
 
-    // Create Stripe coupon for promo code if applicable
-    let discounts = [];
-    if (promoCode && discountAmount > 0) {
-      const coupon = await stripe.coupons.create({
-        amount_off: Math.round(discountAmount * 100),
-        currency: 'cad',
-        name: `Discount (${promoCode.code})`,
-      });
-      
-      discounts.push({ coupon: coupon.id });
-    }
-
     // Generate order number
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
@@ -216,7 +193,6 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: email,
-      discounts: discounts,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
@@ -225,7 +201,8 @@ serve(async (req) => {
     // Create order record
     const orderData = {
       order_number: orderNumber,
-      total_amount: totalAmount - discountAmount,
+      total_amount: subtotal - discountAmount + shippingCost + 
+        (subtotal * ((taxes?.gst || 0) + (shippingAddress.region !== "Manitoba" ? (taxes?.pst || 0) : 0) + (taxes?.hst || 0)) / 100),
       status: 'pending',
       items: items,
       shipping_address: shippingAddress,

@@ -127,6 +127,7 @@ export const OrderManagement = () => {
             billing_address: validateShippingAddress(order.billing_address),
             items: validateOrderItems(order.items),
             created_at: order.created_at,
+            payment_method: order.payment_method,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
@@ -204,6 +205,7 @@ export const OrderManagement = () => {
         billing_address: validateShippingAddress(updatedOrder.billing_address),
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
+        payment_method: updatedOrder.payment_method,
         profile: updatedOrder.profile || undefined
       };
 
@@ -288,6 +290,7 @@ export const OrderManagement = () => {
             <TableHead>Customer</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Payment Method</TableHead>
             <TableHead>Total</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -312,6 +315,15 @@ export const OrderManagement = () => {
                     </option>
                   ))}
                 </select>
+              </TableCell>
+              <TableCell>
+                {order.payment_method === 'stripe' ? (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    Stripe
+                  </span>
+                ) : (
+                  order.payment_method || 'Standard'
+                )}
               </TableCell>
               <TableCell>{formatCurrency(order.total_amount)}</TableCell>
               <TableCell>
@@ -346,6 +358,7 @@ export const OrderManagement = () => {
                   <p>Order Number: {selectedOrder.order_number}</p>
                   <p>Date: {formatDate(selectedOrder.created_at)}</p>
                   <p>Status: {selectedOrder.status}</p>
+                  <p>Payment Method: {selectedOrder.payment_method === 'stripe' ? 'Stripe' : 'Standard'}</p>
                   <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
                 </div>
                 <div>
