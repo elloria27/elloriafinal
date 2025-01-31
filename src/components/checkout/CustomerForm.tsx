@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CustomerFormProps {
   country: string;
@@ -17,6 +18,7 @@ interface CustomerFormProps {
     address?: string | null;
     country?: string | null;
     region?: string | null;
+    email?: string | null;
   } | null;
   onFormChange?: (field: string, value: string) => void;
 }
@@ -57,6 +59,7 @@ export const CustomerForm = ({
 }: CustomerFormProps) => {
   const [userEmail, setUserEmail] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [emailError, setEmailError] = useState<string>("");
 
   // Pre-fill form with profile data when available
   useEffect(() => {
@@ -73,6 +76,10 @@ export const CustomerForm = ({
       if (profile.phone_number) {
         console.log("Setting phone number:", profile.phone_number);
         setPhoneNumber(profile.phone_number);
+      }
+      if (profile.email) {
+        console.log("Setting email:", profile.email);
+        setUserEmail(profile.email);
       }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
@@ -102,7 +109,24 @@ export const CustomerForm = ({
   };
 
   const validateEmail = (email: string) => {
-    return email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError("Email is required");
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const handleEmailChange = (email: string) => {
+    setUserEmail(email);
+    if (validateEmail(email)) {
+      handleInputChange('email', email);
+    }
   };
 
   return (
@@ -144,19 +168,15 @@ export const CustomerForm = ({
           id="email" 
           name="email" 
           type="email" 
-          value={isAuthenticated ? userEmail : undefined}
-          onChange={(e) => {
-            if (!isAuthenticated) {
-              const email = e.target.value;
-              setUserEmail(email);
-              if (validateEmail(email)) {
-                handleInputChange('email', email);
-              }
-            }
-          }}
+          value={userEmail}
+          onChange={(e) => handleEmailChange(e.target.value)}
           readOnly={isAuthenticated}
           required 
+          className={emailError ? "border-red-500" : ""}
         />
+        {emailError && (
+          <p className="text-sm text-red-500 mt-1">{emailError}</p>
+        )}
       </div>
 
       <div className="space-y-2">

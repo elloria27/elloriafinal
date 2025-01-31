@@ -8,6 +8,11 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+const validateEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 serve(async (req) => {
   console.log('Received checkout request');
 
@@ -44,7 +49,7 @@ serve(async (req) => {
     }
 
     // Validate email
-    if (!shippingAddress.email || !shippingAddress.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!shippingAddress.email || !validateEmail(shippingAddress.email)) {
       console.error('Invalid email address:', shippingAddress.email);
       return new Response(
         JSON.stringify({ error: 'Invalid email address provided' }),
