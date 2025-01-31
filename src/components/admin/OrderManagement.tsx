@@ -359,6 +359,19 @@ export const OrderManagement = () => {
     );
   };
 
+  const getCustomerName = (order: OrderData) => {
+    if (order.profile?.full_name) {
+      return order.profile.full_name;
+    }
+    
+    // Get name from shipping address if available
+    const firstName = order.shipping_address.first_name || '';
+    const lastName = order.shipping_address.last_name || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    return fullName || 'Guest';
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
@@ -384,7 +397,7 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {order.profile?.full_name || 'Guest'}
+                {getCustomerName(order)}
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -439,7 +452,7 @@ export const OrderManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p>Name: {selectedOrder.profile?.full_name || 'Guest'}</p>
+                  <p>Name: {getCustomerName(selectedOrder)}</p>
                   <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'Anonymous Order'}</p>
                 </div>
               </div>
@@ -493,3 +506,5 @@ export const OrderManagement = () => {
     </div>
   );
 };
+
+export default OrderManagement;
