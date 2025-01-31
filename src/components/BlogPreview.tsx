@@ -34,8 +34,16 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
         if (error) throw error;
 
-        console.log('Fetched blog posts:', data);
-        setPosts(data || []);
+        // Transform the data to include the full storage URL for featured images
+        const postsWithFullImageUrls = data?.map(post => ({
+          ...post,
+          featured_image: post.featured_image.startsWith('http') 
+            ? post.featured_image 
+            : `${supabase.storage.from('media').getPublicUrl(post.featured_image).data.publicUrl}`
+        })) || [];
+
+        console.log('Fetched blog posts with full image URLs:', postsWithFullImageUrls);
+        setPosts(postsWithFullImageUrls);
       } catch (error) {
         console.error('Error fetching blog posts:', error);
         toast.error("Failed to load blog posts");
