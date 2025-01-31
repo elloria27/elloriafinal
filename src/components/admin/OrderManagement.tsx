@@ -456,8 +456,8 @@ export const OrderManagement = () => {
                       </p>
                     </div>
                   )}
-                  <p>Shipping Cost: {formatCurrency(selectedOrder.shipping_cost)}</p>
-                  <p>GST: {formatCurrency(selectedOrder.gst)}</p>
+                  <p>Shipping Cost: {formatCurrency(selectedOrder.shipping_cost || 0)}</p>
+                  <p>GST: {formatCurrency(selectedOrder.gst || 0)}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
@@ -519,7 +519,7 @@ export const OrderManagement = () => {
                         Shipping Cost:
                       </TableCell>
                       <TableCell>
-                        {formatCurrency(selectedOrder.shipping_cost)}
+                        {formatCurrency(selectedOrder.shipping_cost || 0)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -527,7 +527,7 @@ export const OrderManagement = () => {
                         GST:
                       </TableCell>
                       <TableCell>
-                        {formatCurrency(selectedOrder.gst)}
+                        {formatCurrency(selectedOrder.gst || 0)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -535,7 +535,7 @@ export const OrderManagement = () => {
                         Total:
                       </TableCell>
                       <TableCell className="font-bold">
-                        {formatCurrency(selectedOrder.total_amount + selectedOrder.shipping_cost + selectedOrder.gst)}
+                        {formatCurrency(selectedOrder.total_amount)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
