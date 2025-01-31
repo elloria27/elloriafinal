@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
+import { Json } from '@/integrations/supabase/types';
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -31,10 +32,10 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     if (block.type === 'store_brands') {
       const content = block.content as StoreBrandsContent;
       const features = Array.isArray(content.features) ? [...content.features] : [];
-      const updatedFeature: FeatureItem = {
-        ...features[currentBrandIndex] as FeatureItem,
-        description: url // Logo URL is stored in description field
-      };
+      const updatedFeature = {
+        ...(features[currentBrandIndex] as unknown as FeatureItem),
+        description: url
+      } as Json;
       features[currentBrandIndex] = updatedFeature;
       onUpdate(block.id, { ...content, features });
     } else {
@@ -51,7 +52,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? content.features : [];
     
-    let newFeature: FeatureItem;
+    let newFeature: Json;
     if (block.type === 'store_brands') {
       newFeature = {
         icon: '',
@@ -85,8 +86,8 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = features[index] as FeatureItem;
-    const updatedFeature: FeatureItem = { ...feature, [field]: value };
+    const feature = features[index] as { [key: string]: Json };
+    const updatedFeature = { ...feature, [field]: value } as Json;
     features[index] = updatedFeature;
     onUpdate(block.id, { ...content, features });
   };
