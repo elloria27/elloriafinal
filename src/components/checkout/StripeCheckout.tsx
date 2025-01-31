@@ -7,17 +7,34 @@ import { useState } from "react";
 interface StripeCheckoutProps {
   paymentMethodId: string;
   isDisabled?: boolean;
+  taxes: {
+    gst: number;
+    pst: number;
+    hst: number;
+  };
+  shippingCost: number;
 }
 
-export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutProps) => {
-  const { items } = useCart();
+export const StripeCheckout = ({ 
+  paymentMethodId, 
+  isDisabled,
+  taxes,
+  shippingCost
+}: StripeCheckoutProps) => {
+  const { items, activePromoCode, subtotal } = useCart();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
-      console.log('Initiating checkout with payment method:', paymentMethodId);
-      console.log('Cart items:', items);
+      console.log('Initiating checkout with:', {
+        paymentMethodId,
+        items,
+        taxes,
+        shippingCost,
+        activePromoCode,
+        subtotal
+      });
       
       // Get the current session
       const { data: { session } } = await supabase.auth.getSession();
@@ -27,6 +44,10 @@ export const StripeCheckout = ({ paymentMethodId, isDisabled }: StripeCheckoutPr
         body: {
           items,
           paymentMethodId,
+          shippingCost,
+          taxes,
+          promoCode: activePromoCode,
+          subtotal
         },
         headers: {
           Authorization: `Bearer ${session?.access_token || ''}`,

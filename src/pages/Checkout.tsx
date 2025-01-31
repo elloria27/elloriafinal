@@ -353,6 +353,8 @@ const Checkout = () => {
               <StripeCheckout
                 paymentMethodId={selectedPaymentMethod}
                 isDisabled={!selectedPaymentMethod || !country || !region || !selectedShipping}
+                taxes={taxes}
+                shippingCost={selectedShippingOption?.price || 0}
               />
             </form>
           </motion.div>
