@@ -5,16 +5,21 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   console.log('Received checkout request');
+  console.log('Request method:', req.method);
   console.log('Request headers:', Object.fromEntries(req.headers.entries()));
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request');
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
@@ -32,6 +37,21 @@ serve(async (req) => {
       billingAddress
     } = requestBody;
     
+    if (!items?.length || !paymentMethodId || !shippingAddress) {
+      console.error('Missing required fields:', { 
+        hasItems: !!items?.length,
+        hasPaymentMethod: !!paymentMethodId,
+        hasShippingAddress: !!shippingAddress 
+      });
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
     console.log('Processing checkout with:', {
       itemCount: items?.length,
       paymentMethodId,
