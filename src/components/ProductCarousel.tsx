@@ -218,7 +218,7 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
                         asChild
                         className="w-full bg-white hover:bg-primary/5 text-primary border-2 border-primary/20 hover:border-primary/40 py-2 text-lg rounded-xl transition-all duration-300 group"
                       >
-                        <Link to={`/product/${product.id}`}>
+                        <Link to={`/products/${product.slug}`}>
                           Learn More
                           <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                         </Link>
