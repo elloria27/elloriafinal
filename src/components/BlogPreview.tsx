@@ -44,6 +44,7 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
               ? `${supabase.storage.from('files').getPublicUrl(`blog/${post.featured_image}`).data.publicUrl}`
               : '/placeholder.svg'
           }));
+          console.log('Posts with full image URLs:', postsWithFullImageUrls);
           setPosts(postsWithFullImageUrls);
         }
       } catch (error) {
