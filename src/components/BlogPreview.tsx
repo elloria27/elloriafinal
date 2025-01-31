@@ -38,8 +38,10 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
         if (data) {
           console.log('Raw blog posts data:', data);
           const postsWithFullImageUrls = data.map(post => {
-            const imageUrl = post.featured_image 
-              ? `https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/files/blog/${post.featured_image}`
+            // Remove 'blog/' prefix if it exists in the path
+            const cleanImagePath = post.featured_image?.replace(/^blog\//, '') || '';
+            const imageUrl = cleanImagePath
+              ? `${supabase.storage.from('files').getPublicUrl('blog/' + cleanImagePath).data.publicUrl}`
               : '/placeholder.svg';
             console.log('Generated image URL:', imageUrl);
             return {
