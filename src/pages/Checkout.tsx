@@ -339,7 +339,7 @@ const Checkout = () => {
       console.log('Checkout - Updating shippingAddress with:', field, value);
       setShippingAddress(prev => ({
         ...prev,
-        [field]: value
+        [field === 'email' ? 'email' : field]: value
       }));
     }
     // Update profile if user is authenticated

@@ -65,7 +65,7 @@ export const CustomerForm = ({
   const [address, setAddress] = useState("");
 
   useEffect(() => {
-    console.log("Profile data received:", profile);
+    console.log("CustomerForm - Profile data received:", profile);
     if (profile) {
       if (profile.country) {
         console.log("Setting country:", profile.country);
@@ -91,6 +91,7 @@ export const CustomerForm = ({
       }
       if (profile.full_name) {
         const [first, last] = profile.full_name.split(' ');
+        console.log("Setting names from profile - first:", first, "last:", last);
         setFirstName(first || '');
         setLastName(last || '');
         handleNameChange('first', first || '');
@@ -169,7 +170,6 @@ export const CustomerForm = ({
     handleInputChange('address', value);
   };
 
-  // Immediately call handleInputChange with initial values when component mounts
   useEffect(() => {
     if (email) {
       console.log("Initial email set:", email);
