@@ -51,19 +51,20 @@ serve(async (req) => {
     let userEmail = null;
     let userId = null;
     const authHeader = req.headers.get('Authorization');
-    
+
     if (authHeader && authHeader !== 'null' && authHeader !== 'undefined') {
       try {
         const token = authHeader.replace('Bearer ', '');
-        const { data: { user } } = await supabaseClient.auth.getUser(token);
-        if (user) {
+        const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+        if (error) {
+          console.error('Auth error:', error);
+        } else if (user) {
           userEmail = user.email;
           userId = user.id;
           console.log('Authenticated user:', { userId, userEmail });
         }
       } catch (error) {
         console.error('Error getting user:', error);
-        // Continue without user authentication
       }
     } else {
       console.log('Processing as guest checkout');
@@ -240,8 +241,8 @@ serve(async (req) => {
 
     // Create initial order record
     const orderData = {
-      user_id: userId, // Will be null for guest checkout
-      profile_id: userId, // Will be null for guest checkout
+      user_id: userId,
+      profile_id: userId,
       order_number: orderNumber,
       total_amount: totalAmount - discountAmount,
       status: 'pending',
