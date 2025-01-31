@@ -20,7 +20,13 @@ serve(async (req) => {
 
     const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } } = await req.json();
     
-    console.log('Processing checkout with data:', { items, shippingAddress, total });
+    console.log('Processing checkout with data:', { 
+      items, 
+      shippingAddress, 
+      total,
+      taxes,
+      shippingCost 
+    });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -158,6 +164,19 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
+    // Prepare complete address data
+    const completeAddress = {
+      first_name: shippingAddress.first_name || '',
+      last_name: shippingAddress.last_name || '',
+      email: shippingAddress.email || '',
+      phone: shippingAddress.phone || '',
+      address: shippingAddress.address || '',
+      country: shippingAddress.country || '',
+      region: shippingAddress.region || ''
+    };
+
+    console.log('Prepared complete address:', completeAddress);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -166,14 +185,12 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: shippingAddress.email,
+      customer_email: completeAddress.email,
       shipping_address_collection: null, // Disable Stripe's address collection
       billing_address_collection: 'required',
       metadata: {
         order_number: orderNumber,
-        user_id: userId,
-        profile_id: userId,
-        shipping_address: JSON.stringify(shippingAddress),
+        shipping_address: JSON.stringify(completeAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
       },
@@ -183,14 +200,14 @@ serve(async (req) => {
 
     // Save order to database with complete information
     const orderData = {
-      user_id: userId,
-      profile_id: userId,
+      user_id: userId, // Will be null for guest checkout
+      profile_id: userId, // Will be null for guest checkout
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
       items: items,
-      shipping_address: shippingAddress,
-      billing_address: shippingAddress, // Using same address for billing
+      shipping_address: completeAddress,
+      billing_address: completeAddress, // Using same address for billing
       payment_method: 'stripe',
       stripe_session_id: session.id,
       applied_promo_code: activePromoCode
