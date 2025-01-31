@@ -7,6 +7,7 @@ import { CommonEditor } from "./editors/CommonEditor";
 import { SustainabilityEditor } from "./editors/SustainabilityEditor";
 import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
+import { SustainabilityProgramEditor } from "./editors/SustainabilityProgramEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -66,6 +67,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "custom_solutions_cta",
   ];
 
+  // Sustainability Program components
+  const sustainabilityProgramComponents = [
+    "sustainability_program_hero",
+    "sustainability_program_benefits",
+    "sustainability_program_steps",
+    "sustainability_program_cta",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -100,6 +109,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (customSolutionsComponents.includes(block.type)) {
       return <CustomSolutionsEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (sustainabilityProgramComponents.includes(block.type)) {
+      return <SustainabilityProgramEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {

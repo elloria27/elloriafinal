@@ -291,6 +291,35 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface SustainabilityProgramHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
+export interface SustainabilityProgramBenefitsContent extends BaseBlockContent {
+  benefits?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface SustainabilityProgramStepsContent extends BaseBlockContent {
+  steps?: Array<{
+    step: number;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface SustainabilityProgramCtaContent extends BaseBlockContent {
+  ctaTitle?: string;
+  ctaDescription?: string;
+  primaryButtonText?: string;
+  secondaryButtonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -318,7 +347,11 @@ export type BlockContent =
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | CustomSolutionsCtaContent
+  | SustainabilityProgramHeroContent
+  | SustainabilityProgramBenefitsContent
+  | SustainabilityProgramStepsContent
+  | SustainabilityProgramCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -356,45 +389,8 @@ export type BlockType =
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
-  | "custom_solutions_cta";
-
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
-}
-
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  description?: string;
-  is_active: boolean;
-  processing_fee: number;
-  icon_url?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface DeliveryMethod {
-  id: string;
-  name: string;
-  description?: string;
-  is_active: boolean;
-  base_price: number;
-  estimated_days?: string;
-  regions?: string[];
-  created_at?: string;
-  updated_at?: string;
-}
+  | "custom_solutions_cta"
+  | "sustainability_program_hero"
+  | "sustainability_program_benefits"
+  | "sustainability_program_steps"
+  | "sustainability_program_cta";
