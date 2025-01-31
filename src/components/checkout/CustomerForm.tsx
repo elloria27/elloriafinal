@@ -62,6 +62,7 @@ export const CustomerForm = ({
   const [emailError, setEmailError] = useState<string>("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     console.log("Profile data received:", profile);
@@ -83,10 +84,17 @@ export const CustomerForm = ({
         setEmail(profile.email);
         handleInputChange('email', profile.email);
       }
+      if (profile.address) {
+        console.log("Setting address from profile:", profile.address);
+        setAddress(profile.address);
+        handleInputChange('address', profile.address);
+      }
       if (profile.full_name) {
         const [first, last] = profile.full_name.split(' ');
         setFirstName(first || '');
         setLastName(last || '');
+        handleNameChange('first', first || '');
+        handleNameChange('last', last || '');
       }
     }
   }, [profile, setCountry, setRegion, setPhoneNumber]);
@@ -137,6 +145,7 @@ export const CustomerForm = ({
   };
 
   const handleNameChange = (type: 'first' | 'last', value: string) => {
+    console.log(`Handling ${type} name change:`, value);
     if (type === 'first') {
       setFirstName(value);
     } else {
@@ -148,15 +157,31 @@ export const CustomerForm = ({
       : `${firstName} ${value}`.trim();
       
     handleInputChange('full_name', newFullName);
+    handleInputChange(type === 'first' ? 'first_name' : 'last_name', value);
   };
 
-  // Immediately call handleInputChange with email when component mounts
+  const handleAddressChange = (value: string) => {
+    console.log("Address changed to:", value);
+    setAddress(value);
+    handleInputChange('address', value);
+  };
+
+  // Immediately call handleInputChange with initial values when component mounts
   useEffect(() => {
     if (email) {
       console.log("Initial email set:", email);
       handleInputChange('email', email);
     }
-  }, []); // Empty dependency array to run only once on mount
+    if (firstName) {
+      handleInputChange('first_name', firstName);
+    }
+    if (lastName) {
+      handleInputChange('last_name', lastName);
+    }
+    if (address) {
+      handleInputChange('address', address);
+    }
+  }, []); 
 
   return (
     <div className="space-y-6">
@@ -268,8 +293,8 @@ export const CustomerForm = ({
         <Input 
           id="address" 
           name="address" 
-          defaultValue={profile?.address || ''}
-          onChange={(e) => handleInputChange('address', e.target.value)}
+          value={address}
+          onChange={(e) => handleAddressChange(e.target.value)}
           required 
         />
       </div>
