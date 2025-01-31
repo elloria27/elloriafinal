@@ -96,22 +96,17 @@ serve(async (req) => {
       });
     }
 
-    // Add taxes as a separate line item if exists
-    if (taxes && (taxes.gst > 0 || taxes.pst > 0 || taxes.hst > 0)) {
-      const totalTaxAmount = subtotal * (
-        (taxes.gst || 0) / 100 +
-        (taxes.pst || 0) / 100 +
-        (taxes.hst || 0) / 100
-      );
-
-      if (totalTaxAmount > 0) {
+    // Add GST as a separate line item if exists
+    if (taxes && taxes.gst > 0) {
+      const gstAmount = subtotal * (taxes.gst / 100);
+      if (gstAmount > 0) {
         lineItems.push({
           price_data: {
             currency: 'cad',
             product_data: {
-              name: 'Taxes',
+              name: 'GST (5%)',
             },
-            unit_amount: Math.round(totalTaxAmount * 100),
+            unit_amount: Math.round(gstAmount * 100),
           },
           quantity: 1,
         });
