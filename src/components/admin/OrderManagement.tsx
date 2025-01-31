@@ -30,24 +30,30 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   const typedAddress = address as Record<string, unknown>;
   
+  // Ensure required fields exist and are strings
   if (
     typeof typedAddress.address !== 'string' ||
     typeof typedAddress.region !== 'string' ||
     typeof typedAddress.country !== 'string' ||
     typeof typedAddress.phone !== 'string'
   ) {
+    console.error('Invalid address data:', typedAddress);
     throw new Error('Missing required shipping address fields');
   }
 
-  return {
+  // Create validated shipping address object
+  const validatedAddress: ShippingAddress = {
     address: typedAddress.address,
     region: typedAddress.region,
     country: typedAddress.country,
     phone: typedAddress.phone,
+    // Optional fields
     first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
     last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
     email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
   };
+
+  return validatedAddress;
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
@@ -116,7 +122,11 @@ export const OrderManagement = () => {
 
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
+          // Validate shipping and billing addresses
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
+
+          // Create the validated order object
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -125,16 +135,19 @@ export const OrderManagement = () => {
             total_amount: order.total_amount,
             status: validateOrderStatus(order.status),
             shipping_address: shippingAddress,
-            billing_address: validateShippingAddress(order.billing_address),
+            billing_address: billingAddress,
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
             stripe_session_id: order.stripe_session_id,
+            // Handle profile information with proper fallbacks
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'No email provided'
             } : {
-              full_name: `${shippingAddress.first_name || ''} ${shippingAddress.last_name || ''}`.trim() || 'Guest',
+              full_name: shippingAddress.first_name && shippingAddress.last_name
+                ? `${shippingAddress.first_name} ${shippingAddress.last_name}`
+                : 'Guest',
               email: shippingAddress.email || 'No email provided'
             }
           };
