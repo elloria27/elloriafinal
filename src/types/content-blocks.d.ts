@@ -40,6 +40,9 @@ export interface HeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   videoUrl?: string;
+  videoPoster?: string;
+  shopNowText?: string;
+  learnMoreText?: string;
 }
 
 export interface FeaturesContent extends BaseBlockContent {

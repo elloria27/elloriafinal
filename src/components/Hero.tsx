@@ -118,7 +118,7 @@ export const Hero = ({ content }: HeroProps) => {
               className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
               asChild
             >
-              <Link to="/shop">Shop Now</Link>
+              <Link to="/shop">{content?.shopNowText || "Shop Now"}</Link>
             </Button>
             <Button 
               size="lg" 
@@ -126,7 +126,7 @@ export const Hero = ({ content }: HeroProps) => {
               className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
               asChild
             >
-              <Link to="/about">Learn More</Link>
+              <Link to="/about">{content?.learnMoreText || "Learn More"}</Link>
             </Button>
           </motion.div>
         </div>
@@ -152,7 +152,7 @@ export const Hero = ({ content }: HeroProps) => {
               playsInline
               className="w-full h-full object-cover"
               preload="auto"
-              poster="https://my.elloria.ca/290mmvideo-.jpg"
+              poster={content?.videoPoster || "https://my.elloria.ca/290mmvideo-.jpg"}
             >
               <source src={content?.videoUrl || "https://elloria.ca/Video_290mm.mp4"} type="video/mp4" />
               Your browser does not support the video tag.
