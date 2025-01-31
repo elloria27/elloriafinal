@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -259,7 +259,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div className="space-y-4">
             <Label>Brands</Label>
             {Array.isArray(storeBrandsContent.features) && storeBrandsContent.features.map((brand, index) => {
-              const typedBrand = brand as FeatureItem;
+              const typedBrand = brand as unknown as FeatureItem;
               return (
                 <div key={index} className="p-4 border rounded-lg space-y-3">
                   <div className="flex justify-between items-center">
