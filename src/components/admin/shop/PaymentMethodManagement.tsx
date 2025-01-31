@@ -26,17 +26,17 @@ export const PaymentMethodManagement = () => {
 
   const fetchPaymentMethods = async () => {
     try {
+      // Only fetch the Stripe payment method
       const { data, error } = await supabase
         .from('payment_methods')
         .select('*')
         .eq('name', 'stripe')
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
         setStripeEnabled(data.is_active || false);
-        // Parse the stripe_config JSON and provide default values
         const config = data.stripe_config as { publishable_key?: string; secret_key?: string } | null;
         setStripeConfig({
           publishable_key: config?.publishable_key || "",
@@ -58,6 +58,7 @@ export const PaymentMethodManagement = () => {
         secret_key: stripeConfig.secret_key
       };
 
+      // Upsert only the Stripe payment method
       const { error } = await supabase
         .from('payment_methods')
         .upsert({

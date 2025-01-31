@@ -138,7 +138,8 @@ export const OrderManagement = () => {
               email: shippingAddress.email || 'Anonymous Order',
               phone_number: shippingAddress.phone,
               address: shippingAddress.address
-            }
+            },
+            applied_promo_code: order.applied_promo_code || null
           };
           return validatedOrder;
         } catch (error) {
@@ -161,6 +162,30 @@ export const OrderManagement = () => {
     fetchOrders();
   }, []);
 
+  const handleDownloadInvoice = async (orderId: string) => {
+    try {
+      console.log("Generating invoice for order:", orderId);
+      
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      const link = document.createElement('a');
+      link.href = data.pdf;
+      link.download = `invoice-${selectedOrder?.order_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+      toast.error("Failed to download invoice");
+    }
+  };
+
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     try {
       console.log("Starting order status update:", { orderId, newStatus });
@@ -174,7 +199,6 @@ export const OrderManagement = () => {
 
       console.log("Current user session:", session.user.id);
       
-      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ status: newStatus })
@@ -193,7 +217,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -206,52 +229,18 @@ export const OrderManagement = () => {
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method,
-        profile: updatedOrder.profile || undefined
+        profile: updatedOrder.profile || undefined,
+        applied_promo_code: updatedOrder.applied_promo_code || null
       };
 
-      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
-      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
-      }
-
-      // Send email notification using Supabase Edge Function
-      try {
-        console.log("Attempting to send email notification");
-        if (validatedOrder.profile?.email) {
-          console.log("Sending email to:", validatedOrder.profile.email);
-          const { data: emailData, error: emailError } = await supabase.functions.invoke(
-            'send-order-status-email',
-            {
-              body: {
-                customerEmail: validatedOrder.profile.email,
-                customerName: validatedOrder.profile.full_name || 'Valued Customer',
-                orderId: validatedOrder.id,
-                orderNumber: validatedOrder.order_number,
-                newStatus: validatedOrder.status
-              }
-            }
-          );
-
-          if (emailError) {
-            console.error('Failed to send email notification:', emailError);
-            throw emailError;
-          }
-
-          console.log('Email notification sent successfully:', emailData);
-        } else {
-          console.warn('No customer email found for order:', validatedOrder.id);
-        }
-      } catch (emailError) {
-        console.error('Error sending email notification:', emailError);
-        toast.error('Order updated but failed to send email notification');
-        return;
       }
 
       toast.success("Order status updated successfully");
@@ -352,14 +341,35 @@ export const OrderManagement = () => {
 
           {selectedOrder && (
             <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold">Order #{selectedOrder.order_number}</h3>
+                <Button onClick={() => handleDownloadInvoice(selectedOrder.id)}>
+                  Download Invoice
+                </Button>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Order Information</h3>
-                  <p>Order Number: {selectedOrder.order_number}</p>
                   <p>Date: {formatDate(selectedOrder.created_at)}</p>
                   <p>Status: {selectedOrder.status}</p>
-                  <p>Payment Method: {selectedOrder.payment_method === 'stripe' ? 'Stripe' : 'Standard'}</p>
-                  <p>Total: {formatCurrency(selectedOrder.total_amount)}</p>
+                  <p>Payment Method: {selectedOrder.payment_method === 'stripe' ? 
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      Stripe
+                    </span> : 
+                    selectedOrder.payment_method || 'Standard'
+                  }</p>
+                  {selectedOrder.applied_promo_code && (
+                    <div className="mt-2">
+                      <p className="font-medium">Applied Promo Code:</p>
+                      <p className="text-sm text-primary">{selectedOrder.applied_promo_code.code}</p>
+                      <p className="text-sm text-gray-600">
+                        Discount: {selectedOrder.applied_promo_code.type === 'percentage' ? 
+                          `${selectedOrder.applied_promo_code.value}%` : 
+                          formatCurrency(selectedOrder.applied_promo_code.value)}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>

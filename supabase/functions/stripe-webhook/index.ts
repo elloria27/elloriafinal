@@ -12,6 +12,11 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
   try {
     const signature = req.headers.get('stripe-signature');
@@ -61,11 +66,24 @@ serve(async (req) => {
         return new Response('Error updating order', { status: 500 });
       }
 
+      // Clear the user's cart by sending a message to the client
+      const { error: broadcastError } = await supabaseClient
+        .from('broadcast')
+        .insert({
+          type: 'CLEAR_CART',
+          user_id: session.client_reference_id,
+          created_at: new Date().toISOString()
+        });
+
+      if (broadcastError) {
+        console.error('Error broadcasting clear cart message:', broadcastError);
+      }
+
       console.log('Order updated successfully');
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       status: 200,
     });
   } catch (error) {
