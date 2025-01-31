@@ -403,6 +403,15 @@ const Checkout = () => {
                 isDisabled={!selectedPaymentMethod || !country || !region || !selectedShipping}
                 taxes={taxes}
                 shippingCost={selectedShippingOption?.price || 0}
+                shippingAddress={{
+                  address: profile?.address || '',
+                  country: country,
+                  region: region,
+                  phone: phoneNumber,
+                  first_name: profile?.full_name?.split(' ')[0] || '',
+                  last_name: profile?.full_name?.split(' ')[1] || '',
+                  email: profile?.email || ''
+                }}
               />
             </form>
           </motion.div>
