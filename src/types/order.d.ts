@@ -44,6 +44,5 @@ export type OrderData = {
   created_at: string;
   profile?: OrderProfile;
   payment_method?: string | null;
-  shipping_cost: number;
   applied_promo_code?: AppliedPromoCode | null;
 };
