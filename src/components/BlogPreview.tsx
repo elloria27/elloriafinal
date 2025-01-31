@@ -1,30 +1,71 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { BlogPreviewContent } from "@/types/content-blocks";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface BlogPreviewProps {
   content?: BlogPreviewContent;
 }
 
+interface BlogPost {
+  id: string;
+  title: string;
+  category: string;
+  featured_image: string;
+}
+
 export const BlogPreview = ({ content }: BlogPreviewProps) => {
-  // Use content from props, or fallback to default values
-  const articles = content?.articles || [
-    {
-      title: "Introducing Our Ultra-Thin Maxi Pads Collection",
-      category: "Product Launch",
-      image: "/lovable-uploads/3780f868-91c7-4512-bc4c-6af150baf90d.png"
-    },
-    {
-      title: "The Perfect Pad for Your Daily Routine",
-      category: "Lifestyle",
-      image: "/lovable-uploads/724f13b7-0a36-4896-b19a-e51981befdd3.png"
-    },
-    {
-      title: "Understanding Our Advanced Protection Technology",
-      category: "Education",
-      image: "/lovable-uploads/bf7261ba-df57-413d-b280-3b4b56528e73.png"
-    }
-  ];
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestPosts = async () => {
+      try {
+        console.log('Fetching latest blog posts...');
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('id, title, featured_image')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (error) {
+          console.error('Error fetching blog posts:', error);
+          toast.error("Failed to load blog posts");
+          return;
+        }
+
+        console.log('Fetched blog posts:', data);
+        setPosts(data.map(post => ({
+          id: post.id,
+          title: post.title,
+          category: "Blog", // You can enhance this by adding categories
+          featured_image: post.featured_image || "/placeholder.svg"
+        })));
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error("Failed to load blog posts");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestPosts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-20 bg-white">
+        <div className="container px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-20 bg-white">
@@ -44,9 +85,9 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {articles.map((article, index) => (
+          {posts.map((post, index) => (
             <motion.div
-              key={index}
+              key={post.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -55,16 +96,16 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
             >
               <div className="relative overflow-hidden rounded-lg mb-4">
                 <img
-                  src={article.image}
-                  alt={article.title}
+                  src={post.featured_image}
+                  alt={post.title}
                   className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm">
-                  {article.category}
+                  {post.category}
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                {article.title}
+                {post.title}
               </h3>
             </motion.div>
           ))}
@@ -76,8 +117,12 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-12"
         >
-          <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10">
-            View All Articles
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="border-primary text-primary hover:bg-primary/10"
+          >
+            {content?.buttonText || "View All Articles"}
           </Button>
         </motion.div>
       </div>
