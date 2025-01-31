@@ -132,7 +132,7 @@ serve(async (req) => {
       y += 10;
     });
     
-    // Totals
+    // Totals section
     y += 10;
     doc.setFont('helvetica', 'bold');
     doc.text('Subtotal:', 130, y);
@@ -150,12 +150,25 @@ serve(async (req) => {
       doc.text(`Discount (${order.applied_promo_code.code}):`, 130, y);
       doc.text(`-$${discount.toFixed(2)}`, 160, y);
     }
+
+    // Add Shipping Cost
+    y += 10;
+    const shippingCost = order.shipping_cost || 0;
+    doc.text('Shipping:', 130, y);
+    doc.text(`$${shippingCost.toFixed(2)}`, 160, y);
+
+    // Add GST
+    y += 10;
+    const gst = order.gst || 0;
+    doc.text('GST:', 130, y);
+    doc.text(`$${gst.toFixed(2)}`, 160, y);
     
-    // Total
+    // Final Total (including shipping and GST)
     y += 15;
     doc.setFontSize(12);
+    const finalTotal = subtotal - discount + shippingCost + gst;
     doc.text('Total:', 130, y);
-    doc.text(`$${order.total_amount.toFixed(2)}`, 160, y);
+    doc.text(`$${finalTotal.toFixed(2)}`, 160, y);
     
     // Payment Method
     y += 20;
