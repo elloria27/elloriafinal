@@ -1,7 +1,6 @@
-import { ContentBlock, BlockContent, HeroContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
-import { HomeHero } from "@/components/home/HomeHero";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -29,9 +28,6 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
 
         {(() => {
           switch (block.type) {
-            case 'hero':
-              return <HomeHero content={block.content as HeroContent} />;
-
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
               return (
