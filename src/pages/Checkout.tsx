@@ -335,13 +335,27 @@ const Checkout = () => {
 
   const handleFormChange = (field: string, value: string) => {
     console.log(`Checkout - handleFormChange - ${field}:`, value);
-    if (field === 'email' || field === 'first_name' || field === 'last_name' || field === 'address') {
-      console.log('Checkout - Updating shippingAddress with:', field, value);
-      setShippingAddress(prev => ({
+    
+    // Map the field names correctly
+    const fieldMapping: { [key: string]: string } = {
+      'first_name': 'first_name',
+      'last_name': 'last_name',
+      'email': 'email',
+      'address': 'address'
+    };
+
+    const mappedField = fieldMapping[field] || field;
+    console.log('Checkout - Mapped field:', mappedField, 'with value:', value);
+
+    setShippingAddress(prev => {
+      const updated = {
         ...prev,
-        [field === 'email' ? 'email' : field]: value
-      }));
-    }
+        [mappedField]: value
+      };
+      console.log('Checkout - Updated shipping address:', updated);
+      return updated;
+    });
+
     // Update profile if user is authenticated
     if (user) {
       console.log('Checkout - Updating profile with:', field, value);
