@@ -8,12 +8,19 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Received checkout request');
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const requestBody = await req.json();
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    
     const { 
       items, 
       paymentMethodId, 
@@ -23,16 +30,16 @@ serve(async (req) => {
       subtotal,
       shippingAddress,
       billingAddress
-    } = await req.json();
+    } = requestBody;
     
-    console.log('Creating checkout session with:', {
-      items,
+    console.log('Processing checkout with:', {
+      itemCount: items?.length,
       paymentMethodId,
       shippingCost,
       taxes,
       promoCode,
       subtotal,
-      shippingAddress
+      shippingAddress: shippingAddress ? { ...shippingAddress, email: shippingAddress.email } : null
     });
 
     // Initialize Supabase client
@@ -52,9 +59,13 @@ serve(async (req) => {
     let userId = null;
     const authHeader = req.headers.get('Authorization');
 
+    console.log('Auth status:', authHeader ? 'Has auth header' : 'No auth header');
+
     if (authHeader && authHeader !== 'null' && authHeader !== 'undefined') {
       try {
         const token = authHeader.replace('Bearer ', '');
+        console.log('Attempting to get user from token');
+        
         const { data: { user }, error } = await supabaseClient.auth.getUser(token);
         if (error) {
           console.error('Auth error:', error);
@@ -67,10 +78,11 @@ serve(async (req) => {
         console.error('Error getting user:', error);
       }
     } else {
-      console.log('Processing as guest checkout');
+      console.log('Processing as guest checkout with email:', shippingAddress?.email);
     }
 
     // Get payment method details from database
+    console.log('Fetching payment method:', paymentMethodId);
     const { data: paymentMethod, error: paymentMethodError } = await supabaseClient
       .from('payment_methods')
       .select('*')
@@ -89,6 +101,7 @@ serve(async (req) => {
     }
 
     if (!paymentMethod?.stripe_config) {
+      console.error('Invalid payment method configuration:', paymentMethod);
       return new Response(
         JSON.stringify({ error: 'Invalid payment method configuration' }),
         { 
@@ -102,6 +115,7 @@ serve(async (req) => {
     console.log('Retrieved stripe config');
 
     if (!stripeConfig.secret_key) {
+      console.error('Stripe secret key not configured');
       return new Response(
         JSON.stringify({ error: 'Stripe secret key not configured' }),
         { 
@@ -119,12 +133,15 @@ serve(async (req) => {
     const totalAmount = subtotal + (shippingCost || 0) + 
       (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100);
 
+    console.log('Calculated total amount:', totalAmount);
+
     // Calculate discount amount if promo code exists
     let discountAmount = 0;
     if (promoCode) {
       discountAmount = promoCode.type === 'percentage' 
         ? (totalAmount * promoCode.value) / 100
         : promoCode.value;
+      console.log('Applied discount:', { type: promoCode.type, amount: discountAmount });
     }
 
     // Create line items for products
@@ -202,6 +219,7 @@ serve(async (req) => {
     // Create discount coupon if promo code exists
     let discounts = [];
     if (promoCode && discountAmount > 0) {
+      console.log('Creating Stripe coupon for promo code:', promoCode.code);
       const coupon = await stripe.coupons.create({
         amount_off: Math.round(discountAmount * 100),
         currency: 'cad',
@@ -254,6 +272,8 @@ serve(async (req) => {
       applied_promo_code: promoCode
     };
 
+    console.log('Creating order record:', { orderNumber, totalAmount: orderData.total_amount });
+
     const { error: orderError } = await supabaseClient
       .from('orders')
       .insert(orderData);
@@ -269,6 +289,7 @@ serve(async (req) => {
       );
     }
 
+    console.log('Order created successfully, returning checkout URL');
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
@@ -277,7 +298,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('Error processing checkout:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
