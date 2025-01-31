@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, HeroContent, FeaturesContent } from "@/types/content-blocks";
+import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface HomePageEditorProps {
@@ -36,16 +36,17 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const handleFeatureAdd = () => {
-    const content = block.content as FeaturesContent;
+    const content = block.content as FeaturesContent | GameChangerContent;
     const features = Array.isArray(content.features) ? content.features : [];
     const updatedContent = {
       ...content,
       features: [
         ...features,
         {
-          icon: "Check",
+          icon: "Droplets",
           title: "New Feature",
-          description: "Feature description"
+          description: "Feature description",
+          detail: "Additional details about this feature"
         }
       ]
     };
@@ -53,14 +54,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const handleFeatureRemove = (index: number) => {
-    const content = block.content as FeaturesContent;
+    const content = block.content as FeaturesContent | GameChangerContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
     onUpdate(block.id, { ...content, features });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const content = block.content as FeaturesContent;
+    const content = block.content as FeaturesContent | GameChangerContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     features[index] = { ...features[index], [field]: value };
     onUpdate(block.id, { ...content, features });
@@ -208,6 +209,98 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               Add Feature
             </Button>
           </div>
+        </div>
+      );
+
+    case "game_changer":
+      const gameChangerContent = block.content as GameChangerContent;
+      return (
+        <div className="space-y-6">
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={gameChangerContent.title || ""}
+              onChange={(e) => handleInputChange(e, "title")}
+            />
+          </div>
+          <div>
+            <Label>Subtitle</Label>
+            <Input
+              value={gameChangerContent.subtitle || ""}
+              onChange={(e) => handleInputChange(e, "subtitle")}
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Input
+              value={gameChangerContent.description || ""}
+              onChange={(e) => handleInputChange(e, "description")}
+            />
+          </div>
+          
+          <div className="space-y-4">
+            <Label>Features</Label>
+            {Array.isArray(gameChangerContent.features) && gameChangerContent.features.map((feature, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Feature {index + 1}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeatureRemove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div>
+                  <Label>Icon</Label>
+                  <Input
+                    value={feature.icon}
+                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
+                    placeholder="Droplets, Leaf, or Heart"
+                  />
+                </div>
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={feature.title}
+                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={feature.description}
+                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Detail</Label>
+                  <Input
+                    value={feature.detail || ""}
+                    onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFeatureAdd}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Feature
+            </Button>
+          </div>
+          {showMediaLibrary && (
+            <MediaLibraryModal
+              open={showMediaLibrary}
+              onClose={() => setShowMediaLibrary(false)}
+              onSelect={handleMediaSelect}
+              type={mediaType}
+            />
+          )}
         </div>
       );
 
