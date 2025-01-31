@@ -5,6 +5,7 @@ export interface Product {
   image: string;
   price: number;
   features: string[];
+  slug: string;
   specifications: {
     length: string;
     absorption: string;

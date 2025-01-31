@@ -88,11 +88,15 @@ export const ProductManagement = () => {
   };
 
   const handleSave = async (editForm: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+    // Generate slug from product name
+    const slug = editForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const productData = { ...editForm, slug };
+
     if (!selectedProduct?.id) {
       try {
         const { error } = await supabase
           .from("products")
-          .insert([editForm]);
+          .insert([productData]);
 
         if (error) throw error;
         
@@ -107,10 +111,10 @@ export const ProductManagement = () => {
     }
 
     try {
-      console.log("Saving product changes:", editForm);
+      console.log("Saving product changes:", productData);
       const { error } = await supabase
         .from("products")
-        .update(editForm)
+        .update(productData)
         .eq("id", selectedProduct.id);
 
       if (error) {
