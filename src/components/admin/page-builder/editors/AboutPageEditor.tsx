@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutSustainabilityContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,8 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleStatUpdate = (index: number, field: string, value: string) => {
-    const updatedStats = [...(block.content.stats || [])];
+    const content = block.content as AboutSustainabilityContent;
+    const updatedStats = [...(content.stats || [])];
     updatedStats[index] = {
       ...updatedStats[index],
       [field]: value,
@@ -44,17 +45,19 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const addStat = () => {
+    const content = block.content as AboutSustainabilityContent;
     const newStat = {
       icon: "Leaf",
       value: "New Value",
       label: "New Label",
       description: "New Description",
     };
-    handleChange("stats", [...(block.content.stats || []), newStat]);
+    handleChange("stats", [...(content.stats || []), newStat]);
   };
 
   const removeStat = (index: number) => {
-    const updatedStats = [...(block.content.stats || [])];
+    const content = block.content as AboutSustainabilityContent;
+    const updatedStats = [...(content.stats || [])];
     updatedStats.splice(index, 1);
     handleChange("stats", updatedStats);
   };
@@ -98,12 +101,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
   switch (block.type) {
     case "about_sustainability":
+      const sustainabilityContent = block.content as AboutSustainabilityContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title as string || ""}
+              value={sustainabilityContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -111,7 +115,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Input
-              value={block.content.description as string || ""}
+              value={sustainabilityContent.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
             />
@@ -131,7 +135,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(block.content.stats || []).map((stat: any, index: number) => (
+            {(sustainabilityContent.stats || []).map((stat, index) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Stat {index + 1}</Label>
