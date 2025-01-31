@@ -35,6 +35,7 @@ interface AddressJson {
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
+    console.error('Invalid address data received:', address);
     throw new Error('Invalid shipping address format');
   }
   
@@ -55,10 +56,18 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
     region: addressData.region,
     country: addressData.country,
     phone: addressData.phone,
-    first_name: typeof addressData.first_name === 'string' ? addressData.first_name : undefined,
-    last_name: typeof addressData.last_name === 'string' ? addressData.last_name : undefined,
-    email: typeof addressData.email === 'string' ? addressData.email : undefined,
   };
+
+  // Handle optional fields
+  if (typeof addressData.first_name === 'string') {
+    validatedAddress.first_name = addressData.first_name;
+  }
+  if (typeof addressData.last_name === 'string') {
+    validatedAddress.last_name = addressData.last_name;
+  }
+  if (typeof addressData.email === 'string') {
+    validatedAddress.email = addressData.email;
+  }
 
   return validatedAddress;
 };
@@ -147,7 +156,7 @@ export const OrderManagement = () => {
             stripe_session_id: order.stripe_session_id,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || shippingAddress.email || 'No email provided'
+              email: order.profiles.email || (shippingAddress.email || 'No email provided')
             } : {
               full_name: shippingAddress.first_name && shippingAddress.last_name
                 ? `${shippingAddress.first_name} ${shippingAddress.last_name}`
