@@ -422,12 +422,14 @@ export type Database = {
           billing_address: Json
           created_at: string | null
           email_address: string | null
+          gst: number | null
           id: string
           items: Json
           order_number: string
           payment_method: string | null
           profile_id: string | null
           shipping_address: Json
+          shipping_cost: number | null
           status: string
           stripe_session_id: string | null
           total_amount: number
@@ -438,12 +440,14 @@ export type Database = {
           billing_address: Json
           created_at?: string | null
           email_address?: string | null
+          gst?: number | null
           id?: string
           items: Json
           order_number: string
           payment_method?: string | null
           profile_id?: string | null
           shipping_address: Json
+          shipping_cost?: number | null
           status: string
           stripe_session_id?: string | null
           total_amount: number
@@ -454,12 +458,14 @@ export type Database = {
           billing_address?: Json
           created_at?: string | null
           email_address?: string | null
+          gst?: number | null
           id?: string
           items?: Json
           order_number?: string
           payment_method?: string | null
           profile_id?: string | null
           shipping_address?: Json
+          shipping_cost?: number | null
           status?: string
           stripe_session_id?: string | null
           total_amount?: number
