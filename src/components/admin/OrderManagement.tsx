@@ -23,7 +23,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
-interface AddressJson {
+// Define the shape of shipping address data as it comes from the database
+type ShippingAddressData = {
   address: string;
   region: string;
   country: string;
@@ -31,45 +32,33 @@ interface AddressJson {
   first_name?: string;
   last_name?: string;
   email?: string;
-}
+};
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
-  if (typeof address !== 'object' || !address) {
-    console.error('Invalid address data received:', address);
+  if (!address || typeof address !== 'object') {
     throw new Error('Invalid shipping address format');
   }
-  
-  const addressData = address as Record<string, unknown>;
-  
+
+  const addressData = address as ShippingAddressData;
+
   if (
     typeof addressData.address !== 'string' ||
     typeof addressData.region !== 'string' ||
     typeof addressData.country !== 'string' ||
     typeof addressData.phone !== 'string'
   ) {
-    console.error('Invalid address data:', addressData);
     throw new Error('Missing required shipping address fields');
   }
 
-  const validatedAddress: ShippingAddress = {
+  return {
     address: addressData.address,
     region: addressData.region,
     country: addressData.country,
     phone: addressData.phone,
+    first_name: addressData.first_name,
+    last_name: addressData.last_name,
+    email: addressData.email,
   };
-
-  // Handle optional fields
-  if (typeof addressData.first_name === 'string') {
-    validatedAddress.first_name = addressData.first_name;
-  }
-  if (typeof addressData.last_name === 'string') {
-    validatedAddress.last_name = addressData.last_name;
-  }
-  if (typeof addressData.email === 'string') {
-    validatedAddress.email = addressData.email;
-  }
-
-  return validatedAddress;
 };
 
 const validateOrderItems = (items: unknown): OrderItem[] => {
@@ -115,7 +104,6 @@ export const OrderManagement = () => {
 
   const fetchOrders = async () => {
     try {
-      console.log("Fetching orders...");
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select(`
@@ -134,44 +122,35 @@ export const OrderManagement = () => {
         return;
       }
 
-      console.log("Raw orders data:", ordersData);
-
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
-        try {
-          const shippingAddress = validateShippingAddress(order.shipping_address);
-          const billingAddress = validateShippingAddress(order.billing_address);
+        const shippingAddress = validateShippingAddress(order.shipping_address);
+        const billingAddress = validateShippingAddress(order.billing_address);
 
-          const validatedOrder: OrderData = {
-            id: order.id,
-            user_id: order.user_id,
-            profile_id: order.profile_id,
-            order_number: order.order_number,
-            total_amount: order.total_amount,
-            status: validateOrderStatus(order.status),
-            shipping_address: shippingAddress,
-            billing_address: billingAddress,
-            items: validateOrderItems(order.items),
-            created_at: order.created_at,
-            payment_method: order.payment_method || 'Not specified',
-            stripe_session_id: order.stripe_session_id,
-            profile: order.profiles ? {
-              full_name: order.profiles.full_name || 'Guest',
-              email: order.profiles.email || (shippingAddress.email || 'No email provided')
-            } : {
-              full_name: shippingAddress.first_name && shippingAddress.last_name
-                ? `${shippingAddress.first_name} ${shippingAddress.last_name}`
-                : 'Guest',
-              email: shippingAddress.email || 'No email provided'
-            }
-          };
-          return validatedOrder;
-        } catch (error) {
-          console.error("Error validating order:", error, order);
-          throw error;
-        }
+        return {
+          id: order.id,
+          user_id: order.user_id,
+          profile_id: order.profile_id,
+          order_number: order.order_number,
+          total_amount: order.total_amount,
+          status: validateOrderStatus(order.status),
+          shipping_address: shippingAddress,
+          billing_address: billingAddress,
+          items: validateOrderItems(order.items),
+          created_at: order.created_at,
+          payment_method: order.payment_method || 'Not specified',
+          stripe_session_id: order.stripe_session_id,
+          profile: order.profiles ? {
+            full_name: order.profiles.full_name || 'Guest',
+            email: order.profiles.email || shippingAddress.email || 'No email provided'
+          } : {
+            full_name: shippingAddress.first_name && shippingAddress.last_name
+              ? `${shippingAddress.first_name} ${shippingAddress.last_name}`
+              : 'Guest',
+            email: shippingAddress.email || 'No email provided'
+          }
+        };
       });
 
-      console.log("Validated orders:", validatedOrders);
       setOrders(validatedOrders);
     } catch (error) {
       console.error("Error in fetchOrders:", error);
