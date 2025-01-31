@@ -139,6 +139,8 @@ export const OrderManagement = () => {
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const shipping_cost = typeof order.shipping_cost === 'number' ? order.shipping_cost : 0;
+          
           const validatedOrder: OrderData = {
             id: order.id,
             user_id: order.user_id,
@@ -151,7 +153,7 @@ export const OrderManagement = () => {
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || null,
-            shipping_cost: typeof order.shipping_cost === 'number' ? order.shipping_cost : 0,
+            shipping_cost,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
@@ -260,6 +262,8 @@ export const OrderManagement = () => {
       console.log("Order updated successfully:", updatedOrder);
 
       const validatedShippingAddress = validateShippingAddress(updatedOrder.shipping_address);
+      const shipping_cost = typeof updatedOrder.shipping_cost === 'number' ? updatedOrder.shipping_cost : 0;
+      
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -272,7 +276,7 @@ export const OrderManagement = () => {
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method || null,
-        shipping_cost: typeof updatedOrder.shipping_cost === 'number' ? updatedOrder.shipping_cost : 0,
+        shipping_cost,
         profile: updatedOrder.profiles ? {
           full_name: updatedOrder.profiles.full_name || 'Guest',
           email: updatedOrder.profiles.email || validatedShippingAddress.email || 'Anonymous Order',
