@@ -25,27 +25,23 @@ const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'deli
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
-    throw new Error('Invalid shipping address format');
+    console.error('Invalid shipping address format:', address);
+    return {
+      address: 'Unknown',
+      region: 'Unknown',
+      country: 'Unknown',
+      phone: 'Unknown'
+    };
   }
   
   const typedAddress = address as Record<string, unknown>;
   
-  // Ensure required fields are present and of correct type
-  if (
-    typeof typedAddress.address !== 'string' ||
-    typeof typedAddress.region !== 'string' ||
-    typeof typedAddress.country !== 'string' ||
-    typeof typedAddress.phone !== 'string'
-  ) {
-    throw new Error('Missing required shipping address fields');
-  }
-
-  // Create validated shipping address with optional fields
+  // Create validated shipping address with proper fallbacks
   return {
-    address: typedAddress.address,
-    region: typedAddress.region,
-    country: typedAddress.country,
-    phone: typedAddress.phone,
+    address: typeof typedAddress.address === 'string' ? typedAddress.address : 'Unknown',
+    region: typeof typedAddress.region === 'string' ? typedAddress.region : 'Unknown',
+    country: typeof typedAddress.country === 'string' ? typedAddress.country : 'Unknown',
+    phone: typeof typedAddress.phone === 'string' ? typedAddress.phone : 'Unknown',
     first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
     last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
     email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
@@ -68,7 +64,13 @@ const validateOrderItems = (items: unknown): OrderItem[] => {
       typeof (item as any).price !== 'number'
     ) {
       console.error('Invalid order item:', item);
-      throw new Error('Invalid order item format');
+      return {
+        id: 'unknown',
+        name: 'Unknown Product',
+        quantity: 0,
+        price: 0,
+        image: undefined
+      };
     }
 
     return {
@@ -121,6 +123,7 @@ export const OrderManagement = () => {
       const validatedOrders: OrderData[] = (ordersData || []).map(order => {
         try {
           const shippingAddress = validateShippingAddress(order.shipping_address);
+          const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
           
           // Determine customer name and email with fallbacks
@@ -137,15 +140,15 @@ export const OrderManagement = () => {
             customerEmail = shippingAddress.email || 'Anonymous Order';
           }
 
-          const validatedOrder: OrderData = {
+          return {
             id: order.id,
             user_id: order.user_id,
             profile_id: order.profile_id,
-            order_number: order.order_number,
-            total_amount: order.total_amount,
-            status: validateOrderStatus(order.status),
+            order_number: order.order_number || 'Unknown',
+            total_amount: order.total_amount || 0,
+            status: validateOrderStatus(order.status || 'pending'),
             shipping_address: shippingAddress,
-            billing_address: validateShippingAddress(order.billing_address),
+            billing_address: billingAddress,
             items: items,
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
@@ -155,10 +158,8 @@ export const OrderManagement = () => {
               email: customerEmail
             }
           };
-          return validatedOrder;
         } catch (error) {
           console.error("Error validating order:", error, order);
-          // Return a fallback order object with available data
           return {
             id: order.id,
             user_id: null,
@@ -370,8 +371,6 @@ export const OrderManagement = () => {
   if (loading) {
     return <div className="flex items-center justify-center p-4">Loading orders...</div>;
   }
-
-  // ... keep existing code (render JSX)
 
   return (
     <div className="space-y-6">
