@@ -78,7 +78,7 @@ export const StripeCheckout = ({
     }
   };
 
-  // Змінюємо логіку перевірки email
+  // Змінюємо логіку перевірки email та стану кнопки
   const isEmailMissing = !shippingAddress?.email?.trim();
   const isButtonDisabled = isDisabled || isLoading || isEmailMissing || !paymentMethodId;
 
@@ -87,7 +87,8 @@ export const StripeCheckout = ({
     isLoading,
     isEmailMissing,
     paymentMethodId,
-    email: shippingAddress?.email
+    email: shippingAddress?.email,
+    finalState: isButtonDisabled
   });
 
   return (

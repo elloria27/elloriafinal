@@ -316,6 +316,7 @@ const Checkout = () => {
         .eq('is_active', true);
 
       if (error) throw error;
+      console.log('Fetched payment methods:', data);
       setPaymentMethods(data || []);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
@@ -383,7 +384,10 @@ const Checkout = () => {
                           ? 'border-primary bg-primary/5'
                           : 'border-gray-200'
                       }`}
-                      onClick={() => setSelectedPaymentMethod(method.id)}
+                      onClick={() => {
+                        console.log('Selected payment method:', method.id);
+                        setSelectedPaymentMethod(method.id);
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         {method.icon_url && (
