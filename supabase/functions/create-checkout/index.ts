@@ -20,10 +20,7 @@ serve(async (req) => {
 
     const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } } = await req.json();
     
-    console.log('Processing checkout for items:', items);
-    console.log('Shipping address:', shippingAddress);
-    console.log('Shipping cost:', shippingCost);
-    console.log('Active promo code:', activePromoCode);
+    console.log('Processing checkout with shipping address:', shippingAddress);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -170,35 +167,37 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    // Create order data
+    // Create order data with complete shipping and billing information
     const orderData = {
       user_id: userId,
-      profile_id: userId, // Use the same ID for both user and profile if authenticated
+      profile_id: userId,
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
       items: items,
       shipping_address: {
-        first_name: shippingAddress.first_name,
-        last_name: shippingAddress.last_name,
-        email: shippingAddress.email,
-        phone: shippingAddress.phone,
-        address: shippingAddress.address,
-        country: shippingAddress.country,
-        region: shippingAddress.region
+        first_name: shippingAddress.firstName || '',
+        last_name: shippingAddress.lastName || '',
+        email: shippingAddress.email || '',
+        phone: shippingAddress.phone || '',
+        address: shippingAddress.address || '',
+        country: shippingAddress.country || '',
+        region: shippingAddress.region || ''
       },
       billing_address: {
-        first_name: shippingAddress.first_name,
-        last_name: shippingAddress.last_name,
-        email: shippingAddress.email,
-        phone: shippingAddress.phone,
-        address: shippingAddress.address,
-        country: shippingAddress.country,
-        region: shippingAddress.region
+        first_name: shippingAddress.firstName || '',
+        last_name: shippingAddress.lastName || '',
+        email: shippingAddress.email || '',
+        phone: shippingAddress.phone || '',
+        address: shippingAddress.address || '',
+        country: shippingAddress.country || '',
+        region: shippingAddress.region || ''
       },
       payment_method: 'stripe',
       applied_promo_code: activePromoCode
     };
+
+    console.log('Creating order with data:', orderData);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -209,6 +208,9 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: shippingAddress.email,
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA'],
+      },
       metadata: {
         order_number: orderNumber,
         user_id: userId,

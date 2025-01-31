@@ -36,7 +36,6 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   
   const typedAddress = address as Record<string, unknown>;
   
-  // Create validated shipping address with proper fallbacks
   return {
     address: typeof typedAddress.address === 'string' ? typedAddress.address : 'Unknown',
     region: typeof typedAddress.region === 'string' ? typedAddress.region : 'Unknown',
@@ -126,7 +125,6 @@ export const OrderManagement = () => {
           const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
           
-          // Determine customer name and email with fallbacks
           let customerName = 'Guest';
           let customerEmail = 'Anonymous Order';
           
@@ -216,7 +214,6 @@ export const OrderManagement = () => {
         return;
       }
 
-      // Find the current order to preserve payment information
       const currentOrder = orders.find(order => order.id === orderId);
       if (!currentOrder) {
         console.error("Order not found");
@@ -224,12 +221,10 @@ export const OrderManagement = () => {
         return;
       }
 
-      // First update the order status in the database
       const { data: updatedOrder, error: updateError } = await supabase
         .from("orders")
         .update({ 
           status: newStatus,
-          // Preserve existing payment information
           payment_method: currentOrder.payment_method,
           stripe_session_id: currentOrder.stripe_session_id
         })
@@ -252,7 +247,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Validate the updated order data
       const validatedOrder: OrderData = {
         id: updatedOrder.id,
         user_id: updatedOrder.user_id,
@@ -269,19 +263,16 @@ export const OrderManagement = () => {
         profile: updatedOrder.profiles || undefined
       };
 
-      // Update the orders state
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order.id === orderId ? validatedOrder : order
         )
       );
 
-      // Update selected order if it's currently being viewed
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(validatedOrder);
       }
 
-      // Send email notification
       try {
         console.log("Attempting to send email notification");
         const customerEmail = validatedOrder.profile?.email || validatedOrder.shipping_address.email;
