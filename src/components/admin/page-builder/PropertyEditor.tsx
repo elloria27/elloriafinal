@@ -87,7 +87,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
     }
 
-    if (block.type === "sustainability") {
+    if (block.type === "sustainability" || block.type === "about_sustainability") {
       return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
     }
 
