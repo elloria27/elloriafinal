@@ -13,6 +13,7 @@ interface OrderSummaryProps {
     gst: number;
     pst: number;
     hst: number;
+    region: string;  // Added region to the taxes type
   };
   selectedShippingOption: {
     price: number;
