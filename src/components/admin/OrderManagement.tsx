@@ -106,7 +106,11 @@ export const OrderManagement = () => {
           profiles:profiles!left (
             id,
             full_name,
-            email
+            email,
+            phone_number,
+            address,
+            country,
+            region
           )
         `)
         .order('created_at', { ascending: false });
@@ -127,15 +131,30 @@ export const OrderManagement = () => {
           
           let customerName = 'Guest';
           let customerEmail = 'Anonymous Order';
+          let customerPhone = '';
+          let customerAddress = '';
+          let customerRegion = '';
+          let customerCountry = '';
           
+          // If user is authenticated and has a profile
           if (order.profiles) {
             customerName = order.profiles.full_name || 'Guest';
             customerEmail = order.profiles.email || 'Anonymous Order';
-          } else if (shippingAddress) {
+            customerPhone = order.profiles.phone_number || '';
+            customerAddress = order.profiles.address || '';
+            customerRegion = order.profiles.region || '';
+            customerCountry = order.profiles.country || '';
+          } 
+          // If guest user with shipping address
+          else if (shippingAddress) {
             const firstName = shippingAddress.first_name || '';
             const lastName = shippingAddress.last_name || '';
             customerName = `${firstName} ${lastName}`.trim() || 'Guest';
             customerEmail = shippingAddress.email || 'Anonymous Order';
+            customerPhone = shippingAddress.phone || '';
+            customerAddress = shippingAddress.address || '';
+            customerRegion = shippingAddress.region || '';
+            customerCountry = shippingAddress.country || '';
           }
 
           return {
@@ -145,8 +164,20 @@ export const OrderManagement = () => {
             order_number: order.order_number || 'Unknown',
             total_amount: order.total_amount || 0,
             status: validateOrderStatus(order.status || 'pending'),
-            shipping_address: shippingAddress,
-            billing_address: billingAddress,
+            shipping_address: {
+              ...shippingAddress,
+              phone: customerPhone || shippingAddress.phone,
+              address: customerAddress || shippingAddress.address,
+              region: customerRegion || shippingAddress.region,
+              country: customerCountry || shippingAddress.country,
+            },
+            billing_address: {
+              ...billingAddress,
+              phone: customerPhone || billingAddress.phone,
+              address: customerAddress || billingAddress.address,
+              region: customerRegion || billingAddress.region,
+              country: customerCountry || billingAddress.country,
+            },
             items: items,
             created_at: order.created_at,
             payment_method: order.payment_method || 'Not specified',
@@ -360,7 +391,7 @@ export const OrderManagement = () => {
   };
 
   const getCustomerName = (order: OrderData) => {
-    if (order.profile?.full_name) {
+    if (order.profile?.full_name && order.profile.full_name !== 'Guest') {
       return order.profile.full_name;
     }
     
@@ -370,6 +401,10 @@ export const OrderManagement = () => {
     const fullName = `${firstName} ${lastName}`.trim();
     
     return fullName || 'Guest';
+  };
+
+  const getCustomerEmail = (order: OrderData) => {
+    return order.profile?.email || order.shipping_address.email || 'Anonymous Order';
   };
 
   if (loading) {
@@ -397,7 +432,10 @@ export const OrderManagement = () => {
             <TableRow key={order.id}>
               <TableCell>{order.order_number}</TableCell>
               <TableCell>
-                {getCustomerName(order)}
+                <div className="flex flex-col">
+                  <span className="font-medium">{getCustomerName(order)}</span>
+                  <span className="text-sm text-gray-500">{getCustomerEmail(order)}</span>
+                </div>
               </TableCell>
               <TableCell>{formatDate(order.created_at)}</TableCell>
               <TableCell>
@@ -453,7 +491,8 @@ export const OrderManagement = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
                   <p>Name: {getCustomerName(selectedOrder)}</p>
-                  <p>Email: {selectedOrder.profile?.email || selectedOrder.shipping_address.email || 'Anonymous Order'}</p>
+                  <p>Email: {getCustomerEmail(selectedOrder)}</p>
+                  <p>Phone: {selectedOrder.shipping_address.phone || 'Not provided'}</p>
                 </div>
               </div>
 
@@ -489,14 +528,14 @@ export const OrderManagement = () => {
                   <p>{selectedOrder.shipping_address.address}</p>
                   <p>{selectedOrder.shipping_address.region}</p>
                   <p>{selectedOrder.shipping_address.country}</p>
-                  <p>Phone: {selectedOrder.shipping_address.phone}</p>
+                  <p>Phone: {selectedOrder.shipping_address.phone || 'Not provided'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Billing Address</h3>
                   <p>{selectedOrder.billing_address.address}</p>
                   <p>{selectedOrder.billing_address.region}</p>
                   <p>{selectedOrder.billing_address.country}</p>
-                  <p>Phone: {selectedOrder.billing_address.phone}</p>
+                  <p>Phone: {selectedOrder.billing_address.phone || 'Not provided'}</p>
                 </div>
               </div>
             </div>
