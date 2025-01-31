@@ -36,7 +36,8 @@ serve(async (req) => {
       shippingAddress,
       billingAddress
     } = requestBody;
-    
+
+    // Validate required fields
     if (!items?.length || !paymentMethodId || !shippingAddress) {
       console.error('Missing required fields:', { 
         hasItems: !!items?.length,
@@ -52,20 +53,10 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing checkout with:', {
-      itemCount: items?.length,
-      paymentMethodId,
-      shippingCost,
-      taxes,
-      promoCode,
-      subtotal,
-      shippingAddress: shippingAddress ? { ...shippingAddress, email: shippingAddress.email } : null
-    });
-
     // Initialize Supabase client
-    const supabaseClient = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
           autoRefreshToken: false,
@@ -74,40 +65,13 @@ serve(async (req) => {
       }
     );
 
-    // Get auth user if available, but don't require it
-    let userEmail = null;
-    let userId = null;
-    const authHeader = req.headers.get('Authorization');
-
-    console.log('Auth status:', authHeader ? 'Has auth header' : 'No auth header');
-
-    if (authHeader && authHeader !== 'null' && authHeader !== 'undefined') {
-      try {
-        const token = authHeader.replace('Bearer ', '');
-        console.log('Attempting to get user from token');
-        
-        const { data: { user }, error } = await supabaseClient.auth.getUser(token);
-        if (error) {
-          console.error('Auth error:', error);
-        } else if (user) {
-          userEmail = user.email;
-          userId = user.id;
-          console.log('Authenticated user:', { userId, userEmail });
-        }
-      } catch (error) {
-        console.error('Error getting user:', error);
-      }
-    } else {
-      console.log('Processing as guest checkout with email:', shippingAddress?.email);
-    }
-
     // Get payment method details from database
     console.log('Fetching payment method:', paymentMethodId);
-    const { data: paymentMethod, error: paymentMethodError } = await supabaseClient
+    const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
       .from('payment_methods')
       .select('*')
       .eq('id', paymentMethodId)
-      .maybeSingle();
+      .single();
 
     if (paymentMethodError) {
       console.error('Error fetching payment method:', paymentMethodError);
@@ -120,7 +84,7 @@ serve(async (req) => {
       );
     }
 
-    if (!paymentMethod?.stripe_config) {
+    if (!paymentMethod?.stripe_config?.secret_key) {
       console.error('Invalid payment method configuration:', paymentMethod);
       return new Response(
         JSON.stringify({ error: 'Invalid payment method configuration' }),
@@ -131,31 +95,17 @@ serve(async (req) => {
       );
     }
 
-    const stripeConfig = paymentMethod.stripe_config;
-    console.log('Retrieved stripe config');
-
-    if (!stripeConfig.secret_key) {
-      console.error('Stripe secret key not configured');
-      return new Response(
-        JSON.stringify({ error: 'Stripe secret key not configured' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
-    }
-
-    const stripe = new Stripe(stripeConfig.secret_key, {
+    const stripe = new Stripe(paymentMethod.stripe_config.secret_key, {
       apiVersion: '2023-10-16',
     });
 
-    // Calculate total amount including shipping
+    // Calculate total amount including shipping and taxes
     const totalAmount = subtotal + (shippingCost || 0) + 
       (subtotal * ((taxes?.gst || 0) + (taxes?.pst || 0) + (taxes?.hst || 0)) / 100);
 
     console.log('Calculated total amount:', totalAmount);
 
-    // Calculate discount amount if promo code exists
+    // Calculate discount if promo code exists
     let discountAmount = 0;
     if (promoCode) {
       discountAmount = promoCode.type === 'percentage' 
@@ -164,7 +114,7 @@ serve(async (req) => {
       console.log('Applied discount:', { type: promoCode.type, amount: discountAmount });
     }
 
-    // Create line items for products
+    // Create line items for Stripe
     const lineItems = items.map((item: any) => ({
       price_data: {
         currency: 'cad',
@@ -177,7 +127,7 @@ serve(async (req) => {
       quantity: item.quantity,
     }));
 
-    // Add shipping as a separate line item if exists
+    // Add shipping as a line item if applicable
     if (shippingCost > 0) {
       lineItems.push({
         price_data: {
@@ -191,7 +141,7 @@ serve(async (req) => {
       });
     }
 
-    // Add taxes as separate line items
+    // Add tax line items
     if (taxes) {
       if (taxes.gst > 0) {
         const gstAmount = subtotal * (taxes.gst / 100);
@@ -236,7 +186,7 @@ serve(async (req) => {
       }
     }
 
-    // Create discount coupon if promo code exists
+    // Create Stripe coupon for promo code if applicable
     let discounts = [];
     if (promoCode && discountAmount > 0) {
       console.log('Creating Stripe coupon for promo code:', promoCode.code);
@@ -249,22 +199,18 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    console.log('Creating Stripe checkout session with:', {
-      lineItems,
-      discounts,
-      currency: 'cad',
-      totalAmount,
-      customerEmail: userEmail || shippingAddress.email
-    });
+    // Generate order number
+    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    // Create checkout session
+    // Create Stripe checkout session
+    console.log('Creating Stripe checkout session');
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: userEmail || shippingAddress.email,
+      customer_email: shippingAddress.email,
       discounts: discounts,
       currency: 'cad',
       shipping_address_collection: {
@@ -274,13 +220,8 @@ serve(async (req) => {
 
     console.log('Checkout session created:', session.id);
 
-    // Generate order number
-    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
-
-    // Create initial order record
+    // Create order record
     const orderData = {
-      user_id: userId,
-      profile_id: userId,
       order_number: orderNumber,
       total_amount: totalAmount - discountAmount,
       status: 'pending',
@@ -294,7 +235,7 @@ serve(async (req) => {
 
     console.log('Creating order record:', { orderNumber, totalAmount: orderData.total_amount });
 
-    const { error: orderError } = await supabaseClient
+    const { error: orderError } = await supabaseAdmin
       .from('orders')
       .insert(orderData);
 
