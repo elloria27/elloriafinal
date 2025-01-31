@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BusinessContactForm } from "@/components/business/BusinessContactForm";
+import { FileUpload } from "@/components/admin/file/FileUpload";
 
 type BusinessType = "Retailer" | "Distributor" | "Wholesaler" | "Other";
 
@@ -13,6 +14,7 @@ interface FormData {
   phone: string;
   businessType: BusinessType | undefined;
   message: string;
+  attachments: File[];
 }
 
 const ForBusiness = () => {
@@ -24,11 +26,19 @@ const ForBusiness = () => {
     phone: "",
     businessType: undefined,
     message: "",
+    attachments: [],
   });
 
   const handleStepComplete = (stepData: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...stepData }));
     setCurrentStep((prev) => prev + 1);
+  };
+
+  const handleFileUpload = (file: File) => {
+    setFormData((prev) => ({
+      ...prev,
+      attachments: [...prev.attachments, file],
+    }));
   };
 
   return (
@@ -93,23 +103,36 @@ const ForBusiness = () => {
       <section className="bg-gray-50 py-12 md:py-16">
         <div className="container mx-auto px-4 max-w-3xl">
           {/* Progress Steps */}
-          <div className="flex justify-between items-center mb-8 max-w-md mx-auto">
+          <div className="flex justify-between items-center mb-12 max-w-md mx-auto relative">
             {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center
-                  ${currentStep >= step ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'}
-                `}>
+              <div key={step} className="flex flex-col items-center relative z-10">
+                <div 
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center
+                    transition-all duration-300
+                    ${currentStep >= step 
+                      ? 'bg-primary text-white shadow-lg' 
+                      : 'bg-gray-200 text-gray-600'
+                    }
+                  `}
+                >
                   {step}
                 </div>
-                {step < 3 && (
-                  <div className={`
-                    w-full h-1 mx-2
-                    ${currentStep > step ? 'bg-primary' : 'bg-gray-200'}
-                  `} />
-                )}
+                <span className={`
+                  mt-2 text-sm font-medium
+                  ${currentStep >= step ? 'text-primary' : 'text-gray-500'}
+                `}>
+                  {step === 1 ? 'Start' : step === 2 ? 'Details' : 'Review'}
+                </span>
               </div>
             ))}
+            {/* Progress line */}
+            <div className="absolute top-5 left-0 h-[2px] bg-gray-200 w-full -z-0">
+              <div 
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+              />
+            </div>
           </div>
 
           {/* Step Content */}
@@ -135,10 +158,28 @@ const ForBusiness = () => {
             )}
 
             {currentStep === 2 && (
-              <BusinessContactForm 
-                onComplete={handleStepComplete}
-                initialData={formData}
-              />
+              <div className="space-y-6">
+                <BusinessContactForm 
+                  onComplete={handleStepComplete}
+                  initialData={formData}
+                />
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-4">Attach Documents (Optional)</h3>
+                  <FileUpload onUpload={handleFileUpload} />
+                  {formData.attachments.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium mb-2">Attached Files:</h4>
+                      <ul className="space-y-2">
+                        {formData.attachments.map((file, index) => (
+                          <li key={index} className="text-sm text-gray-600">
+                            {file.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {currentStep === 3 && (
@@ -171,6 +212,12 @@ const ForBusiness = () => {
                       <p className="text-sm text-gray-500">Business Type</p>
                       <p className="font-medium">{formData.businessType}</p>
                     </div>
+                    {formData.attachments.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-500">Attachments</p>
+                        <p className="font-medium">{formData.attachments.length} files</p>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Message</p>

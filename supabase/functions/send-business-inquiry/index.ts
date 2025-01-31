@@ -15,6 +15,10 @@ interface BusinessInquiry {
   phoneNumber?: string;
   businessType: string;
   message: string;
+  attachments?: {
+    name: string;
+    content: string;
+  }[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,9 +29,15 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const inquiry: BusinessInquiry = await req.json();
 
+    const recipients = [
+      "sales@elloria.ca",
+      "mariia_r@elloria.ca",
+      "bogdana_v@elloria.ca"
+    ];
+
     const emailResponse = await resend.emails.send({
       from: "Elloria Business <business@elloria.ca>",
-      to: ["sales@elloria.ca"],
+      to: recipients,
       subject: "New Business Inquiry",
       html: `
         <h1>New Business Inquiry</h1>
@@ -40,6 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
         <h2>Message</h2>
         <p>${inquiry.message}</p>
       `,
+      attachments: inquiry.attachments,
     });
 
     console.log("Email sent successfully:", emailResponse);
