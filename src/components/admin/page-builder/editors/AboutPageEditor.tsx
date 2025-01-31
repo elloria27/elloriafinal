@@ -22,6 +22,35 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
     onUpdate(block.id, updatedContent);
   };
 
+  const handleStatUpdate = (index: number, field: string, value: string) => {
+    const content = block.content as AboutSustainabilityContent;
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    stats[index] = {
+      ...stats[index],
+      [field]: value,
+    };
+    handleChange("stats", stats);
+  };
+
+  const addStat = () => {
+    const content = block.content as AboutSustainabilityContent;
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    const newStat = {
+      icon: "Leaf",
+      value: "New Value",
+      label: "New Label",
+      description: "New Description",
+    };
+    handleChange("stats", [...stats, newStat]);
+  };
+
+  const removeStat = (index: number) => {
+    const content = block.content as AboutSustainabilityContent;
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    stats.splice(index, 1);
+    handleChange("stats", stats);
+  };
+
   const openMediaLibrary = (type: "image" | "video", field: string) => {
     setMediaType(type);
     setCurrentField(field);
@@ -32,34 +61,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
     console.log("Selected media:", currentField, url);
     handleChange(currentField, url);
     setShowMediaLibrary(false);
-  };
-
-  const handleStatUpdate = (index: number, field: string, value: string) => {
-    const content = block.content as AboutSustainabilityContent;
-    const updatedStats = [...(content.stats || [])];
-    updatedStats[index] = {
-      ...updatedStats[index],
-      [field]: value,
-    };
-    handleChange("stats", updatedStats);
-  };
-
-  const addStat = () => {
-    const content = block.content as AboutSustainabilityContent;
-    const newStat = {
-      icon: "Leaf",
-      value: "New Value",
-      label: "New Label",
-      description: "New Description",
-    };
-    handleChange("stats", [...(content.stats || []), newStat]);
-  };
-
-  const removeStat = (index: number) => {
-    const content = block.content as AboutSustainabilityContent;
-    const updatedStats = [...(content.stats || [])];
-    updatedStats.splice(index, 1);
-    handleChange("stats", updatedStats);
   };
 
   const renderMediaField = (label: string, field: string, type: "image" | "video") => (
@@ -102,6 +103,8 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   switch (block.type) {
     case "about_sustainability":
       const sustainabilityContent = block.content as AboutSustainabilityContent;
+      const stats = Array.isArray(sustainabilityContent.stats) ? sustainabilityContent.stats : [];
+      
       return (
         <div className="space-y-4">
           <div className="space-y-2">
@@ -135,7 +138,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(sustainabilityContent.stats || []).map((stat, index) => (
+            {stats.map((stat, index) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Stat {index + 1}</Label>
@@ -191,13 +194,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </div>
             ))}
           </div>
-
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
         </div>
       );
 
