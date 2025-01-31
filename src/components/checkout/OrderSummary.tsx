@@ -53,7 +53,6 @@ export const OrderSummary = ({
 
   // Calculate tax amounts based on original subtotal (BEFORE discount)
   const gstAmount = (taxes.gst / 100) * subtotalInCurrentCurrency;
-  // Only apply PST if not Manitoba
   const pstAmount = taxes.region === "Manitoba" ? 0 : (taxes.pst / 100) * subtotalInCurrentCurrency;
   const hstAmount = (taxes.hst / 100) * subtotalInCurrentCurrency;
   
