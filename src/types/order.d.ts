@@ -21,6 +21,8 @@ export type OrderItem = {
 export type OrderProfile = {
   full_name: string;
   email: string;
+  phone_number?: string;
+  address?: string;
 };
 
 export type OrderData = {
