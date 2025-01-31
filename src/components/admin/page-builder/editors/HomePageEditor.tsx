@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, HeroContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const updatedContent = { 
       ...block.content, 
       [key]: value 
-    };
+    } as BlockContent;
     onUpdate(block.id, updatedContent);
   };
 
@@ -74,17 +74,17 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   switch (block.type) {
     case "hero":
+      const heroContent = block.content as HeroContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title as string || ""}
+              value={heroContent.title || ""}
               onChange={(e) => {
-                const newValue = e.target.value;
-                const updatedContent = {
-                  ...block.content,
-                  title: newValue
+                const updatedContent: HeroContent = {
+                  ...heroContent,
+                  title: e.target.value
                 };
                 onUpdate(block.id, updatedContent);
               }}
@@ -93,12 +93,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle as string || ""}
+              value={heroContent.subtitle || ""}
               onChange={(e) => {
-                const newValue = e.target.value;
-                const updatedContent = {
-                  ...block.content,
-                  subtitle: newValue
+                const updatedContent: HeroContent = {
+                  ...heroContent,
+                  subtitle: e.target.value
                 };
                 onUpdate(block.id, updatedContent);
               }}
@@ -109,12 +108,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div className="space-y-2">
             <Label>Shop Now Button Text</Label>
             <Input
-              value={block.content.shopNowText as string || "Shop Now"}
+              value={heroContent.shopNowText || "Shop Now"}
               onChange={(e) => {
-                const newValue = e.target.value;
-                const updatedContent = {
-                  ...block.content,
-                  shopNowText: newValue
+                const updatedContent: HeroContent = {
+                  ...heroContent,
+                  shopNowText: e.target.value
                 };
                 onUpdate(block.id, updatedContent);
               }}
@@ -125,12 +123,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div className="space-y-2">
             <Label>Learn More Button Text</Label>
             <Input
-              value={block.content.learnMoreText as string || "Learn More"}
+              value={heroContent.learnMoreText || "Learn More"}
               onChange={(e) => {
-                const newValue = e.target.value;
-                const updatedContent = {
-                  ...block.content,
-                  learnMoreText: newValue
+                const updatedContent: HeroContent = {
+                  ...heroContent,
+                  learnMoreText: e.target.value
                 };
                 onUpdate(block.id, updatedContent);
               }}
