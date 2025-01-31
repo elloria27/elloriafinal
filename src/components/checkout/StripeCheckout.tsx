@@ -13,13 +13,23 @@ interface StripeCheckoutProps {
     hst: number;
   };
   shippingCost: number;
+  shippingAddress: {
+    address: string;
+    country: string;
+    region: string;
+    phone: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
 }
 
 export const StripeCheckout = ({ 
   paymentMethodId, 
   isDisabled,
   taxes,
-  shippingCost
+  shippingCost,
+  shippingAddress
 }: StripeCheckoutProps) => {
   const { items, activePromoCode, subtotal } = useCart();
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +43,8 @@ export const StripeCheckout = ({
         taxes,
         shippingCost,
         activePromoCode,
-        subtotal
+        subtotal,
+        shippingAddress
       });
       
       // Get the current session
@@ -47,7 +58,9 @@ export const StripeCheckout = ({
           shippingCost,
           taxes,
           promoCode: activePromoCode,
-          subtotal
+          subtotal,
+          shippingAddress,
+          billingAddress: shippingAddress // Using shipping address as billing address
         },
         headers: {
           Authorization: `Bearer ${session?.access_token || ''}`,

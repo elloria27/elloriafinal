@@ -13,7 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { items, paymentMethodId, shippingCost, taxes, promoCode, subtotal } = await req.json();
+    const { 
+      items, 
+      paymentMethodId, 
+      shippingCost, 
+      taxes, 
+      promoCode, 
+      subtotal,
+      shippingAddress, // Add shipping address to the destructured parameters
+      billingAddress  // Add billing address to the destructured parameters
+    } = await req.json();
     
     console.log('Creating checkout session with:', {
       items,
@@ -21,7 +30,9 @@ serve(async (req) => {
       shippingCost,
       taxes,
       promoCode,
-      subtotal
+      subtotal,
+      shippingAddress,
+      billingAddress
     });
     
     const supabaseClient = createClient(
@@ -213,8 +224,8 @@ serve(async (req) => {
         total_amount: totalAmount - discountAmount,
         status: 'pending',
         items: items,
-        shipping_address: null,
-        billing_address: null,
+        shipping_address: shippingAddress,
+        billing_address: billingAddress || shippingAddress, // Use shipping address as billing if not provided
         stripe_session_id: session.id,
         payment_method: 'stripe',
         applied_promo_code: promoCode
