@@ -17,6 +17,7 @@ import {
   SHIPPING_OPTIONS,
   USD_TO_CAD 
 } from "@/utils/locationData";
+import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ const Checkout = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
   useEffect(() => {
     // Get initial session
@@ -244,6 +247,25 @@ const Checkout = () => {
     }
   };
 
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, []);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setPaymentMethods(data || []);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      toast.error('Failed to load payment methods');
+    }
+  };
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
@@ -293,13 +315,45 @@ const Checkout = () => {
                 />
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isSubmitting || !country || !region || !selectedShipping}
-              >
-                {isSubmitting ? "Processing..." : "Place Order"}
-              </Button>
+              <div className="space-y-4">
+                <h3 className="font-medium">Payment Method</h3>
+                <div className="grid gap-4">
+                  {paymentMethods.map((method) => (
+                    <div
+                      key={method.id}
+                      className={`p-4 border rounded-lg cursor-pointer ${
+                        selectedPaymentMethod === method.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedPaymentMethod(method.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {method.icon_url && (
+                          <img
+                            src={method.icon_url}
+                            alt={method.name}
+                            className="w-8 h-8 object-contain"
+                          />
+                        )}
+                        <div>
+                          <h4 className="font-medium">{method.name}</h4>
+                          {method.description && (
+                            <p className="text-sm text-gray-600">
+                              {method.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <StripeCheckout
+                paymentMethodId={selectedPaymentMethod}
+                isDisabled={!selectedPaymentMethod || !country || !region || !selectedShipping}
+              />
             </form>
           </motion.div>
           
