@@ -37,7 +37,11 @@ export const PageViewTracker = () => {
 
         try {
           const response = await fetch('https://ipapi.co/json/', { 
-            signal: controller.signal
+            signal: controller.signal,
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json'
+            }
           });
           
           clearTimeout(timeoutId);

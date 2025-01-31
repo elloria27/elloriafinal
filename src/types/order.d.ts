@@ -45,4 +45,6 @@ export type OrderData = {
   profile?: OrderProfile;
   payment_method?: string | null;
   applied_promo_code?: AppliedPromoCode | null;
+  shipping_cost: number;
+  gst: number;
 };

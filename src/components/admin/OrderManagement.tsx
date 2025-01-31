@@ -162,7 +162,9 @@ export const OrderManagement = () => {
               phone_number: shippingAddress.phone,
               address: shippingAddress.address
             },
-            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code)
+            applied_promo_code: validateAppliedPromoCode(order.applied_promo_code),
+            shipping_cost: typeof order.shipping_cost === 'number' ? order.shipping_cost : 0,
+            gst: typeof order.gst === 'number' ? order.gst : 0
           };
           return validatedOrder;
         } catch (error) {
@@ -312,7 +314,9 @@ export const OrderManagement = () => {
           phone_number: validatedShippingAddress.phone,
           address: validatedShippingAddress.address
         },
-        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code)
+        applied_promo_code: validateAppliedPromoCode(updatedOrder.applied_promo_code),
+        shipping_cost: typeof updatedOrder.shipping_cost === 'number' ? updatedOrder.shipping_cost : 0,
+        gst: typeof updatedOrder.gst === 'number' ? updatedOrder.gst : 0
       };
 
       setOrders(prevOrders => 
@@ -452,6 +456,8 @@ export const OrderManagement = () => {
                       </p>
                     </div>
                   )}
+                  <p>Shipping Cost: {formatCurrency(selectedOrder.shipping_cost)}</p>
+                  <p>GST: {formatCurrency(selectedOrder.gst)}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Customer Information</h3>
@@ -513,7 +519,7 @@ export const OrderManagement = () => {
                         Total:
                       </TableCell>
                       <TableCell className="font-bold">
-                        {formatCurrency(selectedOrder.total_amount)}
+                        {formatCurrency(selectedOrder.total_amount + selectedOrder.shipping_cost)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
