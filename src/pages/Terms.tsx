@@ -63,7 +63,7 @@ const Terms = () => {
           </CardContent>
         </Card>
 
-      {/* Content Sections */}
+        {/* Content Sections */}
         <div className="max-w-4xl mx-auto space-y-12">
           <section id="general" className="scroll-mt-24">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
@@ -135,7 +135,7 @@ const Terms = () => {
 
           <section id="privacy" className="scroll-mt-24">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Info className="w-6 h-6 text-primary" />
+              <Shield className="w-6 h-6 text-primary" />
               Privacy and Data Protection
             </h2>
             <p className="text-gray-700 leading-relaxed">
