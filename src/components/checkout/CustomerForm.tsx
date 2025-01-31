@@ -101,6 +101,10 @@ export const CustomerForm = ({
     }
   };
 
+  const validateEmail = (email: string) => {
+    return email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
@@ -143,8 +147,11 @@ export const CustomerForm = ({
           value={isAuthenticated ? userEmail : undefined}
           onChange={(e) => {
             if (!isAuthenticated) {
-              setUserEmail(e.target.value);
-              handleInputChange('email', e.target.value);
+              const email = e.target.value;
+              setUserEmail(email);
+              if (validateEmail(email)) {
+                handleInputChange('email', email);
+              }
             }
           }}
           readOnly={isAuthenticated}

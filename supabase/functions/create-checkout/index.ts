@@ -44,7 +44,7 @@ serve(async (req) => {
     }
 
     // Validate email
-    if (!shippingAddress.email || !shippingAddress.email.includes('@')) {
+    if (!shippingAddress.email || !shippingAddress.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       console.error('Invalid email address:', shippingAddress.email);
       return new Response(
         JSON.stringify({ error: 'Invalid email address provided' }),
@@ -223,7 +223,7 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: shippingAddress.email,
+      customer_email: tempEmail,
       discounts: discounts,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
