@@ -78,12 +78,22 @@ export const StripeCheckout = ({
     }
   };
 
-  const isEmailMissing = !shippingAddress?.email;
+  // Змінюємо логіку перевірки email
+  const isEmailMissing = !shippingAddress?.email?.trim();
+  const isButtonDisabled = isDisabled || isLoading || isEmailMissing || !paymentMethodId;
+
+  console.log('Button state:', {
+    isDisabled,
+    isLoading,
+    isEmailMissing,
+    paymentMethodId,
+    email: shippingAddress?.email
+  });
 
   return (
     <Button 
       onClick={handleCheckout}
-      disabled={isDisabled || isLoading || isEmailMissing}
+      disabled={isButtonDisabled}
       className="w-full"
     >
       {isLoading ? "Processing..." : "Proceed to Payment"}
