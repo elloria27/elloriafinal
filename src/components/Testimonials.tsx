@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { TestimonialsContent } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface TestimonialsProps {
   content?: TestimonialsContent;
@@ -44,13 +45,30 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
   
   if (content) {
     if (Array.isArray(content.testimonials)) {
-      testimonials = content.testimonials;
+      // Convert Json array to Testimonial array
+      testimonials = content.testimonials.map((item: Json): Testimonial => ({
+        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
+        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
+        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
+        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
+      }));
     } else if (Array.isArray(content.items)) {
-      testimonials = content.items;
+      // Convert items array to Testimonial array
+      testimonials = content.items.map((item: Json): Testimonial => ({
+        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
+        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
+        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
+        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
+      }));
     } else if (typeof content.testimonials === 'object' && content.testimonials !== null) {
       // Handle case where testimonials might be an object with numeric keys
-      const testimonialsObj = content.testimonials as Record<string, Testimonial>;
-      testimonials = Object.values(testimonialsObj);
+      const testimonialsObj = content.testimonials as Record<string, Json>;
+      testimonials = Object.values(testimonialsObj).map((item): Testimonial => ({
+        name: typeof item === 'object' && item !== null ? String(item.name || item.author || '') : '',
+        rating: typeof item === 'object' && item !== null ? Number(item.rating || 5) : 5,
+        text: typeof item === 'object' && item !== null ? String(item.text || item.content || '') : '',
+        source: typeof item === 'object' && item !== null ? String(item.source || '') : ''
+      }));
     }
   }
   
