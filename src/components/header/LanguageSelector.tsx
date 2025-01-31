@@ -63,9 +63,9 @@ export const LanguageSelector = () => {
       case "en":
         return "English";
       case "fr":
-        return "Français";
+        return "Français (Coming Soon)";
       case "uk":
-        return "Українська";
+        return "Українська (Coming Soon)";
       default:
         return code.toUpperCase();
     }
@@ -91,12 +91,15 @@ export const LanguageSelector = () => {
           {["en", "fr", "uk"].map((lang) => (
             <button
               key={lang}
-              onClick={() => setCurrentLanguage(lang as Database['public']['Enums']['supported_language'])}
+              onClick={() => lang === "en" && setCurrentLanguage(lang as Database['public']['Enums']['supported_language'])}
               className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                 currentLanguage === lang
                   ? "bg-primary/10 text-primary"
-                  : "hover:bg-gray-100"
+                  : lang === "en"
+                  ? "hover:bg-gray-100"
+                  : "opacity-50 cursor-not-allowed"
               }`}
+              disabled={lang !== "en"}
             >
               {getLanguageLabel(lang)}
             </button>

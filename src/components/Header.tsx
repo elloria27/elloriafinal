@@ -3,7 +3,6 @@ import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { UserMenu } from "./header/UserMenu";
 import { LanguageSelector } from "./header/LanguageSelector";
-import { CurrencySelector } from "./header/CurrencySelector";
 import { CartPopover } from "./header/CartPopover";
 import { MobileMenu } from "./header/MobileMenu";
 import { useLocation } from "react-router-dom";
@@ -32,7 +31,6 @@ export const Header = () => {
             <div className="hidden md:flex items-center space-x-6">
               <UserMenu />
               <LanguageSelector />
-              <CurrencySelector />
               <CartPopover />
             </div>
 
