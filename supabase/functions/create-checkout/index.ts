@@ -30,16 +30,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Generate a UUID for the user (guest or authenticated)
-    const userId = crypto.randomUUID();
+    // Generate order number
+    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+    let userId = null;
     let userProfile = null;
 
-    // Get authentication status and user data
+    // Check if user is authenticated
     const authHeader = req.headers.get('Authorization');
-    
     if (authHeader) {
       console.log('User is authenticated, fetching profile data');
-      
       try {
         const authSupabase = createClient(
           Deno.env.get('SUPABASE_URL') ?? '',
@@ -62,11 +61,9 @@ serve(async (req) => {
         
         if (userError) {
           console.error('Error getting authenticated user:', userError);
-          throw userError;
-        }
-
-        if (user) {
+        } else if (user) {
           console.log('Found authenticated user:', user.id);
+          userId = user.id;
 
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -76,47 +73,14 @@ serve(async (req) => {
 
           if (profileError) {
             console.error('Error getting user profile:', profileError);
-            throw profileError;
+          } else {
+            userProfile = profile;
+            console.log('Found authenticated user profile:', userProfile);
           }
-
-          userProfile = profile;
-          console.log('Found authenticated user profile:', userProfile);
         }
       } catch (error) {
         console.error('Error in auth process:', error);
-        // Continue as guest if auth fails
       }
-    }
-
-    // If no authenticated user or auth failed, create guest profile
-    if (!userProfile) {
-      console.log('Creating guest profile');
-      
-      const guestProfile = {
-        id: userId,
-        full_name: `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim(),
-        email: shippingAddress.email,
-        phone_number: shippingAddress.phone,
-        address: shippingAddress.address,
-        country: shippingAddress.country,
-        region: shippingAddress.region
-      };
-
-      console.log('Inserting guest profile:', guestProfile);
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert(guestProfile)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('Error creating guest profile:', profileError);
-        throw new Error('Failed to create guest profile');
-      }
-
-      userProfile = profile;
-      console.log('Created guest profile:', userProfile);
     }
 
     // Calculate tax rates based on location
@@ -206,13 +170,10 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
-    // Generate order number
-    const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
-
-    // Create order data with complete customer information
+    // Create order data
     const orderData = {
-      user_id: userProfile.id,
-      profile_id: userProfile.id,
+      user_id: userId,
+      profile_id: userId, // Use the same ID for both user and profile if authenticated
       order_number: orderNumber,
       total_amount: total,
       status: 'pending',
@@ -220,7 +181,7 @@ serve(async (req) => {
       shipping_address: {
         first_name: shippingAddress.first_name,
         last_name: shippingAddress.last_name,
-        email: userProfile.email,
+        email: shippingAddress.email,
         phone: shippingAddress.phone,
         address: shippingAddress.address,
         country: shippingAddress.country,
@@ -229,7 +190,7 @@ serve(async (req) => {
       billing_address: {
         first_name: shippingAddress.first_name,
         last_name: shippingAddress.last_name,
-        email: userProfile.email,
+        email: shippingAddress.email,
         phone: shippingAddress.phone,
         address: shippingAddress.address,
         country: shippingAddress.country,
@@ -247,11 +208,11 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: userProfile.email,
+      customer_email: shippingAddress.email,
       metadata: {
         order_number: orderNumber,
-        user_id: userProfile.id,
-        profile_id: userProfile.id,
+        user_id: userId,
+        profile_id: userId,
         shipping_address: JSON.stringify(shippingAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
