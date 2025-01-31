@@ -24,7 +24,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 // Define the shape of shipping address data as it comes from the database
-type ShippingAddressData = {
+interface ShippingAddressJson {
   address: string;
   region: string;
   country: string;
@@ -32,14 +32,14 @@ type ShippingAddressData = {
   first_name?: string;
   last_name?: string;
   email?: string;
-};
+}
 
 const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (!address || typeof address !== 'object') {
     throw new Error('Invalid shipping address format');
   }
 
-  const addressData = address as ShippingAddressData;
+  const addressData = address as ShippingAddressJson;
 
   if (
     typeof addressData.address !== 'string' ||
