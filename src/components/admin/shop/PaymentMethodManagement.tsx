@@ -6,10 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
+interface StripeConfig {
+  publishable_key: string;
+  secret_key: string;
+}
+
 export const PaymentMethodManagement = () => {
   const [loading, setLoading] = useState(true);
   const [stripeEnabled, setStripeEnabled] = useState(false);
-  const [stripeConfig, setStripeConfig] = useState({
+  const [stripeConfig, setStripeConfig] = useState<StripeConfig>({
     publishable_key: "",
     secret_key: "",
   });
@@ -30,7 +35,12 @@ export const PaymentMethodManagement = () => {
       
       if (data) {
         setStripeEnabled(data.is_active || false);
-        setStripeConfig(data.stripe_config || { publishable_key: "", secret_key: "" });
+        // Ensure we have a valid stripe_config object
+        const config = data.stripe_config as StripeConfig;
+        setStripeConfig({
+          publishable_key: config?.publishable_key || "",
+          secret_key: config?.secret_key || "",
+        });
       }
     } catch (error) {
       console.error('Error fetching payment methods:', error);
