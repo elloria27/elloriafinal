@@ -18,7 +18,7 @@ const COMPANY_INFO = {
   phone: '(204) 930-2019',
   email: 'sales@elloria.ca',
   gst: '742031420RT0001',
-  logo: '/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png'
+  logo: '/lovable-uploads/8fdf5106-b794-4385-a366-9596f10080b4.png'
 };
 
 serve(async (req) => {
@@ -151,11 +151,18 @@ serve(async (req) => {
       doc.text(`-$${discount.toFixed(2)}`, 160, y);
     }
     
+    // Calculate GST (5%)
+    const gstRate = 0.05;
+    const gstAmount = (subtotal - discount) * gstRate;
+    y += 10;
+    doc.text('GST (5%):', 130, y);
+    doc.text(`$${gstAmount.toFixed(2)}`, 160, y);
+    
     // Total
     y += 15;
     doc.setFontSize(12);
     doc.text('Total:', 130, y);
-    doc.text(`$${order.total_amount.toFixed(2)}`, 160, y);
+    doc.text(`$${(subtotal - discount + gstAmount).toFixed(2)}`, 160, y);
     
     // Payment Method
     y += 20;
