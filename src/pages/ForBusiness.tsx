@@ -1,20 +1,32 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BusinessContactForm } from "@/components/business/BusinessContactForm";
 
+type BusinessType = "Retailer" | "Distributor" | "Wholesaler" | "Other";
+
+interface FormData {
+  fullName: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  businessType: BusinessType | undefined;
+  message: string;
+}
+
 const ForBusiness = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     companyName: "",
     email: "",
     phone: "",
-    businessType: "",
+    businessType: undefined,
     message: "",
   });
 
-  const handleStepComplete = (stepData: Partial<typeof formData>) => {
+  const handleStepComplete = (stepData: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...stepData }));
     setCurrentStep((prev) => prev + 1);
   };
