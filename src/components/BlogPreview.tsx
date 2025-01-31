@@ -37,13 +37,16 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
         if (data) {
           console.log('Raw blog posts data:', data);
-          // Transform the data to include the full storage URL for featured images
-          const postsWithFullImageUrls = data.map(post => ({
-            ...post,
-            featured_image: post.featured_image 
+          const postsWithFullImageUrls = data.map(post => {
+            const imageUrl = post.featured_image 
               ? `https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/files/blog/${post.featured_image}`
-              : '/placeholder.svg'
-          }));
+              : '/placeholder.svg';
+            console.log('Generated image URL:', imageUrl);
+            return {
+              ...post,
+              featured_image: imageUrl
+            };
+          });
           console.log('Posts with full image URLs:', postsWithFullImageUrls);
           setPosts(postsWithFullImageUrls);
         }
@@ -57,7 +60,6 @@ export const BlogPreview = ({ content }: BlogPreviewProps) => {
 
     fetchPosts();
 
-    // Subscribe to real-time updates
     const channel = supabase
       .channel('schema-db-changes')
       .on(
