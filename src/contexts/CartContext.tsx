@@ -1,22 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { CartItem } from "@/contexts/CartContext";
+import { CartItem, CartContextType } from '@/types/cart';
 import { PromoCode } from '@/types/promo-code';
 import { toast } from 'sonner';
-
-interface CartContextType {
-  items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
-  subtotal: number;
-  activePromoCode: PromoCode | null;
-  applyPromoCode: (code: string) => Promise<void>;
-  removePromoCode: () => void;
-  calculateDiscount: (promoCode: PromoCode, subtotal: number) => number;
-  getDiscountDisplay: (promoCode: PromoCode) => string;
-}
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -36,8 +22,33 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   
   const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(() => {
     const savedPromoCode = localStorage.getItem('activePromoCode');
-    return savedPromoCode ? { code: savedPromoCode, type: 'percentage', value: 10 } : null;
+    if (!savedPromoCode) return null;
+    
+    // We'll fetch the full promo code details from the database
+    const fetchPromoCode = async () => {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', savedPromoCode)
+        .single();
+      
+      if (error || !data) {
+        localStorage.removeItem('activePromoCode');
+        return null;
+      }
+      
+      return data;
+    };
+    
+    // Initialize with basic data, will be updated after fetch
+    fetchPromoCode().then(code => {
+      if (code) setActivePromoCode(code);
+    });
+    
+    return null;
   });
+
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(items));
@@ -53,6 +64,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       }
       return [...prevItems, item];
     });
+    setIsCartAnimating(true);
+    setTimeout(() => setIsCartAnimating(false), 500);
   };
 
   const removeItem = (id: string) => {
@@ -69,9 +82,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = () => {
     setItems([]);
+    setActivePromoCode(null);
+    localStorage.removeItem('activePromoCode');
   };
 
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
   const applyPromoCode = async (code: string) => {
     try {
@@ -129,6 +145,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     return promoCode.type === 'percentage' ? `${promoCode.value}%` : `$${promoCode.value.toFixed(2)}`;
   };
 
+  const discountAmount = activePromoCode ? calculateDiscount(activePromoCode, subtotal) : 0;
+  const total = subtotal - discountAmount;
+
   return (
     <CartContext.Provider value={{
       items,
@@ -137,6 +156,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       updateQuantity,
       clearCart,
       subtotal,
+      total,
+      totalItems,
+      isCartAnimating,
       activePromoCode,
       applyPromoCode,
       removePromoCode,
