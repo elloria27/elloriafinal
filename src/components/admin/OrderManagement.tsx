@@ -27,23 +27,26 @@ const validateShippingAddress = (address: unknown): ShippingAddress => {
   if (typeof address !== 'object' || !address) {
     console.error('Invalid shipping address format:', address);
     return {
-      address: 'Unknown',
-      region: 'Unknown',
-      country: 'Unknown',
-      phone: 'Unknown'
+      address: '',
+      region: '',
+      country: '',
+      phone: '',
+      first_name: '',
+      last_name: '',
+      email: ''
     };
   }
   
   const typedAddress = address as Record<string, unknown>;
   
   return {
-    address: typeof typedAddress.address === 'string' ? typedAddress.address : 'Unknown',
-    region: typeof typedAddress.region === 'string' ? typedAddress.region : 'Unknown',
-    country: typeof typedAddress.country === 'string' ? typedAddress.country : 'Unknown',
-    phone: typeof typedAddress.phone === 'string' ? typedAddress.phone : 'Unknown',
-    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : undefined,
-    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : undefined,
-    email: typeof typedAddress.email === 'string' ? typedAddress.email : undefined,
+    address: typeof typedAddress.address === 'string' ? typedAddress.address : '',
+    region: typeof typedAddress.region === 'string' ? typedAddress.region : '',
+    country: typeof typedAddress.country === 'string' ? typedAddress.country : '',
+    phone: typeof typedAddress.phone === 'string' ? typedAddress.phone : '',
+    first_name: typeof typedAddress.first_name === 'string' ? typedAddress.first_name : '',
+    last_name: typeof typedAddress.last_name === 'string' ? typedAddress.last_name : '',
+    email: typeof typedAddress.email === 'string' ? typedAddress.email : '',
   };
 };
 
@@ -129,8 +132,8 @@ export const OrderManagement = () => {
           const billingAddress = validateShippingAddress(order.billing_address);
           const items = validateOrderItems(order.items);
           
-          let customerName = 'Guest';
-          let customerEmail = 'Anonymous Order';
+          let customerName = '';
+          let customerEmail = '';
           let customerPhone = '';
           let customerAddress = '';
           let customerRegion = '';
@@ -138,23 +141,34 @@ export const OrderManagement = () => {
           
           // If user is authenticated and has a profile
           if (order.profiles) {
-            customerName = order.profiles.full_name || 'Guest';
-            customerEmail = order.profiles.email || 'Anonymous Order';
+            customerName = order.profiles.full_name || '';
+            customerEmail = order.profiles.email || '';
             customerPhone = order.profiles.phone_number || '';
             customerAddress = order.profiles.address || '';
             customerRegion = order.profiles.region || '';
             customerCountry = order.profiles.country || '';
-          } 
-          // If guest user with shipping address
-          else if (shippingAddress) {
+          }
+          
+          // Use shipping address information if available (for both guest and authenticated users)
+          if (shippingAddress) {
             const firstName = shippingAddress.first_name || '';
             const lastName = shippingAddress.last_name || '';
-            customerName = `${firstName} ${lastName}`.trim() || 'Guest';
-            customerEmail = shippingAddress.email || 'Anonymous Order';
-            customerPhone = shippingAddress.phone || '';
-            customerAddress = shippingAddress.address || '';
-            customerRegion = shippingAddress.region || '';
-            customerCountry = shippingAddress.country || '';
+            customerName = customerName || `${firstName} ${lastName}`.trim();
+            customerEmail = customerEmail || shippingAddress.email || '';
+            customerPhone = customerPhone || shippingAddress.phone || '';
+            customerAddress = customerAddress || shippingAddress.address || '';
+            customerRegion = customerRegion || shippingAddress.region || '';
+            customerCountry = customerCountry || shippingAddress.country || '';
+          }
+
+          // If still no customer name, use a placeholder
+          if (!customerName.trim()) {
+            customerName = 'No name provided';
+          }
+          
+          // If still no email, use a placeholder
+          if (!customerEmail.trim()) {
+            customerEmail = 'No email provided';
           }
 
           return {
@@ -197,24 +211,24 @@ export const OrderManagement = () => {
             total_amount: order.total_amount || 0,
             status: 'pending',
             shipping_address: {
-              address: 'Unknown',
-              region: 'Unknown',
-              country: 'Unknown',
-              phone: 'Unknown'
+              address: 'No address provided',
+              region: 'No region provided',
+              country: 'No country provided',
+              phone: 'No phone provided'
             },
             billing_address: {
-              address: 'Unknown',
-              region: 'Unknown',
-              country: 'Unknown',
-              phone: 'Unknown'
+              address: 'No address provided',
+              region: 'No region provided',
+              country: 'No country provided',
+              phone: 'No phone provided'
             },
             items: [],
             created_at: order.created_at,
             payment_method: 'Not specified',
             stripe_session_id: null,
             profile: {
-              full_name: 'Guest',
-              email: 'Anonymous Order'
+              full_name: 'No name provided',
+              email: 'No email provided'
             }
           };
         }
