@@ -151,7 +151,7 @@ export const OrderManagement = () => {
             items: validateOrderItems(order.items),
             created_at: order.created_at,
             payment_method: order.payment_method || null,
-            shipping_cost: order.shipping_cost || 0,
+            shipping_cost: typeof order.shipping_cost === 'number' ? order.shipping_cost : 0,
             profile: order.profiles ? {
               full_name: order.profiles.full_name || 'Guest',
               email: order.profiles.email || shippingAddress.email || 'Anonymous Order',
@@ -272,7 +272,7 @@ export const OrderManagement = () => {
         items: validateOrderItems(updatedOrder.items),
         created_at: updatedOrder.created_at,
         payment_method: updatedOrder.payment_method || null,
-        shipping_cost: updatedOrder.shipping_cost || 0,
+        shipping_cost: typeof updatedOrder.shipping_cost === 'number' ? updatedOrder.shipping_cost : 0,
         profile: updatedOrder.profiles ? {
           full_name: updatedOrder.profiles.full_name || 'Guest',
           email: updatedOrder.profiles.email || validatedShippingAddress.email || 'Anonymous Order',
