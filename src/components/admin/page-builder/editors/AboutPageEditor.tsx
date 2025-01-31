@@ -63,43 +63,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
     setShowMediaLibrary(false);
   };
 
-  const renderMediaField = (label: string, field: string, type: "image" | "video") => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-2">
-        <Input
-          value={block.content[field] as string || ""}
-          readOnly
-          placeholder={`Select ${type}...`}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => openMediaLibrary(type, field)}
-        >
-          {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-        </Button>
-      </div>
-      {block.content[field] && (
-        <div className="mt-2">
-          {type === "image" ? (
-            <img
-              src={block.content[field] as string}
-              alt={label}
-              className="max-w-xs rounded"
-            />
-          ) : (
-            <video
-              src={block.content[field] as string}
-              controls
-              className="max-w-xs rounded"
-            />
-          )}
-        </div>
-      )}
-    </div>
-  );
-
   switch (block.type) {
     case "about_sustainability":
       const sustainabilityContent = block.content as AboutSustainabilityContent;
@@ -170,7 +133,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <Input
                     value={stat.value}
                     onChange={(e) => handleStatUpdate(index, "value", e.target.value)}
-                    placeholder="Enter value"
+                    placeholder="Enter value (e.g., 55%, 50K+)"
                   />
                 </div>
 
@@ -179,7 +142,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <Input
                     value={stat.label}
                     onChange={(e) => handleStatUpdate(index, "label", e.target.value)}
-                    placeholder="Enter label"
+                    placeholder="Enter label (e.g., Recyclable Materials)"
                   />
                 </div>
 
@@ -194,142 +157,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </div>
             ))}
           </div>
-        </div>
-      );
-
-    case "about_story":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Subtitle</Label>
-            <Input
-              value={block.content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Content</Label>
-            <Input
-              value={block.content.content as string || ""}
-              onChange={(e) => handleChange("content", e.target.value)}
-            />
-          </div>
-          {renderMediaField("Video", "videoUrl", "video")}
-          {renderMediaField("Video Cover (Thumbnail)", "videoThumbnail", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "about_hero_section":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Subtitle</Label>
-            <Input
-              value={block.content.subtitle as string || ""}
-              onChange={(e) => handleChange("subtitle", e.target.value)}
-            />
-          </div>
-          {renderMediaField("Background Image", "backgroundImage", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "about_mission":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Mission Statement</Label>
-            <Input
-              value={block.content.mission as string || ""}
-              onChange={(e) => handleChange("mission", e.target.value)}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "about_team":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          {renderMediaField("Team Image", "teamImage", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "about_customer_impact":
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Impact Description</Label>
-            <Input
-              value={block.content.impact as string || ""}
-              onChange={(e) => handleChange("impact", e.target.value)}
-            />
-          </div>
-          {renderMediaField("Image", "image", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
         </div>
       );
 

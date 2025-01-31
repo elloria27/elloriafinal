@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
-import { AboutSustainabilityContent } from "@/types/content-blocks";
 import { Leaf, Recycle, TreePine } from "lucide-react";
+import { AboutSustainabilityContent } from "@/types/content-blocks";
 
 interface AboutSustainabilityProps {
   content?: AboutSustainabilityContent;
 }
 
 export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) => {
+  console.log("AboutSustainability content received:", content);
+  
   const {
     title = "Our Commitment to Sustainability",
     description = "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
