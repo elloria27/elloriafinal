@@ -603,6 +603,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           processing_fee: number | null
+          stripe_config: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -613,6 +614,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           processing_fee?: number | null
+          stripe_config?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -623,6 +625,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           processing_fee?: number | null
+          stripe_config?: Json | null
           updated_at?: string | null
         }
         Relationships: []

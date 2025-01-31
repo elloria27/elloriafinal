@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const PaymentMethodManagement = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
+  const [stripeConfig, setStripeConfig] = useState({
+    publishable_key: "",
+    secret_key: "",
+  });
 
   useEffect(() => {
     fetchPaymentMethods();
@@ -24,6 +32,31 @@ export const PaymentMethodManagement = () => {
       toast.error('Failed to load payment methods');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (method) => {
+    setEditingId(method.id);
+    setStripeConfig(method.stripe_config || { publishable_key: "", secret_key: "" });
+  };
+
+  const handleSave = async (methodId) => {
+    try {
+      const { error } = await supabase
+        .from('payment_methods')
+        .update({
+          stripe_config: stripeConfig
+        })
+        .eq('id', methodId);
+
+      if (error) throw error;
+
+      toast.success('Payment method updated successfully');
+      setEditingId(null);
+      fetchPaymentMethods();
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+      toast.error('Failed to update payment method');
     }
   };
 
@@ -51,12 +84,57 @@ export const PaymentMethodManagement = () => {
             {paymentMethods.map((method: any) => (
               <div key={method.id} className="p-4">
                 <h3 className="font-medium">{method.name}</h3>
-                <p className="text-sm text-gray-600">{method.description}</p>
-                <div className="mt-2 text-sm">
-                  <span className={`px-2 py-1 rounded-full ${method.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {method.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
+                <p className="text-sm text-gray-600 mb-4">{method.description}</p>
+                
+                {editingId === method.id ? (
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="publishable_key">Publishable Key</Label>
+                      <Input
+                        id="publishable_key"
+                        type="text"
+                        value={stripeConfig.publishable_key}
+                        onChange={(e) => setStripeConfig(prev => ({
+                          ...prev,
+                          publishable_key: e.target.value
+                        }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="secret_key">Secret Key</Label>
+                      <Input
+                        id="secret_key"
+                        type="password"
+                        value={stripeConfig.secret_key}
+                        onChange={(e) => setStripeConfig(prev => ({
+                          ...prev,
+                          secret_key: e.target.value
+                        }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={() => handleSave(method.id)}>
+                        Save
+                      </Button>
+                      <Button variant="outline" onClick={() => setEditingId(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <span className={`px-2 py-1 rounded-full ${method.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {method.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <Button onClick={() => handleEdit(method)}>
+                      Edit Stripe Keys
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
