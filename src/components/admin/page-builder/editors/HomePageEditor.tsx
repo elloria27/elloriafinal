@@ -16,12 +16,12 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [currentField, setCurrentField] = useState<string>("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof HeroContent) => {
-    const value = e.target.value;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    console.log('Handling input change for', field, 'with value:', e.target.value);
     const updatedContent = {
       ...block.content,
-      [field]: value
-    } as HeroContent;
+      [field]: e.target.value
+    };
     onUpdate(block.id, updatedContent);
   };
 
@@ -35,7 +35,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const updatedContent = {
       ...block.content,
       [currentField]: url
-    } as HeroContent;
+    };
     onUpdate(block.id, updatedContent);
     setShowMediaLibrary(false);
   };
@@ -134,7 +134,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -154,7 +154,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -174,7 +174,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -194,7 +194,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -214,7 +214,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -234,7 +234,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
@@ -254,7 +254,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <Label>Title</Label>
             <Input
               value={block.content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
+              onChange={(e) => handleInputChange(e, "title")}
             />
           </div>
           {renderMediaField("Image", "image", "image")}
