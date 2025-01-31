@@ -20,7 +20,7 @@ serve(async (req) => {
 
     const { data: { items, total, subtotal, taxes, activePromoCode, shippingAddress, shippingCost } } = await req.json();
     
-    console.log('Processing checkout with data:', { items, shippingAddress, total });
+    console.log('Processing checkout with shipping address:', shippingAddress);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -35,6 +35,7 @@ serve(async (req) => {
     // Check if user is authenticated
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
+      console.log('Authorization header found, checking user authentication');
       try {
         const authSupabase = createClient(
           Deno.env.get('SUPABASE_URL') ?? '',
@@ -71,6 +72,15 @@ serve(async (req) => {
         console.error('Error in auth process:', error);
       }
     }
+
+    // Prepare shipping address for Stripe
+    const stripeShippingAddress = {
+      line1: shippingAddress.address || '',
+      city: '', // Add city field to your form if needed
+      state: shippingAddress.region || '',
+      country: shippingAddress.country || '',
+      postal_code: '', // Add postal code field to your form if needed
+    };
 
     // Calculate tax rates based on location
     const totalTaxRate = (taxes.gst || 0) / 100;
@@ -158,6 +168,33 @@ serve(async (req) => {
       discounts.push({ coupon: coupon.id });
     }
 
+    // Prepare complete shipping and billing address data
+    const completeAddress = {
+      first_name: shippingAddress.firstName || '',
+      last_name: shippingAddress.lastName || '',
+      email: shippingAddress.email || '',
+      phone: shippingAddress.phone || '',
+      address: shippingAddress.address || '',
+      country: shippingAddress.country || '',
+      region: shippingAddress.region || ''
+    };
+
+    // Create order data
+    const orderData = {
+      user_id: userId,
+      profile_id: userId,
+      order_number: orderNumber,
+      total_amount: total,
+      status: 'pending',
+      items: items,
+      shipping_address: completeAddress,
+      billing_address: completeAddress, // Using same address for billing
+      payment_method: 'stripe',
+      applied_promo_code: activePromoCode
+    };
+
+    console.log('Creating order with data:', orderData);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -166,14 +203,15 @@ serve(async (req) => {
       discounts: discounts,
       success_url: `${req.headers.get('origin')}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
-      customer_email: shippingAddress.email,
-      shipping_address_collection: null, // Disable Stripe's address collection
-      billing_address_collection: 'required',
+      customer_email: shippingAddress.email || undefined,
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA'],
+      },
       metadata: {
         order_number: orderNumber,
         user_id: userId,
         profile_id: userId,
-        shipping_address: JSON.stringify(shippingAddress),
+        shipping_address: JSON.stringify(completeAddress),
         tax_rate: totalTaxRate,
         promo_code: activePromoCode?.code || '',
       },
@@ -182,25 +220,12 @@ serve(async (req) => {
     console.log('Created Stripe session:', session.id);
 
     // Save order to database with complete information
-    const orderData = {
-      user_id: userId,
-      profile_id: userId,
-      order_number: orderNumber,
-      total_amount: total,
-      status: 'pending',
-      items: items,
-      shipping_address: shippingAddress,
-      billing_address: shippingAddress, // Using same address for billing
-      payment_method: 'stripe',
-      stripe_session_id: session.id,
-      applied_promo_code: activePromoCode
-    };
-
-    console.log('Saving order to database:', orderData);
-
     const { error: orderError } = await supabase
       .from('orders')
-      .insert(orderData);
+      .insert({
+        ...orderData,
+        stripe_session_id: session.id
+      });
 
     if (orderError) {
       console.error('Error creating order:', orderError);
