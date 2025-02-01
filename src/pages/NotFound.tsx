@@ -10,7 +10,6 @@ export default function NotFound() {
       <SEOHead
         title="Page Not Found - 404 Error"
         description="The page you are looking for could not be found. Please check the URL or navigate back to our homepage."
-        noindex={true}
       />
       
       <div className="min-h-[70vh] flex items-center justify-center px-4">
