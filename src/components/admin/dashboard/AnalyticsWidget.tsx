@@ -180,28 +180,32 @@ export const AnalyticsWidget = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <h3 className="text-2xl font-bold mb-4">Page Views</h3>
-              <p className="text-5xl font-semibold text-[#0094F4]">{analyticsData.pageViews}</p>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">Page Views</h3>
+              <p className="text-4xl font-bold text-[#0094F4]">{analyticsData.pageViews}</p>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-4">Avg. Time on Site</h3>
-              <p className="text-5xl font-semibold text-[#0094F4]">{analyticsData.averageTimeOnSite}</p>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">Avg. Time on Site</h3>
+              <p className="text-4xl font-bold text-[#0094F4]">{analyticsData.averageTimeOnSite}</p>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-6">Top Countries</h3>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-600 mb-4">Top Countries</h3>
               {analyticsData.topCountries.length > 0 ? (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {analyticsData.topCountries.map((item, index) => (
                     <li 
-                      key={index} 
-                      className="flex items-center gap-3"
+                      key={index}
+                      className="flex flex-col"
                     >
-                      <span className="text-2xl text-[#0094F4]">{item.country}</span>
-                      <div className="bg-[#E5DEFF] px-4 py-2 rounded-full">
-                        <span className="text-xl">{item.visits} visits</span>
-                      </div>
+                      <span className="text-lg font-medium text-[#0094F4]">
+                        {item.country}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {item.visits} visits
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -209,19 +213,22 @@ export const AnalyticsWidget = () => {
                 <p>No country data available</p>
               )}
             </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-6">Top Cities</h3>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-600 mb-4">Top Cities</h3>
               {analyticsData.topCities.length > 0 ? (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {analyticsData.topCities.map((item, index) => (
                     <li 
-                      key={index} 
-                      className="flex items-center gap-3"
+                      key={index}
+                      className="flex flex-col"
                     >
-                      <span className="text-2xl text-[#0094F4]">{item.city}</span>
-                      <div className="bg-[#E5DEFF] px-4 py-2 rounded-full">
-                        <span className="text-xl">{item.visits} visits</span>
-                      </div>
+                      <span className="text-lg font-medium text-[#0094F4]">
+                        {item.city}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {item.visits} visits
+                      </span>
                     </li>
                   ))}
                 </ul>
