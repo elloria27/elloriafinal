@@ -42,7 +42,7 @@ export default function Activity() {
         const userEmail = profile?.email || user.email;
         console.log("User email for order search:", userEmail);
 
-        // Fetch orders with expanded query
+        // Fetch orders with expanded query and proper JSON field access
         const { data: orders, error } = await supabase
           .from("orders")
           .select(`
@@ -51,7 +51,7 @@ export default function Activity() {
               email
             )
           `)
-          .or(`user_id.eq.${user.id},profile_id.eq.${user.id},shipping_address->email.eq.${userEmail},billing_address->email.eq.${userEmail}`)
+          .or(`user_id.eq.${user.id},profile_id.eq.${user.id},shipping_address->>'email'.eq.'${userEmail}',billing_address->>'email'.eq.'${userEmail}'`)
           .order("created_at", { ascending: false });
 
         if (error) {
