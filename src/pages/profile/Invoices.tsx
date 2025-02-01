@@ -26,7 +26,12 @@ export default function Invoices() {
         
         const { data: userOrders, error } = await supabase
           .from("orders")
-          .select("*")
+          .select(`
+            *,
+            profiles (
+              email
+            )
+          `)
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
