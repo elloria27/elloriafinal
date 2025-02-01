@@ -1,4 +1,6 @@
 import { Helmet } from 'react-helmet-async';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SEOHeadProps {
   title?: string;
@@ -19,15 +21,42 @@ export const SEOHead = ({
   ogDescription,
   ogImage,
 }: SEOHeadProps) => {
-  const defaultTitle = 'Eco Curve Interact';
-  const defaultDescription = 'Sustainable solutions for a better future';
+  const [siteSettings, setSiteSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const loadSiteSettings = async () => {
+      try {
+        console.log('Loading site SEO settings...');
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('Error loading site settings:', error);
+          return;
+        }
+
+        console.log('Site settings loaded:', data);
+        setSiteSettings(data);
+      } catch (error) {
+        console.error('Error in loadSiteSettings:', error);
+      }
+    };
+
+    loadSiteSettings();
+  }, []);
+
+  const defaultTitle = siteSettings?.site_title || 'Eco Curve Interact';
+  const defaultDescription = siteSettings?.meta_description || 'Sustainable solutions for a better future';
+  const defaultKeywords = siteSettings?.meta_keywords || '';
   
   return (
     <Helmet>
       {/* Basic meta tags */}
       <title>{title || defaultTitle}</title>
       <meta name="description" content={description || defaultDescription} />
-      {keywords && <meta name="keywords" content={keywords} />}
+      <meta name="keywords" content={keywords || defaultKeywords} />
       
       {/* Canonical URL */}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
@@ -40,6 +69,11 @@ export const SEOHead = ({
       
       {/* Additional meta tags */}
       <meta name="twitter:card" content="summary_large_image" />
+      
+      {/* Favicon */}
+      {siteSettings?.favicon_url && (
+        <link rel="icon" href={siteSettings.favicon_url} />
+      )}
     </Helmet>
   );
 };
