@@ -28,7 +28,8 @@ export const ContactForm = ({ content }: ContactFormProps) => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("contact_submissions").insert([
+      // First, save to database
+      const { error: dbError } = await supabase.from("contact_submissions").insert([
         {
           full_name: formData.fullName,
           email: formData.email,
@@ -39,7 +40,14 @@ export const ContactForm = ({ content }: ContactFormProps) => {
         },
       ]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // Then, send email
+      const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+        body: formData
+      });
+
+      if (emailError) throw emailError;
 
       toast.success(content.secondaryButtonText || "Thank you for contacting us! We'll get back to you within 24 hours.");
       setFormData({
@@ -51,6 +59,7 @@ export const ContactForm = ({ content }: ContactFormProps) => {
         newsletter: false,
       });
     } catch (error) {
+      console.error('Error submitting form:', error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
