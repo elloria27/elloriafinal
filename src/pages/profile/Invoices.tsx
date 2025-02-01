@@ -24,6 +24,17 @@ export default function Invoices() {
 
         console.log("Current user ID:", user.id);
         
+        // First, get user's profile to get their email
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", user.id)
+          .single();
+
+        const userEmail = profile?.email || user.email;
+        console.log("User email for order search:", userEmail);
+
+        // Fetch orders with expanded query
         const { data: userOrders, error } = await supabase
           .from("orders")
           .select(`
@@ -32,7 +43,7 @@ export default function Invoices() {
               email
             )
           `)
-          .eq("user_id", user.id)
+          .or(`user_id.eq.${user.id},profile_id.eq.${user.id},shipping_address->email.eq.${userEmail},billing_address->email.eq.${userEmail}`)
           .order("created_at", { ascending: false });
 
         if (error) {
