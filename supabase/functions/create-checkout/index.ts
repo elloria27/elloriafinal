@@ -220,8 +220,9 @@ serve(async (req) => {
       });
     }
 
-    // Generate order number
+    // Generate order number and guest reference ID
     const orderNumber = Math.random().toString(36).substr(2, 9).toUpperCase();
+    const guestReferenceId = crypto.randomUUID();
 
     console.log('Create-checkout - Creating Stripe checkout session with email:', email);
 
@@ -233,7 +234,7 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: email,
-      client_reference_id: userId, // Add user ID to Stripe session
+      client_reference_id: userId || guestReferenceId,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
@@ -256,8 +257,8 @@ serve(async (req) => {
       applied_promo_code: promoCode,
       shipping_cost: shippingCost || 0,
       gst: gstAmount || 0,
-      user_id: userId, // Add user ID to order
-      profile_id: userId // Add profile ID to order
+      user_id: userId,
+      profile_id: userId
     };
 
     console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
