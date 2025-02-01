@@ -421,7 +421,6 @@ export type Database = {
           applied_promo_code: Json | null
           billing_address: Json
           created_at: string | null
-          email_address: string | null
           gst: number | null
           id: string
           items: Json
@@ -439,7 +438,6 @@ export type Database = {
           applied_promo_code?: Json | null
           billing_address: Json
           created_at?: string | null
-          email_address?: string | null
           gst?: number | null
           id?: string
           items: Json
@@ -457,7 +455,6 @@ export type Database = {
           applied_promo_code?: Json | null
           billing_address?: Json
           created_at?: string | null
-          email_address?: string | null
           gst?: number | null
           id?: string
           items?: Json

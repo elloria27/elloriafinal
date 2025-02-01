@@ -32,6 +32,8 @@ serve(async (req) => {
     } = requestBody;
 
     console.log('Create-checkout - Shipping address:', shippingAddress);
+    console.log('Create-checkout - Shipping cost:', shippingCost);
+    console.log('Create-checkout - Taxes:', taxes);
 
     if (!items?.length || !paymentMethodId || !shippingAddress) {
       console.error('Create-checkout - Missing required fields');
@@ -138,46 +140,45 @@ serve(async (req) => {
     }
 
     // Add tax line items (based on original subtotal, no discount on taxes)
-    if (taxes) {
-      if (taxes.gst > 0) {
-        lineItems.push({
-          price_data: {
-            currency: 'cad',
-            product_data: {
-              name: 'GST (5%)',
-            },
-            unit_amount: Math.round((subtotal * taxes.gst / 100) * 100),
+    const gstAmount = taxes?.gst ? (subtotal * taxes.gst / 100) : 0;
+    if (gstAmount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'GST (5%)',
           },
-          quantity: 1,
-        });
-      }
-      
-      // Only add PST if not Manitoba
-      if (taxes.pst > 0 && shippingAddress.region !== "Manitoba") {
-        lineItems.push({
-          price_data: {
-            currency: 'cad',
-            product_data: {
-              name: 'PST',
-            },
-            unit_amount: Math.round((subtotal * taxes.pst / 100) * 100),
+          unit_amount: Math.round(gstAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
+    
+    // Only add PST if not Manitoba
+    if (taxes?.pst > 0 && shippingAddress.region !== "Manitoba") {
+      lineItems.push({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'PST',
           },
-          quantity: 1,
-        });
-      }
-      
-      if (taxes.hst > 0) {
-        lineItems.push({
-          price_data: {
-            currency: 'cad',
-            product_data: {
-              name: 'HST',
-            },
-            unit_amount: Math.round((subtotal * taxes.hst / 100) * 100),
+          unit_amount: Math.round((subtotal * taxes.pst / 100) * 100),
+        },
+        quantity: 1,
+      });
+    }
+    
+    if (taxes?.hst > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'HST',
           },
-          quantity: 1,
-        });
-      }
+          unit_amount: Math.round((subtotal * taxes.hst / 100) * 100),
+        },
+        quantity: 1,
+      });
     }
 
     // Generate order number
@@ -198,18 +199,23 @@ serve(async (req) => {
       },
     });
 
-    // Create order record
+    // Calculate total amount including taxes and shipping
+    const totalAmount = subtotal - discountAmount + shippingCost + 
+      (subtotal * ((taxes?.gst || 0) + (shippingAddress.region !== "Manitoba" ? (taxes?.pst || 0) : 0) + (taxes?.hst || 0)) / 100);
+
+    // Create order record with shipping_cost and gst
     const orderData = {
       order_number: orderNumber,
-      total_amount: subtotal - discountAmount + shippingCost + 
-        (subtotal * ((taxes?.gst || 0) + (shippingAddress.region !== "Manitoba" ? (taxes?.pst || 0) : 0) + (taxes?.hst || 0)) / 100),
+      total_amount: totalAmount,
       status: 'pending',
       items: items,
       shipping_address: shippingAddress,
       billing_address: shippingAddress,
       stripe_session_id: session.id,
       payment_method: 'stripe',
-      applied_promo_code: promoCode
+      applied_promo_code: promoCode,
+      shipping_cost: shippingCost || 0,
+      gst: gstAmount || 0
     };
 
     console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
