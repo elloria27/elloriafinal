@@ -40,7 +40,6 @@ export default function Invoices() {
 
         console.log("Current user ID:", user.id);
         
-        // Змінюємо запит для отримання замовлень за profile_id або user_id
         const { data, error } = await supabase
           .from('orders')
           .select('*')

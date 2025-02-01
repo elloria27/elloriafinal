@@ -29,7 +29,6 @@ export default function Activity() {
 
         console.log("Current user ID:", user.id);
         
-        // Змінюємо запит для отримання замовлень за profile_id або user_id
         const { data: orders, error } = await supabase
           .from('orders')
           .select('*')
