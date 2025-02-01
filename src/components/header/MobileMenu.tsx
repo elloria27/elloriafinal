@@ -71,31 +71,28 @@ export const MobileMenu = () => {
       >
         <div className={`relative ${level > 0 ? 'ml-4' : ''}`}>
           <div className="flex items-center justify-between">
-            {hasChildren ? (
+            <Link 
+              to={item.path}
+              onClick={handleNavigate}
+              className="flex-1 py-3 text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light"
+            >
+              {item.name}
+            </Link>
+            {hasChildren && (
               <button
-                onClick={() => toggleExpanded(item.path)}
-                className="flex items-center justify-between w-full py-3 text-left"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleExpanded(item.path);
+                }}
+                className="p-2 text-gray-500 hover:text-primary transition-colors"
               >
-                <span className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light">
-                  {item.name}
-                </span>
                 <motion.span
                   animate={{ rotate: isExpanded ? 180 : 0 }}
-                  className="text-gray-500 ml-2"
+                  className="block"
                 >
                   ▼
                 </motion.span>
               </button>
-            ) : (
-              <Link 
-                to={item.path}
-                onClick={handleNavigate}
-                className="block w-full py-3"
-              >
-                <span className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light">
-                  {item.name}
-                </span>
-              </Link>
             )}
           </div>
 
