@@ -11,8 +11,9 @@ const queryClient = new QueryClient()
 
 const helmetContext = {}
 
-ReactDOM.hydrateRoot(
-  document.getElementById('root')!,
+ReactDOM.createRoot(
+  document.getElementById('root')!
+).render(
   <React.StrictMode>
     <HelmetProvider context={helmetContext}>
       <QueryClientProvider client={queryClient}>

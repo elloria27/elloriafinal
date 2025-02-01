@@ -10,13 +10,15 @@ export function render(url: string) {
   const queryClient = new QueryClient();
   
   const html = ReactDOMServer.renderToString(
-    <HelmetProvider context={helmetContext}>
-      <QueryClientProvider client={queryClient}>
-        <StaticRouter location={url}>
-          <App />
-        </StaticRouter>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <React.StrictMode>
+      <HelmetProvider context={helmetContext}>
+        <QueryClientProvider client={queryClient}>
+          <StaticRouter location={url}>
+            <App />
+          </StaticRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </React.StrictMode>
   );
 
   return { html, helmetContext };
