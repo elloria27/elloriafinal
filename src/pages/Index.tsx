@@ -10,9 +10,6 @@ import { Testimonials } from "@/components/Testimonials";
 import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
-import { SEOHead } from "@/components/SEOHead";
-import { useSEO } from "@/hooks/useSEO";
-import { toast } from "sonner";
 import { 
   ContentBlock, 
   BlockContent,
@@ -26,11 +23,11 @@ import {
   BlogPreviewContent,
   NewsletterContent
 } from "@/types/content-blocks";
+import { toast } from "sonner";
 
 const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);
-  const { seoData, loading: seoLoading } = useSEO();
 
   useEffect(() => {
     const fetchHomePageContent = async () => {
@@ -162,24 +159,13 @@ const Index = () => {
   }
 
   return (
-    <>
-      <SEOHead
-        title={seoData?.meta_title || undefined}
-        description={seoData?.meta_description || undefined}
-        keywords={seoData?.meta_keywords || undefined}
-        canonicalUrl={seoData?.canonical_url || undefined}
-        ogTitle={seoData?.og_title || undefined}
-        ogDescription={seoData?.og_description || undefined}
-        ogImage={seoData?.og_image || undefined}
-      />
-      <main className="flex-grow pt-20">
-        {blocks.map((block) => (
-          <div key={block.id}>
-            {renderBlock(block)}
-          </div>
-        ))}
-      </main>
-    </>
+    <main className="flex-grow pt-20">
+      {blocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
+        </div>
+      ))}
+    </main>
   );
 };
 

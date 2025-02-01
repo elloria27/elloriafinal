@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export const DonationHero = () => {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-20">
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 to-primary/20" />
       
       <div className="absolute inset-0">
