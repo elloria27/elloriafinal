@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -7,8 +8,11 @@ import {
   MessageSquare,
   ArrowRight
 } from "lucide-react";
+import { CustomSolutionsDialog } from "@/components/business/CustomSolutionsDialog";
 
 const CustomSolutions = () => {
+  const [showDialog, setShowDialog] = useState(false);
+
   return (
     <motion.main 
       initial={{ opacity: 0 }}
@@ -120,12 +124,20 @@ const CustomSolutions = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mb-8">
             Contact us today to discuss how we can create a custom solution for your business needs.
           </p>
-          <Button className="bg-primary text-white px-8 py-6 rounded-full hover:bg-primary/90 transition-colors">
+          <Button 
+            className="bg-primary text-white px-8 py-6 rounded-full hover:bg-primary/90 transition-colors"
+            onClick={() => setShowDialog(true)}
+          >
             Request a Consultation
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
+
+      <CustomSolutionsDialog 
+        open={showDialog}
+        onOpenChange={setShowDialog}
+      />
     </motion.main>
   );
 };
