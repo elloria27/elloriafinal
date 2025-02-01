@@ -40,38 +40,21 @@ export default function Invoices() {
 
         console.log("Current user ID:", user.id);
         
-        // First try to fetch orders by user_id
-        const { data: userOrders, error: userError } = await supabase
+        // Fetch orders with a single query using in operator
+        const { data: userOrders, error } = await supabase
           .from('orders')
           .select('*')
-          .eq('user_id', user.id)
+          .or(`user_id.eq.${user.id},email_address.eq.${user.email}`)
           .order('created_at', { ascending: false });
 
-        console.log("Orders by user_id:", userOrders);
-
-        // Then try to fetch orders by profile_id
-        const { data: profileOrders, error: profileError } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('profile_id', user.id)
-          .order('created_at', { ascending: false });
-
-        console.log("Orders by profile_id:", profileOrders);
-
-        if (userError) {
-          console.error('Error fetching user orders:', userError);
+        if (error) {
+          console.error('Error fetching orders:', error);
+          toast.error("Failed to load orders");
+          return;
         }
 
-        if (profileError) {
-          console.error('Error fetching profile orders:', profileError);
-        }
-
-        // Combine and deduplicate orders
-        const allOrders = [...(userOrders || []), ...(profileOrders || [])];
-        const uniqueOrders = Array.from(new Map(allOrders.map(order => [order.id, order])).values());
-        
-        console.log("Combined unique orders:", uniqueOrders);
-        setOrders(uniqueOrders);
+        console.log("Fetched orders:", userOrders);
+        setOrders(userOrders || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
         toast.error("Failed to load orders");
@@ -166,7 +149,10 @@ export default function Invoices() {
                 </div>
                 <div className="text-right space-y-2">
                   <p className="font-medium text-gray-900">
-                    {formatCurrency(Number(order.total_amount))}
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(Number(order.total_amount))}
                   </p>
                   <Button
                     variant="outline"
