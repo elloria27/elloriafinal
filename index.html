@@ -11,6 +11,7 @@
       // Load initial SEO settings from Supabase
       (async () => {
         try {
+          console.log('Loading initial SEO settings...');
           const response = await fetch('https://euexcsqvsbkxiwdieepu.supabase.co/rest/v1/site_settings?select=*', {
             headers: {
               'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZXhjc3F2c2JreGl3ZGllZXB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1OTE0ODYsImV4cCI6MjA1MzE2NzQ4Nn0.SA8nsT8fEf2Igd91FNUNFYxT0WQb9qmYblrxxE7eV4U'
@@ -18,10 +19,55 @@
           });
           const settings = await response.json();
           if (settings && settings[0]) {
-            // Update meta tags
+            console.log('SEO settings loaded:', settings[0]);
+            
+            // Update basic meta tags
             document.title = settings[0].site_title || document.title;
             document.querySelector('meta[name="description"]').setAttribute('content', settings[0].meta_description || '');
             document.querySelector('meta[name="keywords"]').setAttribute('content', settings[0].meta_keywords || '');
+            
+            // Update Open Graph tags
+            const ogTitle = document.querySelector('meta[property="og:title"]');
+            if (!ogTitle) {
+              const meta = document.createElement('meta');
+              meta.setAttribute('property', 'og:title');
+              document.head.appendChild(meta);
+            }
+            document.querySelector('meta[property="og:title"]').setAttribute('content', settings[0].site_title || '');
+            
+            const ogDesc = document.querySelector('meta[property="og:description"]');
+            if (!ogDesc) {
+              const meta = document.createElement('meta');
+              meta.setAttribute('property', 'og:description');
+              document.head.appendChild(meta);
+            }
+            document.querySelector('meta[property="og:description"]').setAttribute('content', settings[0].meta_description || '');
+            
+            // Set favicon if available
+            if (settings[0].favicon_url) {
+              const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
+              favicon.type = 'image/x-icon';
+              favicon.rel = 'icon';
+              favicon.href = settings[0].favicon_url;
+              if (!document.querySelector('link[rel="icon"]')) {
+                document.head.appendChild(favicon);
+              }
+            }
+            
+            // Set language
+            document.documentElement.lang = settings[0].default_language || 'en';
+            
+            // Add canonical URL if homepage_slug is set
+            if (settings[0].homepage_slug) {
+              const canonical = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+              canonical.rel = 'canonical';
+              canonical.href = `${window.location.origin}/${settings[0].homepage_slug}`;
+              if (!document.querySelector('link[rel="canonical"]')) {
+                document.head.appendChild(canonical);
+              }
+            }
+            
+            console.log('SEO tags updated successfully');
           }
         } catch (error) {
           console.error('Error loading initial SEO settings:', error);
