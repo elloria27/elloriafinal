@@ -21,6 +21,8 @@ import OrderSuccess from "@/pages/OrderSuccess";
 import Terms from "@/pages/Terms";
 import Thanks from "@/pages/Thanks";
 import Admin from "@/pages/Admin";
+import SharedFile from "@/pages/SharedFile";
+import BulkOrders from "@/pages/BulkOrders";
 
 export function Routes() {
   return (
@@ -46,7 +48,10 @@ export function Routes() {
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/thanks" element={<Thanks />} />
-        <Route path="/admin/*" element={<Admin />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/shared/:token" element={<SharedFile />} />
+        <Route path="/shared/bulk/:token" element={<SharedFile />} />
+        <Route path="/bulk-orders" element={<BulkOrders />} />
       </RouterRoutes>
       <Footer />
     </>
