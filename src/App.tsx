@@ -7,15 +7,13 @@ import { Routes } from "./routes";
 
 function App() {
   return (
-    <HelmetProvider>
-      <CartProvider>
-        <PagesProvider>
-          <ScrollToTop />
-          <Routes />
-          <Toaster position="top-right" expand={false} richColors />
-        </PagesProvider>
-      </CartProvider>
-    </HelmetProvider>
+    <CartProvider>
+      <PagesProvider>
+        <ScrollToTop />
+        <Routes />
+        <Toaster position="top-right" expand={false} richColors />
+      </PagesProvider>
+    </CartProvider>
   );
 }
 

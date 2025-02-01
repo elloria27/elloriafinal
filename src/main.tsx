@@ -10,8 +10,9 @@ import { BrowserRouter } from 'react-router-dom'
 // Create a client
 const queryClient = new QueryClient()
 
-ReactDOM.hydrateRoot(
-  document.getElementById('root')!,
+ReactDOM.createRoot(
+  document.getElementById('root')!
+).render(
   <React.StrictMode>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
