@@ -21,6 +21,20 @@ export const WeatherWidget = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchWithTimeout = async (url: string, timeoutMs = 5000) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    };
+
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
         console.log('Fetching weather data for coordinates:', { latitude, longitude });
@@ -29,7 +43,7 @@ export const WeatherWidget = () => {
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
         console.log('Weather URL:', weatherUrl);
         
-        const weatherResponse = await fetch(weatherUrl);
+        const weatherResponse = await fetchWithTimeout(weatherUrl);
         if (!weatherResponse.ok) {
           throw new Error(`Weather API error: ${weatherResponse.statusText}`);
         }
@@ -38,7 +52,7 @@ export const WeatherWidget = () => {
 
         // Get city name using a more reliable geocoding service
         const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-        const geocodeResponse = await fetch(geocodeUrl, { timeout: 5000 });
+        const geocodeResponse = await fetchWithTimeout(geocodeUrl);
         let city = "Unknown location";
         
         if (geocodeResponse.ok) {
@@ -85,7 +99,7 @@ export const WeatherWidget = () => {
     // Function to get location from IP
     const getLocationFromIP = async () => {
       try {
-        const response = await fetch('https://ipapi.co/json/', { timeout: 5000 });
+        const response = await fetchWithTimeout('https://ipapi.co/json/');
         const data = await response.json();
         if (data.latitude && data.longitude) {
           console.log('Got location from IP:', data);
