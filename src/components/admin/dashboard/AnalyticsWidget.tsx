@@ -41,9 +41,8 @@ export const AnalyticsWidget = () => {
         // Get top countries
         const { data: countriesData, error: countriesError } = await supabase
           .from('page_views')
-          .select('country, count')
-          .not('country', 'is', null)
           .select('country')
+          .not('country', 'is', null)
           .then(result => {
             const counts = result.data?.reduce((acc: Record<string, number>, curr: any) => {
               acc[curr.country] = (acc[curr.country] || 0) + 1;
@@ -51,8 +50,8 @@ export const AnalyticsWidget = () => {
             }, {});
             return {
               data: Object.entries(counts || {})
-                .map(([country, count]) => ({ country, count }))
-                .sort((a, b) => b.count - a.count)
+                .map(([country, visits]) => ({ country, visits }))
+                .sort((a, b) => b.visits - a.visits)
                 .slice(0, 5),
               error: result.error
             };
@@ -65,21 +64,22 @@ export const AnalyticsWidget = () => {
           .from('page_views')
           .select('city, country')
           .not('city', 'is', null)
+          .not('country', 'is', null)
           .then(result => {
-            const counts = result.data?.reduce((acc: Record<string, { count: number; country: string }>, curr: any) => {
-              const key = `${curr.city}, ${curr.country}`;
-              acc[key] = {
-                count: (acc[key]?.count || 0) + 1,
-                country: curr.country
-              };
+            const counts = result.data?.reduce((acc: Record<string, { visits: number; country: string }>, curr: any) => {
+              const key = curr.city;
+              if (!acc[key]) {
+                acc[key] = { visits: 0, country: curr.country };
+              }
+              acc[key].visits += 1;
               return acc;
             }, {});
             return {
               data: Object.entries(counts || {})
-                .map(([location, data]) => ({
-                  city: location.split(',')[0],
+                .map(([city, data]) => ({
+                  city,
                   country: data.country,
-                  visits: data.count
+                  visits: data.visits
                 }))
                 .sort((a, b) => b.visits - a.visits)
                 .slice(0, 5),
@@ -107,10 +107,7 @@ export const AnalyticsWidget = () => {
         const analyticsData: AnalyticsData = {
           pageViews: totalViews || 0,
           averageTimeOnSite: `${avgTimeMinutes}m`,
-          topCountries: countriesData?.map(item => ({
-            country: item.country || 'Unknown',
-            visits: item.count
-          })) || [],
+          topCountries: countriesData || [],
           topCities: citiesData || [],
           topPages: pagesData?.map(item => ({
             page: item.page_path,
@@ -234,6 +231,9 @@ export const AnalyticsWidget = () => {
                     <span className="font-medium">{country.visits.toLocaleString()}</span>
                   </div>
                 ))}
+                {(!analytics?.topCountries || analytics.topCountries.length === 0) && (
+                  <div className="text-sm text-muted-foreground">No country data available</div>
+                )}
               </div>
             </div>
             <div>
@@ -247,6 +247,9 @@ export const AnalyticsWidget = () => {
                     <span className="font-medium">{city.visits.toLocaleString()}</span>
                   </div>
                 ))}
+                {(!analytics?.topCities || analytics.topCities.length === 0) && (
+                  <div className="text-sm text-muted-foreground">No city data available</div>
+                )}
               </div>
             </div>
           </div>
