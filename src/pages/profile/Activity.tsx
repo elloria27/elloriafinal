@@ -39,6 +39,8 @@ export default function Activity() {
           throw error;
         }
 
+        console.log("Raw orders data:", orders);
+
         // Convert orders to activity items
         const activityItems = orders?.map(order => ({
           id: order.id,
@@ -52,7 +54,7 @@ export default function Activity() {
           }
         })) || [];
 
-        console.log("Fetched activity items:", activityItems);
+        console.log("Processed activity items:", activityItems);
         setActivities(activityItems);
       } catch (error) {
         console.error('Error fetching activity:', error);

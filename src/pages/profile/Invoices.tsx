@@ -50,7 +50,7 @@ export default function Invoices() {
           throw error;
         }
 
-        console.log("Fetched orders:", data);
+        console.log("Raw orders data:", data);
         setOrders(data || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
