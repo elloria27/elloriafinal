@@ -90,24 +90,27 @@ export const CustomSolutionsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-center">
+          <DialogTitle className="text-2xl font-semibold text-center mb-6 text-gray-800">
             Request a Consultation
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Full Name *</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input 
+                      {...field} 
+                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -117,11 +120,14 @@ export const CustomSolutionsDialog = ({
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company Name (Optional)</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Company Name (Optional)</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input 
+                      {...field} 
+                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -131,11 +137,15 @@ export const CustomSolutionsDialog = ({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Email Address *</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input 
+                      type="email" 
+                      {...field} 
+                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -145,11 +155,15 @@ export const CustomSolutionsDialog = ({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Phone Number (Optional)</FormLabel>
                   <FormControl>
-                    <Input type="tel" {...field} />
+                    <Input 
+                      type="tel" 
+                      {...field} 
+                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -159,10 +173,10 @@ export const CustomSolutionsDialog = ({
               name="inquiryType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What Are You Looking For? *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">What Are You Looking For? *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary">
                         <SelectValue placeholder="Select inquiry type" />
                       </SelectTrigger>
                     </FormControl>
@@ -173,7 +187,7 @@ export const CustomSolutionsDialog = ({
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -183,14 +197,14 @@ export const CustomSolutionsDialog = ({
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message/Inquiry *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Message/Inquiry *</FormLabel>
                   <FormControl>
                     <Textarea 
                       {...field}
-                      className="min-h-[100px]"
+                      className="min-h-[100px] rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
@@ -204,28 +218,33 @@ export const CustomSolutionsDialog = ({
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
+                    <FormLabel className="text-sm text-gray-700">
                       I agree to be contacted by Elloria *
                     </FormLabel>
                   </div>
-                  <FormMessage />
+                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full rounded-lg border-gray-300 hover:bg-gray-50 text-gray-700"
                 onClick={() => onOpenChange(false)}
               >
                 Close
               </Button>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-white"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Submitting..." : "Submit Request"}
               </Button>
             </div>
