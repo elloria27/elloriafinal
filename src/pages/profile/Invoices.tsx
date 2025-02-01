@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { OrderData, OrderStatus, ShippingAddress } from "@/types/order";
+import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
@@ -44,7 +44,13 @@ export default function Invoices() {
         const transformedOrders: OrderData[] = (ordersData || []).map(order => ({
           ...order,
           status: order.status as OrderStatus,
-          items: Array.isArray(order.items) ? order.items : [],
+          items: Array.isArray(order.items) ? order.items.map((item: any) => ({
+            id: item.id || '',
+            name: item.name || '',
+            quantity: item.quantity || 0,
+            price: item.price || 0,
+            image: item.image || undefined
+          })) : [],
           shipping_address: order.shipping_address as ShippingAddress,
           billing_address: order.billing_address as ShippingAddress,
           applied_promo_code: order.applied_promo_code || null,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { OrderData, OrderStatus, ShippingAddress } from "@/types/order";
+import { OrderData, OrderStatus, ShippingAddress, OrderItem } from "@/types/order";
 
 export default function Activity() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -42,7 +42,13 @@ export default function Activity() {
         const transformedOrders: OrderData[] = (ordersData || []).map(order => ({
           ...order,
           status: order.status as OrderStatus,
-          items: Array.isArray(order.items) ? order.items : [],
+          items: Array.isArray(order.items) ? order.items.map((item: any) => ({
+            id: item.id || '',
+            name: item.name || '',
+            quantity: item.quantity || 0,
+            price: item.price || 0,
+            image: item.image || undefined
+          })) : [],
           shipping_address: order.shipping_address as ShippingAddress,
           billing_address: order.billing_address as ShippingAddress,
           applied_promo_code: order.applied_promo_code || null,
@@ -97,7 +103,7 @@ export default function Activity() {
             <div>
               <h4 className="font-medium mb-2">Items</h4>
               <div className="space-y-2">
-                {order.items.map((item: any, index: number) => (
+                {order.items.map((item: OrderItem, index: number) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span>{item.name}</span>
                     <span>${item.price}</span>
