@@ -18,6 +18,45 @@ serve(async (req) => {
   }
 
   try {
+    // Get user ID from auth token
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Get auth token from request header
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    let userProfile = null;
+
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+      
+      if (user && !error) {
+        console.log('Create-checkout - Authenticated user:', user.id);
+        userId = user.id;
+        
+        // Get user profile
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (profile) {
+          userProfile = profile;
+          console.log('Create-checkout - Found user profile:', profile.id);
+        }
+      }
+    }
+
     const requestBody = await req.json();
     console.log('Create-checkout - Request body:', JSON.stringify(requestBody, null, 2));
     
@@ -194,6 +233,7 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: email,
+      client_reference_id: userId, // Add user ID to Stripe session
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
@@ -203,7 +243,7 @@ serve(async (req) => {
     const totalAmount = subtotal - discountAmount + shippingCost + 
       (subtotal * ((taxes?.gst || 0) + (shippingAddress.region !== "Manitoba" ? (taxes?.pst || 0) : 0) + (taxes?.hst || 0)) / 100);
 
-    // Create order record with shipping_cost and gst
+    // Create order record with user_id and profile_id
     const orderData = {
       order_number: orderNumber,
       total_amount: totalAmount,
@@ -215,7 +255,9 @@ serve(async (req) => {
       payment_method: 'stripe',
       applied_promo_code: promoCode,
       shipping_cost: shippingCost || 0,
-      gst: gstAmount || 0
+      gst: gstAmount || 0,
+      user_id: userId, // Add user ID to order
+      profile_id: userId // Add profile ID to order
     };
 
     console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
