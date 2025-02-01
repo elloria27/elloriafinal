@@ -40,7 +40,6 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ]
   };
 
-  // Ensure we're properly handling the content prop
   const finalContent = {
     ...defaultContent,
     ...(content || {}),
@@ -49,26 +48,25 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
   console.log("Final content being used:", finalContent);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-accent-green/10 to-white">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-accent-green/10 to-white">
       <div className="container px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-600">
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-600">
             {finalContent.title}
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+          <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
             {finalContent.description}
           </p>
         </motion.div>
 
-        {/* Stats Section */}
         <div className="mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {(finalContent.stats || defaultContent.stats).map((stat, index) => (
               <motion.div
                 key={index}
@@ -76,11 +74,11 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
-                whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
-                className={`${stat.color}/10 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
+                whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+                className={`${stat.color}/10 p-6 md:p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm`}
               >
                 <motion.div 
-                  className="text-primary mb-6"
+                  className="text-primary mb-4 md:mb-6"
                   whileHover={{ 
                     scale: 1.1,
                     filter: "brightness(1.2)",
@@ -90,18 +88,18 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                   {(() => {
                     switch (stat.icon) {
                       case "Recycle":
-                        return <Recycle className="w-10 h-10" />;
+                        return <Recycle className="w-8 h-8 md:w-10 md:h-10" />;
                       case "Package":
-                        return <Package className="w-10 h-10" />;
+                        return <Package className="w-8 h-8 md:w-10 md:h-10" />;
                       case "Factory":
-                        return <Factory className="w-10 h-10" />;
+                        return <Factory className="w-8 h-8 md:w-10 md:h-10" />;
                       default:
-                        return <Leaf className="w-10 h-10" />;
+                        return <Leaf className="w-8 h-8 md:w-10 md:h-10" />;
                     }
                   })()}
                 </motion.div>
-                <h3 className="text-2xl font-bold mb-3">{stat.title}</h3>
-                <p className="text-gray-600">{stat.description}</p>
+                <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3">{stat.title}</h3>
+                <p className="text-gray-600 text-sm md:text-base">{stat.description}</p>
               </motion.div>
             ))}
           </div>
@@ -114,7 +112,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto"
         >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-8">
             {(finalContent.timelineItems || defaultContent.timelineItems).map((item, index) => (
               <motion.div
                 key={index}
@@ -124,10 +122,10 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                 transition={{ duration: 0.5, delay: index * 0.2 }}
                 className="flex items-center gap-3"
               >
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
                   {index + 1}
                 </div>
-                <span className="text-gray-700 font-medium">{item}</span>
+                <span className="text-gray-700 font-medium text-sm md:text-base">{item}</span>
                 {index < (finalContent.timelineItems || defaultContent.timelineItems).length - 1 && (
                   <div className="hidden md:block w-12 h-0.5 bg-primary/20" />
                 )}

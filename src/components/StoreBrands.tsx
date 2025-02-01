@@ -43,12 +43,11 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   // Transform features from admin panel format to brands format
   const transformFeaturesToBrands = (features: Json[]) => {
     return features.map(feature => {
-      // Safely type cast the Json object to access properties
       const featureObj = feature as unknown as Feature;
       return {
         name: featureObj.title || '',
-        logo: featureObj.description || '', // Logo URL is stored in description field
-        link: featureObj.detail || '#' // Link is stored in detail field
+        logo: featureObj.description || '',
+        link: featureObj.detail || '#'
       };
     });
   };
@@ -62,23 +61,23 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
   };
 
   return (
-    <section className="w-full py-32 bg-gradient-to-b from-white to-accent-purple/5">
+    <section className="w-full py-16 md:py-32 bg-gradient-to-b from-white to-accent-purple/5">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-20"
+          className="text-center mb-12 md:mb-20"
         >
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {finalContent.title}
           </h2>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto">
             {finalContent.subtitle}
           </p>
         </motion.div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 items-center justify-items-center">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-10 items-center justify-items-center">
           {finalContent.brands.map((brand, index) => (
             <motion.a
               key={brand.name || index}
@@ -94,7 +93,7 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
                 rotate: [-1, 1, -1],
                 transition: { rotate: { repeat: Infinity, duration: 2 } }
               }}
-              className="w-48 h-48 flex items-center justify-center p-8 rounded-3xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl border border-gray-100"
+              className="w-full aspect-square max-w-[160px] md:w-48 md:h-48 flex items-center justify-center p-6 md:p-8 rounded-2xl bg-white hover:bg-accent-purple/5 transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl border border-gray-100"
             >
               <img
                 src={brand.logo}
