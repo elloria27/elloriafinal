@@ -24,72 +24,6 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
     onUpdate(block.id, updatedContent);
   };
 
-  const openMediaLibrary = (type: "image" | "video", field: string) => {
-    setMediaType(type);
-    setCurrentField(field);
-    setShowMediaLibrary(true);
-  };
-
-  const handleMediaSelect = (url: string) => {
-    handleChange(currentField, url);
-    setShowMediaLibrary(false);
-  };
-
-  const renderMediaField = (label: string, field: string, type: "image" | "video") => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-2">
-        <Input
-          value={content[field] as string || ""}
-          readOnly
-          placeholder={`Select ${type}...`}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => openMediaLibrary(type, field)}
-        >
-          {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-        </Button>
-      </div>
-      {content[field] && (
-        <div className="mt-2">
-          {type === "image" ? (
-            <img
-              src={content[field] as string}
-              alt={label}
-              className="max-w-xs rounded"
-            />
-          ) : (
-            <video
-              src={content[field] as string}
-              controls
-              className="max-w-xs rounded"
-            />
-          )}
-        </div>
-      )}
-    </div>
-  );
-
-  const handleArrayChange = (key: string, index: number, value: any) => {
-    const array = [...(content[key] as any[] || [])];
-    array[index] = { ...array[index], ...value };
-    handleChange(key, array);
-  };
-
-  const addArrayItem = (key: string, defaultItem: any) => {
-    const array = [...(content[key] as any[] || [])];
-    array.push(defaultItem);
-    handleChange(key, array);
-  };
-
-  const removeArrayItem = (key: string, index: number) => {
-    const array = [...(content[key] as any[] || [])];
-    array.splice(index, 1);
-    handleChange(key, array);
-  };
-
   switch (block.type) {
     case "contact_hero":
       return (
@@ -102,19 +36,12 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
             />
           </div>
           <div>
-            <Label>Description</Label>
-            <Textarea
-              value={content.description as string || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
+            <Label>Subtitle</Label>
+            <Input
+              value={content.subtitle as string || ""}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
             />
           </div>
-          {renderMediaField("Background Image", "backgroundImage", "image")}
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
         </div>
       );
 
