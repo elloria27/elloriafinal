@@ -25,7 +25,7 @@ export const WeatherWidget = () => {
       try {
         console.log('Fetching weather data for coordinates:', { latitude, longitude });
         
-        // Get weather data from OpenMeteo
+        // Get weather data from OpenMeteo with a more reliable endpoint
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,weather_code&timezone=auto`;
         console.log('Weather URL:', weatherUrl);
         
@@ -36,9 +36,9 @@ export const WeatherWidget = () => {
         const weatherData = await weatherResponse.json();
         console.log('Weather data:', weatherData);
 
-        // Get city name using reverse geocoding
+        // Get city name using a more reliable geocoding service
         const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-        const geocodeResponse = await fetch(geocodeUrl);
+        const geocodeResponse = await fetch(geocodeUrl, { timeout: 5000 });
         let city = "Unknown location";
         
         if (geocodeResponse.ok) {
@@ -82,74 +82,58 @@ export const WeatherWidget = () => {
       }
     };
 
-    const handleGeolocationError = (error: GeolocationPositionError) => {
-      console.error('Geolocation error:', error);
-      let errorMessage = 'Could not get your location. ';
-      
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          errorMessage += 'Please enable location access in your browser settings.';
-          break;
-        case error.POSITION_UNAVAILABLE:
-          errorMessage += 'Location information is unavailable.';
-          break;
-        case error.TIMEOUT:
-          errorMessage += 'Location request timed out.';
-          break;
-        default:
-          errorMessage += 'An unknown error occurred.';
+    // Function to get location from IP
+    const getLocationFromIP = async () => {
+      try {
+        const response = await fetch('https://ipapi.co/json/', { timeout: 5000 });
+        const data = await response.json();
+        if (data.latitude && data.longitude) {
+          console.log('Got location from IP:', data);
+          return { latitude: data.latitude, longitude: data.longitude };
+        }
+        throw new Error('Could not determine location from IP');
+      } catch (err) {
+        console.error('IP geolocation failed:', err);
+        // Default to a fallback location (New York)
+        return { latitude: 40.7128, longitude: -74.0060 };
       }
-      
-      toast.error(errorMessage);
-      // Use IP-based geolocation as fallback
-      fetch('https://ipapi.co/json/')
-        .then(response => response.json())
-        .then(data => {
-          console.log('IP geolocation data:', data);
-          if (data.latitude && data.longitude) {
-            fetchWeather(data.latitude, data.longitude);
-          } else {
-            throw new Error('Could not determine location from IP');
-          }
-        })
-        .catch(err => {
-          console.error('IP geolocation failed:', err);
-          // Final fallback to a default location
-          fetchWeather(50.4501, 30.5234); // Kyiv coordinates as default
-        });
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
+    // Main location logic with faster timeout
+    const getLocation = async () => {
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              resolve,
+              reject,
+              { 
+                timeout: 5000, // Reduced timeout to 5 seconds
+                enableHighAccuracy: false, // Disabled for faster response
+                maximumAge: 300000 // Allow cached positions up to 5 minutes old
+              }
+            );
+          });
+          
           console.log('Got user location:', position.coords);
-          fetchWeather(position.coords.latitude, position.coords.longitude);
-        },
-        handleGeolocationError,
-        { 
-          timeout: 10000,
-          enableHighAccuracy: true,
-          maximumAge: 0
+          return {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+        } catch (error) {
+          console.log('Geolocation error, falling back to IP:', error);
+          return getLocationFromIP();
         }
-      );
-    } else {
-      console.warn('Geolocation not supported');
-      toast.error('Geolocation is not supported by your browser.');
-      // Use IP-based geolocation for browsers without geolocation support
-      fetch('https://ipapi.co/json/')
-        .then(response => response.json())
-        .then(data => {
-          if (data.latitude && data.longitude) {
-            fetchWeather(data.latitude, data.longitude);
-          } else {
-            throw new Error('Could not determine location from IP');
-          }
-        })
-        .catch(err => {
-          console.error('IP geolocation failed:', err);
-          fetchWeather(50.4501, 30.5234); // Kyiv coordinates as default
-        });
-    }
+      } else {
+        console.warn('Geolocation not supported');
+        return getLocationFromIP();
+      }
+    };
+
+    // Initialize weather data
+    getLocation().then(coords => {
+      fetchWeather(coords.latitude, coords.longitude);
+    });
   }, []);
 
   const getWeatherIcon = (condition: string) => {

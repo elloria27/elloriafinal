@@ -16,6 +16,7 @@ interface AnalyticsData {
   pageViews: number;
   averageTimeOnSite: string;
   topCountries: Array<{ country: string; visits: number }>;
+  topCities: Array<{ city: string; country: string; visits: number }>;
   topPages: Array<{ page: string; views: number }>;
   viewsOverTime: Array<{ date: string; views: number }>;
 }
@@ -37,19 +38,64 @@ export const AnalyticsWidget = () => {
 
         if (viewsError) throw viewsError;
 
-        // Get top countries using the RPC function
+        // Get top countries
         const { data: countriesData, error: countriesError } = await supabase
-          .rpc('get_top_countries', { limit_count: 3 });
+          .from('page_views')
+          .select('country, count')
+          .not('country', 'is', null)
+          .select('country')
+          .then(result => {
+            const counts = result.data?.reduce((acc: Record<string, number>, curr: any) => {
+              acc[curr.country] = (acc[curr.country] || 0) + 1;
+              return acc;
+            }, {});
+            return {
+              data: Object.entries(counts || {})
+                .map(([country, count]) => ({ country, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5),
+              error: result.error
+            };
+          });
 
         if (countriesError) throw countriesError;
 
-        // Get top pages using the RPC function
+        // Get top cities
+        const { data: citiesData, error: citiesError } = await supabase
+          .from('page_views')
+          .select('city, country')
+          .not('city', 'is', null)
+          .then(result => {
+            const counts = result.data?.reduce((acc: Record<string, { count: number; country: string }>, curr: any) => {
+              const key = `${curr.city}, ${curr.country}`;
+              acc[key] = {
+                count: (acc[key]?.count || 0) + 1,
+                country: curr.country
+              };
+              return acc;
+            }, {});
+            return {
+              data: Object.entries(counts || {})
+                .map(([location, data]) => ({
+                  city: location.split(',')[0],
+                  country: data.country,
+                  visits: data.count
+                }))
+                .sort((a, b) => b.visits - a.visits)
+                .slice(0, 5),
+              error: result.error
+            };
+          });
+
+        if (citiesError) throw citiesError;
+
+        // Get top pages
         const { data: pagesData, error: pagesError } = await supabase
           .rpc('get_top_pages', { limit_count: 3 });
 
         if (pagesError) throw pagesError;
 
-        // Get views over time using the RPC function
+        // Get views over time
         const { data: timeData, error: timeError } = await supabase
           .rpc('get_daily_views', { days_back: 7 });
 
@@ -63,8 +109,9 @@ export const AnalyticsWidget = () => {
           averageTimeOnSite: `${avgTimeMinutes}m`,
           topCountries: countriesData?.map(item => ({
             country: item.country || 'Unknown',
-            visits: parseInt(item.count.toString())
+            visits: item.count
           })) || [],
+          topCities: citiesData || [],
           topPages: pagesData?.map(item => ({
             page: item.page_path,
             views: parseInt(item.count.toString())
@@ -190,15 +237,29 @@ export const AnalyticsWidget = () => {
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-medium mb-2">Top Pages</h3>
+              <h3 className="text-sm font-medium mb-2">Top Cities</h3>
               <div className="space-y-2">
-                {analytics?.topPages.map((page, index) => (
+                {analytics?.topCities.map((city, index) => (
                   <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{page.page}</span>
-                    <span className="font-medium">{page.views.toLocaleString()}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {city.city}, {city.country}
+                    </span>
+                    <span className="font-medium">{city.visits.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-2">Top Pages</h3>
+            <div className="space-y-2">
+              {analytics?.topPages.map((page, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">{page.page}</span>
+                  <span className="font-medium">{page.views.toLocaleString()}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
