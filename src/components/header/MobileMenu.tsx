@@ -70,48 +70,59 @@ export const MobileMenu = () => {
         animate={{ height: "auto" }}
       >
         <div className={`relative ${level > 0 ? 'ml-4' : ''}`}>
-          <div className="flex items-center justify-between">
-            <Link 
-              to={item.path}
-              onClick={handleNavigate}
-              className="flex-1 py-3 text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light"
-            >
-              {item.name}
-            </Link>
-            {hasChildren && (
+          {hasChildren ? (
+            <div className="w-full">
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleExpanded(item.path);
-                }}
-                className="p-2 text-gray-500 hover:text-primary transition-colors"
+                onClick={() => toggleExpanded(item.path)}
+                className="w-full p-3 flex items-center justify-between text-left bg-gray-50/50 rounded-lg hover:bg-gray-100/50 transition-colors"
               >
+                <span className="text-base text-gray-700">{item.name}</span>
                 <motion.span
                   animate={{ rotate: isExpanded ? 180 : 0 }}
-                  className="block"
+                  className="text-gray-400 text-sm ml-2"
                 >
                   ▼
                 </motion.span>
               </button>
-            )}
-          </div>
-
-          {hasChildren && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ 
-                height: isExpanded ? "auto" : 0,
-                opacity: isExpanded ? 1 : 0
-              }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+              
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ 
+                  height: isExpanded ? "auto" : 0,
+                  opacity: isExpanded ? 1 : 0
+                }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="py-2 space-y-1">
+                  <Link 
+                    to={item.path}
+                    onClick={handleNavigate}
+                    className="block p-3 pl-6 text-base text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                  >
+                    Overview
+                  </Link>
+                  {item.children.map((child) => (
+                    <Link
+                      key={child.path}
+                      to={child.path}
+                      onClick={handleNavigate}
+                      className="block p-3 pl-6 text-base text-gray-700 hover:bg-gray-100/50 rounded-lg transition-colors"
+                    >
+                      {child.name}
+                    </Link>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          ) : (
+            <Link 
+              to={item.path}
+              onClick={handleNavigate}
+              className="block p-3 text-base text-gray-700 hover:bg-gray-100/50 rounded-lg transition-colors"
             >
-              <div className="border-l-2 border-primary/10 ml-2 space-y-1">
-                {item.children.map((child) => (
-                  <MenuItem key={child.path} item={child} level={level + 1} />
-                ))}
-              </div>
-            </motion.div>
+              {item.name}
+            </Link>
           )}
         </div>
       </motion.div>
