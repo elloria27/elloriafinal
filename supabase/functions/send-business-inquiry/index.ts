@@ -18,17 +18,19 @@ interface BusinessInquiry {
   attachments?: {
     name: string;
     content: string;
-    extension: string;
   }[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Received business inquiry request");
     const inquiry: BusinessInquiry = await req.json();
+    console.log("Parsed inquiry data:", { ...inquiry, attachments: inquiry.attachments?.length });
 
     const recipients = [
       "sales@elloria.ca",
@@ -41,6 +43,8 @@ const handler = async (req: Request): Promise<Response> => {
       filename: attachment.name, // This will preserve the original filename with extension
       content: attachment.content,
     }));
+
+    console.log("Sending email with attachments:", formattedAttachments?.length);
 
     const emailResponse = await resend.emails.send({
       from: "Elloria Business <business@elloria.ca>",

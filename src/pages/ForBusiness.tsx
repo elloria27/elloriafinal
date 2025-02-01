@@ -79,7 +79,10 @@ const ForBusiness = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error details:", error);
+        throw error;
+      }
 
       console.log("Form submitted successfully");
       toast.success("Your inquiry has been sent successfully!");
