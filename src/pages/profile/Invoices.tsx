@@ -39,23 +39,7 @@ export default function Invoices() {
         const userEmail = profile?.email || user.email;
         console.log("User email for order search:", userEmail);
 
-        // Build the query conditions carefully
-        const conditions = [
-          `user_id.eq.${user.id}`,
-          `profile_id.eq.${user.id}`
-        ];
-
-        if (userEmail) {
-          conditions.push(
-            `shipping_address->>'email'.eq.'${userEmail}'`,
-            `billing_address->>'email'.eq.'${userEmail}'`
-          );
-        }
-
-        const orCondition = conditions.join(',');
-        console.log("Query conditions:", orCondition);
-
-        // Fetch orders with expanded query
+        // Fetch orders with filter
         const { data: userOrders, error: ordersError } = await supabase
           .from("orders")
           .select(`
@@ -64,7 +48,10 @@ export default function Invoices() {
               email
             )
           `)
-          .or(orCondition)
+          .filter(`user_id.eq.${user.id}`)
+          .filter(`profile_id.eq.${user.id}`)
+          .filter(`shipping_address->>'email'.eq.${userEmail}`)
+          .filter(`billing_address->>'email'.eq.${userEmail}`)
           .order("created_at", { ascending: false });
 
         if (ordersError) {
