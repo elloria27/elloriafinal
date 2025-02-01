@@ -40,19 +40,38 @@ export default function Invoices() {
 
         console.log("Current user ID:", user.id);
         
-        const { data, error } = await supabase
+        // First try to fetch orders by user_id
+        const { data: userOrders, error: userError } = await supabase
           .from('orders')
           .select('*')
-          .or(`user_id.eq.${user.id},profile_id.eq.${user.id}`)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching orders:', error);
-          throw error;
+        console.log("Orders by user_id:", userOrders);
+
+        // Then try to fetch orders by profile_id
+        const { data: profileOrders, error: profileError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('profile_id', user.id)
+          .order('created_at', { ascending: false });
+
+        console.log("Orders by profile_id:", profileOrders);
+
+        if (userError) {
+          console.error('Error fetching user orders:', userError);
         }
 
-        console.log("Raw orders data:", data);
-        setOrders(data || []);
+        if (profileError) {
+          console.error('Error fetching profile orders:', profileError);
+        }
+
+        // Combine and deduplicate orders
+        const allOrders = [...(userOrders || []), ...(profileOrders || [])];
+        const uniqueOrders = Array.from(new Map(allOrders.map(order => [order.id, order])).values());
+        
+        console.log("Combined unique orders:", uniqueOrders);
+        setOrders(uniqueOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
         toast.error("Failed to load orders");
