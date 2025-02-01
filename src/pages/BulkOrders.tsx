@@ -185,20 +185,13 @@ const BulkOrders = () => {
             <p className="text-gray-600 mb-8">
               {ctaContent?.description || 'Join other organizations that trust Elloria for their feminine care needs.'}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary/90"
                 onClick={() => setShowConsultationDialog(true)}
               >
                 {ctaContent?.buttonText || 'Request a Quote'}
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                onClick={() => setShowConsultationDialog(true)}
-              >
-                {ctaContent?.secondaryButtonText || 'Learn More'}
               </Button>
             </div>
           </div>
