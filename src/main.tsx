@@ -8,12 +8,9 @@ import './index.css'
 
 // Create a client
 const queryClient = new QueryClient()
-
 const helmetContext = {}
 
-ReactDOM.createRoot(
-  document.getElementById('root')!
-).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider context={helmetContext}>
       <QueryClientProvider client={queryClient}>

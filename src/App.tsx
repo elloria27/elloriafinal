@@ -5,6 +5,7 @@ import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 
 function App() {
+  console.log('App rendering');
   return (
     <CartProvider>
       <PagesProvider>
