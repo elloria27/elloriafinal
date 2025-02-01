@@ -69,6 +69,19 @@ export const AnalyticsWidget = () => {
           .sort((a, b) => b.visits - a.visits)
           .slice(0, 5);
 
+        // Process pages data
+        const pageCount: Record<string, number> = {};
+        viewsData?.forEach((view) => {
+          if (view.page_path) {
+            pageCount[view.page_path] = (pageCount[view.page_path] || 0) + 1;
+          }
+        });
+
+        const topPages = Object.entries(pageCount)
+          .map(([page, views]) => ({ page, views }))
+          .sort((a, b) => b.views - a.views)
+          .slice(0, 5);
+
         // Process daily views data
         const dailyViewsMap = new Map<string, number>();
         const today = new Date();
@@ -104,7 +117,7 @@ export const AnalyticsWidget = () => {
           averageTimeOnSite: `${avgTimeMinutes}m`,
           topCountries,
           topCities,
-          topPages: [],
+          topPages,
           dailyViews
         };
 
@@ -145,6 +158,18 @@ export const AnalyticsWidget = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold mb-2">Total Page Views</h3>
+              <p className="text-3xl font-bold text-primary">{analyticsData.pageViews}</p>
+            </div>
+            
+            <div className="p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold mb-2">Average Time on Site</h3>
+              <p className="text-3xl font-bold text-primary">{analyticsData.averageTimeOnSite}</p>
+            </div>
+          </div>
+
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analyticsData.dailyViews}>
@@ -180,60 +205,58 @@ export const AnalyticsWidget = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Page Views</h3>
-              <p className="text-4xl font-bold text-[#0094F4]">{analyticsData.pageViews}</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">Avg. Time on Site</h3>
-              <p className="text-4xl font-bold text-[#0094F4]">{analyticsData.averageTimeOnSite}</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-600 mb-4">Top Countries</h3>
-              {analyticsData.topCountries.length > 0 ? (
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+            <div className="p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold mb-4">Most Visited Pages</h3>
+              {analyticsData.topPages.length > 0 ? (
                 <ul className="space-y-3">
-                  {analyticsData.topCountries.map((item, index) => (
-                    <li 
-                      key={index}
-                      className="flex flex-col"
-                    >
-                      <span className="text-lg font-medium text-[#0094F4]">
-                        {item.country}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {item.visits} visits
-                      </span>
+                  {analyticsData.topPages.map((item, index) => (
+                    <li key={index} className="border-b pb-2 last:border-0">
+                      <div className="text-sm font-medium">{item.page}</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {item.views} views
+                      </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>No country data available</p>
+                <p className="text-muted-foreground">No page data available</p>
               )}
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h3 className="text-lg font-semibold text-gray-600 mb-4">Top Cities</h3>
-              {analyticsData.topCities.length > 0 ? (
+            <div className="p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold mb-4">Top Countries</h3>
+              {analyticsData.topCountries.length > 0 ? (
                 <ul className="space-y-3">
-                  {analyticsData.topCities.map((item, index) => (
-                    <li 
-                      key={index}
-                      className="flex flex-col"
-                    >
-                      <span className="text-lg font-medium text-[#0094F4]">
-                        {item.city}
-                      </span>
-                      <span className="text-sm text-gray-600">
+                  {analyticsData.topCountries.map((item, index) => (
+                    <li key={index} className="border-b pb-2 last:border-0">
+                      <div className="text-sm font-medium">{item.country}</div>
+                      <div className="text-sm text-muted-foreground mt-1">
                         {item.visits} visits
-                      </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>No city data available</p>
+                <p className="text-muted-foreground">No country data available</p>
+              )}
+            </div>
+
+            <div className="p-6 rounded-lg border bg-card">
+              <h3 className="text-lg font-semibold mb-4">Top Cities</h3>
+              {analyticsData.topCities.length > 0 ? (
+                <ul className="space-y-3">
+                  {analyticsData.topCities.map((item, index) => (
+                    <li key={index} className="border-b pb-2 last:border-0">
+                      <div className="text-sm font-medium">{item.city}</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {item.visits} visits
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground">No city data available</p>
               )}
             </div>
           </div>
