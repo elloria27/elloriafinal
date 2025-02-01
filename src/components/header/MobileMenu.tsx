@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { LanguageSelector } from "./LanguageSelector";
-import { CurrencySelector } from "./CurrencySelector";
 import { UserMenu } from "./UserMenu";
 import { usePages } from "@/contexts/PagesContext";
 import { useState } from "react";
@@ -158,10 +157,7 @@ export const MobileMenu = () => {
         <div className="mt-auto p-6 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
             <UserMenu onClose={() => setOpen(false)} />
-            <div className="flex items-center gap-4">
-              <LanguageSelector />
-              <CurrencySelector />
-            </div>
+            <LanguageSelector />
           </div>
         </div>
       </SheetContent>
