@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { OrderData } from "@/types/order";
+import { OrderData, OrderStatus } from "@/types/order";
 
 export default function Activity() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -20,7 +20,7 @@ export default function Activity() {
 
         console.log("Fetching orders for email:", session.user.email);
         
-        const { data: orders, error } = await supabase
+        const { data: ordersData, error } = await supabase
           .from('orders')
           .select('*')
           .or(`shipping_address->>'email'.eq.${session.user.email},billing_address->>'email'.eq.${session.user.email},profile_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
@@ -36,8 +36,21 @@ export default function Activity() {
           return;
         }
 
-        console.log("Fetched orders:", orders);
-        setOrders(orders || []);
+        console.log("Fetched orders:", ordersData);
+        
+        // Transform the data to match OrderData type
+        const transformedOrders: OrderData[] = (ordersData || []).map(order => ({
+          ...order,
+          status: order.status as OrderStatus, // Cast the status to OrderStatus
+          items: Array.isArray(order.items) ? order.items : [],
+          shipping_address: order.shipping_address || {},
+          billing_address: order.billing_address || {},
+          applied_promo_code: order.applied_promo_code || null,
+          shipping_cost: order.shipping_cost || 0,
+          gst: order.gst || 0
+        }));
+
+        setOrders(transformedOrders);
       } catch (error) {
         console.error("Error:", error);
         toast({
