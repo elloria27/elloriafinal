@@ -90,27 +90,27 @@ export const CustomSolutionsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl shadow-xl">
+      <DialogContent className="sm:max-w-[460px] p-5 bg-white rounded-lg shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-center mb-6 text-gray-800">
+          <DialogTitle className="text-xl font-medium text-center mb-4 text-gray-800">
             Request a Consultation
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Full Name *</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">Full Name *</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-9 rounded-md border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-sm text-red-500" />
                 </FormItem>
               )}
             />
@@ -231,18 +231,18 @@ export const CustomSolutionsDialog = ({
               )}
             />
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-lg border-gray-300 hover:bg-gray-50 text-gray-700"
+                className="w-full h-9 rounded-md border-gray-200 hover:bg-gray-50 text-gray-600 text-sm"
                 onClick={() => onOpenChange(false)}
               >
                 Close
               </Button>
               <Button 
                 type="submit" 
-                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-white"
+                className="w-full h-9 rounded-md bg-primary hover:bg-primary/90 text-white text-sm font-medium"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Submit Request"}
