@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@supabase/auth-helpers-react";
-import { Order } from "@/types/order";
+import { OrderData } from "@/types/order";
 
 export default function Activity() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const auth = useAuth();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        if (!auth?.user?.email) {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user?.email) {
           console.log("No user email found");
           return;
         }
 
-        console.log("Fetching orders for email:", auth.user.email);
+        console.log("Fetching orders for email:", session.user.email);
         
         const { data: orders, error } = await supabase
           .from('orders')
           .select('*')
-          .or(`shipping_address->>'email'.eq.'${auth.user.email}',billing_address->>'email'.eq.'${auth.user.email}',profile_id.eq.${auth.user.id},user_id.eq.${auth.user.id}`)
+          .or(`shipping_address->>'email'.eq.${session.user.email},billing_address->>'email'.eq.${session.user.email},profile_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -51,7 +51,7 @@ export default function Activity() {
     };
 
     fetchOrders();
-  }, [auth?.user?.email]);
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;
