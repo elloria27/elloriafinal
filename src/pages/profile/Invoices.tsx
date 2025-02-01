@@ -4,18 +4,10 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Order {
-  id: string;
-  order_number: string;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  items: any[];
-}
+import type { OrderData } from "@/types/order";
 
 export default function Invoices() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,7 +37,25 @@ export default function Invoices() {
         }
 
         console.log("Fetched orders:", userOrders);
-        setOrders(userOrders || []);
+        
+        // Transform the data to match OrderData type
+        const transformedOrders: OrderData[] = userOrders?.map(order => ({
+          ...order,
+          items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+          shipping_address: typeof order.shipping_address === 'string' 
+            ? JSON.parse(order.shipping_address) 
+            : order.shipping_address,
+          billing_address: typeof order.billing_address === 'string' 
+            ? JSON.parse(order.billing_address) 
+            : order.billing_address,
+          applied_promo_code: order.applied_promo_code 
+            ? (typeof order.applied_promo_code === 'string' 
+              ? JSON.parse(order.applied_promo_code) 
+              : order.applied_promo_code)
+            : null
+        })) || [];
+
+        setOrders(transformedOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
         toast.error("Failed to load orders");
@@ -104,7 +114,6 @@ export default function Invoices() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    // Handle download invoice
                     toast.info("Invoice download coming soon!");
                   }}
                 >

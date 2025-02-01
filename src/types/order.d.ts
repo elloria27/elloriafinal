@@ -47,4 +47,5 @@ export type OrderData = {
   applied_promo_code?: AppliedPromoCode | null;
   shipping_cost: number;
   gst: number;
+  email_address?: string | null;
 };
