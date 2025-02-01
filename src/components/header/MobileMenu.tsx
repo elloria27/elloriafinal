@@ -72,11 +72,11 @@ export const MobileMenu = () => {
       >
         <div 
           className={`flex items-center justify-between py-3 ${level > 0 ? 'pl-4' : ''}`}
-          onClick={() => hasChildren && toggleExpanded(item.path)}
         >
           <Link 
             to={item.path}
             onClick={handleNavigate}
+            className="flex-1"
           >
             <motion.span
               className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light block cursor-pointer"
@@ -92,6 +92,7 @@ export const MobileMenu = () => {
               size="sm"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 toggleExpanded(item.path);
               }}
               className="hover:bg-primary/5"

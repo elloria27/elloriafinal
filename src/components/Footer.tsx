@@ -7,14 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 export const Footer = () => {
   const { publishedPages, isLoading } = usePages();
   const location = useLocation();
-  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       console.log('Fetching products for footer...');
       const { data, error } = await supabase
         .from('products')
-        .select('id, name')
+        .select('id, name, slug')
         .order('name');
 
       if (error) {
@@ -82,7 +82,7 @@ export const Footer = () => {
               {products.map((product) => (
                 <li key={product.id}>
                   <Link 
-                    to={`/product/${product.id}`}
+                    to={`/products/${product.slug}`}
                     className="text-gray-600 hover:text-primary transition-colors"
                   >
                     {product.name}
@@ -140,8 +140,8 @@ export const Footer = () => {
               © 2025 Elloria. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-600 hover:text-primary transition-colors text-sm">Privacy Policy</a>
-              <a href="#" className="text-gray-600 hover:text-primary transition-colors text-sm">Terms of Service</a>
+              <Link to="/terms" className="text-gray-600 hover:text-primary transition-colors text-sm">Privacy Policy</Link>
+              <Link to="/terms" className="text-gray-600 hover:text-primary transition-colors text-sm">Terms of Service</Link>
             </div>
           </div>
         </div>
