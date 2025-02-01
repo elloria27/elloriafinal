@@ -23,27 +23,12 @@ export default function Invoices() {
         }
 
         console.log("Current user ID:", user.id);
-        console.log("Current user email:", user.email);
         
-        // First try to fetch by user_id
-        let { data: userOrders, error } = await supabase
+        const { data: userOrders, error } = await supabase
           .from("orders")
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
-
-        // If no orders found by user_id, try email_address
-        if ((!userOrders || userOrders.length === 0) && user.email) {
-          console.log("No orders found by user_id, trying email...");
-          const { data: emailOrders, error: emailError } = await supabase
-            .from("orders")
-            .select("*")
-            .eq("email_address", user.email)
-            .order("created_at", { ascending: false });
-
-          if (emailError) throw emailError;
-          userOrders = emailOrders;
-        }
 
         if (error) {
           console.error("Error fetching orders:", error);
@@ -54,23 +39,26 @@ export default function Invoices() {
         
         // Transform the data to match OrderData type
         const transformedOrders: OrderData[] = (userOrders || []).map(order => ({
-          ...order,
-          // Ensure status is of type OrderStatus
+          id: order.id,
+          user_id: order.user_id,
+          profile_id: order.profile_id,
+          order_number: order.order_number,
+          total_amount: Number(order.total_amount),
           status: order.status as OrderStatus,
-          items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
           shipping_address: typeof order.shipping_address === 'string' 
             ? JSON.parse(order.shipping_address) 
             : order.shipping_address,
           billing_address: typeof order.billing_address === 'string' 
             ? JSON.parse(order.billing_address) 
             : order.billing_address,
+          items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+          created_at: order.created_at,
+          payment_method: order.payment_method,
           applied_promo_code: order.applied_promo_code 
             ? (typeof order.applied_promo_code === 'string' 
               ? JSON.parse(order.applied_promo_code) 
               : order.applied_promo_code)
             : null,
-          // Ensure numeric fields are properly typed
-          total_amount: Number(order.total_amount),
           shipping_cost: Number(order.shipping_cost || 0),
           gst: Number(order.gst || 0)
         }));
