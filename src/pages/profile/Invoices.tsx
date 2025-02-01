@@ -48,10 +48,10 @@ export default function Invoices() {
               email
             )
           `)
-          .filter(`user_id.eq.${user.id}`)
-          .filter(`profile_id.eq.${user.id}`)
-          .filter(`shipping_address->>'email'.eq.${userEmail}`)
-          .filter(`billing_address->>'email'.eq.${userEmail}`)
+          .filter('user_id', 'eq', user.id)
+          .filter('profile_id', 'eq', user.id)
+          .filter('shipping_address->email', 'eq', userEmail)
+          .filter('billing_address->email', 'eq', userEmail)
           .order("created_at", { ascending: false });
 
         if (ordersError) {
