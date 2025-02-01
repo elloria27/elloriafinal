@@ -777,6 +777,77 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          referral_id: string | null
+          referred_email: string
+          status: Database["public"]["Enums"]["referral_status"] | null
+          updated_at: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referral_id?: string | null
+          referred_email: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referral_id?: string | null
+          referred_email?: string
+          status?: Database["public"]["Enums"]["referral_status"] | null
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_tracking_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referral_code: string
+          referral_count: number | null
+          referrer_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referral_count?: number | null
+          referrer_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referral_count?: number | null
+          referrer_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           content: string | null
@@ -1056,6 +1127,7 @@ export type Database = {
       page_view_type: "page_view" | "exit"
       post_status: "draft" | "published"
       promo_code_type: "percentage" | "fixed_amount"
+      referral_status: "pending" | "completed"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
       user_role: "admin" | "client"
