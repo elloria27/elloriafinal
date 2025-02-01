@@ -38,26 +38,17 @@ export const AnalyticsWidget = () => {
 
         if (viewsError) throw viewsError;
 
-        // Get top countries
+        // Get top countries using the RPC function
         const { data: countriesData, error: countriesError } = await supabase
-          .from('page_views')
-          .select('country')
-          .not('country', 'is', null)
-          .then(result => {
-            const counts = result.data?.reduce((acc: Record<string, number>, curr: any) => {
-              acc[curr.country] = (acc[curr.country] || 0) + 1;
-              return acc;
-            }, {});
-            return {
-              data: Object.entries(counts || {})
-                .map(([country, visits]) => ({ country, visits }))
-                .sort((a, b) => b.visits - a.visits)
-                .slice(0, 5),
-              error: result.error
-            };
-          });
+          .rpc('get_top_countries', { limit_count: 5 });
 
         if (countriesError) throw countriesError;
+
+        // Transform countries data
+        const transformedCountries = countriesData.map(item => ({
+          country: item.country || 'Unknown',
+          visits: Number(item.count)
+        }));
 
         // Get top cities
         const { data: citiesData, error: citiesError } = await supabase
@@ -107,7 +98,7 @@ export const AnalyticsWidget = () => {
         const analyticsData: AnalyticsData = {
           pageViews: totalViews || 0,
           averageTimeOnSite: `${avgTimeMinutes}m`,
-          topCountries: countriesData || [],
+          topCountries: transformedCountries,
           topCities: citiesData || [],
           topPages: pagesData?.map(item => ({
             page: item.page_path,
