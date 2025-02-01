@@ -33,7 +33,7 @@ export function Routes() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/for-business" element={<ForBusiness />} />
         <Route path="/custom-solutions" element={<CustomSolutions />} />
         <Route path="/sustainability" element={<Sustainability />} />
