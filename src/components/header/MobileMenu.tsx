@@ -70,54 +70,54 @@ export const MobileMenu = () => {
         initial={false}
         animate={{ height: "auto" }}
       >
-        <div 
-          className={`flex items-center justify-between py-3 ${level > 0 ? 'pl-4' : ''}`}
-        >
-          <Link 
-            to={item.path}
-            onClick={handleNavigate}
-            className="flex-1"
-          >
-            <motion.span
-              className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light block cursor-pointer"
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {item.name}
-            </motion.span>
-          </Link>
-          {hasChildren && (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleExpanded(item.path);
-              }}
-              className="hover:bg-primary/5"
-            >
-              <motion.span
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                className="text-gray-500"
+        <div className={`relative ${level > 0 ? 'ml-4' : ''}`}>
+          <div className="flex items-center justify-between">
+            {hasChildren ? (
+              <button
+                onClick={() => toggleExpanded(item.path)}
+                className="flex items-center justify-between w-full py-3 text-left"
               >
-                ▼
-              </motion.span>
-            </Button>
+                <span className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light">
+                  {item.name}
+                </span>
+                <motion.span
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  className="text-gray-500 ml-2"
+                >
+                  ▼
+                </motion.span>
+              </button>
+            ) : (
+              <Link 
+                to={item.path}
+                onClick={handleNavigate}
+                className="block w-full py-3"
+              >
+                <span className="text-base text-gray-700 hover:text-primary transition-colors tracking-wide font-light">
+                  {item.name}
+                </span>
+              </Link>
+            )}
+          </div>
+
+          {hasChildren && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ 
+                height: isExpanded ? "auto" : 0,
+                opacity: isExpanded ? 1 : 0
+              }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="border-l-2 border-primary/10 ml-2 space-y-1">
+                {item.children.map((child) => (
+                  <MenuItem key={child.path} item={child} level={level + 1} />
+                ))}
+              </div>
+            </motion.div>
           )}
         </div>
-        {hasChildren && isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="pl-4 border-l border-primary/10 ml-4 space-y-2"
-          >
-            {item.children.map((child) => (
-              <MenuItem key={child.path} item={child} level={level + 1} />
-            ))}
-          </motion.div>
-        )}
       </motion.div>
     );
   };
@@ -148,7 +148,7 @@ export const MobileMenu = () => {
         </SheetHeader>
         
         <div className="flex-1 overflow-y-auto px-6 py-8">
-          <div className="space-y-4">
+          <div className="space-y-2">
             {menuItems.map((item) => (
               <MenuItem key={item.path} item={item} />
             ))}
