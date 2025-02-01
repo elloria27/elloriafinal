@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables, Json } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
@@ -29,19 +29,28 @@ export default function Invoices() {
   useEffect(() => {
     async function fetchOrders() {
       try {
+        console.log("Fetching orders for current user...");
         const { data: { user } } = await supabase.auth.getUser();
+        
         if (!user) {
+          console.log("No user found");
           toast.error("Please log in to view your orders");
           return;
         }
 
+        console.log("Current user ID:", user.id);
         const { data, error } = await supabase
           .from('orders')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching orders:', error);
+          throw error;
+        }
+
+        console.log("Fetched orders:", data);
         setOrders(data || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
