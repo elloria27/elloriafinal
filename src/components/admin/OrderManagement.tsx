@@ -270,7 +270,7 @@ export const OrderManagement = () => {
             : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
 
         const emailDetails = {
-          customerEmail: updatedOrder.profiles?.email || shippingAddress.email || updatedOrder.email,
+          customerEmail: updatedOrder.profiles?.email || shippingAddress.email,
           customerName: customerName,
           orderId: updatedOrder.id,
           orderNumber: updatedOrder.order_number,
