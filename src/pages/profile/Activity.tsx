@@ -1,24 +1,26 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
 import { toast } from "sonner";
-import { Package, ShoppingCart } from "lucide-react";
+import { format } from "date-fns";
+import { Package } from "lucide-react";
 
 interface ActivityItem {
   id: string;
   type: string;
   date: string;
-  details: any;
+  title: string;
+  description: string;
+  status: string;
 }
 
 export default function Activity() {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchActivity() {
       try {
-        console.log("Fetching user activity...");
+        console.log("Fetching orders for current user...");
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -28,103 +30,83 @@ export default function Activity() {
         }
 
         console.log("Current user ID:", user.id);
+        console.log("Current user email:", user.email);
         
-        // Fetch orders with a single query using in operator
-        const { data: userOrders, error } = await supabase
-          .from('orders')
-          .select('*')
-          .or(`user_id.eq.${user.id},email_address.eq.${user.email}`)
-          .order('created_at', { ascending: false });
+        const { data: orders, error } = await supabase
+          .from("orders")
+          .select("*")
+          .or(`user_id.eq.${user.id},email_address.eq.'${user.email}'`)
+          .order("created_at", { ascending: false });
 
         if (error) {
-          console.error('Error fetching orders:', error);
-          toast.error("Failed to load activity");
-          return;
+          console.error("Error fetching orders:", error);
+          throw error;
         }
 
-        console.log("Fetched orders:", userOrders);
+        console.log("Fetched orders:", orders);
 
-        const activityItems = (userOrders || []).map(order => ({
+        const items = (orders || []).map(order => ({
           id: order.id,
-          type: 'order',
+          type: "order",
           date: order.created_at,
-          details: {
-            orderNumber: order.order_number,
-            status: order.status,
-            total: order.total_amount,
-            items: order.items
-          }
+          title: `Order #${order.order_number}`,
+          description: `Order total: $${order.total_amount}`,
+          status: order.status
         }));
 
-        console.log("Processed activity items:", activityItems);
-        setActivities(activityItems);
+        setActivityItems(items);
       } catch (error) {
-        console.error('Error fetching activity:', error);
+        console.error("Error fetching activity:", error);
         toast.error("Failed to load activity");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
 
     fetchActivity();
   }, []);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (activityItems.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <Package className="w-12 h-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900">No activity yet</h3>
+        <p className="mt-1 text-gray-500">Start shopping to see your activity here.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-6">Recent Activity</h1>
-      <div className="bg-white rounded-lg shadow-sm divide-y">
-        {loading ? (
-          <div className="p-6 text-center">Loading your activity...</div>
-        ) : activities.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">No recent activity found.</div>
-        ) : (
-          activities.map((activity) => (
-            <div key={activity.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  {activity.type === 'order' ? (
-                    <ShoppingCart className="h-5 w-5 text-primary" />
-                  ) : (
-                    <Package className="h-5 w-5 text-primary" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        Order #{activity.details.orderNumber}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {format(new Date(activity.date), 'PPP')}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(Number(activity.details.total))}
-                      </p>
-                      <p className="text-sm text-gray-500 capitalize">
-                        {activity.details.status}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <h4 className="text-sm font-medium text-gray-900">Items:</h4>
-                    <ul className="mt-1 space-y-1">
-                      {activity.details.items.map((item: any, index: number) => (
-                        <li key={index} className="text-sm text-gray-600">
-                          {item.name} x {item.quantity}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h2 className="text-2xl font-bold mb-6">Recent Activity</h2>
+      <div className="space-y-6">
+        {activityItems.map((item) => (
+          <div
+            key={item.id}
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
+                <p className="mt-1 text-gray-500">{item.description}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {format(new Date(item.date), "PPP")}
+                </p>
               </div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-blue-100 text-blue-800">
+                {item.status}
+              </span>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );

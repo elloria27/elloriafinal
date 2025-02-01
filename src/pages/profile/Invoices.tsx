@@ -1,30 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
-import { format } from "date-fns";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { format } from "date-fns";
+import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import jsPDF from "jspdf";
 
-type Order = Tables<"orders">;
-
-interface ShippingAddress {
-  address: string;
-  region: string;
-  country: string;
-  phone: string;
-}
-
-interface OrderItem {
-  name: string;
-  price: number;
-  quantity: number;
+interface Order {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  items: any[];
 }
 
 export default function Invoices() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -39,135 +31,94 @@ export default function Invoices() {
         }
 
         console.log("Current user ID:", user.id);
+        console.log("Current user email:", user.email);
         
-        // Fetch orders with a single query using in operator
         const { data: userOrders, error } = await supabase
-          .from('orders')
-          .select('*')
-          .or(`user_id.eq.${user.id},email_address.eq.${user.email}`)
-          .order('created_at', { ascending: false });
+          .from("orders")
+          .select("*")
+          .or(`user_id.eq.${user.id},email_address.eq.'${user.email}'`)
+          .order("created_at", { ascending: false });
 
         if (error) {
-          console.error('Error fetching orders:', error);
-          toast.error("Failed to load orders");
-          return;
+          console.error("Error fetching orders:", error);
+          throw error;
         }
 
         console.log("Fetched orders:", userOrders);
         setOrders(userOrders || []);
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error("Error fetching orders:", error);
         toast.error("Failed to load orders");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
 
     fetchOrders();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  const downloadInvoice = (order: Order) => {
-    try {
-      const doc = new jsPDF();
-      
-      // Add header
-      doc.setFontSize(20);
-      doc.text('Invoice', 20, 20);
-      
-      // Add order details
-      doc.setFontSize(12);
-      doc.text(`Order Number: ${order.order_number}`, 20, 40);
-      doc.text(`Date: ${format(new Date(order.created_at || ''), 'PPP')}`, 20, 50);
-      
-      // Add shipping address
-      const shippingAddress = order.shipping_address as unknown as ShippingAddress;
-      doc.text('Shipping Address:', 20, 80);
-      doc.text(`${shippingAddress.address}`, 20, 90);
-      doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 20, 100);
-      doc.text(`Phone: ${shippingAddress.phone}`, 20, 110);
-      
-      // Add items
-      doc.text('Items:', 20, 130);
-      let yPos = 140;
-      const items = order.items as unknown as OrderItem[];
-      items.forEach(item => {
-        doc.text(`${item.name} x ${item.quantity}`, 20, yPos);
-        doc.text(`${formatCurrency(item.price * item.quantity)}`, 140, yPos);
-        yPos += 10;
-      });
-      
-      // Add total
-      yPos += 10;
-      doc.text(`Total Amount: ${formatCurrency(Number(order.total_amount))}`, 20, yPos);
-      
-      // Save the PDF
-      doc.save(`invoice-${order.order_number}.pdf`);
-      toast.success('Invoice downloaded successfully');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Failed to download invoice');
-    }
-  };
+  if (orders.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <Package className="w-12 h-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
+        <p className="mt-1 text-gray-500">Start shopping to see your orders here.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-6">Orders & Invoices</h1>
-      <div className="bg-white rounded-lg shadow-sm divide-y">
-        {loading ? (
-          <div className="p-6 text-center">Loading your orders...</div>
-        ) : orders.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">No orders found.</div>
-        ) : (
-          orders.map((order) => (
-            <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <h3 className="font-medium text-gray-900">Order #{order.order_number}</h3>
-                  <p className="text-sm text-gray-500">
-                    {format(new Date(order.created_at || ''), 'PPP')}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Status: <span className="capitalize">{order.status}</span>
-                  </p>
-                  <div className="mt-2">
-                    <h4 className="text-sm font-medium text-gray-900">Items:</h4>
-                    <ul className="mt-1 space-y-1">
-                      {(order.items as unknown as OrderItem[]).map((item, index) => (
-                        <li key={index} className="text-sm text-gray-600">
-                          {item.name} x {item.quantity}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-right space-y-2">
-                  <p className="font-medium text-gray-900">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(Number(order.total_amount))}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() => downloadInvoice(order)}
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Invoice
-                  </Button>
-                </div>
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <h2 className="text-2xl font-bold mb-6">Orders & Invoices</h2>
+      <div className="space-y-6">
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Order #{order.order_number}
+                </h3>
+                <p className="mt-1 text-gray-500">
+                  Placed on {format(new Date(order.created_at), "PPP")}
+                </p>
+                <p className="mt-2 text-sm">
+                  {order.items?.length || 0} items
+                </p>
+              </div>
+              <div className="text-right space-y-2">
+                <p className="font-medium text-gray-900">
+                  ${order.total_amount.toFixed(2)}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Handle download invoice
+                    toast.info("Invoice download coming soon!");
+                  }}
+                >
+                  Download Invoice
+                </Button>
               </div>
             </div>
-          ))
-        )}
+            <div className="mt-4">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-blue-100 text-blue-800">
+                {order.status}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
