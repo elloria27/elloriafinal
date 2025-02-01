@@ -25,17 +25,38 @@ export default function Invoices() {
         console.log("Current user ID:", user.id);
         
         // First, get user's profile to get their email
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("email")
           .eq("id", user.id)
           .single();
 
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          throw profileError;
+        }
+
         const userEmail = profile?.email || user.email;
         console.log("User email for order search:", userEmail);
 
-        // Fetch orders with expanded query and proper JSON field access
-        const { data: userOrders, error } = await supabase
+        // Build the query conditions carefully
+        const conditions = [
+          `user_id.eq.${user.id}`,
+          `profile_id.eq.${user.id}`
+        ];
+
+        if (userEmail) {
+          conditions.push(
+            `shipping_address->>'email'.eq.'${userEmail}'`,
+            `billing_address->>'email'.eq.'${userEmail}'`
+          );
+        }
+
+        const orCondition = conditions.join(',');
+        console.log("Query conditions:", orCondition);
+
+        // Fetch orders with expanded query
+        const { data: userOrders, error: ordersError } = await supabase
           .from("orders")
           .select(`
             *,
@@ -43,12 +64,12 @@ export default function Invoices() {
               email
             )
           `)
-          .or(`user_id.eq.${user.id},profile_id.eq.${user.id},shipping_address->>'email'.eq.'${userEmail}',billing_address->>'email'.eq.'${userEmail}'`)
+          .or(orCondition)
           .order("created_at", { ascending: false });
 
-        if (error) {
-          console.error("Error fetching orders:", error);
-          throw error;
+        if (ordersError) {
+          console.error("Error fetching orders:", ordersError);
+          throw ordersError;
         }
 
         console.log("Fetched orders:", userOrders);
