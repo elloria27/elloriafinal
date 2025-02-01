@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { ChartTooltip } from '@/components/ui/chart';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 interface AnalyticsData {
@@ -180,20 +180,25 @@ export const AnalyticsWidget = () => {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Page Views</h3>
-              <p className="text-2xl">{analyticsData.pageViews}</p>
+              <p className="text-3xl font-semibold text-primary">{analyticsData.pageViews}</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Avg. Time on Site</h3>
-              <p className="text-2xl">{analyticsData.averageTimeOnSite}</p>
+              <p className="text-3xl font-semibold text-primary">{analyticsData.averageTimeOnSite}</p>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold">Top Countries</h3>
+              <h3 className="text-xl font-bold mb-4">Top Countries</h3>
               {analyticsData.topCountries.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {analyticsData.topCountries.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center">
-                      <span>{item.country}</span>
-                      <span className="font-medium">{item.visits} visits</span>
+                    <li 
+                      key={index} 
+                      className="flex justify-between items-center p-2 rounded-lg hover:bg-accent-purple transition-colors"
+                    >
+                      <span className="text-lg text-primary font-medium">{item.country}</span>
+                      <span className="text-lg font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
+                        {item.visits} visits
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -202,13 +207,18 @@ export const AnalyticsWidget = () => {
               )}
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold">Top Cities</h3>
+              <h3 className="text-xl font-bold mb-4">Top Cities</h3>
               {analyticsData.topCities.length > 0 ? (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {analyticsData.topCities.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center">
-                      <span>{item.city}</span>
-                      <span className="font-medium">{item.visits} visits</span>
+                    <li 
+                      key={index} 
+                      className="flex justify-between items-center p-2 rounded-lg hover:bg-accent-purple transition-colors"
+                    >
+                      <span className="text-lg text-primary font-medium">{item.city}</span>
+                      <span className="text-lg font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
+                        {item.visits} visits
+                      </span>
                     </li>
                   ))}
                 </ul>
