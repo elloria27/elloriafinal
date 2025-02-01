@@ -8,13 +8,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ConsultationData {
+interface ConsultationRequest {
   fullName: string;
   companyName?: string;
   email: string;
   phone?: string;
   orderQuantity: string;
   message: string;
+  contactConsent: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -24,8 +25,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("Received bulk consultation request");
-    const data: ConsultationData = await req.json();
+    console.log("Received consultation request");
+    const data: ConsultationRequest = await req.json();
     console.log("Request data:", data);
 
     const recipients = [
@@ -36,9 +37,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to Elloria team
     const teamEmailResponse = await resend.emails.send({
-      from: "Elloria Bulk Orders <bulk@elloria.ca>",
+      from: "Elloria Custom Solutions <solutions@elloria.ca>",
       to: recipients,
-      subject: "New Bulk Order Consultation Request",
+      subject: `New Bulk Order Consultation Request`,
       html: `
         <h1>New Bulk Order Consultation Request</h1>
         <h2>Contact Information</h2>
@@ -46,23 +47,24 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>Company:</strong> ${data.companyName || "Not provided"}</p>
         <p><strong>Email:</strong> ${data.email}</p>
         <p><strong>Phone:</strong> ${data.phone || "Not provided"}</p>
+        <h2>Request Details</h2>
         <p><strong>Order Quantity:</strong> ${data.orderQuantity}</p>
-        <h2>Message</h2>
+        <p><strong>Message:</strong></p>
         <p>${data.message}</p>
       `,
     });
 
     // Send confirmation to user
     const userEmailResponse = await resend.emails.send({
-      from: "Elloria Bulk Orders <bulk@elloria.ca>",
+      from: "Elloria Custom Solutions <solutions@elloria.ca>",
       to: [data.email],
-      subject: "Thank You for Your Bulk Order Inquiry",
+      subject: "Thank You for Your Interest in Elloria Bulk Orders",
       html: `
         <h1>Thank You for Your Interest!</h1>
         <p>Dear ${data.fullName},</p>
-        <p>Thank you for your interest in Elloria's bulk order options. We have received your consultation request and our team will review it shortly.</p>
-        <p>We will contact you soon to discuss your requirements and provide detailed pricing information.</p>
-        <p>Best regards,<br>The Elloria Sales Team</p>
+        <p>Thank you for your interest in Elloria's bulk order solutions. We have received your consultation request and our team will review it shortly.</p>
+        <p>We will contact you soon to discuss your bulk order requirements and provide you with a customized quote.</p>
+        <p>Best regards,<br>The Elloria Team</p>
       `,
     });
 
