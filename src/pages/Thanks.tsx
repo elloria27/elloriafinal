@@ -15,17 +15,17 @@ export default function Thanks() {
   const handleCopyPromoCode = async () => {
     try {
       await navigator.clipboard.writeText(promoCode);
-      toast.success("Промокод скопійовано!");
+      toast.success("Promo code copied!");
     } catch (error) {
       console.error("Error copying promo code:", error);
-      toast.error("Не вдалося скопіювати промокод");
+      toast.error("Failed to copy promo code");
     }
   };
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Будь ласка, введіть email адресу");
+      toast.error("Please enter your email address");
       return;
     }
 
@@ -37,11 +37,11 @@ export default function Thanks() {
 
       if (error) throw error;
 
-      toast.success("Дякуємо за підписку! Перевірте свою пошту для ексклюзивних пропозицій.");
+      toast.success("Thank you for subscribing! Check your email for exclusive offers.");
       setEmail("");
     } catch (error) {
       console.error("Error subscribing:", error);
-      toast.error("Помилка підписки. Спробуйте ще раз.");
+      toast.error("Subscription error. Please try again.");
     } finally {
       setIsSubscribing(false);
     }
@@ -49,7 +49,7 @@ export default function Thanks() {
 
   const handleSocialShare = (platform: string) => {
     const url = encodeURIComponent(window.location.origin);
-    const text = encodeURIComponent("Я щойно відкрив для себе чудові продукти від Elloria! Перевірте їх:");
+    const text = encodeURIComponent("I just discovered amazing products from Elloria! Check them out:");
     
     let shareUrl = '';
     switch (platform) {
@@ -60,7 +60,7 @@ export default function Thanks() {
         shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
         break;
       case 'instagram':
-        toast.info("Відкрийте додаток Instagram, щоб поділитися в своїй історії!");
+        toast.info("Open Instagram app to share to your story!");
         return;
     }
 
@@ -85,12 +85,12 @@ export default function Thanks() {
               <Heart className="w-12 h-12 fill-primary/20" />
             </motion.div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              Дякуємо, що обрали Elloria!
+              Thank You for Choosing Elloria!
             </h1>
           </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Ми цінуємо вашу довіру до наших продуктів. Як знак нашої вдячності, 
-            отримайте ексклюзивну знижку на наступну покупку!
+            We appreciate your trust in our products. As a token of our gratitude, 
+            receive an exclusive discount on your next purchase!
           </p>
           {!showPromoCode ? (
             <motion.div
@@ -102,7 +102,7 @@ export default function Thanks() {
                 onClick={() => setShowPromoCode(true)}
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-full shadow-lg"
               >
-                Отримати промокод <Gift className="ml-2 h-5 w-5" />
+                Get Promo Code <Gift className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
           ) : (
@@ -120,7 +120,7 @@ export default function Thanks() {
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
-                Використайте цей код при оформленні замовлення для знижки 10%
+                Use this code at checkout for a 10% discount
               </p>
             </motion.div>
           )}
@@ -134,31 +134,31 @@ export default function Thanks() {
           className="bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-3xl p-8 md:p-12 space-y-8"
         >
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Поділіться та отримайте більше винагород!</h2>
+            <h2 className="text-3xl font-bold mb-4">Share and Get More Rewards!</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Поділіться Elloria з друзями та отримайте неймовірні винагороди:
+              Share Elloria with friends and receive amazing rewards:
             </p>
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="bg-white/80 p-6 rounded-xl shadow-sm"
               >
-                <p className="font-semibold text-lg">1 поширення</p>
-                <p className="text-primary">= 15% знижки</p>
+                <p className="font-semibold text-lg">1 share</p>
+                <p className="text-primary">= 15% discount</p>
               </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="bg-white/80 p-6 rounded-xl shadow-sm"
               >
-                <p className="font-semibold text-lg">3 реферали</p>
-                <p className="text-primary">= Безкоштовний пакет</p>
+                <p className="font-semibold text-lg">3 referrals</p>
+                <p className="text-primary">= Free package</p>
               </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 className="bg-white/80 p-6 rounded-xl shadow-sm"
               >
-                <p className="font-semibold text-lg">5+ рефералів</p>
-                <p className="text-primary">= Купи 1, отримай 2 безкоштовно</p>
+                <p className="font-semibold text-lg">5+ referrals</p>
+                <p className="text-primary">= Buy 1, get 2 free</p>
               </motion.div>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function Thanks() {
               className="flex items-center gap-2 bg-white hover:bg-gray-50"
             >
               <Facebook className="h-4 w-4" />
-              Поширити у Facebook
+              Share on Facebook
             </Button>
             <Button
               variant="outline"
@@ -177,7 +177,7 @@ export default function Thanks() {
               className="flex items-center gap-2 bg-white hover:bg-gray-50"
             >
               <Twitter className="h-4 w-4" />
-              Поширити у Twitter
+              Share on Twitter
             </Button>
             <Button
               variant="outline"
@@ -185,7 +185,7 @@ export default function Thanks() {
               className="flex items-center gap-2 bg-white hover:bg-gray-50"
             >
               <Instagram className="h-4 w-4" />
-              Поширити в Instagram
+              Share on Instagram
             </Button>
           </div>
         </motion.section>
@@ -208,13 +208,13 @@ export default function Thanks() {
             <Gift className="w-32 h-32" />
           </motion.div>
           
-          <h2 className="text-3xl font-bold mb-4">Спеціальна пропозиція</h2>
+          <h2 className="text-3xl font-bold mb-4">Special Offer</h2>
           <p className="text-2xl font-semibold text-primary mb-6">
-            Купи 1, отримай 2 безкоштовно!
+            Buy 1, Get 2 Free!
           </p>
           <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
             <a href="/shop" className="flex items-center gap-2">
-              Купити зараз <ArrowRight className="w-5 h-5" />
+              Shop Now <ArrowRight className="w-5 h-5" />
             </a>
           </Button>
         </motion.section>
@@ -227,13 +227,13 @@ export default function Thanks() {
           className="max-w-md mx-auto text-center"
         >
           <h2 className="text-2xl font-bold mb-4">
-            Отримайте ранній доступ до наших найкращих пропозицій!
+            Get Early Access to Our Best Offers!
           </h2>
           <form onSubmit={handleSubscribe} className="space-y-4">
             <div className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Введіть ваш email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1"
@@ -242,7 +242,7 @@ export default function Thanks() {
                 {isSubscribing ? (
                   <Mail className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Підписатися"
+                  "Subscribe"
                 )}
               </Button>
             </div>
