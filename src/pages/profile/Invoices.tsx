@@ -43,7 +43,7 @@ export default function Invoices() {
         const { data, error } = await supabase
           .from('orders')
           .select('*')
-          .or(`user_id.eq.${user.id},profile_id.eq.${user.id}`)
+          .or(`user_id.eq.${user.id}, profile_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {

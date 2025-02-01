@@ -32,7 +32,7 @@ export default function Activity() {
         const { data: orders, error } = await supabase
           .from('orders')
           .select('*')
-          .or(`user_id.eq.${user.id},profile_id.eq.${user.id}`)
+          .or(`user_id.eq.${user.id}, profile_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -42,7 +42,6 @@ export default function Activity() {
 
         console.log("Raw orders data:", orders);
 
-        // Convert orders to activity items
         const activityItems = orders?.map(order => ({
           id: order.id,
           type: 'order',
