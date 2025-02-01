@@ -12,8 +12,12 @@ import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
 import { Features } from "@/components/Features";
 import { Header } from "@/components/Header";
+import { SEOHead } from "@/components/SEOHead";
+import { useSEO } from "@/hooks/useSEO";
 
 const ProductDetailContent = () => {
+  const { seoData } = useSEO();
+  
   const { slug } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,6 +108,17 @@ const ProductDetailContent = () => {
   }
 
   return (
+    <>
+      <SEOHead
+        title={seoData?.meta_title || `${product.name} - Eco Curve Interact`}
+        description={seoData?.meta_description || product.description}
+        keywords={seoData?.meta_keywords || undefined}
+        canonicalUrl={seoData?.canonical_url || undefined}
+        ogTitle={seoData?.og_title || product.name}
+        ogDescription={seoData?.og_description || product.description}
+        ogImage={seoData?.og_image || product.image}
+      />
+      
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Header />
       <main className="pt-32">
@@ -251,6 +266,7 @@ const ProductDetailContent = () => {
         </section>
       </main>
     </div>
+    </>
   );
 };
 
