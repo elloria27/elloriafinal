@@ -68,7 +68,7 @@ export default function Thanks() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-accent-purple/5 to-white pt-24 pb-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-white via-accent-purple/5 to-white pt-32 pb-12 px-4">
       <div className="max-w-4xl mx-auto space-y-16">
         {/* Welcome Section */}
         <motion.section 
