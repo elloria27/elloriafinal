@@ -28,10 +28,12 @@ export default function Activity() {
         }
 
         console.log("Current user ID:", user.id);
+        
+        // Змінюємо запит для отримання замовлень за profile_id або user_id
         const { data: orders, error } = await supabase
           .from('orders')
           .select('*')
-          .eq('user_id', user.id)
+          .or(`user_id.eq.${user.id},profile_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {
