@@ -37,7 +37,6 @@ export const AnalyticsWidget = () => {
       try {
         console.log('Fetching analytics data...');
         
-        // Get total page views and location data
         const { data: viewsData, error: viewsError } = await supabase
           .from('page_views')
           .select('*');
@@ -105,7 +104,7 @@ export const AnalyticsWidget = () => {
           averageTimeOnSite: `${avgTimeMinutes}m`,
           topCountries,
           topCities,
-          topPages: [], // This can be implemented later if needed
+          topPages: [],
           dailyViews
         };
 
@@ -146,17 +145,8 @@ export const AnalyticsWidget = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-8">
-          <div className="h-[200px] w-full">
-            <ChartContainer
-              config={{
-                views: {
-                  theme: {
-                    light: "var(--theme-primary)",
-                    dark: "var(--theme-primary)",
-                  },
-                },
-              }}
-            >
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={analyticsData.dailyViews}>
                 <XAxis
                   dataKey="date"
@@ -164,6 +154,8 @@ export const AnalyticsWidget = () => {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  dy={10}
                 />
                 <YAxis
                   stroke="#888888"
@@ -171,35 +163,37 @@ export const AnalyticsWidget = () => {
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}`}
+                  dx={-10}
                 />
                 <ChartTooltip />
                 <Line
                   type="monotone"
                   dataKey="views"
-                  stroke="var(--theme-primary)"
+                  stroke="#0094F4"
                   strokeWidth={2}
                   dot={false}
                 />
               </LineChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Page Views</h3>
-              <p>{analyticsData.pageViews}</p>
+              <p className="text-2xl">{analyticsData.pageViews}</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Avg. Time on Site</h3>
-              <p>{analyticsData.averageTimeOnSite}</p>
+              <p className="text-2xl">{analyticsData.averageTimeOnSite}</p>
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Top Countries</h3>
               {analyticsData.topCountries.length > 0 ? (
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {analyticsData.topCountries.map((item, index) => (
-                    <li key={index}>
-                      {item.country}: {item.visits} visits
+                    <li key={index} className="flex justify-between items-center">
+                      <span>{item.country}</span>
+                      <span className="font-medium">{item.visits} visits</span>
                     </li>
                   ))}
                 </ul>
@@ -210,10 +204,11 @@ export const AnalyticsWidget = () => {
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Top Cities</h3>
               {analyticsData.topCities.length > 0 ? (
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {analyticsData.topCities.map((item, index) => (
-                    <li key={index}>
-                      {item.city}: {item.visits} visits
+                    <li key={index} className="flex justify-between items-center">
+                      <span>{item.city}</span>
+                      <span className="font-medium">{item.visits} visits</span>
                     </li>
                   ))}
                 </ul>
