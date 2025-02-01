@@ -15,9 +15,13 @@ export const PageViewTracker = () => {
       }
 
       try {
-        console.log('Tracking page view:', location.pathname);
-        
-        // Insert page view without waiting for location data
+        // First, get location data
+        const locationResponse = await fetch('https://ipapi.co/json/');
+        const locationData = await locationResponse.json();
+
+        console.log('Location data:', locationData);
+
+        // Then insert page view with location data
         const { error } = await supabase
           .from('page_views')
           .insert({
@@ -25,53 +29,33 @@ export const PageViewTracker = () => {
             session_id: sessionId,
             referrer: document.referrer,
             user_agent: navigator.userAgent,
+            country: locationData.country_name,
+            city: locationData.city
           });
 
         if (error) {
           console.error('Error tracking page view:', error);
         }
-
-        // Try to get location data in the background with a timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-        try {
-          const response = await fetch('https://ipapi.co/json/', { 
-            signal: controller.signal,
-            mode: 'cors',
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            const locationData = await response.json();
-            
-            // Update the page view with location data
-            if (locationData.country_name || locationData.city) {
-              const { error: updateError } = await supabase
-                .from('page_views')
-                .update({
-                  country: locationData.country_name,
-                  city: locationData.city
-                })
-                .eq('page_path', location.pathname)
-                .eq('session_id', sessionId);
-
-              if (updateError) {
-                console.warn('Could not update location data:', updateError);
-              }
-            }
-          }
-        } catch (locationError) {
-          // Just log the location error but don't let it affect the page view tracking
-          console.warn('Location service unavailable:', locationError);
-          clearTimeout(timeoutId);
-        }
       } catch (err) {
         console.error('Error tracking page view:', err);
+        
+        // If location service fails, still track the page view without location data
+        try {
+          const { error } = await supabase
+            .from('page_views')
+            .insert({
+              page_path: location.pathname,
+              session_id: sessionId,
+              referrer: document.referrer,
+              user_agent: navigator.userAgent
+            });
+
+          if (error) {
+            console.error('Error tracking page view without location:', error);
+          }
+        } catch (fallbackErr) {
+          console.error('Error in fallback tracking:', fallbackErr);
+        }
       }
     };
 

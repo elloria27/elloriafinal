@@ -1,117 +1,121 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Clock } from "lucide-react";
+import { useEffect, useState } from 'react';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from "recharts";
-import { supabase } from "@/integrations/supabase/client";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AnalyticsData {
   pageViews: number;
   averageTimeOnSite: string;
   topCountries: Array<{ country: string; visits: number }>;
-  topCities: Array<{ city: string; country: string; visits: number }>;
+  topCities: Array<{ city: string; visits: number }>;
   topPages: Array<{ page: string; views: number }>;
-  viewsOverTime: Array<{ date: string; views: number }>;
 }
 
 export const AnalyticsWidget = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
+    pageViews: 0,
+    averageTimeOnSite: '0m',
+    topCountries: [],
+    topCities: [],
+    topPages: []
+  });
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        console.log('Fetching analytics data...');
-        
         // Get total page views
         const { count: totalViews, error: viewsError } = await supabase
           .from('page_views')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact' });
 
         if (viewsError) throw viewsError;
 
-        // Get top countries using the RPC function
+        // Get top countries
         const { data: countriesData, error: countriesError } = await supabase
-          .rpc('get_top_countries', { limit_count: 5 });
+          .from('page_views')
+          .select('country')
+          .not('country', 'is', null)
+          .limit(100);
 
         if (countriesError) throw countriesError;
 
-        // Transform countries data
-        const transformedCountries = countriesData.map(item => ({
-          country: item.country || 'Unknown',
-          visits: Number(item.count)
-        }));
+        // Process countries data
+        const countryCount: Record<string, number> = {};
+        countriesData?.forEach((view) => {
+          if (view.country) {
+            countryCount[view.country] = (countryCount[view.country] || 0) + 1;
+          }
+        });
+
+        const topCountries = Object.entries(countryCount)
+          .map(([country, visits]) => ({ country, visits }))
+          .sort((a, b) => b.visits - a.visits)
+          .slice(0, 5);
 
         // Get top cities
         const { data: citiesData, error: citiesError } = await supabase
           .from('page_views')
-          .select('city, country')
+          .select('city')
           .not('city', 'is', null)
-          .not('country', 'is', null)
-          .then(result => {
-            const counts = result.data?.reduce((acc: Record<string, { visits: number; country: string }>, curr: any) => {
-              const key = curr.city;
-              if (!acc[key]) {
-                acc[key] = { visits: 0, country: curr.country };
-              }
-              acc[key].visits += 1;
-              return acc;
-            }, {});
-            return {
-              data: Object.entries(counts || {})
-                .map(([city, data]) => ({
-                  city,
-                  country: data.country,
-                  visits: data.visits
-                }))
-                .sort((a, b) => b.visits - a.visits)
-                .slice(0, 5),
-              error: result.error
-            };
-          });
+          .limit(100);
 
         if (citiesError) throw citiesError;
 
+        // Process cities data
+        const cityCount: Record<string, number> = {};
+        citiesData?.forEach((view) => {
+          if (view.city) {
+            cityCount[view.city] = (cityCount[view.city] || 0) + 1;
+          }
+        });
+
+        const topCities = Object.entries(cityCount)
+          .map(([city, visits]) => ({ city, visits }))
+          .sort((a, b) => b.visits - a.visits)
+          .slice(0, 5);
+
         // Get top pages
         const { data: pagesData, error: pagesError } = await supabase
-          .rpc('get_top_pages', { limit_count: 3 });
+          .from('page_views')
+          .select('page_path')
+          .limit(100);
 
         if (pagesError) throw pagesError;
 
-        // Get views over time
-        const { data: timeData, error: timeError } = await supabase
-          .rpc('get_daily_views', { days_back: 7 });
+        // Process pages data
+        const pageCount: Record<string, number> = {};
+        pagesData?.forEach((view) => {
+          if (view.page_path) {
+            pageCount[view.page_path] = (pageCount[view.page_path] || 0) + 1;
+          }
+        });
 
-        if (timeError) throw timeError;
+        const topPages = Object.entries(pageCount)
+          .map(([page, views]) => ({ page, views }))
+          .sort((a, b) => b.views - a.views)
+          .slice(0, 5);
 
-        // Calculate average time on site (simplified version)
-        const avgTimeMinutes = 3; // This would need session tracking for accurate calculation
+        // Calculate average time (placeholder for now)
+        const avgTimeMinutes = 5; // This would need to be calculated based on actual session data
 
         const analyticsData: AnalyticsData = {
           pageViews: totalViews || 0,
           averageTimeOnSite: `${avgTimeMinutes}m`,
-          topCountries: transformedCountries,
-          topCities: citiesData || [],
-          topPages: pagesData?.map(item => ({
-            page: item.page_path,
-            views: parseInt(item.count.toString())
-          })) || [],
-          viewsOverTime: timeData?.map(item => ({
-            date: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
-            views: parseInt(item.count.toString())
-          })) || []
+          topCountries,
+          topCities,
+          topPages
         };
 
-        console.log('Analytics data:', analyticsData);
-        setAnalytics(analyticsData);
+        setAnalyticsData(analyticsData);
+        setError(null);
       } catch (err) {
         console.error('Error fetching analytics:', err);
         setError('Failed to load analytics data');
@@ -121,49 +125,19 @@ export const AnalyticsWidget = () => {
     };
 
     fetchAnalytics();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('analytics-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'page_views' },
-        () => {
-          console.log('Page views updated, refreshing analytics...');
-          fetchAnalytics();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Website Analytics</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <Skeleton className="w-full h-[400px]" />;
   }
 
   if (error) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Website Analytics</CardTitle>
+          <CardTitle>Analytics</CardTitle>
+          <CardDescription className="text-red-500">{error}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="text-center text-red-500">{error}</div>
-        </CardContent>
       </Card>
     );
   }
@@ -171,90 +145,46 @@ export const AnalyticsWidget = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Website Analytics</CardTitle>
+        <CardTitle>Analytics</CardTitle>
+        <CardDescription>Your site's performance metrics</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
-            <div>
-              <div className="text-sm font-medium">Page Views</div>
-              <div className="text-2xl font-bold">{analytics?.pageViews.toLocaleString()}</div>
-            </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Page Views</h3>
+            <p>{analyticsData.pageViews}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-500" />
-            <div>
-              <div className="text-sm font-medium">Avg. Time on Site</div>
-              <div className="text-2xl font-bold">{analytics?.averageTimeOnSite}</div>
-            </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Avg. Time on Site</h3>
+            <p>{analyticsData.averageTimeOnSite}</p>
           </div>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-sm font-medium mb-2">Views Over Time</h3>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={analytics?.viewsOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="views" 
-                    stroke="#2563eb" 
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Top Countries</h3>
-              <div className="space-y-2">
-                {analytics?.topCountries.map((country, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{country.country}</span>
-                    <span className="font-medium">{country.visits.toLocaleString()}</span>
-                  </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Top Countries</h3>
+            {analyticsData.topCountries.length > 0 ? (
+              <ul className="space-y-1">
+                {analyticsData.topCountries.map((item, index) => (
+                  <li key={index}>
+                    {item.country}: {item.visits} visits
+                  </li>
                 ))}
-                {(!analytics?.topCountries || analytics.topCountries.length === 0) && (
-                  <div className="text-sm text-muted-foreground">No country data available</div>
-                )}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium mb-2">Top Cities</h3>
-              <div className="space-y-2">
-                {analytics?.topCities.map((city, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      {city.city}, {city.country}
-                    </span>
-                    <span className="font-medium">{city.visits.toLocaleString()}</span>
-                  </div>
-                ))}
-                {(!analytics?.topCities || analytics.topCities.length === 0) && (
-                  <div className="text-sm text-muted-foreground">No city data available</div>
-                )}
-              </div>
-            </div>
+              </ul>
+            ) : (
+              <p>No country data available</p>
+            )}
           </div>
-
-          <div>
-            <h3 className="text-sm font-medium mb-2">Top Pages</h3>
-            <div className="space-y-2">
-              {analytics?.topPages.map((page, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">{page.page}</span>
-                  <span className="font-medium">{page.views.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Top Cities</h3>
+            {analyticsData.topCities.length > 0 ? (
+              <ul className="space-y-1">
+                {analyticsData.topCities.map((item, index) => (
+                  <li key={index}>
+                    {item.city}: {item.visits} visits
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No city data available</p>
+            )}
           </div>
         </div>
       </CardContent>
