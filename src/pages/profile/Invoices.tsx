@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { OrderData } from "@/types/order";
+import type { OrderData, OrderStatus } from "@/types/order";
 
 export default function Invoices() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -41,6 +41,8 @@ export default function Invoices() {
         // Transform the data to match OrderData type
         const transformedOrders: OrderData[] = userOrders?.map(order => ({
           ...order,
+          // Ensure status is of type OrderStatus
+          status: order.status as OrderStatus,
           items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
           shipping_address: typeof order.shipping_address === 'string' 
             ? JSON.parse(order.shipping_address) 
@@ -52,7 +54,11 @@ export default function Invoices() {
             ? (typeof order.applied_promo_code === 'string' 
               ? JSON.parse(order.applied_promo_code) 
               : order.applied_promo_code)
-            : null
+            : null,
+          // Ensure numeric fields are properly typed
+          total_amount: Number(order.total_amount),
+          shipping_cost: Number(order.shipping_cost || 0),
+          gst: Number(order.gst || 0)
         })) || [];
 
         setOrders(transformedOrders);
