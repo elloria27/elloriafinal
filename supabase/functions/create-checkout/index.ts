@@ -30,6 +30,18 @@ serve(async (req) => {
       }
     );
 
+    // Initialize Supabase admin client for database operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
     // Get auth token from request header
     const authHeader = req.headers.get('Authorization');
     let userId = null;
@@ -44,7 +56,7 @@ serve(async (req) => {
         userId = user.id;
         
         // Get user profile
-        const { data: profile } = await supabaseClient
+        const { data: profile } = await supabaseAdmin
           .from('profiles')
           .select('*')
           .eq('id', userId)
@@ -100,17 +112,17 @@ serve(async (req) => {
     const email = shippingAddress.email.trim();
     console.log('Create-checkout - Processing checkout for email:', email);
 
-    // Initialize Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    // Check if there's an existing user with this email
+    const { data: existingUser } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    console.log('Create-checkout - Existing user check:', existingUser);
+
+    // Use either the authenticated user's ID, existing user's ID, or null
+    const effectiveUserId = userId || existingUser?.id || null;
 
     // Get payment method details
     const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
@@ -234,7 +246,7 @@ serve(async (req) => {
       success_url: `${req.headers.get('origin')}/order-success`,
       cancel_url: `${req.headers.get('origin')}/checkout`,
       customer_email: email,
-      client_reference_id: userId || guestReferenceId,
+      client_reference_id: effectiveUserId || guestReferenceId,
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],
       },
@@ -257,8 +269,8 @@ serve(async (req) => {
       applied_promo_code: promoCode,
       shipping_cost: shippingCost || 0,
       gst: gstAmount || 0,
-      user_id: userId,
-      profile_id: userId
+      user_id: effectiveUserId,
+      profile_id: effectiveUserId
     };
 
     console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
