@@ -40,14 +40,10 @@ export default function Invoices() {
 
         console.log("Current user ID:", user.id);
         
-        // Using or() with an array of filters
         const { data, error } = await supabase
           .from('orders')
           .select('*')
-          .or([
-            { user_id: user.id },
-            { profile_id: user.id }
-          ])
+          .or(`user_id.eq.${user.id},profile_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {
