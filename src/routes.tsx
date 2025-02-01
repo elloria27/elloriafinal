@@ -1,7 +1,6 @@
 import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
@@ -28,7 +27,6 @@ import BulkOrders from "@/pages/BulkOrders";
 export function Routes() {
   return (
     <>
-      <ScrollToTop />
       <Header />
       <RouterRoutes>
         <Route path="/" element={<Index />} />
