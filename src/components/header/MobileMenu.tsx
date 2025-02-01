@@ -81,7 +81,7 @@ export const MobileMenu = () => {
             {hasChildren && (
               <button
                 onClick={() => toggleExpanded(item.path)}
-                className="p-2 mx-2 rounded-full bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-primary transition-all"
+                className="p-2 mx-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"
                 aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
               >
                 <motion.div
