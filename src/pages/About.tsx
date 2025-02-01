@@ -7,6 +7,7 @@ import { AboutMission } from "@/components/about/AboutMission";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
+import { Link } from "react-router-dom";
 import { 
   ContentBlock, 
   AboutHeroContent, 
@@ -113,18 +114,18 @@ export default function About() {
               {ctaContent?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href={ctaContent?.primaryButtonLink || "#"}
+              <Link 
+                to="/shop"
                 className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
               >
                 {ctaContent?.primaryButtonText || "Shop Now"}
-              </a>
-              <a 
-                href={ctaContent?.secondaryButtonLink || "#"}
+              </Link>
+              <Link 
+                to="/sustainability"
                 className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
               >
                 {ctaContent?.secondaryButtonText || "Learn More"}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
