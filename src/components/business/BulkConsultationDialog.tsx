@@ -90,14 +90,14 @@ export const BulkConsultationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] p-6 bg-white rounded-xl shadow-xl">
+      <DialogContent className="sm:max-w-[500px] p-4 sm:p-6 bg-white rounded-xl shadow-xl overflow-y-auto max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-center mb-6 text-gray-800">
+          <DialogTitle className="text-xl sm:text-2xl font-semibold text-center mb-4 sm:mb-6 text-gray-800">
             Request Bulk Order Consultation
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="fullName"
@@ -107,10 +107,11 @@ export const BulkConsultationDialog = ({
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-11 rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter your full name"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -124,10 +125,11 @@ export const BulkConsultationDialog = ({
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-11 rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter company name"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -142,10 +144,11 @@ export const BulkConsultationDialog = ({
                     <Input 
                       type="email" 
                       {...field} 
-                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-11 rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter your email"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -160,10 +163,11 @@ export const BulkConsultationDialog = ({
                     <Input 
                       type="tel" 
                       {...field} 
-                      className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="h-11 rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                      placeholder="Enter phone number"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -176,7 +180,7 @@ export const BulkConsultationDialog = ({
                   <FormLabel className="text-sm font-medium text-gray-700">Order Quantity *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-lg border-gray-300 focus:border-primary focus:ring-primary">
+                      <SelectTrigger className="h-11 rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                         <SelectValue placeholder="Select quantity range" />
                       </SelectTrigger>
                     </FormControl>
@@ -187,7 +191,7 @@ export const BulkConsultationDialog = ({
                       <SelectItem value="5000+">5,000+ units</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -201,11 +205,11 @@ export const BulkConsultationDialog = ({
                   <FormControl>
                     <Textarea 
                       {...field}
-                      className="min-h-[100px] rounded-lg border-gray-300 focus:border-primary focus:ring-primary"
+                      className="min-h-[100px] rounded-lg border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
                       placeholder="Please provide details about your bulk order requirements..."
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -214,7 +218,7 @@ export const BulkConsultationDialog = ({
               control={form.control}
               name="contactConsent"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-200 p-4">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -227,23 +231,22 @@ export const BulkConsultationDialog = ({
                       I agree to be contacted by Elloria *
                     </FormLabel>
                   </div>
-                  <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-lg border-gray-300 hover:bg-gray-50 text-gray-700"
+                className="w-full sm:w-1/2 h-11 rounded-lg border-gray-200 hover:bg-gray-50 text-gray-700 font-medium"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="w-full rounded-lg bg-primary hover:bg-primary/90 text-white"
+                className="w-full sm:w-1/2 h-11 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Submit Request"}
