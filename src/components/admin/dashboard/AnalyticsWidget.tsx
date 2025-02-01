@@ -154,7 +154,10 @@ export const AnalyticsWidget = () => {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
                   dy={10}
                 />
                 <YAxis
@@ -177,28 +180,28 @@ export const AnalyticsWidget = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">Page Views</h3>
-              <p className="text-3xl font-semibold text-primary">{analyticsData.pageViews}</p>
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Page Views</h3>
+              <p className="text-5xl font-semibold text-[#0094F4]">{analyticsData.pageViews}</p>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">Avg. Time on Site</h3>
-              <p className="text-3xl font-semibold text-primary">{analyticsData.averageTimeOnSite}</p>
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Avg. Time on Site</h3>
+              <p className="text-5xl font-semibold text-[#0094F4]">{analyticsData.averageTimeOnSite}</p>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold mb-4">Top Countries</h3>
+            <div>
+              <h3 className="text-2xl font-bold mb-6">Top Countries</h3>
               {analyticsData.topCountries.length > 0 ? (
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {analyticsData.topCountries.map((item, index) => (
                     <li 
                       key={index} 
-                      className="flex justify-between items-center p-2 rounded-lg hover:bg-accent-purple transition-colors"
+                      className="flex items-center gap-3"
                     >
-                      <span className="text-lg text-primary font-medium">{item.country}</span>
-                      <span className="text-lg font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
-                        {item.visits} visits
-                      </span>
+                      <span className="text-2xl text-[#0094F4]">{item.country}</span>
+                      <div className="bg-[#E5DEFF] px-4 py-2 rounded-full">
+                        <span className="text-xl">{item.visits} visits</span>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -206,19 +209,19 @@ export const AnalyticsWidget = () => {
                 <p>No country data available</p>
               )}
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold mb-4">Top Cities</h3>
+            <div>
+              <h3 className="text-2xl font-bold mb-6">Top Cities</h3>
               {analyticsData.topCities.length > 0 ? (
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {analyticsData.topCities.map((item, index) => (
                     <li 
                       key={index} 
-                      className="flex justify-between items-center p-2 rounded-lg hover:bg-accent-purple transition-colors"
+                      className="flex items-center gap-3"
                     >
-                      <span className="text-lg text-primary font-medium">{item.city}</span>
-                      <span className="text-lg font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
-                        {item.visits} visits
-                      </span>
+                      <span className="text-2xl text-[#0094F4]">{item.city}</span>
+                      <div className="bg-[#E5DEFF] px-4 py-2 rounded-full">
+                        <span className="text-xl">{item.visits} visits</span>
+                      </div>
                     </li>
                   ))}
                 </ul>
