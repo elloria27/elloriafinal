@@ -1,20 +1,22 @@
-import { BrowserRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import { Header } from './components/Header';
-import { PagesProvider } from './contexts/PagesContext';
-import Index from './pages/Index';
+import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
+import { HelmetProvider } from "react-helmet-async";
+import { CartProvider } from "@/contexts/CartContext";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { Routes } from "./routes";
 
-const App = () => {
+function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        <PagesProvider>
-          <Header />
-          <Index />
-        </PagesProvider>
-      </BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes />
+          <Toaster position="top-right" expand={false} richColors />
+        </BrowserRouter>
+      </CartProvider>
     </HelmetProvider>
   );
-};
+}
 
 export default App;
