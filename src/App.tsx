@@ -27,6 +27,7 @@ import Contact from "@/pages/Contact";
 import Terms from "@/pages/Terms";
 import Donation from "@/pages/Donation";
 import SharedFile from "@/pages/SharedFile";
+import Thanks from "@/pages/Thanks";
 
 function App() {
   return (
@@ -164,6 +165,11 @@ function AppRoutes() {
       <Route path="/donation" element={
         <ProtectedRoute slug="donation">
           <Donation />
+        </ProtectedRoute>
+      } />
+      <Route path="/thanks" element={
+        <ProtectedRoute slug="thanks">
+          <Thanks />
         </ProtectedRoute>
       } />
     </Routes>
