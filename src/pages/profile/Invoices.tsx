@@ -25,11 +25,25 @@ export default function Invoices() {
         console.log("Current user ID:", user.id);
         console.log("Current user email:", user.email);
         
-        const { data: userOrders, error } = await supabase
+        // First try to fetch by user_id
+        let { data: userOrders, error } = await supabase
           .from("orders")
           .select("*")
-          .or(`user_id.eq.${user.id},email_address.eq.'${user.email}'`)
+          .eq("user_id", user.id)
           .order("created_at", { ascending: false });
+
+        // If no orders found by user_id, try email_address
+        if ((!userOrders || userOrders.length === 0) && user.email) {
+          console.log("No orders found by user_id, trying email...");
+          const { data: emailOrders, error: emailError } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("email_address", user.email)
+            .order("created_at", { ascending: false });
+
+          if (emailError) throw emailError;
+          userOrders = emailOrders;
+        }
 
         if (error) {
           console.error("Error fetching orders:", error);
@@ -39,7 +53,7 @@ export default function Invoices() {
         console.log("Fetched orders:", userOrders);
         
         // Transform the data to match OrderData type
-        const transformedOrders: OrderData[] = userOrders?.map(order => ({
+        const transformedOrders: OrderData[] = (userOrders || []).map(order => ({
           ...order,
           // Ensure status is of type OrderStatus
           status: order.status as OrderStatus,
@@ -59,7 +73,7 @@ export default function Invoices() {
           total_amount: Number(order.total_amount),
           shipping_cost: Number(order.shipping_cost || 0),
           gst: Number(order.gst || 0)
-        })) || [];
+        }));
 
         setOrders(transformedOrders);
       } catch (error) {

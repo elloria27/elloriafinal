@@ -33,11 +33,25 @@ export default function Activity() {
         console.log("Current user ID:", user.id);
         console.log("Current user email:", user.email);
         
-        const { data: orders, error } = await supabase
+        // First try to fetch by user_id
+        let { data: orders, error } = await supabase
           .from("orders")
           .select("*")
-          .or(`user_id.eq.${user.id},email_address.eq.'${user.email}'`)
+          .eq("user_id", user.id)
           .order("created_at", { ascending: false });
+
+        // If no orders found by user_id, try email_address
+        if ((!orders || orders.length === 0) && user.email) {
+          console.log("No orders found by user_id, trying email...");
+          const { data: emailOrders, error: emailError } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("email_address", user.email)
+            .order("created_at", { ascending: false });
+
+          if (emailError) throw emailError;
+          orders = emailOrders;
+        }
 
         if (error) {
           console.error("Error fetching orders:", error);
