@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Package } from "lucide-react";
+import type { OrderStatus } from "@/types/order";
 
 interface ActivityItem {
   id: string;
@@ -10,7 +11,7 @@ interface ActivityItem {
   date: string;
   title: string;
   description: string;
-  status: string;
+  status: OrderStatus;
 }
 
 export default function Activity() {
@@ -50,8 +51,8 @@ export default function Activity() {
           type: "order",
           date: order.created_at,
           title: `Order #${order.order_number}`,
-          description: `Order total: $${order.total_amount}`,
-          status: order.status
+          description: `Order total: $${Number(order.total_amount).toFixed(2)}`,
+          status: order.status as OrderStatus
         }));
 
         setActivityItems(items);
