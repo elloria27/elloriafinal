@@ -1,11 +1,20 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Leaf, Recycle, Users } from "lucide-react";
+import { SustainabilityRegistrationDialog } from "@/components/sustainability/SustainabilityRegistrationDialog";
 
 const SustainabilityProgram = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <div className="min-h-screen pt-20">
+      <SustainabilityRegistrationDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+      />
+
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
         <div className="container mx-auto px-4">
@@ -21,7 +30,10 @@ const SustainabilityProgram = () => {
             <p className="text-lg text-gray-600 mb-8">
               Be part of the solution. Our sustainability program helps businesses reduce their environmental impact while creating positive social change.
             </p>
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => setIsDialogOpen(true)}
+            >
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </motion.div>
@@ -108,7 +120,11 @@ const SustainabilityProgram = () => {
             <p className="text-lg mb-8 opacity-90">
               Join our sustainability program today and be part of the movement towards a more sustainable future.
             </p>
-            <Button variant="secondary" size="lg">
+            <Button 
+              variant="secondary" 
+              size="lg"
+              onClick={() => setIsDialogOpen(true)}
+            >
               Join the Program
             </Button>
           </div>
