@@ -136,7 +136,7 @@ export const AnalyticsWidget = () => {
   }, []);
 
   if (loading) {
-    return <Skeleton className="w-full h-[400px]" />;
+    return <Skeleton className="w-full h-[300px]" />;
   }
 
   if (error) {
@@ -151,113 +151,96 @@ export const AnalyticsWidget = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-4">
         <CardTitle>Analytics</CardTitle>
-        <CardDescription>Your site's performance metrics</CardDescription>
+        <CardDescription>Site performance metrics</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-8">
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold mb-2">Total Page Views</h3>
-              <p className="text-3xl font-bold text-primary">{analyticsData.pageViews}</p>
-            </div>
-            
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold mb-2">Average Time on Site</h3>
-              <p className="text-3xl font-bold text-primary">{analyticsData.averageTimeOnSite}</p>
+      <CardContent className="space-y-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg border bg-card">
+            <p className="text-sm font-medium text-muted-foreground mb-1">Page Views</p>
+            <p className="text-2xl font-bold text-primary">{analyticsData.pageViews}</p>
+          </div>
+          <div className="p-4 rounded-lg border bg-card">
+            <p className="text-sm font-medium text-muted-foreground mb-1">Avg. Time</p>
+            <p className="text-2xl font-bold text-primary">{analyticsData.averageTimeOnSite}</p>
+          </div>
+        </div>
+
+        {/* Chart */}
+        <div className="h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={analyticsData.dailyViews}>
+              <XAxis
+                dataKey="date"
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              />
+              <YAxis
+                stroke="#888888"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}`}
+              />
+              <ChartTooltip />
+              <Line
+                type="monotone"
+                dataKey="views"
+                stroke="#0094F4"
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Analytics Lists */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Most Visited Pages */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Most Visited Pages</h3>
+            <div className="space-y-2">
+              {analyticsData.topPages.map((item, index) => (
+                <div key={index} className="flex justify-between items-center text-sm">
+                  <span className="truncate flex-1">{item.page}</span>
+                  <span className="text-muted-foreground ml-2">{item.views}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={analyticsData.dailyViews}>
-                <XAxis
-                  dataKey="date"
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                  dy={10}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `${value}`}
-                  dx={-10}
-                />
-                <ChartTooltip />
-                <Line
-                  type="monotone"
-                  dataKey="views"
-                  stroke="#0094F4"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* Top Countries */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Top Countries</h3>
+            <div className="space-y-2">
+              {analyticsData.topCountries.map((item, index) => (
+                <div key={index} className="flex justify-between items-center text-sm">
+                  <span className="truncate flex-1">{item.country}</span>
+                  <span className="text-muted-foreground ml-2">{item.visits}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold mb-4">Most Visited Pages</h3>
-              {analyticsData.topPages.length > 0 ? (
-                <ul className="space-y-3">
-                  {analyticsData.topPages.map((item, index) => (
-                    <li key={index} className="border-b pb-2 last:border-0">
-                      <div className="text-sm font-medium">{item.page}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {item.views} views
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No page data available</p>
-              )}
-            </div>
-
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold mb-4">Top Countries</h3>
-              {analyticsData.topCountries.length > 0 ? (
-                <ul className="space-y-3">
-                  {analyticsData.topCountries.map((item, index) => (
-                    <li key={index} className="border-b pb-2 last:border-0">
-                      <div className="text-sm font-medium">{item.country}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {item.visits} visits
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No country data available</p>
-              )}
-            </div>
-
-            <div className="p-6 rounded-lg border bg-card">
-              <h3 className="text-lg font-semibold mb-4">Top Cities</h3>
-              {analyticsData.topCities.length > 0 ? (
-                <ul className="space-y-3">
-                  {analyticsData.topCities.map((item, index) => (
-                    <li key={index} className="border-b pb-2 last:border-0">
-                      <div className="text-sm font-medium">{item.city}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {item.visits} visits
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No city data available</p>
-              )}
+          {/* Top Cities */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground">Top Cities</h3>
+            <div className="space-y-2">
+              {analyticsData.topCities.map((item, index) => (
+                <div key={index} className="flex justify-between items-center text-sm">
+                  <span className="truncate flex-1">{item.city}</span>
+                  <span className="text-muted-foreground ml-2">{item.visits}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
