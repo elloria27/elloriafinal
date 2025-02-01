@@ -1,132 +1,107 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { Package } from "lucide-react";
-import type { OrderStatus } from "@/types/order";
-
-interface ActivityItem {
-  id: string;
-  type: string;
-  date: string;
-  title: string;
-  description: string;
-  status: OrderStatus;
-}
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@supabase/auth-helpers-react";
+import { Order } from "@/types/order";
 
 export default function Activity() {
-  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const auth = useAuth();
 
   useEffect(() => {
-    async function fetchActivity() {
+    const fetchOrders = async () => {
       try {
-        console.log("Fetching orders for current user...");
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          console.log("No user found");
-          toast.error("Please log in to view your activity");
+        if (!auth?.user?.email) {
+          console.log("No user email found");
           return;
         }
 
-        console.log("Current user ID:", user.id);
+        console.log("Fetching orders for email:", auth.user.email);
         
-        // First, get user's profile to get their email
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", user.id)
-          .single();
-
-        const userEmail = profile?.email || user.email;
-        console.log("User email for order search:", userEmail);
-
-        // Fetch orders with filter
         const { data: orders, error } = await supabase
-          .from("orders")
-          .select(`
-            *,
-            profiles (
-              email
-            )
-          `)
-          .filter('user_id', 'eq', user.id)
-          .filter('profile_id', 'eq', user.id)
-          .filter('shipping_address->>email', 'eq', `'${userEmail}'`)
-          .filter('billing_address->>email', 'eq', `'${userEmail}'`)
-          .order("created_at", { ascending: false });
+          .from('orders')
+          .select('*')
+          .or(`shipping_address->>'email'.eq.'${auth.user.email}',billing_address->>'email'.eq.'${auth.user.email}',profile_id.eq.${auth.user.id},user_id.eq.${auth.user.id}`)
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error("Error fetching orders:", error);
-          throw error;
+          toast({
+            title: "Error",
+            description: "Failed to fetch orders. Please try again.",
+            variant: "destructive",
+          });
+          return;
         }
 
         console.log("Fetched orders:", orders);
-
-        const items = (orders || []).map(order => ({
-          id: order.id,
-          type: "order",
-          date: order.created_at,
-          title: `Order #${order.order_number}`,
-          description: `Order total: $${Number(order.total_amount).toFixed(2)}`,
-          status: order.status as OrderStatus
-        }));
-
-        setActivityItems(items);
+        setOrders(orders || []);
       } catch (error) {
-        console.error("Error fetching activity:", error);
-        toast.error("Failed to load activity");
+        console.error("Error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
-    }
+    };
 
-    fetchActivity();
-  }, []);
+    fetchOrders();
+  }, [auth?.user?.email]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  if (activityItems.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <Package className="w-12 h-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No activity yet</h3>
-        <p className="mt-1 text-gray-500">Start shopping to see your activity here.</p>
-      </div>
-    );
+  if (orders.length === 0) {
+    return <div>No orders found.</div>;
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold mb-6">Recent Activity</h2>
-      <div className="space-y-6">
-        {activityItems.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
-                <p className="mt-1 text-gray-500">{item.description}</p>
-                <p className="mt-2 text-sm text-gray-500">
-                  {format(new Date(item.date), "PPP")}
-                </p>
+    <div className="space-y-8">
+      {orders.map((order) => (
+        <div
+          key={order.id}
+          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Order #{order.order_number}</h3>
+              <p className="text-gray-600">
+                {new Date(order.created_at).toLocaleDateString()}
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full text-sm capitalize bg-primary/10 text-primary">
+              {order.status}
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Items</h4>
+              <div className="space-y-2">
+                {order.items.map((item: any, index: number) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{item.name}</span>
+                    <span>${item.price}</span>
+                  </div>
+                ))}
               </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-blue-100 text-blue-800">
-                {item.status}
-              </span>
+            </div>
+            
+            <div className="pt-4 border-t">
+              <div className="flex justify-between font-medium">
+                <span>Total Amount</span>
+                <span>${order.total_amount}</span>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

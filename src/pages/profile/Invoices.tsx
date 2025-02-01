@@ -1,166 +1,127 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { Package } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@supabase/auth-helpers-react";
+import { Order } from "@/types/order";
 import { Button } from "@/components/ui/button";
-import type { OrderData, OrderStatus } from "@/types/order";
+import { Download } from "lucide-react";
 
 export default function Invoices() {
-  const [orders, setOrders] = useState<OrderData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const auth = useAuth();
 
   useEffect(() => {
-    async function fetchOrders() {
+    const fetchOrders = async () => {
       try {
-        console.log("Fetching orders for current user...");
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          console.log("No user found");
-          toast.error("Please log in to view your orders");
+        if (!auth?.user?.email) {
+          console.log("No user email found");
           return;
         }
 
-        console.log("Current user ID:", user.id);
+        console.log("Fetching orders for email:", auth.user.email);
         
-        // First, get user's profile to get their email
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", user.id)
-          .single();
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('*')
+          .or(`shipping_address->>'email'.eq.'${auth.user.email}',billing_address->>'email'.eq.'${auth.user.email}',profile_id.eq.${auth.user.id},user_id.eq.${auth.user.id}`)
+          .order('created_at', { ascending: false });
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          throw profileError;
+        if (error) {
+          console.error("Error fetching orders:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch orders. Please try again.",
+            variant: "destructive",
+          });
+          return;
         }
 
-        const userEmail = profile?.email || user.email;
-        console.log("User email for order search:", userEmail);
-
-        // Fetch orders with filter
-        const { data: userOrders, error: ordersError } = await supabase
-          .from("orders")
-          .select(`
-            *,
-            profiles (
-              email
-            )
-          `)
-          .filter('user_id', 'eq', user.id)
-          .filter('profile_id', 'eq', user.id)
-          .filter('shipping_address->>email', 'eq', `'${userEmail}'`)
-          .filter('billing_address->>email', 'eq', `'${userEmail}'`)
-          .order("created_at", { ascending: false });
-
-        if (ordersError) {
-          console.error("Error fetching orders:", ordersError);
-          throw ordersError;
-        }
-
-        console.log("Fetched orders:", userOrders);
-        
-        // Transform the data to match OrderData type
-        const transformedOrders: OrderData[] = (userOrders || []).map(order => ({
-          id: order.id,
-          user_id: order.user_id,
-          profile_id: order.profile_id,
-          order_number: order.order_number,
-          total_amount: Number(order.total_amount),
-          status: order.status as OrderStatus,
-          shipping_address: typeof order.shipping_address === 'string' 
-            ? JSON.parse(order.shipping_address) 
-            : order.shipping_address,
-          billing_address: typeof order.billing_address === 'string' 
-            ? JSON.parse(order.billing_address) 
-            : order.billing_address,
-          items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
-          created_at: order.created_at,
-          payment_method: order.payment_method,
-          applied_promo_code: order.applied_promo_code 
-            ? (typeof order.applied_promo_code === 'string' 
-              ? JSON.parse(order.applied_promo_code) 
-              : order.applied_promo_code)
-            : null,
-          shipping_cost: Number(order.shipping_cost || 0),
-          gst: Number(order.gst || 0)
-        }));
-
-        setOrders(transformedOrders);
+        console.log("Fetched orders:", orders);
+        setOrders(orders || []);
       } catch (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to load orders");
+        console.error("Error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
-    }
+    };
 
     fetchOrders();
-  }, []);
+  }, [auth?.user?.email]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  const handleDownload = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      // Handle the PDF download here
+      console.log("Invoice generated:", data);
+      
+      toast({
+        title: "Success",
+        description: "Invoice downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   if (orders.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <Package className="w-12 h-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
-        <p className="mt-1 text-gray-500">Start shopping to see your orders here.</p>
-      </div>
-    );
+    return <div>No invoices found.</div>;
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold mb-6">Orders & Invoices</h2>
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  Order #{order.order_number}
-                </h3>
-                <p className="mt-1 text-gray-500">
-                  Placed on {format(new Date(order.created_at), "PPP")}
-                </p>
-                <p className="mt-2 text-sm">
-                  {order.items?.length || 0} items
-                </p>
-              </div>
-              <div className="text-right space-y-2">
-                <p className="font-medium text-gray-900">
-                  ${order.total_amount.toFixed(2)}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    toast.info("Invoice download coming soon!");
-                  }}
-                >
-                  Download Invoice
-                </Button>
-              </div>
+    <div className="space-y-8">
+      {orders.map((order) => (
+        <div
+          key={order.id}
+          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Invoice #{order.order_number}</h3>
+              <p className="text-gray-600">
+                {new Date(order.created_at).toLocaleDateString()}
+              </p>
             </div>
-            <div className="mt-4">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-blue-100 text-blue-800">
-                {order.status}
-              </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDownload(order.id)}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="pt-4">
+              <div className="flex justify-between font-medium">
+                <span>Total Amount</span>
+                <span>${order.total_amount}</span>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
