@@ -23,6 +23,7 @@ import Thanks from "@/pages/Thanks";
 import Admin from "@/pages/Admin";
 import SharedFile from "@/pages/SharedFile";
 import BulkOrders from "@/pages/BulkOrders";
+import NotFound from "@/pages/NotFound";
 
 export function Routes() {
   return (
@@ -52,6 +53,8 @@ export function Routes() {
         <Route path="/shared/:token" element={<SharedFile />} />
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
+        {/* Catch all unmatched routes with 404 page */}
+        <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       <Footer />
     </>
