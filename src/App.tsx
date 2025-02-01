@@ -1,4 +1,3 @@
-import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
 import { CartProvider } from "@/contexts/CartContext";
@@ -10,13 +9,11 @@ function App() {
   return (
     <HelmetProvider>
       <CartProvider>
-        <BrowserRouter>
-          <PagesProvider>
-            <ScrollToTop />
-            <Routes />
-            <Toaster position="top-right" expand={false} richColors />
-          </PagesProvider>
-        </BrowserRouter>
+        <PagesProvider>
+          <ScrollToTop />
+          <Routes />
+          <Toaster position="top-right" expand={false} richColors />
+        </PagesProvider>
       </CartProvider>
     </HelmetProvider>
   );
