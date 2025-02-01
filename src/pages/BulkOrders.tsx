@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentBlock, FeatureItem, FeaturesContent, HeroContent, ContactFormContent } from "@/types/content-blocks";
+import { BulkConsultationDialog } from "@/components/business/BulkConsultationDialog";
 
 const BulkOrders = () => {
   const [loading, setLoading] = useState(true);
   const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
+  const [showConsultationDialog, setShowConsultationDialog] = useState(false);
 
   useEffect(() => {
     const fetchPageContent = async () => {
@@ -117,7 +119,11 @@ const BulkOrders = () => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => setShowConsultationDialog(true)}
+              >
                 Request a Quote
               </Button>
             </motion.div>
@@ -190,6 +196,11 @@ const BulkOrders = () => {
           </div>
         </div>
       </section>
+
+      <BulkConsultationDialog 
+        open={showConsultationDialog} 
+        onOpenChange={setShowConsultationDialog}
+      />
     </motion.main>
   );
 };
