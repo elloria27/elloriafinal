@@ -31,7 +31,7 @@ export function Routes() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:slug" element={<ProductDetail />} />
+        <Route path="/products/:slug" element={<ProductDetail />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/for-business" element={<ForBusiness />} />
