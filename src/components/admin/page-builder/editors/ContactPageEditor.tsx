@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
-import { Plus, Trash2, Image, Video } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface ContactPageEditorProps {
   block: ContentBlock;
@@ -13,15 +12,30 @@ interface ContactPageEditorProps {
 }
 
 export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) => {
-  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
-  const [currentField, setCurrentField] = useState<string>("");
   const [content, setContent] = useState<BlockContent>(block.content);
 
   const handleChange = (key: string, value: any) => {
     const updatedContent = { ...content, [key]: value };
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
+  };
+
+  const handleArrayChange = (key: string, index: number, value: any) => {
+    const array = [...(content[key] as any[] || [])];
+    array[index] = { ...array[index], ...value };
+    handleChange(key, array);
+  };
+
+  const addArrayItem = (key: string, defaultItem: any) => {
+    const array = [...(content[key] as any[] || [])];
+    array.push(defaultItem);
+    handleChange(key, array);
+  };
+
+  const removeArrayItem = (key: string, index: number) => {
+    const array = [...(content[key] as any[] || [])];
+    array.splice(index, 1);
+    handleChange(key, array);
   };
 
   switch (block.type) {
@@ -169,47 +183,6 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
                 <Plus className="h-4 w-4 mr-2" /> Add FAQ
               </Button>
             </div>
-          </div>
-        </div>
-      );
-
-    case "contact_business":
-      return (
-        <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={content.title as string || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={content.description as string || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Email</Label>
-            <Input
-              value={content.email as string || ""}
-              onChange={(e) => handleChange("email", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={content.buttonText as string || ""}
-              onChange={(e) => handleChange("buttonText", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={content.buttonLink as string || ""}
-              onChange={(e) => handleChange("buttonLink", e.target.value)}
-            />
           </div>
         </div>
       );
