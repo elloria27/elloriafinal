@@ -29,10 +29,14 @@ export default function Activity() {
 
         console.log("Current user ID:", user.id);
         
+        // Using or() with an array of filters
         const { data: orders, error } = await supabase
           .from('orders')
           .select('*')
-          .or(`user_id.eq.${user.id}, profile_id.eq.${user.id}`)
+          .or([
+            { user_id: user.id },
+            { profile_id: user.id }
+          ])
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -67,13 +71,6 @@ export default function Activity() {
     fetchActivity();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   return (
     <div className="p-8">
       <h1 className="text-2xl font-semibold mb-6">Recent Activity</h1>
@@ -105,7 +102,10 @@ export default function Activity() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-gray-900">
-                        {formatCurrency(Number(activity.details.total))}
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(Number(activity.details.total))}
                       </p>
                       <p className="text-sm text-gray-500 capitalize">
                         {activity.details.status}
