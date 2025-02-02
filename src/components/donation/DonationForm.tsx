@@ -5,23 +5,71 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const DonationForm = () => {
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Here you would integrate with your payment processor
-      console.log("Processing donation:", amount || customAmount);
-      toast.success("Thank you for your donation! We'll be in touch soon.");
-    } catch (error) {
-      console.error("Error processing donation:", error);
-      toast.error("There was an error processing your donation. Please try again.");
+      // Get Stripe payment method
+      const { data: paymentMethod } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('name', 'stripe')
+        .single();
+
+      if (!paymentMethod?.id) {
+        throw new Error('Stripe payment method not configured');
+      }
+
+      const finalAmount = amount || customAmount;
+      if (!finalAmount) {
+        throw new Error('Please select or enter an amount');
+      }
+
+      if (!email) {
+        throw new Error('Email is required');
+      }
+
+      console.log('Creating checkout session with:', {
+        amount: finalAmount,
+        email,
+        name,
+        paymentMethodId: paymentMethod.id
+      });
+
+      const response = await supabase.functions.invoke('create-checkout', {
+        body: {
+          type: 'donation',
+          amount: Number(finalAmount),
+          email,
+          name,
+          paymentMethodId: paymentMethod.id
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create checkout session');
+      }
+
+      console.log('Checkout session created:', response);
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error: any) {
+      console.error('Error processing donation:', error);
+      toast.error(error.message || 'Failed to process donation');
     } finally {
       setLoading(false);
     }
@@ -51,7 +99,10 @@ export const DonationForm = () => {
               <Label>Select Donation Amount</Label>
               <RadioGroup
                 value={amount}
-                onValueChange={setAmount}
+                onValueChange={(value) => {
+                  setAmount(value);
+                  setCustomAmount("");
+                }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-4"
               >
                 {["25", "50", "100"].map((value) => (
@@ -78,10 +129,33 @@ export const DonationForm = () => {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address *</Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Name (Optional)</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90"
-              disabled={loading || (!amount && !customAmount)}
+              disabled={loading || (!amount && !customAmount) || !email}
             >
               {loading ? "Processing..." : "Donate Now"}
             </Button>
