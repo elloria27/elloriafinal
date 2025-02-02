@@ -348,6 +348,45 @@ export type Database = {
         }
         Relationships: []
       }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          donor_email: string | null
+          donor_name: string | null
+          id: string
+          payment_method: string | null
+          status: string | null
+          stripe_session_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          payment_method?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       file_shares: {
         Row: {
           access_level: string

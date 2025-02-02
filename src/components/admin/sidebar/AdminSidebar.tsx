@@ -20,7 +20,9 @@ import {
   Lock,
   Tag,
   CreditCard,
-  Truck
+  Truck,
+  DollarSign,
+  Gift
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -57,6 +59,18 @@ const sidebarItems: SidebarItem[] = [
       { title: "Payment Methods", href: "/admin?tab=payment-methods", icon: CreditCard },
       { title: "Delivery Methods", href: "/admin?tab=delivery-methods", icon: Truck },
       { title: "Promo Codes", href: "/admin?tab=promo-codes", icon: Tag }
+    ]
+  },
+  {
+    title: "Marketing",
+    icon: DollarSign,
+    items: [
+      { 
+        title: "Donations", 
+        href: "/admin?tab=donations", 
+        icon: Gift,
+        description: "View and manage donations"
+      }
     ]
   },
   {
