@@ -145,7 +145,62 @@ serve(async (req) => {
 
     console.log('Authenticated user:', user.id)
 
-    // Add new Stripe payment endpoints
+    // Handle profile endpoints
+    if (path === 'profile') {
+      if (req.method === 'GET') {
+        console.log('Fetching profile for user:', user.id)
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          console.error('Error fetching profile:', error)
+          return new Response(
+            JSON.stringify({ error: error.message }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
+
+        return new Response(
+          JSON.stringify(data),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (req.method === 'PUT') {
+        console.log('Updating profile for user:', user.id)
+        const updates = await req.json()
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .update(updates)
+          .eq('id', user.id)
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Error updating profile:', error)
+          return new Response(
+            JSON.stringify({ error: error.message }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
+
+        return new Response(
+          JSON.stringify(data),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
+    // Handle Stripe payment endpoints
     if (path === 'stripe/config') {
       if (req.method === 'GET') {
         console.log('Fetching Stripe configuration')
@@ -219,55 +274,12 @@ serve(async (req) => {
       }
     }
 
-    // Handle profile endpoints
-    if (path === 'profile') {
-      if (req.method === 'GET') {
-        console.log('Fetching profile for user:', user.id)
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (error) {
-          console.error('Error fetching profile:', error)
-          throw error
-        }
-
-        return new Response(
-          JSON.stringify(data),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      if (req.method === 'PUT') {
-        console.log('Updating profile for user:', user.id)
-        const updates = await req.json()
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .update(updates)
-          .eq('id', user.id)
-          .select()
-          .single()
-
-        if (error) {
-          console.error('Error updating profile:', error)
-          throw error
-        }
-
-        return new Response(
-          JSON.stringify(data),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-    }
-
     // If no matching route is found
     console.error('No matching route found for path:', path)
     return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
+      JSON.stringify({ error: 'Endpoint not found: /' + path }),
       { 
-        status: 405,
+        status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -280,7 +292,7 @@ serve(async (req) => {
         details: error.stack
       }),
       { 
-        status: 400, 
+        status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
