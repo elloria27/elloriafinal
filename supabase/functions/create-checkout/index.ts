@@ -32,41 +32,16 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('Create-checkout - Request body:', JSON.stringify(requestBody, null, 2));
 
-    const { 
-      type,
-      amount, 
-      email,
-      name,
-      paymentMethodId
-    } = requestBody;
-
-    if (!amount || !email || !paymentMethodId) {
-      console.error('Create-checkout - Missing required fields');
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
-    }
-
     // Get payment method details
     const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
       .from('payment_methods')
       .select('*')
-      .eq('id', paymentMethodId)
+      .eq('id', requestBody.paymentMethodId)
       .single();
 
     if (paymentMethodError || !paymentMethod?.stripe_config?.secret_key) {
       console.error('Create-checkout - Invalid payment method:', paymentMethodError || 'Missing Stripe config');
-      return new Response(
-        JSON.stringify({ error: 'Invalid payment method configuration' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
-        }
-      );
+      throw new Error('Invalid payment method configuration');
     }
 
     const stripe = new Stripe(paymentMethod.stripe_config.secret_key, {
@@ -75,7 +50,13 @@ serve(async (req) => {
 
     let session;
     
-    if (type === 'donation') {
+    if (requestBody.type === 'donation') {
+      // Handle donation checkout
+      if (!requestBody.amount || !requestBody.email) {
+        console.error('Create-checkout - Missing required fields for donation');
+        throw new Error('Missing required fields for donation');
+      }
+
       console.log('Create-checkout - Creating donation checkout session');
       
       session = await stripe.checkout.sessions.create({
@@ -83,12 +64,12 @@ serve(async (req) => {
         line_items: [
           {
             price_data: {
-              currency: 'usd',
+              currency: 'cad',
               product_data: {
                 name: 'Donation',
                 description: 'Thank you for your support',
               },
-              unit_amount: Math.round(amount * 100),
+              unit_amount: Math.round(requestBody.amount * 100),
             },
             quantity: 1,
           },
@@ -96,16 +77,16 @@ serve(async (req) => {
         mode: 'payment',
         success_url: `${req.headers.get('origin')}/donation?success=true`,
         cancel_url: `${req.headers.get('origin')}/donation?canceled=true`,
-        customer_email: email,
+        customer_email: requestBody.email,
       });
 
       // Create donation record
       const { error: donationError } = await supabaseAdmin
         .from('donations')
         .insert({
-          amount,
-          donor_email: email,
-          donor_name: name,
+          amount: requestBody.amount,
+          donor_email: requestBody.email,
+          donor_name: requestBody.name,
           status: 'pending',
           payment_method: 'stripe',
           stripe_session_id: session.id,
@@ -113,30 +94,54 @@ serve(async (req) => {
 
       if (donationError) {
         console.error('Create-checkout - Error creating donation record:', donationError);
-        // Continue anyway as the payment might still succeed
       }
     } else {
-      // Handle regular checkout
-      console.log('Create-checkout - Creating regular checkout session');
-      
+      // Handle regular product checkout
+      if (!requestBody.items || !requestBody.shippingAddress) {
+        console.error('Create-checkout - Missing required fields for product checkout');
+        throw new Error('Missing required fields for product checkout');
+      }
+
+      console.log('Create-checkout - Creating product checkout session');
+
+      const lineItems = requestBody.items.map((item: any) => ({
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: item.name,
+            description: item.description || undefined,
+            images: item.image ? [item.image] : undefined,
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
+      // Add shipping cost as a separate line item if present
+      if (requestBody.shippingCost > 0) {
+        lineItems.push({
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              name: 'Shipping',
+              description: 'Shipping cost',
+            },
+            unit_amount: Math.round(requestBody.shippingCost * 100),
+          },
+          quantity: 1,
+        });
+      }
+
       session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: 'Product',
-                description: 'Purchase of a product',
-              },
-              unit_amount: Math.round(amount * 100),
-            },
-            quantity: 1,
-          },
-        ],
+        line_items: lineItems,
         mode: 'payment',
         success_url: `${req.headers.get('origin')}/checkout/success`,
         cancel_url: `${req.headers.get('origin')}/checkout/cancel`,
+        customer_email: requestBody.shippingAddress.email,
+        shipping_address_collection: {
+          allowed_countries: ['CA', 'US'],
+        },
       });
     }
 
