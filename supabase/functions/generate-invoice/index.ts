@@ -58,6 +58,7 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
+    // First fetch the order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .select(`
@@ -82,7 +83,26 @@ serve(async (req) => {
       throw new Error('Order not found');
     }
 
+    // Fetch current product data for all products in the order
+    const productIds = order.items.map((item: any) => item.id);
+    const { data: products, error: productsError } = await supabaseClient
+      .from('products')
+      .select('*')
+      .in('id', productIds);
+
+    if (productsError) {
+      console.error("Error fetching products:", productsError);
+      throw productsError;
+    }
+
+    // Create a map of product IDs to their current data
+    const productMap = products.reduce((acc: any, product: any) => {
+      acc[product.id] = product;
+      return acc;
+    }, {});
+
     console.log("Order data retrieved:", order);
+    console.log("Products data retrieved:", products);
 
     const doc = new jsPDF();
     
@@ -144,8 +164,12 @@ serve(async (req) => {
       const itemTotal = item.price * item.quantity;
       subtotal += itemTotal;
       
-      // Use wrapText for item name
-      y = wrapText(doc, item.name, 15, y, 120) + 5; // Add some padding after wrapped text
+      // Use current product name if available, fallback to item name
+      const currentProduct = productMap[item.id];
+      const productName = currentProduct ? currentProduct.name : item.name;
+      
+      // Use wrapText for item name with adjusted maxWidth
+      y = wrapText(doc, productName, 15, y, 120) + 5;
       
       // Align numbers to the right
       doc.text(item.quantity.toString(), 140, y - 5);
