@@ -62,13 +62,16 @@ export default function Activity() {
         const transformedOrders: OrderData[] = (ordersData || []).map(order => ({
           ...order,
           status: order.status as OrderStatus,
-          items: Array.isArray(order.items) ? order.items.map((item: any) => ({
-            id: item.id || '',
-            name: products[item.id]?.name || item.name || '',
-            quantity: item.quantity || 0,
-            price: item.price || 0,
-            image: products[item.id]?.image || item.image || undefined
-          })) : [],
+          items: Array.isArray(order.items) ? order.items.map((item: any) => {
+            const currentProduct = products[item.id];
+            return {
+              id: item.id || '',
+              name: currentProduct?.name || item.name || '',
+              quantity: item.quantity || 0,
+              price: item.price || 0,
+              image: currentProduct?.image || item.image || undefined
+            };
+          }) : [],
           shipping_address: order.shipping_address as ShippingAddress,
           billing_address: order.billing_address as ShippingAddress,
           applied_promo_code: order.applied_promo_code ? {
