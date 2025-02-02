@@ -7,11 +7,18 @@ import { DonationFAQ } from "@/components/donation/DonationFAQ";
 import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
 
 const Donation = () => {
+  const scrollToForm = () => {
+    const formElement = document.getElementById('donation-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <main>
-        <DonationHero />
-        <DonationImpact />
+        <DonationHero onDonateClick={scrollToForm} />
+        <DonationImpact onDonateClick={scrollToForm} />
         <DonationForm />
         <DonationStories />
         <DonationPartners />

@@ -1,42 +1,34 @@
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-export const DonationHero = () => {
-  return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-20">
-      <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 to-primary/20" />
-      
-      <div className="absolute inset-0">
-        <img
-          src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png"
-          alt="Women supporting women"
-          className="w-full h-full object-cover opacity-40"
-        />
-      </div>
+interface DonationHeroProps {
+  onDonateClick: () => void;
+}
 
-      <div className="container mx-auto px-4 relative z-10">
+export const DonationHero = ({ onDonateClick }: DonationHeroProps) => {
+  return (
+    <section className="relative bg-gradient-to-b from-primary/10 to-background pt-24 pb-20">
+      <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           className="max-w-3xl mx-auto text-center"
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
-            Join Us in Supporting{" "}
-            <span className="text-primary">Women and Children in Need</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            Support Our Mission to Empower Women
           </h1>
-          <p className="text-xl md:text-2xl text-gray-800 mb-8">
-            Your contribution helps provide essential hygiene products and support to
-            those who need it most.
+          <p className="text-xl text-gray-600 mb-8">
+            Your donation helps us provide essential feminine care products to those in need.
+            Together, we can make a difference in women's lives.
           </p>
-          <button
-            onClick={() => {
-              const form = document.querySelector("#donation-form");
-              form?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+          <Button
+            onClick={onDonateClick}
+            size="lg"
+            className="bg-primary hover:bg-primary/90"
           >
             Donate Now
-          </button>
+          </Button>
         </motion.div>
       </div>
     </section>

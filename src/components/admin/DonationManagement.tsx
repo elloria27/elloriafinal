@@ -71,7 +71,7 @@ export const DonationManagement = () => {
                 </TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-sm ${
-                    donation.status === 'completed' 
+                    donation.status === 'paid' 
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>

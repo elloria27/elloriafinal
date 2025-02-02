@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export const DonationForm = () => {
   const [amount, setAmount] = useState("");
@@ -13,6 +14,27 @@ export const DonationForm = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check for success parameter and show thank you message
+    const success = searchParams.get('success');
+    if (success === 'true') {
+      toast.success("Thank you for your donation! Your support means a lot to us.", {
+        duration: 6000,
+      });
+      // Remove success parameter from URL
+      navigate('/donation', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  const scrollToForm = () => {
+    const formElement = document.getElementById('donation-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +74,9 @@ export const DonationForm = () => {
           amount: Number(finalAmount),
           email,
           name,
-          paymentMethodId: paymentMethod.id
+          paymentMethodId: paymentMethod.id,
+          successUrl: `${window.location.origin}/donation?success=true`,
+          cancelUrl: `${window.location.origin}/donation`
         }
       });
 
@@ -94,7 +118,7 @@ export const DonationForm = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form id="donation-form" onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-4">
               <Label>Select Donation Amount</Label>
               <RadioGroup
