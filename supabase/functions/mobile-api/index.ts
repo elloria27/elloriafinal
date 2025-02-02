@@ -51,9 +51,33 @@ serve(async (req) => {
             )
           }
 
+          // Get user role after successful login
+          const { data: roleData, error: roleError } = await supabaseClient
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', authData.user.id)
+            .single()
+
+          if (roleError) {
+            console.error('Error fetching role:', roleError)
+            return new Response(
+              JSON.stringify({ error: 'Error fetching user role' }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
+
+          // Return both auth data and role
+          const responseData = {
+            ...authData,
+            role: roleData?.role || 'client'
+          }
+
           console.log('Login successful for user:', authData.user?.id)
           return new Response(
-            JSON.stringify(authData),
+            JSON.stringify(responseData),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         } catch (error) {
