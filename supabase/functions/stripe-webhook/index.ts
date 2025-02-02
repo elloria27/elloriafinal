@@ -51,20 +51,7 @@ serve(async (req) => {
       const session = event.data.object;
       console.log('Checkout session completed:', session.id);
 
-      // Update donation in database if it exists
-      const { error: donationError } = await supabaseClient
-        .from('donations')
-        .update({
-          status: 'completed',
-          stripe_session_id: session.id,
-        })
-        .eq('stripe_session_id', session.id);
-
-      if (donationError) {
-        console.error('Error updating donation:', donationError);
-      }
-
-      // Update order if it exists
+      // Update order in database
       const { error: updateError } = await supabaseClient
         .from('orders')
         .update({
@@ -76,6 +63,7 @@ serve(async (req) => {
 
       if (updateError) {
         console.error('Error updating order:', updateError);
+        return new Response('Error updating order', { status: 500 });
       }
 
       // Broadcast message to clear cart
