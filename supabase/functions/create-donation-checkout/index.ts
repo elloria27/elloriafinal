@@ -25,7 +25,31 @@ serve(async (req) => {
       );
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Create Supabase client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    // Get Stripe secret key from payment_methods table
+    const { data: paymentMethod, error: paymentMethodError } = await supabaseAdmin
+      .from('payment_methods')
+      .select('stripe_config')
+      .eq('name', 'stripe')
+      .single();
+
+    if (paymentMethodError || !paymentMethod) {
+      console.error('Error fetching Stripe config:', paymentMethodError);
+      throw new Error('Could not fetch Stripe configuration');
+    }
+
+    const stripeSecretKey = paymentMethod.stripe_config.secret_key;
+    
+    if (!stripeSecretKey) {
+      throw new Error('Stripe secret key not found in configuration');
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 
@@ -51,11 +75,6 @@ serve(async (req) => {
     });
 
     // Create donation record in database
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
-
     await supabaseAdmin
       .from('donations')
       .insert({
