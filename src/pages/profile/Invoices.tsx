@@ -5,6 +5,7 @@ import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } 
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { Product } from "@/types/product";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 export default function Invoices() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -24,7 +25,7 @@ export default function Invoices() {
       }
 
       const productsMap = productsData.reduce((acc, product) => {
-        acc[product.id] = product;
+        acc[product.id] = parseProduct(product);
         return acc;
       }, {} as Record<string, Product>);
 
@@ -142,7 +143,7 @@ export default function Invoices() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-6 pt-24">
       {orders.map((order) => (
         <div
           key={order.id}

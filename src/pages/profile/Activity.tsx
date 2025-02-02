@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
 import { Product } from "@/types/product";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 export default function Activity() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -22,7 +23,7 @@ export default function Activity() {
       }
 
       const productsMap = productsData.reduce((acc, product) => {
-        acc[product.id] = product;
+        acc[product.id] = parseProduct(product);
         return acc;
       }, {} as Record<string, Product>);
 
@@ -95,42 +96,6 @@ export default function Activity() {
     fetchProducts().then(fetchOrders);
   }, []);
 
-  const handleDownload = async (orderId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: { orderId }
-      });
-
-      if (error) throw error;
-
-      // Convert base64 to blob
-      const pdfContent = data.pdf.split(',')[1];
-      const blob = new Blob([Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0))], { type: 'application/pdf' });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `invoice-${orderId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Success",
-        description: "Invoice downloaded successfully",
-      });
-    } catch (error) {
-      console.error("Error generating invoice:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate invoice. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   if (loading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -140,7 +105,7 @@ export default function Activity() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-6 pt-24">
       {orders.map((order) => (
         <div
           key={order.id}
