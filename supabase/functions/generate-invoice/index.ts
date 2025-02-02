@@ -21,8 +21,30 @@ const COMPANY_INFO = {
   logo: '/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png'
 };
 
+// Helper function to wrap text
+const wrapText = (doc: any, text: string, x: number, y: number, maxWidth: number) => {
+  const words = text.split(' ');
+  let line = '';
+  let posY = y;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const testWidth = doc.getStringUnitWidth(testLine) * doc.getFontSize();
+    
+    if (testWidth > maxWidth && i > 0) {
+      doc.text(line.trim(), x, posY);
+      line = words[i] + ' ';
+      posY += 5; // Line height
+    } else {
+      line = testLine;
+    }
+  }
+  
+  doc.text(line.trim(), x, posY);
+  return posY; // Return the final y position
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -36,7 +58,6 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
-    // Fetch order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .select(`
@@ -63,12 +84,9 @@ serve(async (req) => {
 
     console.log("Order data retrieved:", order);
 
-    // Create PDF with company logo
     const doc = new jsPDF();
     
     // Add company logo
-    // Note: In a real implementation, you'd need to handle logo loading and embedding
-    // For now, we'll create space for it
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.text('INVOICE', 105, 20, { align: 'center' });
@@ -113,30 +131,35 @@ serve(async (req) => {
     doc.rect(10, y - 5, 190, 10, 'F');
     doc.setFont('helvetica', 'bold');
     doc.text('Item', 15, y);
-    doc.text('Qty', 100, y);
-    doc.text('Price', 130, y);
-    doc.text('Total', 160, y);
+    doc.text('Qty', 140, y);
+    doc.text('Price', 160, y);
+    doc.text('Total', 180, y);
     
     // Items
     doc.setFont('helvetica', 'normal');
     y += 10;
     let subtotal = 0;
+    
     order.items.forEach((item: any) => {
       const itemTotal = item.price * item.quantity;
       subtotal += itemTotal;
       
-      doc.text(item.name, 15, y);
-      doc.text(item.quantity.toString(), 100, y);
-      doc.text(`$${item.price.toFixed(2)}`, 130, y);
-      doc.text(`$${itemTotal.toFixed(2)}`, 160, y);
-      y += 10;
+      // Use wrapText for item name
+      y = wrapText(doc, item.name, 15, y, 120) + 5; // Add some padding after wrapped text
+      
+      // Align numbers to the right
+      doc.text(item.quantity.toString(), 140, y - 5);
+      doc.text(`$${item.price.toFixed(2)}`, 160, y - 5);
+      doc.text(`$${itemTotal.toFixed(2)}`, 180, y - 5);
+      
+      y += 5; // Space between items
     });
     
     // Totals section
     y += 10;
     doc.setFont('helvetica', 'bold');
-    doc.text('Subtotal:', 130, y);
-    doc.text(`$${subtotal.toFixed(2)}`, 160, y);
+    doc.text('Subtotal:', 150, y);
+    doc.text(`$${subtotal.toFixed(2)}`, 180, y);
     
     // Promo code if used
     let discount = 0;
@@ -147,28 +170,28 @@ serve(async (req) => {
       } else {
         discount = order.applied_promo_code.value;
       }
-      doc.text(`Discount (${order.applied_promo_code.code}):`, 130, y);
-      doc.text(`-$${discount.toFixed(2)}`, 160, y);
+      doc.text(`Discount (${order.applied_promo_code.code}):`, 150, y);
+      doc.text(`-$${discount.toFixed(2)}`, 180, y);
     }
 
     // Add Shipping Cost
     y += 10;
     const shippingCost = order.shipping_cost || 0;
-    doc.text('Shipping:', 130, y);
-    doc.text(`$${shippingCost.toFixed(2)}`, 160, y);
+    doc.text('Shipping:', 150, y);
+    doc.text(`$${shippingCost.toFixed(2)}`, 180, y);
 
     // Add GST
     y += 10;
     const gst = order.gst || 0;
-    doc.text('GST:', 130, y);
-    doc.text(`$${gst.toFixed(2)}`, 160, y);
+    doc.text('GST:', 150, y);
+    doc.text(`$${gst.toFixed(2)}`, 180, y);
     
-    // Final Total (including shipping and GST)
+    // Final Total
     y += 15;
     doc.setFontSize(12);
     const finalTotal = subtotal - discount + shippingCost + gst;
-    doc.text('Total:', 130, y);
-    doc.text(`$${finalTotal.toFixed(2)}`, 160, y);
+    doc.text('Total:', 150, y);
+    doc.text(`$${finalTotal.toFixed(2)}`, 180, y);
     
     // Payment Method
     y += 20;
@@ -180,7 +203,6 @@ serve(async (req) => {
     doc.setFont('helvetica', 'italic');
     doc.text('Thank you for choosing Elloria Eco Products!', 105, y, { align: 'center' });
     
-    // Convert to base64
     console.log("Generating PDF output...");
     const pdfOutput = doc.output('datauristring');
     console.log("PDF generated successfully");

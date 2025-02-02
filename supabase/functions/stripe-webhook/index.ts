@@ -66,7 +66,7 @@ serve(async (req) => {
         return new Response('Error updating order', { status: 500 });
       }
 
-      // Clear the user's cart by sending a message to the client
+      // Broadcast message to clear cart
       const { error: broadcastError } = await supabaseClient
         .from('broadcast')
         .insert({
@@ -79,7 +79,7 @@ serve(async (req) => {
         console.error('Error broadcasting clear cart message:', broadcastError);
       }
 
-      console.log('Order updated successfully');
+      console.log('Order updated and cart clear message broadcasted successfully');
     }
 
     return new Response(JSON.stringify({ received: true }), {

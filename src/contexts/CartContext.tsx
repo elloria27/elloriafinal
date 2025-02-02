@@ -54,6 +54,31 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('cartItems', JSON.stringify(items));
   }, [items]);
 
+  // Listen for cart clear messages
+  useEffect(() => {
+    const channel = supabase
+      .channel('cart_clear')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'broadcast',
+          filter: `type=eq.CLEAR_CART`,
+        },
+        (payload) => {
+          console.log('Received cart clear message:', payload);
+          clearCart();
+          toast.success("Thank you for your purchase! Your cart has been cleared.");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id);
@@ -84,6 +109,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setItems([]);
     setActivePromoCode(null);
     localStorage.removeItem('activePromoCode');
+    localStorage.removeItem('cartItems');
   };
 
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
