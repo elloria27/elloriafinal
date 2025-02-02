@@ -11,6 +11,7 @@ import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
 import { SEOHead } from "@/components/SEOHead";
+import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useSEO } from "@/hooks/useSEO";
 import { toast } from "sonner";
 import { 
@@ -173,6 +174,7 @@ const Index = () => {
         ogImage={seoData?.og_image || undefined}
       />
       <main className="flex-grow pt-20">
+        <ChatInterface />
         {blocks.map((block) => (
           <div key={block.id}>
             {renderBlock(block)}
