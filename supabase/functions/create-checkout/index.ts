@@ -49,7 +49,7 @@ serve(async (req) => {
     });
 
     let session;
-    
+
     if (requestBody.type === 'donation') {
       // Handle donation checkout
       if (!requestBody.amount || !requestBody.email) {
