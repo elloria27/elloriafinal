@@ -1,34 +1,73 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export const DonationForm = () => {
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Check for success parameter in URL
+    const success = searchParams.get("success");
+    if (success === "true") {
+      toast.success(
+        "Thank you for your generous donation! Your support makes a real difference.",
+        {
+          duration: 6000,
+        }
+      );
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Here you would integrate with your payment processor
-      console.log("Processing donation:", amount || customAmount);
-      toast.success("Thank you for your donation! We'll be in touch soon.");
+      const finalAmount = amount || customAmount;
+      if (!finalAmount) {
+        toast.error("Please select or enter a donation amount");
+        return;
+      }
+
+      const { data: response, error } = await supabase.functions.invoke(
+        "create-donation-checkout",
+        {
+          body: {
+            amount: parseFloat(finalAmount),
+            success_url: `${window.location.origin}/donation?success=true`,
+            cancel_url: `${window.location.origin}/donation`,
+          },
+        }
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      if (response?.url) {
+        window.location.href = response.url;
+      }
     } catch (error) {
       console.error("Error processing donation:", error);
-      toast.error("There was an error processing your donation. Please try again.");
+      toast.error(
+        "There was an error processing your donation. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white" id="donation-form">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -51,7 +90,10 @@ export const DonationForm = () => {
               <Label>Select Donation Amount</Label>
               <RadioGroup
                 value={amount}
-                onValueChange={setAmount}
+                onValueChange={(value) => {
+                  setAmount(value);
+                  setCustomAmount("");
+                }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-4"
               >
                 {["25", "50", "100"].map((value) => (
