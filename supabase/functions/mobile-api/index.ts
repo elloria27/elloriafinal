@@ -68,6 +68,23 @@ serve(async (req) => {
     const path = url.pathname.split('/mobile-api/')[1]
 
     switch (path) {
+      case 'profile':
+        if (req.method === 'GET') {
+          const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          if (error) throw error
+
+          return new Response(
+            JSON.stringify(data || {}),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        break
+
       case 'chat':
         if (req.method === 'GET') {
           const { data, error } = await supabaseClient
@@ -85,8 +102,6 @@ serve(async (req) => {
         } else if (req.method === 'POST') {
           const { message } = await req.json()
           
-          // Here you would typically process the message with an AI service
-          // For now, we'll just echo back the message
           const response = `Echo: ${message}`
           
           const { data, error } = await supabaseClient
@@ -137,6 +152,69 @@ serve(async (req) => {
 
           return new Response(
             JSON.stringify(data),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        break
+
+      case 'predictions':
+        if (req.method === 'GET') {
+          const [settingsResponse, logsResponse] = await Promise.all([
+            supabaseClient
+              .from('cycle_settings')
+              .select('*')
+              .eq('user_id', user.id)
+              .maybeSingle(),
+            supabaseClient
+              .from('period_logs')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('date', { ascending: false })
+              .limit(3)
+          ])
+
+          if (settingsResponse.error) throw settingsResponse.error
+          if (logsResponse.error) throw logsResponse.error
+
+          const settings = settingsResponse.data
+          const logs = logsResponse.data
+
+          if (!settings || !logs.length) {
+            return new Response(
+              JSON.stringify({ error: 'Insufficient data for predictions' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+
+          const lastPeriod = new Date(logs[0].date)
+          const nextPeriod = new Date(lastPeriod)
+          nextPeriod.setDate(nextPeriod.getDate() + settings.cycle_length)
+
+          const ovulationDate = new Date(lastPeriod)
+          ovulationDate.setDate(ovulationDate.getDate() + Math.floor(settings.cycle_length / 2))
+
+          const fertileStart = new Date(ovulationDate)
+          fertileStart.setDate(fertileStart.getDate() - 5)
+          
+          const fertileEnd = new Date(ovulationDate)
+          fertileEnd.setDate(fertileEnd.getDate() + 1)
+
+          const predictions = {
+            next_period: nextPeriod.toISOString().split('T')[0],
+            fertile_window: {
+              start: fertileStart.toISOString().split('T')[0],
+              end: fertileEnd.toISOString().split('T')[0]
+            },
+            ovulation_date: ovulationDate.toISOString().split('T')[0],
+            cycle_history: logs.map(log => ({
+              start_date: log.date,
+              end_date: new Date(new Date(log.date).getTime() + (settings.period_length * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+              length: settings.period_length
+            }))
+          }
+
+          return new Response(
+            JSON.stringify(predictions),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
@@ -221,71 +299,6 @@ serve(async (req) => {
 
           return new Response(
             JSON.stringify(data),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-        break
-
-      case 'predictions':
-        if (req.method === 'GET') {
-          // Get user's cycle settings and last periods
-          const [settingsResponse, logsResponse] = await Promise.all([
-            supabaseClient
-              .from('cycle_settings')
-              .select('*')
-              .eq('user_id', user.id)
-              .single(),
-            supabaseClient
-              .from('period_logs')
-              .select('*')
-              .eq('user_id', user.id)
-              .order('date', { ascending: false })
-              .limit(3)
-          ])
-
-          if (settingsResponse.error) throw settingsResponse.error
-          if (logsResponse.error) throw logsResponse.error
-
-          const settings = settingsResponse.data
-          const logs = logsResponse.data
-
-          if (!settings || !logs.length) {
-            return new Response(
-              JSON.stringify({ error: 'Insufficient data for predictions' }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            )
-          }
-
-          // Calculate predictions
-          const lastPeriod = new Date(logs[0].date)
-          const nextPeriod = new Date(lastPeriod)
-          nextPeriod.setDate(nextPeriod.getDate() + settings.cycle_length)
-
-          const ovulationDate = new Date(lastPeriod)
-          ovulationDate.setDate(ovulationDate.getDate() + Math.floor(settings.cycle_length / 2))
-
-          const fertileStart = new Date(ovulationDate)
-          fertileStart.setDate(fertileStart.getDate() - 5)
-          
-          const fertileEnd = new Date(ovulationDate)
-          fertileEnd.setDate(fertileEnd.getDate() + 1)
-
-          const predictions = {
-            next_period: nextPeriod.toISOString().split('T')[0],
-            fertile_window: {
-              start: fertileStart.toISOString().split('T')[0],
-              end: fertileEnd.toISOString().split('T')[0]
-            },
-            ovulation_date: ovulationDate.toISOString().split('T')[0],
-            cycle_history: logs.map(log => ({
-              start_date: log.date,
-              end_date: new Date(new Date(log.date).getTime() + (settings.period_length * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
-              length: settings.period_length
-            }))
-          }
-
-          return new Response(
-            JSON.stringify(predictions),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
