@@ -36,7 +36,6 @@ interface Reminder {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -47,7 +46,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     )
 
-    // Verify authentication
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -69,8 +67,47 @@ serve(async (req) => {
     const url = new URL(req.url)
     const path = url.pathname.split('/mobile-api/')[1]
 
-    // Handle different endpoints
     switch (path) {
+      case 'chat':
+        if (req.method === 'GET') {
+          const { data, error } = await supabaseClient
+            .from('chat_interactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+
+          if (error) throw error
+
+          return new Response(
+            JSON.stringify(data),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } else if (req.method === 'POST') {
+          const { message } = await req.json()
+          
+          // Here you would typically process the message with an AI service
+          // For now, we'll just echo back the message
+          const response = `Echo: ${message}`
+          
+          const { data, error } = await supabaseClient
+            .from('chat_interactions')
+            .insert({
+              user_id: user.id,
+              message: message,
+              response: response
+            })
+            .select()
+            .single()
+
+          if (error) throw error
+
+          return new Response(
+            JSON.stringify(data),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        break
+
       case 'cycle-settings':
         if (req.method === 'GET') {
           const { data, error } = await supabaseClient
