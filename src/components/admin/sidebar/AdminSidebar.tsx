@@ -25,6 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SidebarItem {
   title: string;
@@ -78,16 +79,7 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
-  const [openSections, setOpenSections] = useState<string[]>(["Site", "Shop", "HRM"]);
   const navigate = useNavigate();
-
-  const toggleSection = (title: string) => {
-    setOpenSections(prev =>
-      prev.includes(title)
-        ? prev.filter(t => t !== title)
-        : [...prev, title]
-    );
-  };
 
   const handleSignOut = async () => {
     try {
@@ -133,26 +125,22 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
           {sidebarItems.map((item) => (
             <li key={item.title}>
               {item.items ? (
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between"
-                    onClick={() => toggleSection(item.title)}
-                  >
-                    <span className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      {item.title}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform",
-                        openSections.includes(item.title) ? "transform rotate-180" : ""
-                      )}
-                    />
-                  </Button>
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between"
+                    >
+                      <span className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        {item.title}
+                      </span>
+                      <ChevronDown className="h-4 w-4 transition-transform ui-expanded:rotate-180" />
+                    </Button>
+                  </CollapsibleTrigger>
                   
-                  {openSections.includes(item.title) && (
-                    <ul className="pl-4 space-y-2">
+                  <CollapsibleContent>
+                    <ul className="pl-4 space-y-2 mt-2">
                       {item.items.map((subItem) => (
                         <li key={subItem.title}>
                           <Button
@@ -168,8 +156,8 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                         </li>
                       ))}
                     </ul>
-                  )}
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
               ) : (
                 <Button
                   variant="ghost"
