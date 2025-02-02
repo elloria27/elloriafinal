@@ -22,13 +22,63 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     )
 
-    // Get the token from the Authorization header
+    const url = new URL(req.url)
+    const path = url.pathname.split('/mobile-api/')[1]
+
+    console.log('Request path:', path)
+    console.log('Request method:', req.method)
+
+    // Handle login endpoint without requiring authentication
+    if (path === 'login') {
+      if (req.method === 'POST') {
+        try {
+          const { email, password } = await req.json()
+          console.log('Login attempt for email:', email)
+
+          const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password,
+          })
+
+          if (authError) {
+            console.error('Login error:', authError)
+            return new Response(
+              JSON.stringify({ error: authError.message }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
+
+          console.log('Login successful for user:', authData.user?.id)
+          return new Response(
+            JSON.stringify(authData),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } catch (error) {
+          console.error('Error processing login:', error)
+          return new Response(
+            JSON.stringify({ error: 'Invalid login request' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
+      }
+    }
+
+    // For all other endpoints, require authentication
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       console.error('No authorization header')
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
       )
     }
 
@@ -41,17 +91,14 @@ serve(async (req) => {
       console.error('Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
       )
     }
 
     console.log('Authenticated user:', user.id)
-
-    const url = new URL(req.url)
-    const path = url.pathname.split('/mobile-api/')[1]
-
-    console.log('Request path:', path)
-    console.log('Request method:', req.method)
 
     // Add new Stripe payment endpoints
     if (path === 'stripe/config') {
@@ -174,7 +221,10 @@ serve(async (req) => {
     console.error('No matching route found for path:', path)
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     )
   } catch (error) {
     console.error('Error processing request:', error)
