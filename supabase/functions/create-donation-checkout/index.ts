@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, success_url, cancel_url } = await req.json();
+    const { amount, donor_name, donor_email, success_url, cancel_url } = await req.json();
 
     if (!amount || !success_url || !cancel_url) {
       return new Response(
@@ -83,6 +83,8 @@ serve(async (req) => {
         status: 'paid',
         payment_method: 'stripe',
         stripe_session_id: session.id,
+        donor_name: donor_name || null,
+        donor_email: donor_email || null,
       });
 
     console.log('Donation checkout session created:', session.id);

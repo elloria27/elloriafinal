@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const DonationForm = () => {
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
+  const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
 
@@ -43,6 +45,8 @@ export const DonationForm = () => {
         {
           body: {
             amount: parseFloat(finalAmount),
+            donor_name: donorName,
+            donor_email: donorEmail,
             success_url: `${window.location.origin}/donation?success=true`,
             cancel_url: `${window.location.origin}/donation`,
           },
@@ -118,6 +122,30 @@ export const DonationForm = () => {
                 }}
                 className="max-w-[200px]"
               />
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="donorName">Your Name (Optional)</Label>
+                <Input
+                  id="donorName"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={donorName}
+                  onChange={(e) => setDonorName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="donorEmail">Your Email (Optional)</Label>
+                <Input
+                  id="donorEmail"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={donorEmail}
+                  onChange={(e) => setDonorEmail(e.target.value)}
+                />
+              </div>
             </div>
 
             <Button
