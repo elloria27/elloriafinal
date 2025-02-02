@@ -59,7 +59,7 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'cad',
             product_data: {
               name: 'Donation',
               description: 'Thank you for your support',
@@ -79,7 +79,7 @@ serve(async (req) => {
       .from('donations')
       .insert({
         amount: amount,
-        currency: 'USD',
+        currency: 'CAD',
         status: 'paid',
         payment_method: 'stripe',
         stripe_session_id: session.id,
