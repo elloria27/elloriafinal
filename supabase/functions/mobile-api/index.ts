@@ -35,15 +35,36 @@ serve(async (req) => {
           const { email, password } = await req.json()
           console.log('Login attempt for email:', email)
 
+          if (!email || !password) {
+            return new Response(
+              JSON.stringify({ error: 'Email and password are required' }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
+
           const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password,
+            email: email.trim(),
+            password: password.trim(),
           })
 
           if (authError) {
             console.error('Login error:', authError)
             return new Response(
               JSON.stringify({ error: authError.message }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              }
+            )
+          }
+
+          if (!authData.user) {
+            console.error('No user data after successful login')
+            return new Response(
+              JSON.stringify({ error: 'Authentication failed' }),
               { 
                 status: 400,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -75,7 +96,7 @@ serve(async (req) => {
             role: roleData?.role || 'client'
           }
 
-          console.log('Login successful for user:', authData.user?.id)
+          console.log('Login successful for user:', authData.user.id)
           return new Response(
             JSON.stringify(responseData),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -250,6 +271,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
+
   } catch (error) {
     console.error('Error processing request:', error)
     return new Response(
