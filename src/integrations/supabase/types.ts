@@ -813,6 +813,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          completed_initial_setup: boolean | null
           country: string | null
           currency: string | null
           email: string | null
@@ -823,10 +824,12 @@ export type Database = {
           marketing_emails: boolean | null
           phone_number: string | null
           region: string | null
+          selected_delivery_method: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          completed_initial_setup?: boolean | null
           country?: string | null
           currency?: string | null
           email?: string | null
@@ -837,10 +840,12 @@ export type Database = {
           marketing_emails?: boolean | null
           phone_number?: string | null
           region?: string | null
+          selected_delivery_method?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          completed_initial_setup?: boolean | null
           country?: string | null
           currency?: string | null
           email?: string | null
@@ -851,9 +856,18 @@ export type Database = {
           marketing_emails?: boolean | null
           phone_number?: string | null
           region?: string | null
+          selected_delivery_method?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_selected_delivery_method_fkey"
+            columns: ["selected_delivery_method"]
+            isOneToOne: false
+            referencedRelation: "delivery_methods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promo_codes: {
         Row: {

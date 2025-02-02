@@ -56,6 +56,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Listen for cart clear messages
   useEffect(() => {
+    console.log('Setting up cart clear listener');
+    
     const channel = supabase
       .channel('cart_clear')
       .on(
@@ -75,6 +77,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       .subscribe();
 
     return () => {
+      console.log('Cleaning up cart clear listener');
       supabase.removeChannel(channel);
     };
   }, []);
@@ -106,10 +109,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const clearCart = () => {
+    console.log('Clearing cart');
     setItems([]);
     setActivePromoCode(null);
     localStorage.removeItem('activePromoCode');
     localStorage.removeItem('cartItems');
+    toast.success('Cart has been cleared');
   };
 
   const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
