@@ -9,6 +9,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log('Request received:', req.method, req.url)
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -128,13 +130,17 @@ serve(async (req) => {
     // Handle profile endpoints
     if (path === 'profile') {
       if (req.method === 'GET') {
+        console.log('Fetching profile for user:', user.id)
         const { data, error } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single()
 
-        if (error) throw error
+        if (error) {
+          console.error('Error fetching profile:', error)
+          throw error
+        }
 
         return new Response(
           JSON.stringify(data),
@@ -143,6 +149,7 @@ serve(async (req) => {
       }
 
       if (req.method === 'PUT') {
+        console.log('Updating profile for user:', user.id)
         const updates = await req.json()
         const { data, error } = await supabaseClient
           .from('profiles')
@@ -151,7 +158,10 @@ serve(async (req) => {
           .select()
           .single()
 
-        if (error) throw error
+        if (error) {
+          console.error('Error updating profile:', error)
+          throw error
+        }
 
         return new Response(
           JSON.stringify(data),
@@ -160,15 +170,23 @@ serve(async (req) => {
       }
     }
 
+    // If no matching route is found
+    console.error('No matching route found for path:', path)
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error processing request:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
+      { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
   }
 })
