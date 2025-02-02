@@ -339,6 +339,39 @@ export type Database = {
           },
         ]
       }
+      cycle_settings: {
+        Row: {
+          created_at: string | null
+          cycle_length: number
+          id: string
+          last_period_date: string | null
+          notifications_enabled: boolean | null
+          period_length: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          cycle_length?: number
+          id?: string
+          last_period_date?: string | null
+          notifications_enabled?: boolean | null
+          period_length?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          cycle_length?: number
+          id?: string
+          last_period_date?: string | null
+          notifications_enabled?: boolean | null
+          period_length?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       delivery_methods: {
         Row: {
           base_price: number | null
@@ -702,6 +735,36 @@ export type Database = {
         }
         Relationships: []
       }
+      period_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          flow_intensity: Database["public"]["Enums"]["flow_intensity"]
+          id: string
+          notes: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          flow_intensity: Database["public"]["Enums"]["flow_intensity"]
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          flow_intensity?: Database["public"]["Enums"]["flow_intensity"]
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string | null
@@ -911,6 +974,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          created_at: string | null
+          days_before: number | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          reminder_type: string
+          time: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_before?: number | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          reminder_type: string
+          time: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          days_before?: number | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          reminder_type?: string
+          time?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           content: string | null
@@ -1046,6 +1148,71 @@ export type Database = {
           meta_keywords?: string | null
           site_title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      symptom_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          notes: string | null
+          severity: Database["public"]["Enums"]["symptom_severity"]
+          symptom_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          severity: Database["public"]["Enums"]["symptom_severity"]
+          symptom_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          severity?: Database["public"]["Enums"]["symptom_severity"]
+          symptom_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptom_logs_symptom_id_fkey"
+            columns: ["symptom_id"]
+            isOneToOne: false
+            referencedRelation: "symptoms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      symptoms: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1187,12 +1354,14 @@ export type Database = {
         | "contact_form"
         | "contact_faq"
         | "contact_business"
+      flow_intensity: "light" | "medium" | "heavy" | "spotting"
       page_view_type: "page_view" | "exit"
       post_status: "draft" | "published"
       promo_code_type: "percentage" | "fixed_amount"
       referral_status: "pending" | "completed"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
+      symptom_severity: "light" | "medium" | "severe"
       user_role: "admin" | "client"
     }
     CompositeTypes: {
