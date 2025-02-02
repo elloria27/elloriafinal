@@ -11,7 +11,6 @@ import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
 import { GameChanger } from "@/components/GameChanger";
 import { SEOHead } from "@/components/SEOHead";
-import { ChatInterface } from "@/components/chat/ChatInterface";
 import { useSEO } from "@/hooks/useSEO";
 import { toast } from "sonner";
 import { 
@@ -38,7 +37,6 @@ const Index = () => {
       try {
         console.log('Fetching homepage content...');
         
-        // First, get the homepage slug from site settings
         const { data: settingsData, error: settingsError } = await supabase
           .from('site_settings')
           .select('homepage_slug')
@@ -51,11 +49,9 @@ const Index = () => {
           return;
         }
 
-        // If no settings found or no homepage_slug set, use 'index' as default
         const homepageSlug = settingsData?.homepage_slug || 'index';
         console.log('Homepage slug:', homepageSlug);
 
-        // Then fetch the page content using the slug
         const { data: pageData, error: pageError } = await supabase
           .from('pages')
           .select('id')
@@ -76,7 +72,6 @@ const Index = () => {
 
         console.log('Page ID:', pageData.id);
 
-        // Finally, fetch the content blocks for this page
         const { data: blocksData, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
@@ -91,7 +86,6 @@ const Index = () => {
 
         console.log('Content blocks:', blocksData);
 
-        // Transform the blocks data to match ContentBlock type
         const transformedBlocks = blocksData?.map(block => ({
           ...block,
           content: block.content as BlockContent
@@ -108,7 +102,6 @@ const Index = () => {
 
     fetchHomePageContent();
 
-    // Subscribe to real-time updates
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -174,7 +167,6 @@ const Index = () => {
         ogImage={seoData?.og_image || undefined}
       />
       <main className="flex-grow pt-20">
-        <ChatInterface />
         {blocks.map((block) => (
           <div key={block.id}>
             {renderBlock(block)}
