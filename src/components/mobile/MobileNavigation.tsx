@@ -1,4 +1,4 @@
-import { Home, Calendar, ShoppingBag, User } from "lucide-react";
+import { Home, MessageSquare, ShoppingBag, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export const MobileNavigation = () => {
@@ -17,17 +17,17 @@ export const MobileNavigation = () => {
         }`}
       >
         <Home className="w-6 h-6" />
-        <span className="text-xs mt-1">Elloria</span>
+        <span className="text-xs mt-1">Home</span>
       </Link>
 
       <Link
-        to="/calendar"
+        to="/chat"
         className={`flex flex-col items-center ${
-          isActive("/calendar") ? "text-primary" : "text-gray-500"
+          isActive("/chat") ? "text-primary" : "text-gray-500"
         }`}
       >
-        <Calendar className="w-6 h-6" />
-        <span className="text-xs mt-1">Calendar</span>
+        <MessageSquare className="w-6 h-6" />
+        <span className="text-xs mt-1">Chat</span>
       </Link>
 
       <Link
@@ -51,4 +51,4 @@ export const MobileNavigation = () => {
       </Link>
     </nav>
   );
-};
+}
