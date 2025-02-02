@@ -2,13 +2,33 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
+import { Product } from "@/types/product";
 
 export default function Activity() {
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [products, setProducts] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
+    const fetchProducts = async () => {
+      const { data: productsData, error } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (error) {
+        console.error("Error fetching products:", error);
+        return;
+      }
+
+      const productsMap = productsData.reduce((acc, product) => {
+        acc[product.id] = product;
+        return acc;
+      }, {} as Record<string, Product>);
+
+      setProducts(productsMap);
+    };
+
     const fetchOrders = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -43,10 +63,10 @@ export default function Activity() {
           status: order.status as OrderStatus,
           items: Array.isArray(order.items) ? order.items.map((item: any) => ({
             id: item.id || '',
-            name: item.name || '',
+            name: products[item.id]?.name || item.name || '',
             quantity: item.quantity || 0,
             price: item.price || 0,
-            image: item.image || undefined
+            image: products[item.id]?.image || item.image || undefined
           })) : [],
           shipping_address: order.shipping_address as ShippingAddress,
           billing_address: order.billing_address as ShippingAddress,
@@ -72,19 +92,55 @@ export default function Activity() {
       }
     };
 
-    fetchOrders();
+    fetchProducts().then(fetchOrders);
   }, []);
 
+  const handleDownload = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      // Convert base64 to blob
+      const pdfContent = data.pdf.split(',')[1];
+      const blob = new Blob([Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0))], { type: 'application/pdf' });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Invoice downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="p-6">Loading...</div>;
   }
 
   if (orders.length === 0) {
-    return <div>No orders found.</div>;
+    return <div className="p-6">No orders found.</div>;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       {orders.map((order) => (
         <div
           key={order.id}

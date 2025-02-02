@@ -40,7 +40,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16">
+      <div className="min-h-screen pt-20">
         <div className="container mx-auto px-4">
           Loading...
         </div>
@@ -49,13 +49,13 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-20">
       <div className="container mx-auto px-4">
         <div className="flex gap-4">
           {isMobile ? (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden fixed top-20 right-4 z-50">
+                <Button variant="outline" size="icon" className="md:hidden fixed top-24 right-4 z-50">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
