@@ -4,38 +4,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-interface CycleSettings {
-  cycle_length: number;
-  period_length: number;
-  last_period_date: string;
-  notifications_enabled: boolean;
-}
-
-interface PeriodLog {
-  date: string;
-  flow_intensity: 'light' | 'medium' | 'heavy' | 'spotting';
-  notes?: string;
-}
-
-interface SymptomLog {
-  symptom_id: string;
-  date: string;
-  severity: 'light' | 'medium' | 'severe';
-  notes?: string;
-}
-
-interface Reminder {
-  title: string;
-  description?: string;
-  reminder_type: string;
-  time: string;
-  days_before?: number;
-  is_enabled: boolean;
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -67,6 +40,10 @@ serve(async (req) => {
     const url = new URL(req.url)
     const path = url.pathname.split('/mobile-api/')[1]
 
+    // Add logging for debugging
+    console.log('Request path:', path)
+    console.log('Request method:', req.method)
+
     switch (path) {
       case 'profile':
         if (req.method === 'GET') {
@@ -76,10 +53,49 @@ serve(async (req) => {
             .eq('id', user.id)
             .maybeSingle()
 
-          if (error) throw error
+          if (error) {
+            console.error('Error fetching profile:', error)
+            throw error
+          }
 
           return new Response(
             JSON.stringify(data || {}),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } else if (req.method === 'PUT') {
+          const updates = await req.json()
+          console.log('Updating profile with:', updates)
+
+          const { data, error } = await supabaseClient
+            .from('profiles')
+            .update(updates)
+            .eq('id', user.id)
+            .select()
+            .single()
+
+          if (error) {
+            console.error('Error updating profile:', error)
+            throw error
+          }
+
+          return new Response(
+            JSON.stringify(data),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        break
+
+      case 'model-info':
+        if (req.method === 'GET') {
+          const modelInfo = {
+            url: 'https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/files//Elloria.glb',
+            format: 'glb',
+            scale: 1.0,
+            rotation: { x: 0, y: 0, z: 0 }
+          }
+          
+          return new Response(
+            JSON.stringify(modelInfo),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
