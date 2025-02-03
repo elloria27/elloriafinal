@@ -1165,6 +1165,44 @@ export type Database = {
         }
         Relationships: []
       }
+      sustainability_sections: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          order_index: number
+          page_id: string | null
+          section_type: Database["public"]["Enums"]["sustainability_section_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          order_index: number
+          page_id?: string | null
+          section_type: Database["public"]["Enums"]["sustainability_section_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          order_index?: number
+          page_id?: string | null
+          section_type?: Database["public"]["Enums"]["sustainability_section_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sustainability_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       symptom_logs: {
         Row: {
           created_at: string | null
@@ -1322,6 +1360,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      migrate_sustainability_content: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       block_type:
@@ -1375,6 +1417,12 @@ export type Database = {
       referral_status: "pending" | "completed"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
+      sustainability_section_type:
+        | "sustainability_hero"
+        | "sustainability_mission"
+        | "sustainability_materials"
+        | "sustainability_faq"
+        | "sustainability_cta"
       symptom_severity: "light" | "medium" | "severe"
       user_role: "admin" | "client"
     }
