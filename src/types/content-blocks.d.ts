@@ -8,10 +8,14 @@ export type BlockType = Database['public']['Enums']['content_block_type'] |
   'custom_solutions_process';
 
 // Base interface for all content types
-interface BaseContent extends Record<string, Json> {
+export interface BaseContent extends Record<string, Json> {
   title?: string;
   subtitle?: string;
   description?: string;
+}
+
+export interface FeaturesProps {
+  content: FeaturesContent;
 }
 
 export interface ContentBlock {
@@ -24,35 +28,16 @@ export interface ContentBlock {
   updated_at?: string;
 }
 
-export type BlockContent =
-  | HeroContent
-  | FeaturesContent
-  | GameChangerContent
-  | StoreBrandsContent
-  | ProductCarouselContent
-  | CompetitorComparisonContent
-  | TestimonialsContent
-  | BlogPreviewContent
-  | NewsletterContent
-  | SustainabilityContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
-  | AboutCtaContent
-  | ContactHeroContent
-  | ContactDetailsContent
-  | ContactFormContent
-  | ContactFAQContent
-  | ContactBusinessContent
-  | BusinessHeroContent
-  | BusinessSolutionsContent
-  | BusinessContactContent
-  | CustomSolutionsProcessContent
-  | ImageBlockContent
-  | HeadingBlockContent;
+export interface FeatureItem extends Record<string, Json> {
+  icon: string;
+  title: string;
+  description: string;
+  detail?: string;
+}
+
+export interface FeaturesContent extends BaseContent {
+  features?: FeatureItem[];
+}
 
 export interface HeroContent extends BaseContent {
   videoUrl?: string;
@@ -60,17 +45,6 @@ export interface HeroContent extends BaseContent {
   shopNowText?: string;
   learnMoreText?: string;
   backgroundImage?: string;
-}
-
-export interface FeaturesContent extends BaseContent {
-  features?: FeatureItem[];
-}
-
-export interface FeatureItem extends Record<string, Json> {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
 }
 
 export interface GameChangerContent extends BaseContent {
@@ -196,6 +170,7 @@ export interface BusinessHeroContent extends HeroContent {}
 
 export interface BusinessSolutionsContent extends BaseContent {
   solutions?: FeatureItem[];
+  description?: string;
 }
 
 export interface BusinessContactContent extends ContactBusinessContent {}
