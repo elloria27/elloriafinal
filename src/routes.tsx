@@ -24,6 +24,7 @@ import Admin from "@/pages/Admin";
 import SharedFile from "@/pages/SharedFile";
 import BulkOrders from "@/pages/BulkOrders";
 import NotFound from "@/pages/NotFound";
+import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 
 export function Routes() {
   return (
@@ -50,6 +51,7 @@ export function Routes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/thanks" element={<Thanks />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/inventory" element={<InventoryManagement />} />
         <Route path="/shared/:token" element={<SharedFile />} />
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
