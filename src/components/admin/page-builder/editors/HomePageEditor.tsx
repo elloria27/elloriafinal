@@ -1,233 +1,165 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ContentBlock, BlockContent, HeroContent, GameChangerContent, StoreBrandsContent, SustainabilityContent, FeaturesContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem } from "@/types/content-blocks";
-import { MediaLibraryModal } from "../../media/MediaLibraryModal";
-import { Json } from '@/integrations/supabase/types';
+import { Plus, Trash } from "lucide-react";
 
 interface HomePageEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: any) => void;
+  onUpdate: (blockId: string, content: BlockContent) => void;
 }
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
-  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
-  const [currentField, setCurrentField] = useState<string>("");
-  const [currentBrandIndex, setCurrentBrandIndex] = useState<number>(0);
+  const [content, setContent] = useState<BlockContent>(block.content);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
-    console.log('Handling input change for', field, 'with value:', e.target.value);
-    const updatedContent = {
-      ...block.content as Record<string, unknown>,
-      [field]: e.target.value
-    };
+  useEffect(() => {
+    console.log('Block changed in HomePageEditor:', block);
+    setContent(block.content);
+  }, [block.id, block.content]);
+
+  const handleChange = (key: string, value: any) => {
+    const updatedContent = { ...content, [key]: value };
+    setContent(updatedContent);
     onUpdate(block.id, updatedContent);
   };
 
-  const handleMediaSelect = (url: string) => {
-    console.log('Selected media URL:', url);
-    if (block.type === 'store_brands') {
-      const content = block.content as StoreBrandsContent;
-      const features = Array.isArray(content.features) ? [...content.features] : [];
-      const updatedFeature = {
-        ...(features[currentBrandIndex] as unknown as FeatureItem),
-        description: url
-      } as Json;
-      features[currentBrandIndex] = updatedFeature;
-      onUpdate(block.id, { ...content, features });
-    } else {
-      const updatedContent = {
-        ...block.content as Record<string, unknown>,
-        [currentField]: url
-      };
-      onUpdate(block.id, updatedContent);
-    }
-    setShowMediaLibrary(false);
+  const handleArrayChange = (key: string, index: number, value: any) => {
+    const array = [...((content as any)[key] || [])];
+    array[index] = { ...array[index], ...value };
+    handleChange(key, array);
   };
 
-  const handleFeatureAdd = () => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? content.features : [];
-    
-    let newFeature: Json;
-    if (block.type === 'store_brands') {
-      newFeature = {
-        icon: '',
-        title: "New Brand",
-        description: "", // Logo URL
-        detail: "#" // Link URL
-      };
-    } else {
-      newFeature = {
-        icon: "Droplets",
-        title: "New Feature",
-        description: "Feature description",
-        detail: "Additional details about this feature"
-      };
-    }
-
-    const updatedContent = {
-      ...content,
-      features: [...features, newFeature]
-    };
-    onUpdate(block.id, updatedContent);
+  const addArrayItem = (key: string, defaultItem: any) => {
+    const array = [...((content as any)[key] || [])];
+    array.push(defaultItem);
+    handleChange(key, array);
   };
 
-  const handleFeatureRemove = (index: number) => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? [...content.features] : [];
-    features.splice(index, 1);
-    onUpdate(block.id, { ...content, features });
+  const removeArrayItem = (key: string, index: number) => {
+    const array = [...((content as any)[key] || [])];
+    array.splice(index, 1);
+    handleChange(key, array);
   };
 
-  const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = features[index] as { [key: string]: Json };
-    const updatedFeature = { ...feature, [field]: value } as Json;
-    features[index] = updatedFeature;
-    onUpdate(block.id, { ...content, features });
-  };
-
-  const renderMediaField = (label: string, field: string, type: "image" | "video") => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-2">
-        <Input
-          value={block.content[field] as string || ""}
-          onChange={(e) => handleInputChange(e, field)}
-          placeholder={`Enter ${label.toLowerCase()} URL`}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            setMediaType(type);
-            setCurrentField(field);
-            setShowMediaLibrary(true);
-          }}
-        >
-          Browse
-        </Button>
-      </div>
-    </div>
-  );
+  console.log('Rendering HomePageEditor with block type:', block.type);
+  console.log('Current content:', content);
 
   switch (block.type) {
     case "hero":
+      const heroContent = content as HeroContent;
       return (
         <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
-              onChange={(e) => handleInputChange(e, "title")}
+              id="title"
+              value={heroContent.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
             <Input
-              value={(block.content.subtitle as string) || ""}
-              onChange={(e) => handleInputChange(e, "subtitle")}
+              id="subtitle"
+              value={heroContent.subtitle || ''}
+              onChange={(e) => handleChange('subtitle', e.target.value)}
             />
           </div>
-          {renderMediaField("Video URL", "videoUrl", "video")}
-          {renderMediaField("Video Poster", "videoPoster", "image")}
-          <div>
-            <Label>Shop Now Text</Label>
+          <div className="space-y-2">
+            <Label htmlFor="videoUrl">Video URL</Label>
             <Input
-              value={(block.content.shopNowText as string) || ""}
-              onChange={(e) => handleInputChange(e, "shopNowText")}
+              id="videoUrl"
+              value={heroContent.videoUrl || ''}
+              onChange={(e) => handleChange('videoUrl', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Learn More Text</Label>
+          <div className="space-y-2">
+            <Label htmlFor="videoPoster">Video Poster URL</Label>
             <Input
-              value={(block.content.learnMoreText as string) || ""}
-              onChange={(e) => handleInputChange(e, "learnMoreText")}
+              id="videoPoster"
+              value={heroContent.videoPoster || ''}
+              onChange={(e) => handleChange('videoPoster', e.target.value)}
             />
           </div>
-          {showMediaLibrary && (
-            <MediaLibraryModal
-              open={showMediaLibrary}
-              onClose={() => setShowMediaLibrary(false)}
-              onSelect={handleMediaSelect}
-              type={mediaType}
+          <div className="space-y-2">
+            <Label htmlFor="shopNowText">Shop Now Button Text</Label>
+            <Input
+              id="shopNowText"
+              value={heroContent.shopNowText || ''}
+              onChange={(e) => handleChange('shopNowText', e.target.value)}
             />
-          )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="learnMoreText">Learn More Button Text</Label>
+            <Input
+              id="learnMoreText"
+              value={heroContent.learnMoreText || ''}
+              onChange={(e) => handleChange('learnMoreText', e.target.value)}
+            />
+          </div>
         </div>
       );
 
-    case "features":
-      const featuresContent = block.content as FeaturesContent;
+    case "game_changer":
+      const gameChangerContent = content as GameChangerContent;
       return (
-        <div className="space-y-6">
-          <div>
-            <Label>Title</Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={featuresContent.title || ""}
-              onChange={(e) => handleInputChange(e, "title")}
+              id="title"
+              value={gameChangerContent.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
             <Input
-              value={featuresContent.subtitle || ""}
-              onChange={(e) => handleInputChange(e, "subtitle")}
+              id="subtitle"
+              value={gameChangerContent.subtitle || ''}
+              onChange={(e) => handleChange('subtitle', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Description</Label>
-            <Input
-              value={featuresContent.description || ""}
-              onChange={(e) => handleInputChange(e, "description")}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={gameChangerContent.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
             />
           </div>
-          
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Label>Features</Label>
-            {Array.isArray(featuresContent.features) && featuresContent.features.map((feature, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Feature {index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFeatureRemove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div>
-                  <Label>Icon</Label>
-                  <Input
-                    value={feature.icon}
-                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={feature.title}
-                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Input
-                    value={feature.description}
-                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
-                  />
-                </div>
+            {(gameChangerContent.features || []).map((feature, index) => (
+              <div key={index} className="space-y-2 p-4 border rounded-lg">
+                <Input
+                  placeholder="Icon"
+                  value={feature.icon || ''}
+                  onChange={(e) => handleArrayChange('features', index, { icon: e.target.value })}
+                />
+                <Input
+                  placeholder="Title"
+                  value={feature.title || ''}
+                  onChange={(e) => handleArrayChange('features', index, { title: e.target.value })}
+                />
+                <Input
+                  placeholder="Description"
+                  value={feature.description || ''}
+                  onChange={(e) => handleArrayChange('features', index, { description: e.target.value })}
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeArrayItem('features', index)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
               </div>
             ))}
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleFeatureAdd}
+              onClick={() => addArrayItem('features', { icon: '', title: '', description: '' })}
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -238,193 +170,213 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       );
 
     case "store_brands":
-      const storeBrandsContent = block.content as StoreBrandsContent;
+      const storeBrandsContent = content as StoreBrandsContent;
       return (
-        <div className="space-y-6">
-          <div>
-            <Label>Title</Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={(storeBrandsContent.title as string) || ""}
-              onChange={(e) => handleInputChange(e, "title")}
+              id="title"
+              value={storeBrandsContent.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
             <Input
-              value={(storeBrandsContent.subtitle as string) || ""}
-              onChange={(e) => handleInputChange(e, "subtitle")}
+              id="subtitle"
+              value={storeBrandsContent.subtitle || ''}
+              onChange={(e) => handleChange('subtitle', e.target.value)}
             />
           </div>
-          
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Label>Brands</Label>
-            {Array.isArray(storeBrandsContent.features) && storeBrandsContent.features.map((brand, index) => {
-              const typedBrand = brand as unknown as FeatureItem;
-              return (
-                <div key={index} className="p-4 border rounded-lg space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Brand {index + 1}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFeatureRemove(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div>
-                    <Label>Brand Name</Label>
-                    <Input
-                      value={typedBrand.title || ""}
-                      onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Logo</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={typedBrand.description || ""} // Logo URL stored in description
-                        onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
-                        placeholder="Logo URL"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setMediaType("image");
-                          setCurrentBrandIndex(index);
-                          setShowMediaLibrary(true);
-                        }}
-                      >
-                        Browse
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Link URL</Label>
-                    <Input
-                      value={typedBrand.detail || ""} // Link URL stored in detail
-                      onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
-                      placeholder="https://"
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            {(storeBrandsContent.brands || []).map((brand, index) => (
+              <div key={index} className="space-y-2 p-4 border rounded-lg">
+                <Input
+                  placeholder="Brand Name"
+                  value={brand.name || ''}
+                  onChange={(e) => handleArrayChange('brands', index, { name: e.target.value })}
+                />
+                <Input
+                  placeholder="Logo URL"
+                  value={brand.logo || ''}
+                  onChange={(e) => handleArrayChange('brands', index, { logo: e.target.value })}
+                />
+                <Input
+                  placeholder="Link"
+                  value={brand.link || ''}
+                  onChange={(e) => handleArrayChange('brands', index, { link: e.target.value })}
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeArrayItem('brands', index)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleFeatureAdd}
+              onClick={() => addArrayItem('brands', { name: '', logo: '', link: '' })}
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Brand
             </Button>
           </div>
-          {showMediaLibrary && (
-            <MediaLibraryModal
-              open={showMediaLibrary}
-              onClose={() => setShowMediaLibrary(false)}
-              onSelect={handleMediaSelect}
-              type={mediaType}
-            />
-          )}
         </div>
       );
 
-    case "game_changer":
-      const gameChangerContent = block.content as GameChangerContent;
+    case "sustainability":
+      const sustainabilityContent = content as SustainabilityContent;
       return (
-        <div className="space-y-6">
-          <div>
-            <Label>Title</Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={(gameChangerContent.title as string) || ""}
-              onChange={(e) => handleInputChange(e, "title")}
+              id="title"
+              value={sustainabilityContent.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
-            <Input
-              value={(gameChangerContent.subtitle as string) || ""}
-              onChange={(e) => handleInputChange(e, "subtitle")}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={sustainabilityContent.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
             />
           </div>
-          <div>
-            <Label>Description</Label>
+          <div className="space-y-2">
+            <Label htmlFor="statsTitle">Stats Title</Label>
             <Input
-              value={(gameChangerContent.description as string) || ""}
-              onChange={(e) => handleInputChange(e, "description")}
+              id="statsTitle"
+              value={sustainabilityContent.statsTitle || ''}
+              onChange={(e) => handleChange('statsTitle', e.target.value)}
             />
           </div>
-          
-          <div className="space-y-4">
-            <Label>Features</Label>
-            {Array.isArray(gameChangerContent.features) && gameChangerContent.features.map((feature, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Feature {index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFeatureRemove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div>
-                  <Label>Icon</Label>
-                  <Input
-                    value={feature.icon}
-                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
-                    placeholder="Droplets, Leaf, or Heart"
-                  />
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={feature.title}
-                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Input
-                    value={feature.description}
-                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Detail</Label>
-                  <Input
-                    value={(feature.detail as string) || ""}
-                    onChange={(e) => handleFeatureUpdate(index, "detail", e.target.value)}
-                  />
-                </div>
+          <div className="space-y-2">
+            <Label>Stats</Label>
+            {(sustainabilityContent.stats || []).map((stat, index) => (
+              <div key={index} className="space-y-2 p-4 border rounded-lg">
+                <Input
+                  placeholder="Icon"
+                  value={stat.icon || ''}
+                  onChange={(e) => handleArrayChange('stats', index, { icon: e.target.value })}
+                />
+                <Input
+                  placeholder="Title"
+                  value={stat.title || ''}
+                  onChange={(e) => handleArrayChange('stats', index, { title: e.target.value })}
+                />
+                <Input
+                  placeholder="Description"
+                  value={stat.description || ''}
+                  onChange={(e) => handleArrayChange('stats', index, { description: e.target.value })}
+                />
+                <Input
+                  placeholder="Color"
+                  value={stat.color || ''}
+                  onChange={(e) => handleArrayChange('stats', index, { color: e.target.value })}
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeArrayItem('stats', index)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
               </div>
             ))}
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleFeatureAdd}
+              onClick={() => addArrayItem('stats', { icon: '', title: '', description: '', color: '' })}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Stat
+            </Button>
+          </div>
+        </div>
+      );
+
+    case "features":
+      const featuresContent = content as FeaturesContent;
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              value={featuresContent.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
+            <Input
+              id="subtitle"
+              value={featuresContent.subtitle || ''}
+              onChange={(e) => handleChange('subtitle', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={featuresContent.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Features</Label>
+            {(featuresContent.features || []).map((feature, index) => (
+              <div key={index} className="space-y-2 p-4 border rounded-lg">
+                <Input
+                  placeholder="Icon"
+                  value={feature.icon || ''}
+                  onChange={(e) => handleArrayChange('features', index, { icon: e.target.value })}
+                />
+                <Input
+                  placeholder="Title"
+                  value={feature.title || ''}
+                  onChange={(e) => handleArrayChange('features', index, { title: e.target.value })}
+                />
+                <Input
+                  placeholder="Description"
+                  value={feature.description || ''}
+                  onChange={(e) => handleArrayChange('features', index, { description: e.target.value })}
+                />
+                <Input
+                  placeholder="Detail"
+                  value={feature.detail || ''}
+                  onChange={(e) => handleArrayChange('features', index, { detail: e.target.value })}
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeArrayItem('features', index)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              onClick={() => addArrayItem('features', { icon: '', title: '', description: '', detail: '' })}
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Feature
             </Button>
           </div>
-          {showMediaLibrary && (
-            <MediaLibraryModal
-              open={showMediaLibrary}
-              onClose={() => setShowMediaLibrary(false)}
-              onSelect={handleMediaSelect}
-              type={mediaType}
-            />
-          )}
         </div>
       );
 
     default:
-      return null;
+      return (
+        <div className="p-4 text-center text-gray-500">
+          No editor available for this component type
+        </div>
+      );
   }
 };

@@ -1,227 +1,108 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: any) => void;
+  onUpdate: (blockId: string, content: BlockContent) => void;
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
-    onUpdate(block.id, {
-      ...block.content,
-      ...updates,
-    });
+  const [content, setContent] = useState<BlockContent>(block.content);
+
+  // Reset content when block changes
+  useEffect(() => {
+    console.log('Block changed in ForBusinessEditor:', block);
+    setContent(block.content);
+  }, [block.id, block.content]);
+
+  const handleChange = (key: string, value: any) => {
+    const updatedContent = { ...content, [key]: value };
+    setContent(updatedContent);
+    onUpdate(block.id, updatedContent);
   };
 
-  const handleSolutionChange = (index: number, field: string, value: string) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions[index] = {
-      ...solutions[index],
-      [field]: value,
-    };
-    
-    handleContentChange({ solutions });
-  };
-
-  const addSolution = () => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions.push({
-      icon: "Briefcase",
-      title: "New Solution",
-      description: "Description of the solution",
-    });
-    
-    handleContentChange({ solutions });
-  };
-
-  const removeSolution = (index: number) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions.splice(index, 1);
-    
-    handleContentChange({ solutions });
-  };
+  console.log('Rendering ForBusinessEditor with block type:', block.type);
+  console.log('Current content:', content);
 
   switch (block.type) {
     case "business_hero":
-      const heroContent = block.content as ForBusinessHeroContent;
       return (
         <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={heroContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter hero title"
+              id="title"
+              value={content.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
+              placeholder="Enter title"
             />
           </div>
-          <div>
-            <Label>Subtitle</Label>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
             <Input
-              value={heroContent.subtitle || ""}
-              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
+              id="subtitle"
+              value={content.subtitle || ''}
+              onChange={(e) => handleChange('subtitle', e.target.value)}
               placeholder="Enter subtitle"
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={heroContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter description"
-            />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={heroContent.buttonText || ""}
-              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
-              placeholder="Enter button text"
-            />
-          </div>
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={heroContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
-              placeholder="Enter button link"
             />
           </div>
         </div>
       );
 
     case "business_solutions":
-      const solutionsContent = block.content as BusinessSolutionsContent;
       return (
-        <div className="space-y-6">
-          <div>
-            <Label>Title</Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
             <Input
-              value={solutionsContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter section title"
+              id="title"
+              value={content.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
+              placeholder="Enter title"
             />
           </div>
-          <div>
-            <Label>Description</Label>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              value={solutionsContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter section description"
+              id="description"
+              value={content.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Enter description"
             />
-          </div>
-          
-          <div className="space-y-4">
-            <Label>Solutions</Label>
-            {solutionsContent.solutions?.map((solution, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-3">
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeSolution(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div>
-                  <Label>Icon</Label>
-                  <Input
-                    value={solution.icon}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "icon", e.target.value)
-                    }
-                    placeholder="Icon name"
-                  />
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={solution.title}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "title", e.target.value)
-                    }
-                    placeholder="Solution title"
-                  />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={solution.description}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "description", e.target.value)
-                    }
-                    placeholder="Solution description"
-                  />
-                </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addSolution}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Solution
-            </Button>
           </div>
         </div>
       );
 
     case "business_contact":
-      const contactContent = block.content as BusinessContactContent;
       return (
         <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
             <Input
-              value={contactContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter section title"
+              id="email"
+              value={content.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+              placeholder="Enter email"
             />
           </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={contactContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter description"
-            />
-          </div>
-          <div>
-            <Label>Email</Label>
+          <div className="space-y-2">
+            <Label htmlFor="buttonText">Button Text</Label>
             <Input
-              value={contactContent.email || ""}
-              onChange={(e) => handleContentChange({ email: e.target.value })}
-              placeholder="Enter contact email"
-            />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={contactContent.buttonText || ""}
-              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
+              id="buttonText"
+              value={content.buttonText || ''}
+              onChange={(e) => handleChange('buttonText', e.target.value)}
               placeholder="Enter button text"
             />
           </div>
-          <div>
-            <Label>Button Link</Label>
+          <div className="space-y-2">
+            <Label htmlFor="buttonLink">Button Link</Label>
             <Input
-              value={contactContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
+              id="buttonLink"
+              value={content.buttonLink || ''}
+              onChange={(e) => handleChange('buttonLink', e.target.value)}
               placeholder="Enter button link"
             />
           </div>
@@ -229,6 +110,10 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       );
 
     default:
-      return null;
+      return (
+        <div className="p-4 text-center text-gray-500">
+          No properties available for this component type
+        </div>
+      );
   }
 };
