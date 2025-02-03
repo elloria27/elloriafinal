@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, TrendingUp, TrendingDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import {
 import { InventoryAdjustment } from "./InventoryAdjustment";
 import { InventoryLogs } from "./InventoryLogs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Product {
   id: string;
@@ -24,6 +25,12 @@ interface Product {
   inventory?: {
     quantity: number;
     low_stock_threshold: number;
+    sku?: string;
+    location?: string;
+    reorder_point?: number;
+    optimal_stock?: number;
+    unit_cost?: number;
+    last_counted_at?: string;
   };
 }
 
@@ -78,7 +85,13 @@ export const InventoryManagement = () => {
           name,
           inventory (
             quantity,
-            low_stock_threshold
+            low_stock_threshold,
+            sku,
+            location,
+            reorder_point,
+            optimal_stock,
+            unit_cost,
+            last_counted_at
           )
         `)
         .order('name');
@@ -91,11 +104,15 @@ export const InventoryManagement = () => {
 
       console.log("Products fetched:", data);
       
-      // Transform the data to match the Product interface
       const transformedProducts: Product[] = data.map(product => ({
         id: product.id,
         name: product.name,
-        inventory: product.inventory?.[0] || { quantity: 0, low_stock_threshold: 100 }
+        inventory: product.inventory?.[0] || {
+          quantity: 0,
+          low_stock_threshold: 100,
+          reorder_point: 50,
+          optimal_stock: 200
+        }
       }));
 
       setProducts(transformedProducts);
@@ -105,6 +122,26 @@ export const InventoryManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateTotalValue = () => {
+    return products.reduce((total, product) => {
+      const quantity = product.inventory?.quantity || 0;
+      const unitCost = product.inventory?.unit_cost || 0;
+      return total + (quantity * unitCost);
+    }, 0);
+  };
+
+  const getLowStockCount = () => {
+    return products.filter(product => 
+      (product.inventory?.quantity || 0) <= (product.inventory?.reorder_point || 50)
+    ).length;
+  };
+
+  const getOverStockCount = () => {
+    return products.filter(product => 
+      (product.inventory?.quantity || 0) > (product.inventory?.optimal_stock || 200)
+    ).length;
   };
 
   if (!isAdmin) {
@@ -119,6 +156,13 @@ export const InventoryManagement = () => {
     );
   }
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col gap-4">
@@ -126,6 +170,41 @@ export const InventoryManagement = () => {
         <p className="text-muted-foreground">
           Manage product inventory levels and track stock movements
         </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Inventory Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(calculateTotalValue())}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Low Stock Items
+            </CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getLowStockCount()}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Over Stock Items
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getOverStockCount()}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
@@ -141,33 +220,52 @@ export const InventoryManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product Name</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead className="text-right">Current Stock</TableHead>
-                  <TableHead className="text-right">Low Stock Alert</TableHead>
+                  <TableHead className="text-right">Reorder Point</TableHead>
+                  <TableHead className="text-right">Optimal Stock</TableHead>
+                  <TableHead className="text-right">Unit Cost</TableHead>
+                  <TableHead className="text-right">Total Value</TableHead>
                   <TableHead className="text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell className="text-right">
-                      {product.inventory?.quantity || 0}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {product.inventory?.low_stock_threshold || 100}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {(product.inventory?.quantity || 0) <= (product.inventory?.low_stock_threshold || 100) ? (
-                        <div className="flex items-center justify-end gap-2 text-yellow-600">
-                          <AlertCircle className="h-4 w-4" />
-                          Low Stock
-                        </div>
-                      ) : (
-                        <span className="text-green-600">In Stock</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {products.map((product) => {
+                  const quantity = product.inventory?.quantity || 0;
+                  const unitCost = product.inventory?.unit_cost || 0;
+                  const totalValue = quantity * unitCost;
+                  const reorderPoint = product.inventory?.reorder_point || 50;
+                  const optimalStock = product.inventory?.optimal_stock || 200;
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.inventory?.sku || '-'}</TableCell>
+                      <TableCell>{product.inventory?.location || '-'}</TableCell>
+                      <TableCell className="text-right">{quantity}</TableCell>
+                      <TableCell className="text-right">{reorderPoint}</TableCell>
+                      <TableCell className="text-right">{optimalStock}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(unitCost)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(totalValue)}</TableCell>
+                      <TableCell className="text-right">
+                        {quantity <= reorderPoint ? (
+                          <div className="flex items-center justify-end gap-2 text-yellow-600">
+                            <AlertCircle className="h-4 w-4" />
+                            Low Stock
+                          </div>
+                        ) : quantity > optimalStock ? (
+                          <div className="flex items-center justify-end gap-2 text-yellow-600">
+                            <TrendingUp className="h-4 w-4" />
+                            Over Stock
+                          </div>
+                        ) : (
+                          <span className="text-green-600">Optimal</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

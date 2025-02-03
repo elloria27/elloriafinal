@@ -14,6 +14,9 @@ interface Product {
   inventory?: {
     quantity: number;
     low_stock_threshold: number;
+    sku?: string;
+    location?: string;
+    unit_cost?: number;
   };
 }
 
@@ -28,6 +31,9 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [reasonType, setReasonType] = useState<string>("");
   const [retailerName, setRetailerName] = useState<string>("");
   const [details, setDetails] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [unitCost, setUnitCost] = useState<number>(0);
+  const [referenceNumber, setReferenceNumber] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleAdjustment = async () => {
@@ -59,12 +65,18 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
         throw new Error("User not authenticated");
       }
 
+      // Calculate total cost
+      const totalCost = quantity * unitCost;
+
       // Update inventory
       const { error: inventoryError } = await supabase
         .from('inventory')
         .upsert({
           product_id: selectedProduct,
-          quantity: newQuantity
+          quantity: newQuantity,
+          location: location || product.inventory?.location,
+          unit_cost: unitCost || product.inventory?.unit_cost,
+          last_counted_at: reasonType === 'stock_count' ? new Date().toISOString() : undefined
         });
 
       if (inventoryError) throw inventoryError;
@@ -78,8 +90,13 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           previous_quantity: currentQuantity,
           new_quantity: newQuantity,
           reason_type: reasonType,
-          reason_details: details || reasonType,
+          reason_details: details,
           retailer_name: reasonType === 'retailer_shipment' ? retailerName : null,
+          location: location,
+          unit_cost: unitCost,
+          total_cost: totalCost,
+          reference_number: referenceNumber,
+          performed_by: user.email,
           created_by: user.id
         });
 
@@ -94,6 +111,9 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       setReasonType("");
       setRetailerName("");
       setDetails("");
+      setLocation("");
+      setUnitCost(0);
+      setReferenceNumber("");
     } catch (error) {
       console.error("Error adjusting inventory:", error);
       toast.error("Failed to update inventory");
@@ -143,22 +163,36 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="reason">Reason for Adjustment</Label>
-          <Select
-            value={reasonType}
-            onValueChange={setReasonType}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select reason" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="retailer_shipment">Shipped to Retailer</SelectItem>
-              <SelectItem value="new_stock">New Stock Received</SelectItem>
-              <SelectItem value="damaged">Damaged Goods</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="reason">Reason for Adjustment</Label>
+            <Select
+              value={reasonType}
+              onValueChange={setReasonType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select reason" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="retailer_shipment">Shipped to Retailer</SelectItem>
+                <SelectItem value="new_stock">New Stock Received</SelectItem>
+                <SelectItem value="damaged">Damaged Goods</SelectItem>
+                <SelectItem value="stock_count">Stock Count Adjustment</SelectItem>
+                <SelectItem value="return">Customer Return</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter storage location"
+            />
+          </div>
         </div>
 
         {reasonType === 'retailer_shipment' && (
@@ -172,6 +206,30 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
             />
           </div>
         )}
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="unitCost">Unit Cost</Label>
+            <Input
+              id="unitCost"
+              type="number"
+              step="0.01"
+              value={unitCost}
+              onChange={(e) => setUnitCost(Number(e.target.value))}
+              placeholder="Enter unit cost"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reference">Reference Number</Label>
+            <Input
+              id="reference"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              placeholder="Enter reference number (optional)"
+            />
+          </div>
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="details">Additional Details</Label>

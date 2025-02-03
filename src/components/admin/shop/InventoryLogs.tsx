@@ -22,6 +22,11 @@ interface InventoryLog {
   reason_details: string;
   retailer_name: string | null;
   created_at: string;
+  location: string | null;
+  unit_cost: number | null;
+  total_cost: number | null;
+  reference_number: string | null;
+  performed_by: string | null;
   products: {
     name: string;
   };
@@ -64,6 +69,14 @@ export const InventoryLogs = () => {
     }
   };
 
+  const formatCurrency = (amount: number | null) => {
+    if (amount === null) return '-';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -80,11 +93,15 @@ export const InventoryLogs = () => {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Product</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Change</TableHead>
               <TableHead>Previous</TableHead>
               <TableHead>New</TableHead>
+              <TableHead>Unit Cost</TableHead>
+              <TableHead>Total Cost</TableHead>
               <TableHead>Reason</TableHead>
-              <TableHead>Details</TableHead>
+              <TableHead>Reference</TableHead>
+              <TableHead>Performed By</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -94,17 +111,33 @@ export const InventoryLogs = () => {
                   {format(new Date(log.created_at), 'MMM d, yyyy HH:mm')}
                 </TableCell>
                 <TableCell>{log.products.name}</TableCell>
+                <TableCell>{log.location || '-'}</TableCell>
                 <TableCell className={log.quantity_change >= 0 ? "text-green-600" : "text-red-600"}>
                   {log.quantity_change >= 0 ? `+${log.quantity_change}` : log.quantity_change}
                 </TableCell>
                 <TableCell>{log.previous_quantity}</TableCell>
                 <TableCell>{log.new_quantity}</TableCell>
-                <TableCell className="capitalize">
-                  {log.reason_type.replace(/_/g, ' ')}
-                </TableCell>
+                <TableCell>{formatCurrency(log.unit_cost)}</TableCell>
+                <TableCell>{formatCurrency(log.total_cost)}</TableCell>
                 <TableCell>
-                  {log.retailer_name ? `Shipped to ${log.retailer_name}` : log.reason_details}
+                  <div className="space-y-1">
+                    <div className="capitalize font-medium">
+                      {log.reason_type.replace(/_/g, ' ')}
+                    </div>
+                    {log.reason_details && (
+                      <div className="text-sm text-muted-foreground">
+                        {log.reason_details}
+                      </div>
+                    )}
+                    {log.retailer_name && (
+                      <div className="text-sm text-muted-foreground">
+                        Retailer: {log.retailer_name}
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
+                <TableCell>{log.reference_number || '-'}</TableCell>
+                <TableCell>{log.performed_by || '-'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
