@@ -5,6 +5,11 @@ export interface BaseBlockContent {
   [key: string]: Json | any;
 }
 
+// Props interfaces
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
 export interface FeatureItem {
   icon: string;
   title: string;
@@ -36,6 +41,18 @@ export interface ButtonBlockContent extends BaseBlockContent {
   text?: string;
   url?: string;
   variant?: 'default' | 'outline' | 'ghost';
+}
+
+export interface SustainabilityContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: Array<{
+    icon: string;
+    value: string;
+    label: string;
+    description: string;
+  }>;
+  timelineItems?: string[];
 }
 
 export interface HeroContent extends BaseBlockContent {
@@ -266,41 +283,6 @@ export interface BusinessContactContent extends BaseBlockContent {
   subtitle?: string;
 }
 
-export type BlockContent =
-  | HeadingBlockContent
-  | TextBlockContent
-  | ImageBlockContent
-  | VideoBlockContent
-  | ButtonBlockContent
-  | HeroContent
-  | GameChangerContent
-  | TestimonialsContent
-  | BlogPreviewContent
-  | FeaturesContent
-  | StoreBrandsContent
-  | ProductCarouselContent
-  | CompetitorComparisonContent
-  | NewsletterContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
-  | AboutCtaContent
-  | ContactHeroContent
-  | ContactDetailsContent
-  | ContactFormContent
-  | ContactFAQContent
-  | ContactBusinessContent
-  | CustomSolutionsHeroContent
-  | CustomSolutionsServicesContent
-  | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent
-  | ForBusinessHeroContent
-  | BusinessSolutionsContent
-  | BusinessContactContent;
-
 export type BlockType =
   | "heading"
   | "text"
@@ -336,7 +318,8 @@ export type BlockType =
   | "business_hero"
   | "business_solutions"
   | "business_contact"
-  | "product_gallery";
+  | "product_gallery"
+  | "elevating_essentials";
 
 export interface ContentBlock {
   id: string;
@@ -347,3 +330,38 @@ export interface ContentBlock {
   created_at?: string;
   updated_at?: string;
 }
+
+export type BlockContent =
+  | HeadingBlockContent
+  | TextBlockContent
+  | ImageBlockContent
+  | VideoBlockContent
+  | ButtonBlockContent
+  | HeroContent
+  | GameChangerContent
+  | TestimonialsContent
+  | BlogPreviewContent
+  | FeaturesContent
+  | StoreBrandsContent
+  | ProductCarouselContent
+  | CompetitorComparisonContent
+  | NewsletterContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent;
