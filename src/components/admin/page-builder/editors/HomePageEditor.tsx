@@ -19,23 +19,29 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     const value = e.target.value;
-    const currentContent = block.content as BlockContent;
+    const currentContent = block.content as Record<string, unknown>;
     const updatedContent = {
       ...currentContent,
       [field]: value
     };
-    onUpdate(block.id, updatedContent);
+    onUpdate(block.id, updatedContent as BlockContent);
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const currentContent = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(currentContent.features) ? [...currentContent.features] : [];
-    const feature = features[index] ? { ...features[index] } : {};
+    const features = Array.isArray(currentContent.features) 
+      ? [...currentContent.features] as FeatureItem[]
+      : [];
     
-    if (typeof feature === 'object') {
-      (feature as any)[field] = value;
-      features[index] = feature;
-      onUpdate(block.id, { ...currentContent, features });
+    if (features[index]) {
+      const updatedFeatures = features.map((feature, i) => 
+        i === index ? { ...feature, [field]: value } : feature
+      );
+      
+      onUpdate(block.id, {
+        ...currentContent,
+        features: updatedFeatures
+      } as BlockContent);
     }
   };
 
@@ -43,29 +49,38 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     console.log('Selected media URL:', url);
     if (block.type === 'store_brands') {
       const currentContent = block.content as StoreBrandsContent;
-      const features = Array.isArray(currentContent.features) ? [...currentContent.features] : [];
-      const updatedFeature = {
+      const features = Array.isArray(currentContent.features) 
+        ? [...currentContent.features] as FeatureItem[]
+        : [];
+      
+      const updatedFeatures = [...features];
+      updatedFeatures[currentBrandIndex] = {
         ...(features[currentBrandIndex] || {}),
         description: url
-      };
-      features[currentBrandIndex] = updatedFeature;
-      onUpdate(block.id, { ...currentContent, features });
+      } as FeatureItem;
+
+      onUpdate(block.id, {
+        ...currentContent,
+        features: updatedFeatures
+      } as BlockContent);
     } else {
-      const currentContent = block.content as BlockContent;
+      const currentContent = block.content as Record<string, unknown>;
       const updatedContent = {
         ...currentContent,
         [currentField]: url
       };
-      onUpdate(block.id, updatedContent);
+      onUpdate(block.id, updatedContent as BlockContent);
     }
     setShowMediaLibrary(false);
   };
 
   const handleFeatureAdd = () => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? [...content.features] : [];
+    const currentContent = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(currentContent.features) 
+      ? [...currentContent.features] as FeatureItem[]
+      : [];
     
-    let newFeature: any;
+    let newFeature: FeatureItem;
     if (block.type === 'store_brands') {
       newFeature = {
         icon: '',
@@ -83,16 +98,22 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     }
 
     onUpdate(block.id, {
-      ...content,
+      ...currentContent,
       features: [...features, newFeature]
-    });
+    } as BlockContent);
   };
 
   const handleFeatureRemove = (index: number) => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? [...content.features] : [];
-    features.splice(index, 1);
-    onUpdate(block.id, { ...content, features });
+    const currentContent = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(currentContent.features) 
+      ? [...currentContent.features] as FeatureItem[]
+      : [];
+    
+    const updatedFeatures = features.filter((_, i) => i !== index);
+    onUpdate(block.id, {
+      ...currentContent,
+      features: updatedFeatures
+    } as BlockContent);
   };
 
   const renderEditor = () => {
@@ -377,4 +398,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       )}
     </div>
   );
+};
+
 };
