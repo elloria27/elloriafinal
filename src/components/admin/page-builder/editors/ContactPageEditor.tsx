@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,12 @@ interface ContactPageEditorProps {
 
 export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
+
+  // Reset content when block changes
+  useEffect(() => {
+    console.log('Block changed in ContactPageEditor:', block);
+    setContent(block.content);
+  }, [block.id, block.content]); // Add block.id to dependencies to ensure reset on block change
 
   const handleChange = (key: string, value: any) => {
     const updatedContent = { ...content, [key]: value };
@@ -37,6 +43,9 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
     array.splice(index, 1);
     handleChange(key, array);
   };
+
+  console.log('Rendering ContactPageEditor with block type:', block.type);
+  console.log('Current content:', content);
 
   switch (block.type) {
     case "contact_hero":
