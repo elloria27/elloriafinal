@@ -8,6 +8,7 @@ import { InventoryList } from "./inventory/InventoryList";
 import { InventoryLogs } from "./inventory/InventoryLogs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseProduct } from "@/utils/supabase-helpers";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InventoryItem {
   id: string;
@@ -20,6 +21,7 @@ interface InventoryItem {
 export const InventoryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const isMobile = useIsMobile();
 
   const fetchInventory = async () => {
     try {
@@ -39,7 +41,6 @@ export const InventoryManagement = () => {
       }
 
       console.log("Inventory fetched successfully:", data);
-      // Parse the product data for each inventory item
       const parsedInventory = data.map(item => ({
         ...item,
         product: parseProduct(item.product)
@@ -66,13 +67,13 @@ export const InventoryManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Inventory Management</h2>
+        <h2 className="text-xl md:text-2xl font-bold">Inventory Management</h2>
       </div>
 
       <Tabs defaultValue="inventory" className="space-y-6">
-        <TabsList>
+        <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="inventory">Current Inventory</TabsTrigger>
           <TabsTrigger value="adjust">Stock Adjustment</TabsTrigger>
           <TabsTrigger value="logs">Adjustment Logs</TabsTrigger>
