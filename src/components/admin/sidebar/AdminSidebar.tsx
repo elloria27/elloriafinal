@@ -15,6 +15,7 @@ import {
   Store,
   Heart,
   BookOpen,
+  Boxes,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -135,23 +136,21 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
             if (item.items) {
               const isExpanded = expandedItems.includes(item.title);
               const isActive = item.items.some(
-                (subItem) =>
-                  subItem.href.split("=")[1] === currentTab
+                (subItem) => subItem.href.split("=")[1] === currentTab
               );
 
               return (
                 <div key={item.title}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className={cn("w-full justify-between", 
+                    className={cn(
+                      "w-full justify-between",
                       isActive && "bg-accent"
                     )}
                     onClick={() => toggleExpanded(item.title)}
                   >
                     <span className="flex items-center">
-                      {item.icon && (
-                        <item.icon className="mr-2 h-4 w-4" />
-                      )}
+                      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
                       {item.title}
                     </span>
                     <ChevronDown
