@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -25,6 +27,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const initializeBlocks = async () => {
@@ -189,80 +193,134 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     );
   }
 
-  return (
-    <div className="flex h-[calc(100vh-4rem)]">
-      <div className="w-64 bg-gray-100 p-4 border-r">
-        <Button 
-          onClick={() => setShowComponentPicker(true)}
-          className="w-full mb-4"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Component
-        </Button>
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="blocks">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-2"
-              >
-                {blocks.map((block, index) => (
-                  <Draggable 
-                    key={block.id} 
-                    draggableId={block.id} 
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`p-3 bg-white rounded-lg shadow cursor-pointer group ${
-                          selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
-                        }`}
-                        onClick={() => setSelectedBlock(block)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{block.type}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteBlock(block.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
+  const BlocksList = () => (
+    <div className="space-y-2">
+      <Button 
+        onClick={() => setShowComponentPicker(true)}
+        className="w-full mb-4"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add Component
+      </Button>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="blocks">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-2"
+            >
+              {blocks.map((block, index) => (
+                <Draggable 
+                  key={block.id} 
+                  draggableId={block.id} 
+                  index={index}
+                >
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className={`p-3 bg-white rounded-lg shadow cursor-pointer group ${
+                        selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setSelectedBlock(block)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{block.type}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteBlock(block.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
+  );
 
-      <div className="flex-1 overflow-auto">
-        <PreviewPane 
-          blocks={blocks} 
-          onSelectBlock={setSelectedBlock}
-          selectedBlockId={selectedBlock?.id}
-        />
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
+      {isMobile ? (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50">
+              <Menu className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] sm:w-[340px]">
+            <BlocksList />
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <div className="w-64 bg-gray-100 p-4 border-r overflow-y-auto">
+          <BlocksList />
+        </div>
+      )}
+
+      <div className="flex-1 overflow-auto relative">
+        {isMobile && (
+          <div className="sticky top-0 z-10 bg-white p-4 border-b flex justify-between items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+              {showPreview ? 'Show Editor' : 'Show Preview'}
+            </Button>
+          </div>
+        )}
+        
+        <div className={`h-full ${isMobile && !showPreview ? 'hidden' : ''}`}>
+          <PreviewPane 
+            blocks={blocks} 
+            onSelectBlock={setSelectedBlock}
+            selectedBlockId={selectedBlock?.id}
+          />
+        </div>
       </div>
 
       {selectedBlock && (
-        <div className="w-80 bg-gray-100 p-4 border-l">
-          <PropertyEditor
-            block={selectedBlock}
-            onUpdate={handleUpdateBlock}
-          />
-        </div>
+        isMobile ? (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="fixed bottom-20 right-4 z-50"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[280px] sm:w-[340px]">
+              <PropertyEditor
+                block={selectedBlock}
+                onUpdate={handleUpdateBlock}
+              />
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <div className="w-80 bg-gray-100 p-4 border-l overflow-y-auto">
+            <PropertyEditor
+              block={selectedBlock}
+              onUpdate={handleUpdateBlock}
+            />
+          </div>
+        )
       )}
 
       <ComponentPicker
@@ -272,7 +330,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       />
 
       <Button
-        className="fixed bottom-4 right-4"
+        className="fixed bottom-4 right-4 z-50"
         onClick={handleSaveLayout}
         disabled={!hasUnsavedChanges || isSaving}
       >
