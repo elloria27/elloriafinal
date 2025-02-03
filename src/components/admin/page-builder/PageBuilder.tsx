@@ -282,6 +282,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
               {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
               {showPreview ? 'Show Editor' : 'Show Preview'}
             </Button>
+            
+            <Button
+              size="sm"
+              onClick={handleSaveLayout}
+              disabled={!hasUnsavedChanges || isSaving}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Layout'}
+            </Button>
           </div>
         )}
         
@@ -329,14 +338,16 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         onSelect={handleAddBlock}
       />
 
-      <Button
-        className="fixed bottom-4 right-4 z-50"
-        onClick={handleSaveLayout}
-        disabled={!hasUnsavedChanges || isSaving}
-      >
-        <Save className="w-4 h-4 mr-2" />
-        {isSaving ? 'Saving...' : 'Save Layout'}
-      </Button>
+      {!isMobile && (
+        <Button
+          className="fixed bottom-4 right-4 z-50"
+          onClick={handleSaveLayout}
+          disabled={!hasUnsavedChanges || isSaving}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {isSaving ? 'Saving...' : 'Save Layout'}
+        </Button>
+      )}
     </div>
   );
 };
