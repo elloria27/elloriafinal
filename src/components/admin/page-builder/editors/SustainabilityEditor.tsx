@@ -1,185 +1,203 @@
-import { ContentBlock, BlockContent, SustainabilityContent, SustainabilityStat } from "@/types/content-blocks";
-import { Label } from "@/components/ui/label";
+import { SustainabilityContent, ContentBlock } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface SustainabilityEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: BlockContent) => void;
+  onUpdate: (blockId: string, content: any) => void;
 }
 
 export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorProps) => {
-  console.log("Rendering SustainabilityEditor with block:", block);
-
   const content = block.content as SustainabilityContent;
 
-  const handleUpdate = (updates: Partial<SustainabilityContent>) => {
-    onUpdate(block.id, {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const updatedContent = {
       ...content,
-      ...updates,
+      [field]: e.target.value
+    };
+    onUpdate(block.id, updatedContent);
+  };
+
+  const handleStatAdd = () => {
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    stats.push({
+      icon: "Leaf",
+      value: "0%",
+      label: "New Stat",
+      description: "Description"
     });
+    onUpdate(block.id, { ...content, stats });
+  };
+
+  const handleStatRemove = (index: number) => {
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    stats.splice(index, 1);
+    onUpdate(block.id, { ...content, stats });
   };
 
   const handleStatUpdate = (index: number, field: string, value: string) => {
-    const updatedStats = [...(content.stats || [])];
-    updatedStats[index] = {
-      ...updatedStats[index],
-      [field]: value,
-    };
-    handleUpdate({ stats: updatedStats });
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
+    const stat = { ...stats[index], [field]: value };
+    stats[index] = stat;
+    onUpdate(block.id, { ...content, stats });
   };
 
-  const addStat = () => {
-    const newStat: SustainabilityStat = {
+  const handleMaterialAdd = () => {
+    const materials = Array.isArray(content.materials) ? [...content.materials] : [];
+    materials.push({
       icon: "Leaf",
-      title: "New Stat",
-      description: "Description",
-      color: "bg-accent-green",
-    };
-    handleUpdate({ stats: [...(content.stats || []), newStat] });
-  };
-
-  const removeStat = (index: number) => {
-    const updatedStats = [...(content.stats || [])];
-    updatedStats.splice(index, 1);
-    handleUpdate({ stats: updatedStats });
-  };
-
-  const handleTimelineUpdate = (index: number, value: string) => {
-    const updatedTimeline = [...(content.timelineItems || [])];
-    updatedTimeline[index] = value;
-    handleUpdate({ timelineItems: updatedTimeline });
-  };
-
-  const addTimelineItem = () => {
-    handleUpdate({
-      timelineItems: [...(content.timelineItems || []), "New Timeline Item"],
+      title: "New Material",
+      description: "Description"
     });
+    onUpdate(block.id, { ...content, materials });
   };
 
-  const removeTimelineItem = (index: number) => {
-    const updatedTimeline = [...(content.timelineItems || [])];
-    updatedTimeline.splice(index, 1);
-    handleUpdate({ timelineItems: updatedTimeline });
+  const handleMaterialRemove = (index: number) => {
+    const materials = Array.isArray(content.materials) ? [...content.materials] : [];
+    materials.splice(index, 1);
+    onUpdate(block.id, { ...content, materials });
+  };
+
+  const handleMaterialUpdate = (index: number, field: string, value: string) => {
+    const materials = Array.isArray(content.materials) ? [...content.materials] : [];
+    const material = { ...materials[index], [field]: value };
+    materials[index] = material;
+    onUpdate(block.id, { ...content, materials });
   };
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label>Title</Label>
-          <Input
-            value={content.title || ""}
-            onChange={(e) => handleUpdate({ title: e.target.value })}
-            placeholder="Enter section title"
-          />
-        </div>
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ""}
+          onChange={(e) => handleInputChange(e, "title")}
+        />
+      </div>
 
-        <div>
-          <Label>Description</Label>
-          <Textarea
-            value={content.description || ""}
-            onChange={(e) => handleUpdate({ description: e.target.value })}
-            placeholder="Enter section description"
-          />
-        </div>
+      <div>
+        <Label>Subtitle</Label>
+        <Input
+          value={content.subtitle || ""}
+          onChange={(e) => handleInputChange(e, "subtitle")}
+        />
+      </div>
+
+      <div>
+        <Label>Description</Label>
+        <Input
+          value={content.description || ""}
+          onChange={(e) => handleInputChange(e, "description")}
+        />
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label>Statistics</Label>
+        <div className="flex justify-between items-center">
+          <Label>Stats</Label>
           <Button
             type="button"
             variant="outline"
+            onClick={handleStatAdd}
             size="sm"
-            onClick={addStat}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             Add Stat
           </Button>
         </div>
-
-        {content.stats?.map((stat, index) => (
-          <div key={index} className="space-y-2 p-4 border rounded-lg">
+        
+        {Array.isArray(content.stats) && content.stats.map((stat, index) => (
+          <div key={index} className="p-4 border rounded-lg space-y-3">
             <div className="flex justify-between items-center">
-              <Label>Stat {index + 1}</Label>
+              <span className="font-medium">Stat {index + 1}</span>
               <Button
-                type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => removeStat(index)}
+                onClick={() => handleStatRemove(index)}
               >
-                <Minus className="w-4 h-4" />
+                <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
             </div>
-
-            <Input
-              value={stat.title}
-              onChange={(e) => handleStatUpdate(index, "title", e.target.value)}
-              placeholder="Stat title"
-            />
-
-            <Input
-              value={stat.description}
-              onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
-              placeholder="Stat description"
-            />
-
-            <select
-              value={stat.icon}
-              onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
-              className="w-full border rounded-md p-2"
-            >
-              <option value="Leaf">Leaf</option>
-              <option value="Recycle">Recycle</option>
-              <option value="Package">Package</option>
-              <option value="Factory">Factory</option>
-            </select>
-
-            <select
-              value={stat.color}
-              onChange={(e) => handleStatUpdate(index, "color", e.target.value)}
-              className="w-full border rounded-md p-2"
-            >
-              <option value="bg-accent-green">Green</option>
-              <option value="bg-accent-purple">Purple</option>
-              <option value="bg-accent-peach">Peach</option>
-            </select>
+            <div>
+              <Label>Icon</Label>
+              <Input
+                value={stat.icon}
+                onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Value</Label>
+              <Input
+                value={stat.value}
+                onChange={(e) => handleStatUpdate(index, "value", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Label</Label>
+              <Input
+                value={stat.label}
+                onChange={(e) => handleStatUpdate(index, "label", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={stat.description}
+                onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
+              />
+            </div>
           </div>
         ))}
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label>Timeline Items</Label>
+        <div className="flex justify-between items-center">
+          <Label>Materials</Label>
           <Button
             type="button"
             variant="outline"
+            onClick={handleMaterialAdd}
             size="sm"
-            onClick={addTimelineItem}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Timeline Item
+            <Plus className="h-4 w-4 mr-2" />
+            Add Material
           </Button>
         </div>
-
-        {content.timelineItems?.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <Input
-              value={item}
-              onChange={(e) => handleTimelineUpdate(index, e.target.value)}
-              placeholder="Timeline item text"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeTimelineItem(index)}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
+        
+        {Array.isArray(content.materials) && content.materials.map((material, index) => (
+          <div key={index} className="p-4 border rounded-lg space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Material {index + 1}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleMaterialRemove(index)}
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+            <div>
+              <Label>Icon</Label>
+              <Input
+                value={material.icon}
+                onChange={(e) => handleMaterialUpdate(index, "icon", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={material.title}
+                onChange={(e) => handleMaterialUpdate(index, "title", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input
+                value={material.description}
+                onChange={(e) => handleMaterialUpdate(index, "description", e.target.value)}
+              />
+            </div>
           </div>
         ))}
       </div>
