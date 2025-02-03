@@ -1,284 +1,266 @@
-import { ContentBlock, BlockContent, SustainabilityContent } from "@/types/content-blocks";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ContentBlock } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
 
 interface SustainabilityEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: BlockContent) => void;
+  onUpdate: (blockId: string, content: any) => void;
+}
+
+interface SustainabilityStat {
+  icon: string;
+  value: string;
+  label: string;
+  description: string;
+}
+
+interface SustainabilityMaterial {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface FAQ {
+  question: string;
+  answer: string;
 }
 
 export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorProps) => {
-  console.log("Rendering SustainabilityEditor with block:", block);
+  const [content, setContent] = useState(block.content);
 
-  const content = block.content as SustainabilityContent;
+  useEffect(() => {
+    setContent(block.content);
+  }, [block]);
 
-  const handleUpdate = (updates: Partial<SustainabilityContent>) => {
-    onUpdate(block.id, {
-      ...content,
-      ...updates,
-    });
+  const handleChange = (field: string, value: any) => {
+    const updatedContent = { ...content, [field]: value };
+    setContent(updatedContent);
+    onUpdate(block.id, updatedContent);
   };
 
-  const handleStatUpdate = (index: number, field: keyof typeof content.stats[0], value: string) => {
-    const updatedStats = [...(content.stats || [])];
-    updatedStats[index] = {
-      ...updatedStats[index],
-      [field]: value,
-    };
-    handleUpdate({ stats: updatedStats });
+  const handleStatChange = (index: number, field: string, value: string) => {
+    const stats = [...(content.stats || [])];
+    stats[index] = { ...stats[index], [field]: value };
+    handleChange('stats', stats);
   };
 
-  const addStat = () => {
-    const newStat = {
-      icon: "Leaf",
-      value: "New Value",
-      label: "New Label",
-      description: "Description",
-    };
-    handleUpdate({ stats: [...(content.stats || []), newStat] });
+  const handleMaterialChange = (index: number, field: string, value: string) => {
+    const materials = [...(content.materials || [])];
+    materials[index] = { ...materials[index], [field]: value };
+    handleChange('materials', materials);
   };
 
-  const removeStat = (index: number) => {
-    const updatedStats = [...(content.stats || [])];
-    updatedStats.splice(index, 1);
-    handleUpdate({ stats: updatedStats });
+  const handleFAQChange = (index: number, field: string, value: string) => {
+    const faqs = [...(content.faqs || [])];
+    faqs[index] = { ...faqs[index], [field]: value };
+    handleChange('faqs', faqs);
   };
 
-  const handleMaterialUpdate = (index: number, field: keyof typeof content.materials[0], value: string) => {
-    const updatedMaterials = [...(content.materials || [])];
-    updatedMaterials[index] = {
-      ...updatedMaterials[index],
-      [field]: value,
-    };
-    handleUpdate({ materials: updatedMaterials });
-  };
+  const renderHeroSection = () => (
+    <div className="space-y-4">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Background Image URL</Label>
+        <Input
+          value={content.backgroundImage || ''}
+          onChange={(e) => handleChange('backgroundImage', e.target.value)}
+        />
+      </div>
+    </div>
+  );
 
-  const addMaterial = () => {
-    const newMaterial = {
-      icon: "Leaf",
-      title: "New Material",
-      description: "Description",
-    };
-    handleUpdate({ materials: [...(content.materials || []), newMaterial] });
-  };
+  const renderMissionSection = () => (
+    <div className="space-y-6">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Stats</Label>
+        {(content.stats || []).map((stat: SustainabilityStat, index: number) => (
+          <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <Input
+              placeholder="Icon"
+              value={stat.icon}
+              onChange={(e) => handleStatChange(index, 'icon', e.target.value)}
+            />
+            <Input
+              placeholder="Value"
+              value={stat.value}
+              onChange={(e) => handleStatChange(index, 'value', e.target.value)}
+            />
+            <Input
+              placeholder="Label"
+              value={stat.label}
+              onChange={(e) => handleStatChange(index, 'label', e.target.value)}
+            />
+            <Textarea
+              placeholder="Description"
+              value={stat.description}
+              onChange={(e) => handleStatChange(index, 'description', e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
-  const removeMaterial = (index: number) => {
-    const updatedMaterials = [...(content.materials || [])];
-    updatedMaterials.splice(index, 1);
-    handleUpdate({ materials: updatedMaterials });
-  };
+  const renderMaterialsSection = () => (
+    <div className="space-y-6">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Materials</Label>
+        {(content.materials || []).map((material: SustainabilityMaterial, index: number) => (
+          <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <Input
+              placeholder="Icon"
+              value={material.icon}
+              onChange={(e) => handleMaterialChange(index, 'icon', e.target.value)}
+            />
+            <Input
+              placeholder="Title"
+              value={material.title}
+              onChange={(e) => handleMaterialChange(index, 'title', e.target.value)}
+            />
+            <Textarea
+              placeholder="Description"
+              value={material.description}
+              onChange={(e) => handleMaterialChange(index, 'description', e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
-  const handleFaqUpdate = (index: number, field: keyof typeof content.faqs[0], value: string) => {
-    const updatedFaqs = [...(content.faqs || [])];
-    updatedFaqs[index] = {
-      ...updatedFaqs[index],
-      [field]: value,
-    };
-    handleUpdate({ faqs: updatedFaqs });
-  };
+  const renderFAQSection = () => (
+    <div className="space-y-6">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>FAQs</Label>
+        {(content.faqs || []).map((faq: FAQ, index: number) => (
+          <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <Input
+              placeholder="Question"
+              value={faq.question}
+              onChange={(e) => handleFAQChange(index, 'question', e.target.value)}
+            />
+            <Textarea
+              placeholder="Answer"
+              value={faq.answer}
+              onChange={(e) => handleFAQChange(index, 'answer', e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
-  const addFaq = () => {
-    const newFaq = {
-      question: "New Question",
-      answer: "New Answer",
-    };
-    handleUpdate({ faqs: [...(content.faqs || []), newFaq] });
-  };
+  const renderCTASection = () => (
+    <div className="space-y-4">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Button Text</Label>
+        <Input
+          value={content.buttonText || ''}
+          onChange={(e) => handleChange('buttonText', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Button Link</Label>
+        <Input
+          value={content.buttonLink || ''}
+          onChange={(e) => handleChange('buttonLink', e.target.value)}
+        />
+      </div>
+    </div>
+  );
 
-  const removeFaq = (index: number) => {
-    const updatedFaqs = [...(content.faqs || [])];
-    updatedFaqs.splice(index, 1);
-    handleUpdate({ faqs: updatedFaqs });
+  const renderEditor = () => {
+    switch (block.type) {
+      case 'sustainability_hero':
+        return renderHeroSection();
+      case 'sustainability_mission':
+        return renderMissionSection();
+      case 'sustainability_materials':
+        return renderMaterialsSection();
+      case 'sustainability_faq':
+        return renderFAQSection();
+      case 'sustainability_cta':
+        return renderCTASection();
+      default:
+        return <div>Unsupported block type</div>;
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label>Title</Label>
-          <Input
-            value={content.title || ""}
-            onChange={(e) => handleUpdate({ title: e.target.value })}
-            placeholder="Enter section title"
-          />
-        </div>
-
-        <div>
-          <Label>Description</Label>
-          <Textarea
-            value={content.description || ""}
-            onChange={(e) => handleUpdate({ description: e.target.value })}
-            placeholder="Enter section description"
-          />
-        </div>
-
-        {block.type === "sustainability_hero" && (
-          <div>
-            <Label>Background Image URL</Label>
-            <Input
-              value={content.backgroundImage || ""}
-              onChange={(e) => handleUpdate({ backgroundImage: e.target.value })}
-              placeholder="Enter background image URL"
-            />
-          </div>
-        )}
-      </div>
-
-      {block.type === "sustainability_mission" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Statistics</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addStat}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Stat
-            </Button>
-          </div>
-
-          {content.stats?.map((stat, index) => (
-            <div key={index} className="space-y-2 p-4 border rounded-lg">
-              <div className="flex justify-between items-center">
-                <Label>Stat {index + 1}</Label>
-                <Button type="button" variant="ghost" size="sm" onClick={() => removeStat(index)}>
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <Input
-                value={stat.value}
-                onChange={(e) => handleStatUpdate(index, "value", e.target.value)}
-                placeholder="Stat value"
-              />
-
-              <Input
-                value={stat.label}
-                onChange={(e) => handleStatUpdate(index, "label", e.target.value)}
-                placeholder="Stat label"
-              />
-
-              <Input
-                value={stat.description}
-                onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
-                placeholder="Stat description"
-              />
-
-              <select
-                value={stat.icon}
-                onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
-                className="w-full border rounded-md p-2"
-              >
-                <option value="Leaf">Leaf</option>
-                <option value="PackageCheck">Package Check</option>
-                <option value="Globe">Globe</option>
-              </select>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {block.type === "sustainability_materials" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Materials</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addMaterial}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Material
-            </Button>
-          </div>
-
-          {content.materials?.map((material, index) => (
-            <div key={index} className="space-y-2 p-4 border rounded-lg">
-              <div className="flex justify-between items-center">
-                <Label>Material {index + 1}</Label>
-                <Button type="button" variant="ghost" size="sm" onClick={() => removeMaterial(index)}>
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <Input
-                value={material.title}
-                onChange={(e) => handleMaterialUpdate(index, "title", e.target.value)}
-                placeholder="Material title"
-              />
-
-              <Input
-                value={material.description}
-                onChange={(e) => handleMaterialUpdate(index, "description", e.target.value)}
-                placeholder="Material description"
-              />
-
-              <select
-                value={material.icon}
-                onChange={(e) => handleMaterialUpdate(index, "icon", e.target.value)}
-                className="w-full border rounded-md p-2"
-              >
-                <option value="TreePine">Tree Pine</option>
-                <option value="Recycle">Recycle</option>
-                <option value="Factory">Factory</option>
-              </select>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {block.type === "sustainability_faq" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>FAQs</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addFaq}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add FAQ
-            </Button>
-          </div>
-
-          {content.faqs?.map((faq, index) => (
-            <div key={index} className="space-y-2 p-4 border rounded-lg">
-              <div className="flex justify-between items-center">
-                <Label>FAQ {index + 1}</Label>
-                <Button type="button" variant="ghost" size="sm" onClick={() => removeFaq(index)}>
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <Input
-                value={faq.question}
-                onChange={(e) => handleFaqUpdate(index, "question", e.target.value)}
-                placeholder="Question"
-              />
-
-              <Textarea
-                value={faq.answer}
-                onChange={(e) => handleFaqUpdate(index, "answer", e.target.value)}
-                placeholder="Answer"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {block.type === "sustainability_cta" && (
-        <div className="space-y-4">
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={content.buttonText || ""}
-              onChange={(e) => handleUpdate({ buttonText: e.target.value })}
-              placeholder="Enter button text"
-            />
-          </div>
-
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={content.buttonLink || ""}
-              onChange={(e) => handleUpdate({ buttonLink: e.target.value })}
-              placeholder="Enter button link"
-            />
-          </div>
-        </div>
-      )}
+      {renderEditor()}
     </div>
   );
 };
