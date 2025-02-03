@@ -1,4 +1,4 @@
-import { SustainabilitySection, SustainabilitySectionType } from "@/types/sustainability";
+import { SustainabilitySection } from "@/types/sustainability";
 import { SustainabilityHeroEditor } from "./SustainabilityHeroEditor";
 import { SustainabilityMissionEditor } from "./SustainabilityMissionEditor";
 import { SustainabilityMaterialsEditor } from "./SustainabilityMaterialsEditor";
@@ -18,51 +18,43 @@ export const SustainabilityEditor = ({ section, onUpdate }: SustainabilityEditor
     });
   };
 
-  const renderEditor = () => {
-    switch (section.section_type) {
-      case "sustainability_hero":
-        return (
-          <SustainabilityHeroEditor
-            content={section.content}
-            onUpdate={handleContentUpdate}
-          />
-        );
-      case "sustainability_mission":
-        return (
-          <SustainabilityMissionEditor
-            content={section.content}
-            onUpdate={handleContentUpdate}
-          />
-        );
-      case "sustainability_materials":
-        return (
-          <SustainabilityMaterialsEditor
-            content={section.content}
-            onUpdate={handleContentUpdate}
-          />
-        );
-      case "sustainability_faq":
-        return (
-          <SustainabilityFAQEditor
-            content={section.content}
-            onUpdate={handleContentUpdate}
-          />
-        );
-      case "sustainability_cta":
-        return (
-          <SustainabilityCTAEditor
-            content={section.content}
-            onUpdate={handleContentUpdate}
-          />
-        );
-      default:
-        return <div>Unknown section type</div>;
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {renderEditor()}
-    </div>
-  );
+  switch (section.section_type) {
+    case "sustainability_hero":
+      return (
+        <SustainabilityHeroEditor
+          content={section.content as any}
+          onUpdate={handleContentUpdate}
+        />
+      );
+    case "sustainability_mission":
+      return (
+        <SustainabilityMissionEditor
+          content={section.content as any}
+          onUpdate={handleContentUpdate}
+        />
+      );
+    case "sustainability_materials":
+      return (
+        <SustainabilityMaterialsEditor
+          content={section.content as any}
+          onUpdate={handleContentUpdate}
+        />
+      );
+    case "sustainability_faq":
+      return (
+        <SustainabilityFAQEditor
+          content={section.content as any}
+          onUpdate={handleContentUpdate}
+        />
+      );
+    case "sustainability_cta":
+      return (
+        <SustainabilityCTAEditor
+          content={section.content as any}
+          onUpdate={handleContentUpdate}
+        />
+      );
+    default:
+      return <div>Unknown section type</div>;
+  }
 };
