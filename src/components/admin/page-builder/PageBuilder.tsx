@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -10,20 +10,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 
-type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
-
 export interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
 }
+
+type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
   const [showComponentPicker, setShowComponentPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const initializeBlocks = async () => {
@@ -56,11 +55,37 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
           console.log('No blocks in DB, using initial blocks:', initialBlocks);
+          const savedBlocks = await Promise.all(
+            initialBlocks.map(async (block, index) => {
+              const insertData: ContentBlockInsert = {
+                id: block.id,
+                page_id: pageId,
+                type: block.type as Database['public']['Enums']['content_block_type'],
+                content: block.content,
+                order_index: index
+              };
+
+              const { data, error: insertError } = await supabase
+                .from('content_blocks')
+                .insert(insertData)
+                .select()
+                .single();
+
+              if (insertError) {
+                console.error('Error saving initial block to DB:', insertError);
+                throw insertError;
+              }
+
+              return block;
+            })
+          );
+
+          console.log('Saved initial blocks to DB:', savedBlocks);
           setBlocks(initialBlocks);
         }
       } catch (error) {
         console.error('Error initializing blocks:', error);
-        toast.error("Failed to load page content");
+        toast.error("Failed to initialize page content");
       } finally {
         setIsLoading(false);
       }
@@ -69,7 +94,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     initializeBlocks();
   }, [pageId, initialBlocks]);
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
 
     const items = Array.from(blocks);
@@ -81,27 +106,53 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       order_index: index,
     }));
 
-    setBlocks(updatedBlocks);
-    setHasUnsavedChanges(true);
-  };
+    try {
+      const updatePromises = updatedBlocks.map(block => 
+        supabase
+          .from('content_blocks')
+          .update({ order_index: block.order_index })
+          .eq('id', block.id)
+      );
 
-  const handleDeleteBlock = (blockId: string) => {
-    setBlocks(prevBlocks => {
-      const updatedBlocks = prevBlocks.filter(block => block.id !== blockId);
-      return updatedBlocks.map((block, index) => ({
-        ...block,
-        order_index: index
-      }));
-    });
-
-    if (selectedBlock?.id === blockId) {
-      setSelectedBlock(null);
+      await Promise.all(updatePromises);
+      setBlocks(updatedBlocks);
+      toast.success("Block order updated successfully");
+    } catch (error) {
+      console.error('Error updating block order:', error);
+      toast.error("Failed to update block order");
     }
-
-    setHasUnsavedChanges(true);
   };
 
-  const handleAddBlock = (blockType: BlockType) => {
+  const handleDeleteBlock = async (blockId: string) => {
+    try {
+      console.log('Deleting block:', blockId);
+      const { error } = await supabase
+        .from('content_blocks')
+        .delete()
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setBlocks(prevBlocks => {
+        const updatedBlocks = prevBlocks.filter(block => block.id !== blockId);
+        return updatedBlocks.map((block, index) => ({
+          ...block,
+          order_index: index
+        }));
+      });
+
+      if (selectedBlock?.id === blockId) {
+        setSelectedBlock(null);
+      }
+
+      toast.success("Block deleted successfully");
+    } catch (error) {
+      console.error('Error deleting block:', error);
+      toast.error("Failed to delete block");
+    }
+  };
+
+  const handleAddBlock = async (blockType: BlockType) => {
     const defaultContent: BlockContent = {};
     
     const newBlock: ContentBlock = {
@@ -112,91 +163,56 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       page_id: pageId
     };
 
-    setBlocks(prevBlocks => [...prevBlocks, newBlock]);
-    setShowComponentPicker(false);
-    setSelectedBlock(newBlock);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleUpdateBlock = (blockId: string, content: BlockContent) => {
-    setBlocks(prevBlocks => 
-      prevBlocks.map(block => 
-        block.id === blockId ? { ...block, content } : block
-      )
-    );
-    
-    setSelectedBlock(prev => 
-      prev?.id === blockId ? { ...prev, content } : prev
-    );
-    
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSaveLayout = async () => {
-    if (!hasUnsavedChanges) return;
-    
-    setIsSaving(true);
     try {
-      console.log('Saving layout with blocks:', blocks);
+      console.log('Adding new block:', newBlock);
+      const insertData: ContentBlockInsert = {
+        id: newBlock.id,
+        page_id: pageId,
+        type: blockType as Database['public']['Enums']['content_block_type'],
+        content: defaultContent,
+        order_index: blocks.length
+      };
 
-      // Only delete if there are existing blocks to delete
-      if (blocks.length > 0) {
-        const existingBlockIds = blocks.map(block => block.id);
-        const { error: deleteError } = await supabase
-          .from('content_blocks')
-          .delete()
-          .eq('page_id', pageId)
-          .not('id', 'in', existingBlockIds);
+      const { error } = await supabase
+        .from('content_blocks')
+        .insert(insertData);
 
-        if (deleteError) {
-          console.error('Error deleting blocks:', deleteError);
-          throw deleteError;
-        }
-      } else {
-        // If no blocks, delete all blocks for this page
-        const { error: deleteError } = await supabase
-          .from('content_blocks')
-          .delete()
-          .eq('page_id', pageId);
+      if (error) throw error;
 
-        if (deleteError) {
-          console.error('Error deleting all blocks:', deleteError);
-          throw deleteError;
-        }
-      }
-
-      // Only attempt to save blocks if there are any
-      if (blocks.length > 0) {
-        const blockUpdates = blocks.map(block => {
-          const blockData: ContentBlockInsert = {
-            id: block.id,
-            page_id: pageId,
-            type: block.type as Database['public']['Enums']['content_block_type'],
-            content: block.content,
-            order_index: block.order_index
-          };
-          return supabase
-            .from('content_blocks')
-            .upsert(blockData)
-            .select();
-        });
-
-        const results = await Promise.all(blockUpdates);
-        const errors = results.filter(result => result.error);
-
-        if (errors.length > 0) {
-          console.error('Errors saving blocks:', errors);
-          throw new Error('Failed to save some blocks');
-        }
-      }
-
-      setHasUnsavedChanges(false);
-      toast.success("Layout saved successfully");
+      setBlocks(prevBlocks => [...prevBlocks, newBlock]);
+      setShowComponentPicker(false);
+      setSelectedBlock(newBlock);
+      toast.success("Block added successfully");
     } catch (error) {
-      console.error('Error saving layout:', error);
-      toast.error("Failed to save layout");
-    } finally {
-      setIsSaving(false);
+      console.error('Error adding block:', error);
+      toast.error("Failed to add block");
+    }
+  };
+
+  const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
+    try {
+      console.log('Updating block:', blockId, content);
+      const { error } = await supabase
+        .from('content_blocks')
+        .update({ content })
+        .eq('id', blockId);
+
+      if (error) throw error;
+
+      setBlocks(prevBlocks => 
+        prevBlocks.map(block => 
+          block.id === blockId ? { ...block, content } : block
+        )
+      );
+      
+      setSelectedBlock(prev => 
+        prev?.id === blockId ? { ...prev, content } : prev
+      );
+      
+      toast.success("Block updated successfully");
+    } catch (error) {
+      console.error('Error updating block:', error);
+      toast.error("Failed to update block");
     }
   };
 
@@ -253,7 +269,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                               handleDeleteBlock(block.id);
                             }}
                           >
-                            <div className="h-4 w-4 text-red-500">×</div>
+                            <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
                       </div>
@@ -292,11 +308,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       <Button
         className="fixed bottom-4 right-4"
-        onClick={handleSaveLayout}
-        disabled={!hasUnsavedChanges || isSaving}
+        onClick={() => toast.success("Layout saved successfully")}
       >
         <Save className="w-4 h-4 mr-2" />
-        {isSaving ? 'Saving...' : 'Save Layout'}
+        Save Layout
       </Button>
     </div>
   );
