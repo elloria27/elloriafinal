@@ -1,4 +1,4 @@
-import { ContentBlock, BlockContent, SustainabilityContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, SustainabilityContent, SustainabilityStat } from "@/types/content-blocks";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +32,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
   };
 
   const addStat = () => {
-    const newStat = {
+    const newStat: SustainabilityStat = {
       icon: "Leaf",
       title: "New Stat",
       description: "Description",

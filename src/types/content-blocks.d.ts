@@ -43,15 +43,17 @@ export interface ButtonBlockContent extends BaseBlockContent {
   variant?: 'default' | 'outline' | 'ghost';
 }
 
+export interface SustainabilityStat {
+  icon: string;
+  title: string;
+  description: string;
+  color: string;
+}
+
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  stats?: Array<{
-    icon: string;
-    value: string;
-    label: string;
-    description: string;
-  }>;
+  stats?: SustainabilityStat[];
   timelineItems?: string[];
 }
 
@@ -364,4 +366,5 @@ export type BlockContent =
   | CustomSolutionsCtaContent
   | ForBusinessHeroContent
   | BusinessSolutionsContent
-  | BusinessContactContent;
+  | BusinessContactContent
+  | SustainabilityContent;
