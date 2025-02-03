@@ -20,6 +20,7 @@ import {
   FeaturesContent,
   GameChangerContent,
   StoreBrandsContent,
+  SustainabilityContent,
   ProductCarouselContent,
   TestimonialsContent,
   BlogPreviewContent,
@@ -135,7 +136,7 @@ const Index = () => {
       case 'store_brands':
         return <StoreBrands content={block.content as StoreBrandsContent} />;
       case 'sustainability':
-        return <Sustainability pageId={block.id} />;
+        return <Sustainability content={block.content as SustainabilityContent} />;
       case 'product_carousel':
         return <ProductCarousel content={block.content as ProductCarouselContent} />;
       case 'competitor_comparison':

@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
 import { Droplets, Leaf, Heart } from "lucide-react";
-import { GameChangerContent, FeatureItem } from "@/types/content-blocks";
+import { GameChangerContent } from "@/types/content-blocks";
 
 interface GameChangerProps {
   content?: GameChangerContent;
 }
 
 export const GameChanger = ({ content }: GameChangerProps) => {
-  const defaultFeatures: FeatureItem[] = [
+  const defaultFeatures = [
     {
       icon: "Droplets",
       title: "Superior Absorption",

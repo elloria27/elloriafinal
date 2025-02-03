@@ -35,7 +35,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       const updatedFeature = {
         ...(features[currentBrandIndex] as unknown as FeatureItem),
         description: url
-      } as FeatureItem;
+      } as Json;
       features[currentBrandIndex] = updatedFeature;
       onUpdate(block.id, { ...content, features });
     } else {
@@ -52,7 +52,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? content.features : [];
     
-    let newFeature: FeatureItem;
+    let newFeature: Json;
     if (block.type === 'store_brands') {
       newFeature = {
         icon: '',
@@ -86,8 +86,8 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = features[index] as FeatureItem;
-    const updatedFeature: FeatureItem = { ...feature, [field]: value };
+    const feature = features[index] as { [key: string]: Json };
+    const updatedFeature = { ...feature, [field]: value } as Json;
     features[index] = updatedFeature;
     onUpdate(block.id, { ...content, features });
   };
