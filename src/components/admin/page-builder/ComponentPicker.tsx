@@ -1,87 +1,78 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { BlockType } from "@/types/content-blocks";
+import { 
+  LayoutTemplate, 
+  Type, 
+  Image, 
+  Video, 
+  Square,
+  LayoutGrid,
+  MessageSquareQuote,
+  Mail,
+  ShoppingBag,
+  Newspaper,
+  Store,
+  Heart,
+  Leaf,
+  Users,
+  Target
+} from "lucide-react";
 
-interface ComponentPickerProps {
+export interface ComponentPickerProps {
   open: boolean;
   onClose: () => void;
   onSelect: (type: BlockType) => void;
 }
 
+const components = [
+  { type: 'hero' as BlockType, icon: LayoutTemplate, label: 'Hero Section' },
+  { type: 'heading' as BlockType, icon: Type, label: 'Heading' },
+  { type: 'text' as BlockType, icon: Type, label: 'Text Block' },
+  { type: 'image' as BlockType, icon: Image, label: 'Image' },
+  { type: 'video' as BlockType, icon: Video, label: 'Video' },
+  { type: 'button' as BlockType, icon: Square, label: 'Button' },
+  { type: 'features' as BlockType, icon: LayoutGrid, label: 'Features Grid' },
+  { type: 'testimonials' as BlockType, icon: MessageSquareQuote, label: 'Testimonials' },
+  { type: 'newsletter' as BlockType, icon: Mail, label: 'Newsletter' },
+  { type: 'product_gallery' as BlockType, icon: ShoppingBag, label: 'Product Gallery' },
+  { type: 'blog_preview' as BlockType, icon: Newspaper, label: 'Blog Preview' },
+  { type: 'store_brands' as BlockType, icon: Store, label: 'Store Brands' },
+  { type: 'about_hero_section' as BlockType, icon: LayoutTemplate, label: 'About Hero Section' },
+  { type: 'about_story' as BlockType, icon: Type, label: 'About Story' },
+  { type: 'about_mission' as BlockType, icon: Target, label: 'About Mission' },
+  { type: 'about_sustainability' as BlockType, icon: Leaf, label: 'About Sustainability' },
+  { type: 'about_team' as BlockType, icon: Users, label: 'About Team' },
+  { type: 'about_customer_impact' as BlockType, icon: MessageSquareQuote, label: 'About Customer Impact' },
+  { type: 'about_cta' as BlockType, icon: Square, label: 'About CTA Section' }
+];
+
 export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
-  const components = [
-    {
-      category: "Basic",
-      items: [
-        { type: "heading", label: "Heading" },
-        { type: "text", label: "Text" },
-        { type: "image", label: "Image" },
-        { type: "video", label: "Video" },
-        { type: "button", label: "Button" },
-      ],
-    },
-    {
-      category: "Home",
-      items: [
-        { type: "hero", label: "Hero" },
-        { type: "features", label: "Features" },
-        { type: "testimonials", label: "Testimonials" },
-        { type: "newsletter", label: "Newsletter" },
-        { type: "blog_preview", label: "Blog Preview" },
-        { type: "store_brands", label: "Store Brands" },
-        { type: "game_changer", label: "Game Changer" },
-      ],
-    },
-    {
-      category: "Products",
-      items: [
-        { type: "product_carousel", label: "Product Carousel" },
-        { type: "product_gallery", label: "Product Gallery" },
-        { type: "competitor_comparison", label: "Competitor Comparison" },
-      ],
-    },
-    {
-      category: "Sustainability",
-      items: [
-        { type: "sustainability_hero", label: "Sustainability Hero" },
-        { type: "sustainability_mission", label: "Sustainability Mission" },
-        { type: "sustainability_materials", label: "Sustainability Materials" },
-        { type: "sustainability_faq", label: "Sustainability FAQ" },
-        { type: "sustainability_cta", label: "Sustainability CTA" },
-      ],
-    },
-  ];
-
-  const handleSelect = (type: BlockType) => {
-    onSelect(type);
-    onClose();
-  };
-
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Component</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-          {components.map((category) => (
-            <div key={category.category}>
-              <h3 className="font-semibold mb-2">{category.category}</h3>
-              <div className="space-y-2">
-                {category.items.map((item) => (
-                  <Button
-                    key={item.type}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => handleSelect(item.type as BlockType)}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <ScrollArea className="h-[300px] pr-4">
+          <div className="grid grid-cols-2 gap-2">
+            {components.map((component) => (
+              <Button
+                key={component.type}
+                variant="outline"
+                className="h-24 flex flex-col items-center justify-center gap-2"
+                onClick={() => {
+                  onSelect(component.type);
+                  onClose();
+                }}
+              >
+                <component.icon className="h-6 w-6" />
+                <span className="text-sm">{component.label}</span>
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
