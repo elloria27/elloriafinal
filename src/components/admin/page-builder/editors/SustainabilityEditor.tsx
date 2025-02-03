@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ContentBlock } from "@/types/content-blocks";
-import { Button } from "@/components/ui/button";
 
 interface SustainabilityEditorProps {
   block: ContentBlock;
@@ -29,7 +28,7 @@ interface FAQ {
 }
 
 export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorProps) => {
-  const [content, setContent] = useState(block.content);
+  const [content, setContent] = useState<any>(block.content);
 
   useEffect(() => {
     setContent(block.content);
@@ -42,19 +41,19 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
   };
 
   const handleStatChange = (index: number, field: string, value: string) => {
-    const stats = [...(content.stats || [])];
+    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
     stats[index] = { ...stats[index], [field]: value };
     handleChange('stats', stats);
   };
 
   const handleMaterialChange = (index: number, field: string, value: string) => {
-    const materials = [...(content.materials || [])];
+    const materials = Array.isArray(content.materials) ? [...content.materials] : [];
     materials[index] = { ...materials[index], [field]: value };
     handleChange('materials', materials);
   };
 
   const handleFAQChange = (index: number, field: string, value: string) => {
-    const faqs = [...(content.faqs || [])];
+    const faqs = Array.isArray(content.faqs) ? [...content.faqs] : [];
     faqs[index] = { ...faqs[index], [field]: value };
     handleChange('faqs', faqs);
   };
@@ -103,7 +102,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       </div>
       <div>
         <Label>Stats</Label>
-        {(content.stats || []).map((stat: SustainabilityStat, index: number) => (
+        {(Array.isArray(content.stats) ? content.stats : []).map((stat: SustainabilityStat, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <Input
               placeholder="Icon"
@@ -149,7 +148,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       </div>
       <div>
         <Label>Materials</Label>
-        {(content.materials || []).map((material: SustainabilityMaterial, index: number) => (
+        {(Array.isArray(content.materials) ? content.materials : []).map((material: SustainabilityMaterial, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <Input
               placeholder="Icon"
@@ -190,7 +189,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       </div>
       <div>
         <Label>FAQs</Label>
-        {(content.faqs || []).map((faq: FAQ, index: number) => (
+        {(Array.isArray(content.faqs) ? content.faqs : []).map((faq: FAQ, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <Input
               placeholder="Question"
