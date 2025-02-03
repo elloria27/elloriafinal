@@ -5,7 +5,7 @@ import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockType, BlockContent } from "@/types/content-blocks";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { GripVertical, Trash2, Edit2 } from "lucide-react";
 
@@ -24,9 +24,9 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     console.log('PageBuilder mounted with blocks:', initialBlocks);
   }, [initialBlocks]);
 
-  const handleAddBlock = async (type: string) => {
+  const handleAddBlock = async (type: BlockType) => {
     try {
-      const newBlock = {
+      const newBlock: ContentBlock = {
         id: crypto.randomUUID(),
         type,
         content: {},
@@ -115,14 +115,17 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       console.log('Reordering blocks:', updatedBlocks);
 
+      const updateData = updatedBlocks.map(({ id, order_index, type, content, page_id }) => ({
+        id,
+        order_index,
+        type,
+        content,
+        page_id
+      }));
+
       const { error } = await supabase
         .from('content_blocks')
-        .upsert(
-          updatedBlocks.map(({ id, order_index }) => ({
-            id,
-            order_index,
-          }))
-        );
+        .upsert(updateData);
 
       if (error) throw error;
 
@@ -136,11 +139,13 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleEditClick = (blockId: string) => {
     console.log('Editing block:', blockId);
-    // Reset editing state when selecting a new block
-    if (selectedBlockId !== blockId) {
-      setSelectedBlockId(blockId);
-      setIsEditing(true);
-    }
+    setSelectedBlockId(blockId);
+    setIsEditing(true);
+  };
+
+  const handleSelectBlock = (block: ContentBlock) => {
+    setSelectedBlockId(block.id);
+    setIsEditing(true);
   };
 
   const selectedBlock = blocks.find(block => block.id === selectedBlockId);
@@ -218,6 +223,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
         {showComponentPicker && (
           <ComponentPicker
+            open={showComponentPicker}
             onSelect={handleAddBlock}
             onClose={() => setShowComponentPicker(false)}
           />
@@ -231,7 +237,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             onUpdate={handleUpdateBlock}
           />
         ) : (
-          <PreviewPane blocks={blocks} />
+          <PreviewPane 
+            blocks={blocks} 
+            onSelectBlock={handleSelectBlock}
+          />
         )}
       </div>
     </div>
