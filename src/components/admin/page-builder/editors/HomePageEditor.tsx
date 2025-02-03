@@ -17,43 +17,40 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [currentField, setCurrentField] = useState<string>("");
   const [currentBrandIndex, setCurrentBrandIndex] = useState<number>(0);
-  const [localContent, setLocalContent] = useState<Record<string, unknown>>(block.content as Record<string, unknown>);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     console.log('Handling input change for', field, 'with value:', e.target.value);
-    setLocalContent(prev => ({
-      ...prev,
+    const updatedContent = {
+      ...block.content as Record<string, unknown>,
       [field]: e.target.value
-    }));
-  };
-
-  const handleSaveChanges = () => {
-    console.log('Saving changes:', localContent);
-    onUpdate(block.id, localContent);
+    };
+    onUpdate(block.id, updatedContent);
   };
 
   const handleMediaSelect = (url: string) => {
     console.log('Selected media URL:', url);
     if (block.type === 'store_brands') {
-      const content = localContent as StoreBrandsContent;
+      const content = block.content as StoreBrandsContent;
       const features = Array.isArray(content.features) ? [...content.features] : [];
       const updatedFeature = {
         ...(features[currentBrandIndex] as unknown as FeatureItem),
         description: url
       } as Json;
       features[currentBrandIndex] = updatedFeature;
-      setLocalContent(prev => ({ ...prev, features }));
+      onUpdate(block.id, { ...content, features });
     } else {
-      setLocalContent(prev => ({
-        ...prev,
+      const updatedContent = {
+        ...block.content as Record<string, unknown>,
         [currentField]: url
-      }));
+      };
+      onUpdate(block.id, updatedContent);
     }
     setShowMediaLibrary(false);
   };
 
   const handleFeatureAdd = () => {
-    const features = Array.isArray(localContent.features) ? localContent.features : [];
+    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(content.features) ? content.features : [];
     
     let newFeature: Json;
     if (block.type === 'store_brands') {
@@ -72,24 +69,27 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       };
     }
 
-    setLocalContent(prev => ({
-      ...prev,
+    const updatedContent = {
+      ...content,
       features: [...features, newFeature]
-    }));
+    };
+    onUpdate(block.id, updatedContent);
   };
 
   const handleFeatureRemove = (index: number) => {
-    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
+    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
-    setLocalContent(prev => ({ ...prev, features }));
+    onUpdate(block.id, { ...content, features });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
+    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
     const feature = features[index] as { [key: string]: Json };
     const updatedFeature = { ...feature, [field]: value } as Json;
     features[index] = updatedFeature;
-    setLocalContent(prev => ({ ...prev, features }));
+    onUpdate(block.id, { ...content, features });
   };
 
   const renderMediaField = (label: string, field: string, type: "image" | "video") => (
@@ -97,7 +97,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Input
-          value={String(localContent[field] || "")}
+          value={String(block.content[field] || "")}
           onChange={(e) => handleInputChange(e, field)}
           placeholder={`Enter ${label.toLowerCase()} URL`}
         />
@@ -124,14 +124,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <div>
               <Label>Title</Label>
               <Input
-                value={String(localContent.title || "")}
+                value={String(block.content.title || "")}
                 onChange={(e) => handleInputChange(e, "title")}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={String(localContent.subtitle || "")}
+                value={String(block.content.subtitle || "")}
                 onChange={(e) => handleInputChange(e, "subtitle")}
               />
             </div>
@@ -140,14 +140,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
             <div>
               <Label>Shop Now Text</Label>
               <Input
-                value={String(localContent.shopNowText || "")}
+                value={String(block.content.shopNowText || "")}
                 onChange={(e) => handleInputChange(e, "shopNowText")}
               />
             </div>
             <div>
               <Label>Learn More Text</Label>
               <Input
-                value={String(localContent.learnMoreText || "")}
+                value={String(block.content.learnMoreText || "")}
                 onChange={(e) => handleInputChange(e, "learnMoreText")}
               />
             </div>
@@ -156,26 +156,27 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
       case "features":
       case "game_changer":
+        const content = block.content as FeaturesContent | GameChangerContent;
         return (
           <div className="space-y-6">
             <div>
               <Label>Title</Label>
               <Input
-                value={String(localContent.title || "")}
+                value={String(content.title || "")}
                 onChange={(e) => handleInputChange(e, "title")}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={String(localContent.subtitle || "")}
+                value={String(content.subtitle || "")}
                 onChange={(e) => handleInputChange(e, "subtitle")}
               />
             </div>
             <div>
               <Label>Description</Label>
               <Input
-                value={String(localContent.description || "")}
+                value={String(content.description || "")}
                 onChange={(e) => handleInputChange(e, "description")}
               />
             </div>
@@ -194,7 +195,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 </Button>
               </div>
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-                {Array.isArray(localContent.features) && localContent.features.map((feature, index) => (
+                {Array.isArray(content.features) && content.features.map((feature, index) => (
                   <div key={index} className="p-4 border rounded-lg space-y-3 bg-white">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Feature {index + 1}</span>
@@ -245,19 +246,20 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
         );
 
       case "store_brands":
+        const storeBrandsContent = block.content as StoreBrandsContent;
         return (
           <div className="space-y-6">
             <div>
               <Label>Title</Label>
               <Input
-                value={String(localContent.title || "")}
+                value={String(storeBrandsContent.title || "")}
                 onChange={(e) => handleInputChange(e, "title")}
               />
             </div>
             <div>
               <Label>Subtitle</Label>
               <Input
-                value={String(localContent.subtitle || "")}
+                value={String(storeBrandsContent.subtitle || "")}
                 onChange={(e) => handleInputChange(e, "subtitle")}
               />
             </div>
@@ -276,7 +278,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 </Button>
               </div>
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-                {Array.isArray(localContent.features) && localContent.features.map((brand, index) => {
+                {Array.isArray(storeBrandsContent.features) && storeBrandsContent.features.map((brand, index) => {
                   const typedBrand = brand as unknown as FeatureItem;
                   return (
                     <div key={index} className="p-4 border rounded-lg space-y-3 bg-white">
@@ -343,11 +345,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     <div className="space-y-6 h-full">
       <div className="h-[calc(100vh-200px)] overflow-y-auto pr-4">
         {renderEditor()}
-        <div className="sticky bottom-0 bg-white p-4 border-t mt-4">
-          <Button onClick={handleSaveChanges} className="w-full">
-            Save Changes
-          </Button>
-        </div>
       </div>
       {showMediaLibrary && (
         <MediaLibraryModal
