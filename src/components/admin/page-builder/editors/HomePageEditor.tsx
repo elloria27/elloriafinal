@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -13,6 +14,8 @@ interface HomePageEditorProps {
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [content, setContent] = useState<BlockContent>(block.content);
+  const [selectedBrandIndex, setSelectedBrandIndex] = useState<number | null>(null);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   useEffect(() => {
     console.log('Block changed in HomePageEditor:', block);
@@ -41,6 +44,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const array = [...((content as any)[key] || [])];
     array.splice(index, 1);
     handleChange(key, array);
+  };
+
+  const handleMediaSelect = (url: string) => {
+    if (selectedBrandIndex !== null) {
+      handleArrayChange('brands', selectedBrandIndex, { logo: url });
+    }
+    setIsMediaLibraryOpen(false);
+    setSelectedBrandIndex(null);
   };
 
   console.log('Rendering HomePageEditor with block type:', block.type);
@@ -198,11 +209,23 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                   value={brand.name || ''}
                   onChange={(e) => handleArrayChange('brands', index, { name: e.target.value })}
                 />
-                <Input
-                  placeholder="Logo URL"
-                  value={brand.logo || ''}
-                  onChange={(e) => handleArrayChange('brands', index, { logo: e.target.value })}
-                />
+                <div className="flex items-center gap-2 mt-2">
+                  <img
+                    src={brand.logo || '/placeholder.svg'}
+                    alt={brand.name || 'Brand logo'}
+                    className="w-16 h-16 object-contain border rounded"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedBrandIndex(index);
+                      setIsMediaLibraryOpen(true);
+                    }}
+                  >
+                    Select Logo
+                  </Button>
+                </div>
                 <Input
                   placeholder="Link"
                   value={brand.link || ''}
@@ -225,6 +248,15 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               Add Brand
             </Button>
           </div>
+          <MediaLibraryModal
+            open={isMediaLibraryOpen}
+            onClose={() => {
+              setIsMediaLibraryOpen(false);
+              setSelectedBrandIndex(null);
+            }}
+            onSelect={handleMediaSelect}
+            type="image"
+          />
         </div>
       );
 
