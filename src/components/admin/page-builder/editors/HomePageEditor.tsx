@@ -56,7 +56,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const features = Array.isArray(content.features) ? [...content.features] : [];
     const updatedFeature = {
       ...features[index],
-      [field]: value,
+      [field]: String(value),
     };
     features[index] = updatedFeature;
     handleContentChange({ features } as Partial<BlockContent>);
@@ -268,7 +268,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Icon</Label>
                   <select
-                    value={feature.icon}
+                    value={String(feature.icon)}
                     onChange={(e) =>
                       handleFeatureChange(index, "icon", e.target.value)
                     }
@@ -283,7 +283,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Title</Label>
                   <Input
-                    value={feature.title}
+                    value={String(feature.title)}
                     onChange={(e) =>
                       handleFeatureChange(index, "title", e.target.value)
                     }
@@ -293,7 +293,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 <div>
                   <Label>Description</Label>
                   <Input
-                    value={feature.description}
+                    value={String(feature.description)}
                     onChange={(e) =>
                       handleFeatureChange(index, "description", e.target.value)
                     }
