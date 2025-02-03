@@ -118,56 +118,58 @@ export const InventoryManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        {isMobile ? (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-80">
-              <AdminSidebar profile={profile} onClose={() => {}} />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <div className="w-64 flex-shrink-0">
-            <AdminSidebar profile={profile} />
-          </div>
-        )}
-        
-        <div className="flex-1 p-6 ml-0 md:ml-64">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold mb-2">Inventory Management</h1>
-            <p className="text-gray-600 mb-6">Manage product inventory levels and track stock movements</p>
+      {isMobile ? (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-80">
+            <AdminSidebar profile={profile} onClose={() => {}} />
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <div className="fixed left-0 top-0 h-full w-64">
+          <AdminSidebar profile={profile} />
+        </div>
+      )}
+      
+      <main className={`${isMobile ? 'pt-16' : ''} px-4 md:px-6 md:ml-64`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Inventory Management</h1>
+              <p className="text-gray-600 text-sm md:text-base">Manage product inventory levels and track stock movements</p>
+            </div>
 
-            <div className="grid gap-6 mb-6">
-              <Card className="p-6">
+            <div className="grid gap-4 md:gap-6">
+              <Card className="p-4 md:p-6">
                 <h3 className="text-lg font-semibold mb-2">Total Inventory Value</h3>
-                <p className="text-3xl font-bold">${totalValue.toFixed(2)}</p>
+                <p className="text-2xl md:text-3xl font-bold">${totalValue.toFixed(2)}</p>
               </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold mb-2 flex justify-between items-center">
                     Low Stock Items
                     <span className="text-red-500">↘</span>
                   </h3>
-                  <p className="text-3xl font-bold">{lowStockCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold">{lowStockCount}</p>
                 </Card>
 
-                <Card className="p-6">
+                <Card className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold mb-2 flex justify-between items-center">
                     Over Stock Items
                     <span className="text-yellow-500">↗</span>
                   </h3>
-                  <p className="text-3xl font-bold">{overStockCount}</p>
+                  <p className="text-2xl md:text-3xl font-bold">{overStockCount}</p>
                 </Card>
               </div>
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList>
+              <TabsList className="w-full md:w-auto overflow-x-auto">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="adjustment">Stock Adjustment</TabsTrigger>
                 <TabsTrigger value="logs">Movement Logs</TabsTrigger>
@@ -175,25 +177,25 @@ export const InventoryManagement = () => {
 
               <TabsContent value="overview">
                 <Card>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
+                  <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <table className="w-full min-w-[600px]">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left p-4">Product Name</th>
-                          <th className="text-left p-4">SKU</th>
-                          <th className="text-left p-4">Location</th>
-                          <th className="text-left p-4">Current Stock</th>
-                          <th className="text-left p-4">Reorder Point</th>
+                          <th className="text-left p-4 whitespace-nowrap">Product Name</th>
+                          <th className="text-left p-4 whitespace-nowrap">SKU</th>
+                          <th className="text-left p-4 whitespace-nowrap">Location</th>
+                          <th className="text-left p-4 whitespace-nowrap">Current Stock</th>
+                          <th className="text-left p-4 whitespace-nowrap">Reorder Point</th>
                         </tr>
                       </thead>
                       <tbody>
                         {inventory.map((item) => (
                           <tr key={item.id} className="border-b">
-                            <td className="p-4">{item.product?.name}</td>
-                            <td className="p-4">{item.sku || '-'}</td>
-                            <td className="p-4">{item.location || '-'}</td>
-                            <td className="p-4">{item.quantity}</td>
-                            <td className="p-4">{item.reorder_point || 50}</td>
+                            <td className="p-4 whitespace-nowrap">{item.product?.name}</td>
+                            <td className="p-4 whitespace-nowrap">{item.sku || '-'}</td>
+                            <td className="p-4 whitespace-nowrap">{item.location || '-'}</td>
+                            <td className="p-4 whitespace-nowrap">{item.quantity}</td>
+                            <td className="p-4 whitespace-nowrap">{item.reorder_point || 50}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -203,14 +205,14 @@ export const InventoryManagement = () => {
               </TabsContent>
 
               <TabsContent value="adjustment">
-                <Card className="p-6">
+                <Card className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold mb-4">Stock Adjustment</h3>
                   {/* Stock adjustment form will be implemented here */}
                 </Card>
               </TabsContent>
 
               <TabsContent value="logs">
-                <Card className="p-6">
+                <Card className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold mb-4">Movement Logs</h3>
                   {/* Movement logs table will be implemented here */}
                 </Card>
@@ -218,7 +220,7 @@ export const InventoryManagement = () => {
             </Tabs>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
