@@ -160,6 +160,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       type: blockType,
       content: defaultContent,
       order_index: blocks.length,
+      page_id: pageId
     };
 
     try {
@@ -255,16 +256,18 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                         className={`p-3 bg-white rounded-lg shadow cursor-pointer group ${
                           selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
                         }`}
+                        onClick={() => setSelectedBlock(block)}
                       >
                         <div className="flex items-center justify-between">
-                          <span onClick={() => setSelectedBlock(block)}>
-                            {block.type}
-                          </span>
+                          <span>{block.type}</span>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteBlock(block.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteBlock(block.id);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
@@ -284,6 +287,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <PreviewPane 
           blocks={blocks} 
           onSelectBlock={setSelectedBlock}
+          selectedBlockId={selectedBlock?.id}
         />
       </div>
 
@@ -291,7 +295,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         <div className="w-80 bg-gray-100 p-4 border-l">
           <PropertyEditor
             block={selectedBlock}
-            onUpdate={(blockId, content) => handleUpdateBlock(blockId, content)}
+            onUpdate={handleUpdateBlock}
           />
         </div>
       )}
@@ -299,7 +303,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       <ComponentPicker
         open={showComponentPicker}
         onClose={() => setShowComponentPicker(false)}
-        onSelect={(type: BlockType) => handleAddBlock(type)}
+        onSelect={handleAddBlock}
       />
 
       <Button

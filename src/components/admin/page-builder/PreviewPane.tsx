@@ -5,9 +5,10 @@ import { Edit2 } from "lucide-react";
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
+  selectedBlockId?: string;
 }
 
-export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
+export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId }: PreviewPaneProps) => {
   const getContentValue = (content: BlockContent, key: string): any => {
     return (content as any)[key];
   };
@@ -18,9 +19,11 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
     const blockContent = (
       <div className="group relative">
         <Button
-          variant="ghost"
+          variant={selectedBlockId === block.id ? "default" : "ghost"}
           size="sm"
-          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          className={`absolute right-2 top-2 ${
+            selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          } transition-opacity`}
           onClick={() => onSelectBlock(block)}
         >
           <Edit2 className="h-4 w-4" />
@@ -83,7 +86,9 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
 
             default:
               return (
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                <div className={`p-4 border border-dashed rounded-lg ${
+                  selectedBlockId === block.id ? 'border-primary bg-primary/5' : 'border-gray-300'
+                }`}>
                   {block.type} component
                 </div>
               );
@@ -93,7 +98,12 @@ export const PreviewPane = ({ blocks, onSelectBlock }: PreviewPaneProps) => {
     );
 
     return (
-      <div key={block.id} className="mb-6 relative hover:bg-gray-50 rounded-lg p-2 transition-colors">
+      <div 
+        key={block.id} 
+        className={`mb-6 relative rounded-lg p-2 transition-colors ${
+          selectedBlockId === block.id ? 'bg-gray-50 ring-2 ring-primary ring-opacity-50' : 'hover:bg-gray-50'
+        }`}
+      >
         {blockContent}
       </div>
     );
