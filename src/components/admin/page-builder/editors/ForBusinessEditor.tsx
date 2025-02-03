@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { ContentBlock, BusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, BusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -19,37 +17,29 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
     });
   };
 
-  const handleSolutionChange = (index: number, field: string, value: string) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions[index] = {
-      ...solutions[index],
-      [field]: value,
-    };
-    
-    handleContentChange({ solutions });
-  };
-
-  const addSolution = () => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
+  const handleFeatureAdd = () => {
+    const content = block.content as BusinessSolutionsContent;
+    const solutions = Array.isArray(content.solutions) ? [...content.solutions] : [];
     solutions.push({
-      icon: "Briefcase",
+      icon: "Star",
       title: "New Solution",
-      description: "Description of the solution",
+      description: "Description",
     });
-    
     handleContentChange({ solutions });
   };
 
-  const removeSolution = (index: number) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
+  const handleFeatureRemove = (index: number) => {
+    const content = block.content as BusinessSolutionsContent;
+    const solutions = Array.isArray(content.solutions) ? [...content.solutions] : [];
     solutions.splice(index, 1);
-    
+    handleContentChange({ solutions });
+  };
+
+  const handleFeatureUpdate = (index: number, field: string, value: string) => {
+    const content = block.content as BusinessSolutionsContent;
+    const solutions = Array.isArray(content.solutions) ? [...content.solutions] : [];
+    const solution = { ...solutions[index], [field]: value };
+    solutions[index] = solution;
     handleContentChange({ solutions });
   };
 
@@ -63,7 +53,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               value={heroContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter hero title"
+              placeholder="Enter title"
             />
           </div>
           <div>
@@ -76,7 +66,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea
+            <Input
               value={heroContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
@@ -85,7 +75,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Text</Label>
             <Input
-              value={String(heroContent.buttonText || "")}
+              value={typeof heroContent.buttonText === 'string' ? heroContent.buttonText : ''}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -93,7 +83,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Link</Label>
             <Input
-              value={String(heroContent.buttonLink || "")}
+              value={typeof heroContent.buttonLink === 'string' ? heroContent.buttonLink : ''}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
@@ -110,73 +100,67 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               value={solutionsContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter section title"
+              placeholder="Enter title"
             />
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea
+            <Input
               value={solutionsContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter section description"
+              placeholder="Enter description"
             />
           </div>
-          
+
           <div className="space-y-4">
-            <Label>Solutions</Label>
-            {solutionsContent.solutions?.map((solution, index) => (
+            <div className="flex justify-between items-center">
+              <Label>Solutions</Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleFeatureAdd}
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Solution
+              </Button>
+            </div>
+            
+            {Array.isArray(solutionsContent.solutions) && solutionsContent.solutions.map((solution, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-3">
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Solution {index + 1}</span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeSolution(index)}
+                    onClick={() => handleFeatureRemove(index)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </div>
                 <div>
                   <Label>Icon</Label>
                   <Input
                     value={solution.icon}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "icon", e.target.value)
-                    }
-                    placeholder="Icon name"
+                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Title</Label>
                   <Input
                     value={solution.title}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "title", e.target.value)
-                    }
-                    placeholder="Solution title"
+                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
                   />
                 </div>
                 <div>
                   <Label>Description</Label>
-                  <Textarea
+                  <Input
                     value={solution.description}
-                    onChange={(e) =>
-                      handleSolutionChange(index, "description", e.target.value)
-                    }
-                    placeholder="Solution description"
+                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
                   />
                 </div>
               </div>
             ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addSolution}
-              className="w-full"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Solution
-            </Button>
           </div>
         </div>
       );
@@ -190,12 +174,12 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               value={contactContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter section title"
+              placeholder="Enter title"
             />
           </div>
           <div>
             <Label>Description</Label>
-            <Textarea
+            <Input
               value={contactContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
@@ -206,13 +190,13 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               value={contactContent.email || ""}
               onChange={(e) => handleContentChange({ email: e.target.value })}
-              placeholder="Enter contact email"
+              placeholder="Enter email"
             />
           </div>
           <div>
             <Label>Button Text</Label>
             <Input
-              value={String(contactContent.buttonText || "")}
+              value={typeof contactContent.buttonText === 'string' ? contactContent.buttonText : ''}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -220,7 +204,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Link</Label>
             <Input
-              value={String(contactContent.buttonLink || "")}
+              value={typeof contactContent.buttonLink === 'string' ? contactContent.buttonLink : ''}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
