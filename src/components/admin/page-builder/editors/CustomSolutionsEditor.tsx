@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,18 @@ interface CustomSolutionsEditorProps {
 }
 
 export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditorProps) => {
+  const [localContent, setLocalContent] = useState(block.content);
+
+  // Reset local content when block changes
+  useEffect(() => {
+    console.log("Block changed, resetting local content:", block.content);
+    setLocalContent(block.content);
+  }, [block.id, block.content]);
+
   const handleContentChange = (updates: Partial<CustomSolutionsHeroContent | CustomSolutionsServicesContent | CustomSolutionsProcessContent | CustomSolutionsCtaContent>) => {
-    onUpdate(block.id, {
-      ...block.content,
-      ...updates,
-    });
+    const updatedContent = { ...localContent, ...updates };
+    setLocalContent(updatedContent);
+    onUpdate(block.id, updatedContent);
   };
 
   const handleServiceAdd = () => {

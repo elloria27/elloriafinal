@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -12,50 +12,23 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
+  const [localContent, setLocalContent] = useState(block.content);
+
+  // Reset local content when block changes
+  useEffect(() => {
+    console.log("Block changed, resetting local content:", block.content);
+    setLocalContent(block.content);
+  }, [block.id, block.content]);
+
   const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
-    onUpdate(block.id, {
-      ...block.content,
-      ...updates,
-    });
-  };
-
-  const handleSolutionChange = (index: number, field: string, value: string) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions[index] = {
-      ...solutions[index],
-      [field]: value,
-    };
-    
-    handleContentChange({ solutions });
-  };
-
-  const addSolution = () => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions.push({
-      icon: "Briefcase",
-      title: "New Solution",
-      description: "Description of the solution",
-    });
-    
-    handleContentChange({ solutions });
-  };
-
-  const removeSolution = (index: number) => {
-    if (block.type !== "business_solutions") return;
-    
-    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
-    solutions.splice(index, 1);
-    
-    handleContentChange({ solutions });
+    const updatedContent = { ...localContent, ...updates };
+    setLocalContent(updatedContent);
+    onUpdate(block.id, updatedContent);
   };
 
   switch (block.type) {
     case "business_hero":
-      const heroContent = block.content as ForBusinessHeroContent;
+      const heroContent = localContent as ForBusinessHeroContent;
       return (
         <div className="space-y-4">
           <div>
@@ -102,7 +75,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       );
 
     case "business_solutions":
-      const solutionsContent = block.content as BusinessSolutionsContent;
+      const solutionsContent = localContent as BusinessSolutionsContent;
       return (
         <div className="space-y-6">
           <div>
@@ -182,7 +155,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       );
 
     case "business_contact":
-      const contactContent = block.content as BusinessContactContent;
+      const contactContent = localContent as BusinessContactContent;
       return (
         <div className="space-y-4">
           <div>
