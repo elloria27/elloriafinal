@@ -7,7 +7,7 @@ import { SustainabilityCTAEditor } from "./SustainabilityCTAEditor";
 
 interface SustainabilityEditorProps {
   section: SustainabilitySection;
-  onUpdate: (section: SustainabilitySection) => void;
+  onUpdate: (content: any) => void;
 }
 
 export const SustainabilityEditor = ({ section, onUpdate }: SustainabilityEditorProps) => {

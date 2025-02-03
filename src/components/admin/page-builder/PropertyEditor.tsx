@@ -3,7 +3,7 @@ import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
 import { ContactPageEditor } from "./editors/ContactPageEditor";
 import { CommonEditor } from "./editors/CommonEditor";
-import { SustainabilityEditor } from "./editors/SustainabilityEditor";
+import { SustainabilityEditor } from "./editors/sustainability/SustainabilityEditor";
 import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
@@ -48,8 +48,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   // Sustainability page components
   const sustainabilityComponents = [
     "sustainability_hero",
-    "sustainability_initiatives",
-    "sustainability_impact",
+    "sustainability_mission",
+    "sustainability_materials",
+    "sustainability_faq",
+    "sustainability_cta",
   ];
 
   // Business page components
@@ -87,8 +89,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
     }
 
-    if (block.type === "sustainability" || block.type === "about_sustainability") {
-      return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
+    if (sustainabilityComponents.includes(block.type)) {
+      return <SustainabilityEditor section={{ 
+        id: block.id,
+        page_id: block.page_id,
+        section_type: block.type as any,
+        content: block.content,
+        order_index: block.order_index
+      }} onUpdate={(content) => onUpdate(block.id, content)} />;
     }
 
     if (homeComponents.includes(block.type)) {
@@ -101,10 +109,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (contactComponents.includes(block.type)) {
       return <ContactPageEditor block={block} onUpdate={onUpdate} />;
-    }
-
-    if (sustainabilityComponents.includes(block.type)) {
-      return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (businessComponents.includes(block.type)) {
