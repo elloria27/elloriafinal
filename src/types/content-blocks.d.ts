@@ -72,13 +72,24 @@ export interface StoreBrandsContent extends BaseBlockContent {
 export interface SustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  statsTitle?: string;
-  stats?: {
+  backgroundImage?: string;
+  stats?: Array<{
+    icon: string;
+    value: string;
+    label: string;
+    description: string;
+  }>;
+  materials?: Array<{
     icon: string;
     title: string;
     description: string;
-    color: string;
-  }[];
+  }>;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+  buttonText?: string;
+  buttonLink?: string;
   timelineItems?: string[];
 }
 
@@ -359,7 +370,12 @@ export type BlockType =
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
-  | "custom_solutions_cta";
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta";
 
 export interface ContentBlock {
   id: string;
