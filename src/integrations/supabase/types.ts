@@ -1322,6 +1322,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      migrate_sustainability_content: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       block_type:
@@ -1375,6 +1379,12 @@ export type Database = {
       referral_status: "pending" | "completed"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
+      sustainability_section_type:
+        | "sustainability_hero"
+        | "sustainability_mission"
+        | "sustainability_materials"
+        | "sustainability_faq"
+        | "sustainability_cta"
       symptom_severity: "light" | "medium" | "severe"
       user_role: "admin" | "client"
     }
