@@ -48,8 +48,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   // Sustainability page components
   const sustainabilityComponents = [
     "sustainability_hero",
-    "sustainability_initiatives",
-    "sustainability_impact",
+    "sustainability_mission",
+    "sustainability_materials",
+    "sustainability_faq",
+    "sustainability_cta"
   ];
 
   // Business page components
@@ -87,7 +89,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
     }
 
-    if (block.type === "sustainability" || block.type === "about_sustainability") {
+    if (sustainabilityComponents.includes(block.type)) {
       return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
     }
 
@@ -101,10 +103,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (contactComponents.includes(block.type)) {
       return <ContactPageEditor block={block} onUpdate={onUpdate} />;
-    }
-
-    if (sustainabilityComponents.includes(block.type)) {
-      return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (businessComponents.includes(block.type)) {
