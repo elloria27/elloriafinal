@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Leaf, Recycle, Percent, Package, Factory } from "lucide-react";
+import { Leaf, Recycle, Globe, TreePine, Factory, PackageCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { SustainabilitySection } from "@/types/sustainability";
+import { SustainabilitySection, SustainabilityHeroContent, SustainabilityMissionContent, SustainabilityMaterialsContent, SustainabilityFAQContent, SustainabilityCTAContent } from "@/types/sustainability";
 
 interface SustainabilityProps {
   pageId?: string;
@@ -29,7 +29,14 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         }
 
         console.log('Fetched sustainability sections:', data);
-        setSections(data || []);
+        
+        // Transform the data to ensure correct typing
+        const typedSections = data?.map(section => ({
+          ...section,
+          content: section.content as SustainabilityHeroContent | SustainabilityMissionContent | SustainabilityMaterialsContent | SustainabilityFAQContent | SustainabilityCTAContent
+        })) || [];
+
+        setSections(typedSections);
       } catch (error) {
         console.error('Failed to fetch sustainability sections:', error);
       } finally {
@@ -46,9 +53,30 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
     return <div>Loading...</div>;
   }
 
+  const isHeroSection = (content: any): content is SustainabilityHeroContent => {
+    return 'background_image' in content;
+  };
+
+  const isMissionSection = (content: any): content is SustainabilityMissionContent => {
+    return 'stats' in content;
+  };
+
+  const isMaterialsSection = (content: any): content is SustainabilityMaterialsContent => {
+    return 'materials' in content;
+  };
+
+  const isFAQSection = (content: any): content is SustainabilityFAQContent => {
+    return 'faqs' in content;
+  };
+
+  const isCTASection = (content: any): content is SustainabilityCTAContent => {
+    return 'button_text' in content && 'button_link' in content;
+  };
+
   const renderSection = (section: SustainabilitySection) => {
     switch (section.section_type) {
       case "sustainability_hero":
+        if (!isHeroSection(section.content)) return null;
         return (
           <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center bg-gradient-to-b from-accent-green/30 to-white overflow-hidden">
             <div className="absolute inset-0 z-0">
@@ -76,6 +104,7 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         );
 
       case "sustainability_mission":
+        if (!isMissionSection(section.content)) return null;
         return (
           <section className="py-20 bg-white">
             <div className="container px-4">
@@ -99,7 +128,11 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
                     transition={{ delay: index * 0.2 }}
                     className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <div className="text-primary mb-4">{stat.icon}</div>
+                    <div className="text-primary mb-4">
+                      {stat.icon === 'Leaf' && <Leaf className="w-8 h-8" />}
+                      {stat.icon === 'PackageCheck' && <PackageCheck className="w-8 h-8" />}
+                      {stat.icon === 'Globe' && <Globe className="w-8 h-8" />}
+                    </div>
                     <div className="text-4xl font-bold text-primary mb-2">{stat.value}</div>
                     <h3 className="text-xl font-semibold mb-3">{stat.label}</h3>
                     <p className="text-gray-600">{stat.description}</p>
@@ -111,6 +144,7 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         );
 
       case "sustainability_materials":
+        if (!isMaterialsSection(section.content)) return null;
         return (
           <section className="py-20 bg-accent-green/10">
             <div className="container px-4">
@@ -136,7 +170,11 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
                     transition={{ delay: index * 0.2 }}
                     className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
                   >
-                    <div className="text-primary mb-4">{material.icon}</div>
+                    <div className="text-primary mb-4">
+                      {material.icon === 'TreePine' && <TreePine className="w-6 h-6" />}
+                      {material.icon === 'Recycle' && <Recycle className="w-6 h-6" />}
+                      {material.icon === 'Factory' && <Factory className="w-6 h-6" />}
+                    </div>
                     <h3 className="text-lg font-semibold mb-2">{material.title}</h3>
                     <p className="text-gray-600">{material.description}</p>
                   </motion.div>
@@ -147,6 +185,7 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         );
 
       case "sustainability_faq":
+        if (!isFAQSection(section.content)) return null;
         return (
           <section className="py-20 bg-white">
             <div className="container px-4">
@@ -182,6 +221,7 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         );
 
       case "sustainability_cta":
+        if (!isCTASection(section.content)) return null;
         return (
           <section className="py-20 bg-gradient-to-b from-accent-green/10 to-white">
             <div className="container px-4 text-center">
