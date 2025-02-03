@@ -33,7 +33,13 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         // Transform the data to ensure correct typing
         const typedSections = data?.map(section => ({
           ...section,
-          content: section.content as SustainabilityHeroContent | SustainabilityMissionContent | SustainabilityMaterialsContent | SustainabilityFAQContent | SustainabilityCTAContent
+          content: section.content as unknown as (
+            SustainabilityHeroContent | 
+            SustainabilityMissionContent | 
+            SustainabilityMaterialsContent | 
+            SustainabilityFAQContent | 
+            SustainabilityCTAContent
+          )
         })) || [];
 
         setSections(typedSections);
