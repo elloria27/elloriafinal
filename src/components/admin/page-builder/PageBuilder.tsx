@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -10,13 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
+
 export interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
 }
-
-type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
-type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -61,7 +60,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         }
       } catch (error) {
         console.error('Error initializing blocks:', error);
-        toast.error("Failed to initialize page content");
+        toast.error("Failed to load page content");
       } finally {
         setIsLoading(false);
       }
@@ -140,40 +139,55 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       console.log('Saving layout with blocks:', blocks);
 
-      // First, delete removed blocks
-      const existingBlockIds = blocks.map(block => block.id);
-      const { error: deleteError } = await supabase
-        .from('content_blocks')
-        .delete()
-        .eq('page_id', pageId)
-        .not('id', 'in', existingBlockIds);
+      // Only delete if there are existing blocks to delete
+      if (blocks.length > 0) {
+        const existingBlockIds = blocks.map(block => block.id);
+        const { error: deleteError } = await supabase
+          .from('content_blocks')
+          .delete()
+          .eq('page_id', pageId)
+          .not('id', 'in', existingBlockIds);
 
-      if (deleteError) {
-        console.error('Error deleting blocks:', deleteError);
-        throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting blocks:', deleteError);
+          throw deleteError;
+        }
+      } else {
+        // If no blocks, delete all blocks for this page
+        const { error: deleteError } = await supabase
+          .from('content_blocks')
+          .delete()
+          .eq('page_id', pageId);
+
+        if (deleteError) {
+          console.error('Error deleting all blocks:', deleteError);
+          throw deleteError;
+        }
       }
 
-      // Then update or insert blocks
-      const blockUpdates = blocks.map(block => {
-        const blockData: ContentBlockInsert = {
-          id: block.id,
-          page_id: pageId,
-          type: block.type as Database['public']['Enums']['content_block_type'],
-          content: block.content,
-          order_index: block.order_index
-        };
-        return supabase
-          .from('content_blocks')
-          .upsert(blockData)
-          .select();
-      });
+      // Only attempt to save blocks if there are any
+      if (blocks.length > 0) {
+        const blockUpdates = blocks.map(block => {
+          const blockData: ContentBlockInsert = {
+            id: block.id,
+            page_id: pageId,
+            type: block.type as Database['public']['Enums']['content_block_type'],
+            content: block.content,
+            order_index: block.order_index
+          };
+          return supabase
+            .from('content_blocks')
+            .upsert(blockData)
+            .select();
+        });
 
-      const results = await Promise.all(blockUpdates);
-      const errors = results.filter(result => result.error);
+        const results = await Promise.all(blockUpdates);
+        const errors = results.filter(result => result.error);
 
-      if (errors.length > 0) {
-        console.error('Errors saving blocks:', errors);
-        throw new Error('Failed to save some blocks');
+        if (errors.length > 0) {
+          console.error('Errors saving blocks:', errors);
+          throw new Error('Failed to save some blocks');
+        }
       }
 
       setHasUnsavedChanges(false);
@@ -239,7 +253,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                               handleDeleteBlock(block.id);
                             }}
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <div className="h-4 w-4 text-red-500">×</div>
                           </Button>
                         </div>
                       </div>
