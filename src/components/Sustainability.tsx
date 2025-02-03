@@ -60,15 +60,15 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
   const renderSection = (section: SustainabilitySection) => {
     switch (section.section_type) {
       case "sustainability_hero":
-        return <SustainabilityHero content={section.content} />;
+        return <SustainabilityHero content={section.content as SustainabilitySection['content'] & { section_type: 'sustainability_hero' }} />;
       case "sustainability_mission":
-        return <SustainabilityMission content={section.content} />;
+        return <SustainabilityMission content={section.content as SustainabilitySection['content'] & { section_type: 'sustainability_mission' }} />;
       case "sustainability_materials":
-        return <SustainabilityMaterials content={section.content} />;
+        return <SustainabilityMaterials content={section.content as SustainabilitySection['content'] & { section_type: 'sustainability_materials' }} />;
       case "sustainability_faq":
-        return <SustainabilityFAQ content={section.content} />;
+        return <SustainabilityFAQ content={section.content as SustainabilitySection['content'] & { section_type: 'sustainability_faq' }} />;
       case "sustainability_cta":
-        return <SustainabilityCTA content={section.content} />;
+        return <SustainabilityCTA content={section.content as SustainabilitySection['content'] & { section_type: 'sustainability_cta' }} />;
       default:
         return null;
     }
