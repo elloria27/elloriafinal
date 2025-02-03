@@ -88,7 +88,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={heroContent.title || ""}
+              value={String(heroContent.title || "")}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter hero title"
             />
@@ -96,7 +96,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={heroContent.subtitle || ""}
+              value={String(heroContent.subtitle || "")}
               onChange={(e) => handleContentChange({ subtitle: e.target.value })}
               placeholder="Enter subtitle"
             />
@@ -104,7 +104,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={heroContent.description || ""}
+              value={String(heroContent.description || "")}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -112,7 +112,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Button Text</Label>
             <Input
-              value={heroContent.buttonText || ""}
+              value={String(heroContent.buttonText || "")}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -120,7 +120,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Button Link</Label>
             <Input
-              value={heroContent.buttonLink || ""}
+              value={String(heroContent.buttonLink || "")}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
@@ -158,7 +158,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={brandsContent.title || ""}
+              value={String(brandsContent.title || "")}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -166,7 +166,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={brandsContent.description || ""}
+              value={String(brandsContent.description || "")}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -226,7 +226,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={featuresContent.title || ""}
+              value={String(featuresContent.title || "")}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -234,7 +234,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={featuresContent.description || ""}
+              value={String(featuresContent.description || "")}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
