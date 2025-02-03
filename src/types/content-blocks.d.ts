@@ -217,3 +217,36 @@ export interface SustainabilityTimelineItem {
   description: string;
   color: string;
 }
+
+// Union type for all possible block content types
+export type BlockContent =
+  | HeroContent
+  | FeaturesContent
+  | GameChangerContent
+  | StoreBrandsContent
+  | ProductCarouselContent
+  | CompetitorComparisonContent
+  | TestimonialsContent
+  | BlogPreviewContent
+  | NewsletterContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent
+  | BusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
+  | CustomSolutionsProcessContent
+  | ImageBlockContent
+  | HeadingBlockContent;
+
+// Alias for ForBusinessHeroContent to maintain backward compatibility
+export type ForBusinessHeroContent = BusinessHeroContent;
