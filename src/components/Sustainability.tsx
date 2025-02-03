@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SustainabilitySection } from "@/types/sustainability";
+import { ContentBlock } from "@/types/content-blocks";
 import { SustainabilityHero } from "./sustainability/SustainabilityHero";
 import { SustainabilityMission } from "./sustainability/SustainabilityMission";
 import { SustainabilityMaterials } from "./sustainability/SustainabilityMaterials";
@@ -12,44 +12,36 @@ interface SustainabilityProps {
 }
 
 export const Sustainability = ({ pageId }: SustainabilityProps) => {
-  const [sections, setSections] = useState<SustainabilitySection[]>([]);
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSections = async () => {
+    const fetchBlocks = async () => {
       try {
-        console.log('Fetching sustainability sections for page:', pageId);
+        console.log('Fetching content blocks for page:', pageId);
         
         const { data, error } = await supabase
-          .from('sustainability_sections')
+          .from('content_blocks')
           .select('*')
           .eq('page_id', pageId)
           .order('order_index');
 
         if (error) {
-          console.error('Error fetching sustainability sections:', error);
+          console.error('Error fetching content blocks:', error);
           throw error;
         }
 
-        console.log('Fetched sustainability sections:', data);
-        
-        const typedSections = data?.map(section => ({
-          ...section,
-          content: section.content as unknown as (
-            | SustainabilitySection['content']
-          )
-        })) || [];
-
-        setSections(typedSections);
+        console.log('Fetched content blocks:', data);
+        setBlocks(data || []);
       } catch (error) {
-        console.error('Failed to fetch sustainability sections:', error);
+        console.error('Failed to fetch content blocks:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (pageId) {
-      fetchSections();
+      fetchBlocks();
     }
   }, [pageId]);
 
@@ -57,18 +49,22 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
     return <div>Loading...</div>;
   }
 
-  const renderSection = (section: SustainabilitySection) => {
-    switch (section.section_type) {
-      case "sustainability_hero":
-        return <SustainabilityHero content={section.content as any} />;
-      case "sustainability_mission":
-        return <SustainabilityMission content={section.content as any} />;
-      case "sustainability_materials":
-        return <SustainabilityMaterials content={section.content as any} />;
-      case "sustainability_faq":
-        return <SustainabilityFAQ content={section.content as any} />;
-      case "sustainability_cta":
-        return <SustainabilityCTA content={section.content as any} />;
+  const renderBlock = (block: ContentBlock) => {
+    // Map the content block type to the appropriate component
+    switch (block.type) {
+      case "hero":
+        return <SustainabilityHero content={block.content} />;
+      case "sustainability":
+        // For mission and FAQ sections which now use the 'sustainability' type
+        if (block.content.isMission) {
+          return <SustainabilityMission content={block.content} />;
+        } else {
+          return <SustainabilityFAQ content={block.content} />;
+        }
+      case "features":
+        return <SustainabilityMaterials content={block.content} />;
+      case "newsletter":
+        return <SustainabilityCTA content={block.content} />;
       default:
         return null;
     }
@@ -76,9 +72,9 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
 
   return (
     <div className="min-h-screen pt-20">
-      {sections.map((section) => (
-        <div key={section.id}>
-          {renderSection(section)}
+      {blocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
         </div>
       ))}
     </div>

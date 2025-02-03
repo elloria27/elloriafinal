@@ -1165,44 +1165,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sustainability_sections: {
-        Row: {
-          content: Json
-          created_at: string | null
-          id: string
-          order_index: number
-          page_id: string | null
-          section_type: Database["public"]["Enums"]["sustainability_section_type"]
-          updated_at: string | null
-        }
-        Insert: {
-          content?: Json
-          created_at?: string | null
-          id?: string
-          order_index: number
-          page_id?: string | null
-          section_type: Database["public"]["Enums"]["sustainability_section_type"]
-          updated_at?: string | null
-        }
-        Update: {
-          content?: Json
-          created_at?: string | null
-          id?: string
-          order_index?: number
-          page_id?: string | null
-          section_type?: Database["public"]["Enums"]["sustainability_section_type"]
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sustainability_sections_page_id_fkey"
-            columns: ["page_id"]
-            isOneToOne: false
-            referencedRelation: "pages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       symptom_logs: {
         Row: {
           created_at: string | null
