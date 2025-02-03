@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
+import { ContentBlock, BusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -12,7 +12,7 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
+  const handleContentChange = (updates: Partial<BusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
     onUpdate(block.id, {
       ...block.content,
       ...updates,
@@ -55,7 +55,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
 
   switch (block.type) {
     case "business_hero":
-      const heroContent = block.content as ForBusinessHeroContent;
+      const heroContent = block.content as BusinessHeroContent;
       return (
         <div className="space-y-4">
           <div>
@@ -85,7 +85,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Text</Label>
             <Input
-              value={heroContent.buttonText || ""}
+              value={String(heroContent.buttonText || "")}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -93,7 +93,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Link</Label>
             <Input
-              value={heroContent.buttonLink || ""}
+              value={String(heroContent.buttonLink || "")}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
@@ -212,7 +212,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Text</Label>
             <Input
-              value={contactContent.buttonText || ""}
+              value={String(contactContent.buttonText || "")}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -220,7 +220,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
           <div>
             <Label>Button Link</Label>
             <Input
-              value={contactContent.buttonLink || ""}
+              value={String(contactContent.buttonLink || "")}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
