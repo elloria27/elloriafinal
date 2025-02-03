@@ -29,35 +29,33 @@ import { InventoryManagement } from "@/components/admin/shop/InventoryManagement
 export function Routes() {
   return (
     <>
-      <Header />
       <RouterRoutes>
-        <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/products/:slug" element={<ProductDetail />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogPost />} />
-        <Route path="/for-business" element={<ForBusiness />} />
-        <Route path="/custom-solutions" element={<CustomSolutions />} />
-        <Route path="/sustainability" element={<Sustainability />} />
-        <Route path="/sustainability-program" element={<SustainabilityProgram />} />
-        <Route path="/donation" element={<Donation />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile/*" element={<Profile />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/thanks" element={<Thanks />} />
+        <Route path="/" element={<><Header /><Index /><Footer /></>} />
+        <Route path="/about" element={<><Header /><About /><Footer /></>} />
+        <Route path="/contact" element={<><Header /><Contact /><Footer /></>} />
+        <Route path="/shop" element={<><Header /><Shop /><Footer /></>} />
+        <Route path="/products/:slug" element={<><Header /><ProductDetail /><Footer /></>} />
+        <Route path="/blog" element={<><Header /><Blog /><Footer /></>} />
+        <Route path="/blog/:id" element={<><Header /><BlogPost /><Footer /></>} />
+        <Route path="/for-business" element={<><Header /><ForBusiness /><Footer /></>} />
+        <Route path="/custom-solutions" element={<><Header /><CustomSolutions /><Footer /></>} />
+        <Route path="/sustainability" element={<><Header /><Sustainability /><Footer /></>} />
+        <Route path="/sustainability-program" element={<><Header /><SustainabilityProgram /><Footer /></>} />
+        <Route path="/donation" element={<><Header /><Donation /><Footer /></>} />
+        <Route path="/login" element={<><Header /><Login /><Footer /></>} />
+        <Route path="/register" element={<><Header /><Register /><Footer /></>} />
+        <Route path="/profile/*" element={<><Header /><Profile /><Footer /></>} />
+        <Route path="/checkout" element={<><Header /><Checkout /><Footer /></>} />
+        <Route path="/order-success" element={<><Header /><OrderSuccess /><Footer /></>} />
+        <Route path="/terms" element={<><Header /><Terms /><Footer /></>} />
+        <Route path="/thanks" element={<><Header /><Thanks /><Footer /></>} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/inventory" element={<InventoryManagement />} />
-        <Route path="/shared/:token" element={<SharedFile />} />
-        <Route path="/shared/bulk/:token" element={<SharedFile />} />
-        <Route path="/bulk-orders" element={<BulkOrders />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/shared/:token" element={<><Header /><SharedFile /><Footer /></>} />
+        <Route path="/shared/bulk/:token" element={<><Header /><SharedFile /><Footer /></>} />
+        <Route path="/bulk-orders" element={<><Header /><BulkOrders /><Footer /></>} />
+        <Route path="*" element={<><Header /><NotFound /><Footer /></>} />
       </RouterRoutes>
-      <Footer />
     </>
   );
 }
