@@ -51,6 +51,15 @@ export const InventoryAdjustment = ({ inventory, onUpdate }: InventoryAdjustment
 
     setLoading(true);
     try {
+      console.log("Starting inventory adjustment...");
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
       const inventoryItem = inventory.find(item => item.product_id === selectedProduct);
       if (!inventoryItem) {
         toast.error("Selected product not found in inventory");
@@ -63,6 +72,7 @@ export const InventoryAdjustment = ({ inventory, onUpdate }: InventoryAdjustment
         return;
       }
 
+      console.log("Updating inventory quantity...");
       // Update inventory
       const { error: updateError } = await supabase
         .from("inventory")
@@ -71,6 +81,7 @@ export const InventoryAdjustment = ({ inventory, onUpdate }: InventoryAdjustment
 
       if (updateError) throw updateError;
 
+      console.log("Creating inventory log...");
       // Log the adjustment
       const { error: logError } = await supabase
         .from("inventory_logs")
@@ -82,10 +93,12 @@ export const InventoryAdjustment = ({ inventory, onUpdate }: InventoryAdjustment
           reason_type: reasonType,
           reason_details: reasonDetails,
           retailer_name: reasonType === "RETAILER_SHIPMENT" ? retailerName : null,
+          created_by: user.id // Add the user ID here
         });
 
       if (logError) throw logError;
 
+      console.log("Stock adjustment completed successfully");
       toast.success("Stock adjusted successfully");
       onUpdate();
       
