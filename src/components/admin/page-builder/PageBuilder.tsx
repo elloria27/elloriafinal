@@ -11,6 +11,7 @@ import { GripVertical, Trash2, Edit2 } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 
 type ContentBlockRow = Database['public']['Tables']['content_blocks']['Row'];
+type DbBlockType = ContentBlockRow['type'];
 
 interface PageBuilderProps {
   pageId: string;
@@ -31,10 +32,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       const newBlock: ContentBlockRow = {
         id: crypto.randomUUID(),
-        type,
+        type: type as DbBlockType,
         content: {},
         order_index: blocks.length,
         page_id: pageId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       console.log('Adding new block:', newBlock);
@@ -121,9 +124,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       const updateData: ContentBlockRow[] = updatedBlocks.map(({ id, order_index, type, content, page_id }) => ({
         id,
         order_index,
-        type,
+        type: type as DbBlockType,
         content,
-        page_id
+        page_id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }));
 
       const { error } = await supabase
@@ -241,7 +246,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           />
         ) : (
           <PreviewPane 
-            blocks={blocks} 
+            blocks={blocks}
             onSelectBlock={handleSelectBlock}
           />
         )}
