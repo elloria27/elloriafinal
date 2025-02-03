@@ -3,12 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem } from "@/types/content-blocks";
+import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem, BlockContent } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface HomePageEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: any) => void;
+  onUpdate: (blockId: string, content: BlockContent) => void;
 }
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
@@ -19,39 +19,41 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     const value = e.target.value;
+    const currentContent = block.content as BlockContent;
     const updatedContent = {
-      ...(block.content as object),
+      ...currentContent,
       [field]: value
     };
     onUpdate(block.id, updatedContent);
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
-    const features = Array.isArray(content.features) ? [...content.features] : [];
+    const currentContent = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
+    const features = Array.isArray(currentContent.features) ? [...currentContent.features] : [];
     const feature = features[index] ? { ...features[index] } : {};
     
     if (typeof feature === 'object') {
       (feature as any)[field] = value;
       features[index] = feature;
-      onUpdate(block.id, { ...content, features });
+      onUpdate(block.id, { ...currentContent, features });
     }
   };
 
   const handleMediaSelect = (url: string) => {
     console.log('Selected media URL:', url);
     if (block.type === 'store_brands') {
-      const content = block.content as StoreBrandsContent;
-      const features = Array.isArray(content.features) ? [...content.features] : [];
+      const currentContent = block.content as StoreBrandsContent;
+      const features = Array.isArray(currentContent.features) ? [...currentContent.features] : [];
       const updatedFeature = {
         ...(features[currentBrandIndex] || {}),
         description: url
       };
       features[currentBrandIndex] = updatedFeature;
-      onUpdate(block.id, { ...content, features });
+      onUpdate(block.id, { ...currentContent, features });
     } else {
+      const currentContent = block.content as BlockContent;
       const updatedContent = {
-        ...(block.content as object),
+        ...currentContent,
         [currentField]: url
       };
       onUpdate(block.id, updatedContent);
