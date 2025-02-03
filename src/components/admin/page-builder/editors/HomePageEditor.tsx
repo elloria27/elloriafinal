@@ -343,7 +343,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   return (
     <div className="space-y-6 h-full">
-      <div className="font-semibold text-lg">Edit {block.type}</div>
+      <div className="font-semibold text-lg capitalize">Edit {block.type.replace(/_/g, ' ')}</div>
       <div className="h-[calc(100vh-200px)] overflow-y-auto pr-4">
         {renderEditor()}
       </div>
