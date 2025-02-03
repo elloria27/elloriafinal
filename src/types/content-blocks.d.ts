@@ -7,20 +7,14 @@ import {
   SustainabilityCTAContent
 } from "./sustainability";
 
+// Base interface with index signature
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | Json;
-}
-
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
+  [key: string]: string | number | boolean | null | Json | any;
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
-  size?: 'h1' | 'h2' | 'h3' | 'h4';
+  level?: 'h1' | 'h2' | 'h3' | 'h4';
 }
 
 export interface TextBlockContent extends BaseBlockContent {

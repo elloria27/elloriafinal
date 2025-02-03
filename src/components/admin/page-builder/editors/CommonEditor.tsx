@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, ImageBlockContent, HeadingBlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -77,27 +77,10 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Alt Text</Label>
             <Input
-              value={(block.content as any).alt || ""}
+              value={(block.content as ImageBlockContent).alt || ""}
               onChange={(e) => handleChange("alt", e.target.value)}
               placeholder="Enter alt text..."
             />
-          </div>
-          <MediaLibraryModal
-            open={showMediaLibrary}
-            onClose={() => setShowMediaLibrary(false)}
-            onSelect={handleMediaSelect}
-            type={mediaType}
-          />
-        </div>
-      );
-
-    case "video":
-      return (
-        <div className="space-y-4">
-          {renderMediaField("Video", "src", "video")}
-          <div className="space-y-2">
-            <Label>Poster Image</Label>
-            {renderMediaField("Poster Image", "poster", "image")}
           </div>
           <MediaLibraryModal
             open={showMediaLibrary}
@@ -114,14 +97,14 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Text</Label>
             <Input
-              value={block.content.text as string || ""}
+              value={(block.content as HeadingBlockContent).text || ""}
               onChange={(e) => handleChange("text", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>Level</Label>
             <select
-              value={block.content.level as string || "h2"}
+              value={(block.content as HeadingBlockContent).level || "h2"}
               onChange={(e) => handleChange("level", e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2"
             >
@@ -142,7 +125,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Content</Label>
             <textarea
-              value={block.content.text as string || ""}
+              value={(block.content as any).text || ""}
               onChange={(e) => handleChange("text", e.target.value)}
               className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2"
             />
@@ -156,21 +139,21 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Text</Label>
             <Input
-              value={block.content.text as string || ""}
+              value={(block.content as any).text || ""}
               onChange={(e) => handleChange("text", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>URL</Label>
             <Input
-              value={block.content.url as string || ""}
+              value={(block.content as any).url || ""}
               onChange={(e) => handleChange("url", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>Variant</Label>
             <select
-              value={block.content.variant as string || "default"}
+              value={(block.content as any).variant || "default"}
               onChange={(e) => handleChange("variant", e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2"
             >
@@ -189,19 +172,19 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title as string || ""}
+              value={(block.content as any).title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label>Testimonials</Label>
-            {(block.content.items as any[] || []).map((item, index) => (
+            {(block.content.items || []).map((item, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <Input
                   placeholder="Author"
                   value={item.author || ""}
                   onChange={(e) => {
-                    const items = [...(block.content.items as any[] || [])];
+                    const items = [...(block.content.items || [])];
                     items[index] = { ...items[index], author: e.target.value };
                     handleChange("items", items);
                   }}
@@ -210,7 +193,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
                   placeholder="Content"
                   value={item.content || ""}
                   onChange={(e) => {
-                    const items = [...(block.content.items as any[] || [])];
+                    const items = [...(block.content.items || [])];
                     items[index] = { ...items[index], content: e.target.value };
                     handleChange("items", items);
                   }}
@@ -219,7 +202,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    const items = [...(block.content.items as any[] || [])];
+                    const items = [...(block.content.items || [])];
                     items.splice(index, 1);
                     handleChange("items", items);
                   }}
@@ -230,7 +213,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             ))}
             <Button
               onClick={() => {
-                const items = [...(block.content.items as any[] || [])];
+                const items = [...(block.content.items || [])];
                 items.push({ author: "", content: "" });
                 handleChange("items", items);
               }}
@@ -247,7 +230,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title as string || ""}
+              value={(block.content as any).title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
             />
           </div>
@@ -255,7 +238,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label>Number of Posts</Label>
             <Input
               type="number"
-              value={block.content.count as number || 3}
+              value={(block.content as any).count || 3}
               onChange={(e) => handleChange("count", parseInt(e.target.value))}
               min={1}
               max={12}
