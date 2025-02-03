@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, HeroContent, FeaturesContent, GameChangerContent, StoreBrandsContent, FeatureItem } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
-import { Json } from '@/integrations/supabase/types';
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -21,7 +20,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     const value = e.target.value;
     const updatedContent = {
-      ...block.content,
+      ...(block.content as object),
       [field]: value
     };
     onUpdate(block.id, updatedContent);
@@ -30,11 +29,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = { ...features[index] };
+    const feature = features[index] ? { ...features[index] } : {};
     
     if (typeof feature === 'object') {
       (feature as any)[field] = value;
-      features[index] = feature as Json;
+      features[index] = feature;
       onUpdate(block.id, { ...content, features });
     }
   };
@@ -45,14 +44,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       const content = block.content as StoreBrandsContent;
       const features = Array.isArray(content.features) ? [...content.features] : [];
       const updatedFeature = {
-        ...(features[currentBrandIndex] as unknown as FeatureItem),
+        ...(features[currentBrandIndex] || {}),
         description: url
-      } as Json;
+      };
       features[currentBrandIndex] = updatedFeature;
       onUpdate(block.id, { ...content, features });
     } else {
       const updatedContent = {
-        ...block.content,
+        ...(block.content as object),
         [currentField]: url
       };
       onUpdate(block.id, updatedContent);
@@ -64,7 +63,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = block.content as FeaturesContent | GameChangerContent | StoreBrandsContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     
-    let newFeature: Json;
+    let newFeature: any;
     if (block.type === 'store_brands') {
       newFeature = {
         icon: '',
