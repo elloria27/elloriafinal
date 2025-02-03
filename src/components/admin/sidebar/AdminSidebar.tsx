@@ -1,198 +1,228 @@
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
-  BarChart3,
-  Box,
-  FileText,
-  Gift,
-  Image,
   LayoutDashboard,
   Package,
-  Settings,
   ShoppingCart,
-  Tags,
-  Truck,
   Users,
-  Newspaper,
-  CreditCard,
+  FileText,
+  FolderOpen,
+  Image as ImageIcon,
+  Settings,
+  ChevronDown,
+  Store,
   Heart,
-  Boxes
+  BookOpen,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AdminSidebarProps {
-  profile?: any;
+  profile?: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+  } | null;
   onClose?: () => void;
 }
+
+const MENU_ITEMS = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/admin?tab=dashboard",
+  },
+  {
+    title: "Products",
+    icon: Package,
+    href: "/admin?tab=products",
+  },
+  {
+    title: "Orders",
+    icon: ShoppingCart,
+    href: "/admin?tab=orders",
+  },
+  {
+    title: "Shop",
+    icon: Store,
+    items: [
+      {
+        title: "Payment Methods",
+        href: "/admin?tab=payment-methods",
+      },
+      {
+        title: "Delivery Methods",
+        href: "/admin?tab=delivery-methods",
+      },
+      {
+        title: "Inventory Management",
+        href: "/admin?tab=inventory",
+      },
+      {
+        title: "Promo Codes",
+        href: "/admin?tab=promo-codes",
+      },
+    ],
+  },
+  {
+    title: "Users",
+    icon: Users,
+    href: "/admin?tab=users",
+  },
+  {
+    title: "Content",
+    icon: FileText,
+    items: [
+      {
+        title: "Pages",
+        href: "/admin?tab=pages",
+      },
+      {
+        title: "Blog",
+        href: "/admin?tab=blog",
+      },
+    ],
+  },
+  {
+    title: "Files",
+    icon: FolderOpen,
+    href: "/admin?tab=files",
+  },
+  {
+    title: "Media",
+    icon: ImageIcon,
+    href: "/admin?tab=media",
+  },
+  {
+    title: "Donations",
+    icon: Heart,
+    href: "/admin?tab=donations",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/admin?tab=settings",
+  },
+];
 
 export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "dashboard";
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  const menuItems = [
-    {
-      title: "Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      href: "/admin?tab=dashboard",
-      value: "dashboard",
-    },
-    {
-      title: "Analytics",
-      icon: <BarChart3 className="h-5 w-5" />,
-      href: "/admin?tab=analytics",
-      value: "analytics",
-    },
-    {
-      title: "Shop",
-      icon: <ShoppingCart className="h-5 w-5" />,
-      items: [
-        {
-          title: "Products",
-          href: "/admin?tab=products",
-          value: "products",
-          icon: <Package className="h-5 w-5" />,
-        },
-        {
-          title: "Orders",
-          href: "/admin?tab=orders",
-          value: "orders",
-          icon: <Box className="h-5 w-5" />,
-        },
-        {
-          title: "Inventory",
-          href: "/admin?tab=inventory",
-          value: "inventory",
-          icon: <Boxes className="h-5 w-5" />,
-        },
-        {
-          title: "Promo Codes",
-          href: "/admin?tab=promo-codes",
-          value: "promo-codes",
-          icon: <Tags className="h-5 w-5" />,
-        },
-        {
-          title: "Payment Methods",
-          href: "/admin?tab=payment-methods",
-          value: "payment-methods",
-          icon: <CreditCard className="h-5 w-5" />,
-        },
-        {
-          title: "Delivery Methods",
-          href: "/admin?tab=delivery-methods",
-          value: "delivery-methods",
-          icon: <Truck className="h-5 w-5" />,
-        },
-      ],
-    },
-    {
-      title: "Content",
-      icon: <FileText className="h-5 w-5" />,
-      items: [
-        {
-          title: "Pages",
-          href: "/admin?tab=pages",
-          value: "pages",
-          icon: <FileText className="h-5 w-5" />,
-        },
-        {
-          title: "Blog",
-          href: "/admin?tab=blog",
-          value: "blog",
-          icon: <Newspaper className="h-5 w-5" />,
-        },
-      ],
-    },
-    {
-      title: "Media",
-      icon: <Image className="h-5 w-5" />,
-      items: [
-        {
-          title: "Files",
-          href: "/admin?tab=files",
-          value: "files",
-          icon: <FileText className="h-5 w-5" />,
-        },
-        {
-          title: "Media Library",
-          href: "/admin?tab=media",
-          value: "media",
-          icon: <Image className="h-5 w-5" />,
-        },
-      ],
-    },
-    {
-      title: "Users",
-      icon: <Users className="h-5 w-5" />,
-      href: "/admin?tab=users",
-      value: "users",
-    },
-    {
-      title: "Donations",
-      icon: <Heart className="h-5 w-5" />,
-      href: "/admin?tab=donations",
-      value: "donations",
-    },
-    {
-      title: "Settings",
-      icon: <Settings className="h-5 w-5" />,
-      href: "/admin?tab=settings",
-      value: "settings",
-    },
-  ];
+  const toggleExpanded = (title: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(title)
+        ? prev.filter((item) => item !== title)
+        : [...prev, title]
+    );
+  };
 
   return (
-    <div className="h-full border-r bg-gray-100/40 p-4">
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center space-x-2">
-          <Gift className="h-6 w-6" />
-          <span className="text-lg font-semibold">Admin Panel</span>
-        </div>
+    <div className="flex h-full min-h-screen w-full flex-col border-r bg-card">
+      <div className="p-6">
+        <Link to="/" className="flex items-center gap-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="font-semibold">Admin Panel</span>
+        </Link>
+      </div>
 
-        <nav className="space-y-2">
-          {menuItems.map((item, index) => (
-            <div key={index}>
-              {item.items ? (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 px-2 py-1.5 text-sm font-medium text-gray-500">
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </div>
-                  <div className="ml-4 space-y-1">
-                    {item.items.map((subItem, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        to={subItem.href}
-                        onClick={onClose}
-                        className={cn(
-                          "flex items-center space-x-2 rounded-lg px-2 py-1.5 text-sm",
-                          currentTab === subItem.value
-                            ? "bg-gray-200 text-gray-900"
-                            : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
-                        )}
-                      >
-                        {subItem.icon}
-                        <span>{subItem.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  to={item.href}
-                  onClick={onClose}
-                  className={cn(
-                    "flex items-center space-x-2 rounded-lg px-2 py-1.5 text-sm",
-                    currentTab === item.value
-                      ? "bg-gray-200 text-gray-900"
-                      : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+      <ScrollArea className="flex-1 px-3">
+        <div className="space-y-1 py-2">
+          {MENU_ITEMS.map((item) => {
+            if (item.items) {
+              const isExpanded = expandedItems.includes(item.title);
+              const isActive = item.items.some(
+                (subItem) =>
+                  subItem.href.split("=")[1] === currentTab
+              );
+
+              return (
+                <div key={item.title}>
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={cn("w-full justify-between", 
+                      isActive && "bg-accent"
+                    )}
+                    onClick={() => toggleExpanded(item.title)}
+                  >
+                    <span className="flex items-center">
+                      {item.icon && (
+                        <item.icon className="mr-2 h-4 w-4" />
+                      )}
+                      {item.title}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        isExpanded && "rotate-180"
+                      )}
+                    />
+                  </Button>
+                  {isExpanded && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.items.map((subItem) => (
+                        <Button
+                          key={subItem.title}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start",
+                            subItem.href.split("=")[1] === currentTab &&
+                              "bg-accent"
+                          )}
+                          asChild
+                          onClick={onClose}
+                        >
+                          <Link to={subItem.href}>{subItem.title}</Link>
+                        </Button>
+                      ))}
+                    </div>
                   )}
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
+                </div>
+              );
+            }
+
+            return (
+              <Button
+                key={item.title}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start",
+                  item.href.split("=")[1] === currentTab && "bg-accent"
+                )}
+                asChild
+                onClick={onClose}
+              >
+                <Link to={item.href}>
+                  {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                  {item.title}
                 </Link>
-              )}
-            </div>
-          ))}
-        </nav>
+              </Button>
+            );
+          })}
+        </div>
+      </ScrollArea>
+
+      <div className="mt-auto p-4">
+        <div className="flex items-center gap-2 rounded-lg border p-4">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={profile?.avatar_url}
+              alt={profile?.full_name || "Admin"}
+            />
+            <AvatarFallback>
+              {profile?.full_name?.[0] || "A"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {profile?.full_name || "Admin User"}
+            </span>
+            <span className="text-xs text-gray-500">Administrator</span>
+          </div>
+        </div>
       </div>
     </div>
   );
