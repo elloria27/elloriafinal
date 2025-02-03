@@ -90,7 +90,15 @@ export const InventoryManagement = () => {
       }
 
       console.log("Products fetched:", data);
-      setProducts(data || []);
+      
+      // Transform the data to match the Product interface
+      const transformedProducts: Product[] = data.map(product => ({
+        id: product.id,
+        name: product.name,
+        inventory: product.inventory?.[0] || { quantity: 0, low_stock_threshold: 100 }
+      }));
+
+      setProducts(transformedProducts);
     } catch (error) {
       console.error("Error in fetchProducts:", error);
       toast.error("An unexpected error occurred");
