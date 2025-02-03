@@ -1,6 +1,11 @@
 import { Database } from "@/integrations/supabase/types";
+import { Json } from "@/integrations/supabase/types";
 
-export type BlockType = Database['public']['Enums']['content_block_type'];
+export type BlockType = Database['public']['Enums']['content_block_type'] | 
+  'business_hero' | 
+  'business_solutions' | 
+  'business_contact' |
+  'custom_solutions_process';
 
 export interface ContentBlock {
   id: string;
@@ -54,6 +59,7 @@ export interface HeroContent {
   videoPoster?: string;
   shopNowText?: string;
   learnMoreText?: string;
+  backgroundImage?: string;
 }
 
 export interface FeaturesContent {
@@ -63,7 +69,7 @@ export interface FeaturesContent {
   features?: FeatureItem[];
 }
 
-export interface FeatureItem {
+export interface FeatureItem extends Record<string, Json> {
   icon: string;
   title: string;
   description: string;
@@ -186,9 +192,12 @@ export interface AboutCustomerImpactContent {
 
 export interface AboutCtaContent {
   title?: string;
+  subtitle?: string;
   description?: string;
   buttonText?: string;
   buttonLink?: string;
+  primaryButtonText?: string;
+  secondaryButtonText?: string;
 }
 
 export interface ContactHeroContent {
@@ -197,6 +206,9 @@ export interface ContactHeroContent {
 }
 
 export interface ContactDetailsContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -231,6 +243,7 @@ export interface BusinessHeroContent extends HeroContent {}
 export interface BusinessSolutionsContent {
   title?: string;
   subtitle?: string;
+  description?: string;
   solutions?: FeatureItem[];
 }
 
@@ -246,6 +259,7 @@ export interface CustomSolutionsProcessStep {
   title: string;
   description: string;
   icon: string;
+  number?: number;
 }
 
 export interface ImageBlockContent {
