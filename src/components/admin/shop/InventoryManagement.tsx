@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { Loader2 } from "lucide-react";
@@ -21,7 +22,49 @@ interface InventoryItem {
 export const InventoryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log('No active session, redirecting to login');
+          navigate("/login?redirectTo=/admin/inventory");
+          return;
+        }
+
+        const { data: roleData, error: roleError } = await supabase
+          .rpc('is_admin', {
+            user_id: session.user.id
+          });
+
+        if (roleError) {
+          console.error('Error checking admin role:', roleError);
+          throw roleError;
+        }
+
+        if (!roleData) {
+          console.log('User is not an admin, access denied');
+          toast.error("Unauthorized access - Admin privileges required");
+          navigate("/");
+          return;
+        }
+
+        setIsAdmin(true);
+        fetchInventory();
+      } catch (error) {
+        console.error('Admin access check failed:', error);
+        toast.error("Error verifying admin access");
+        navigate("/");
+      }
+    };
+
+    checkAdminAccess();
+  }, [navigate]);
 
   const fetchInventory = async () => {
     try {
@@ -54,16 +97,16 @@ export const InventoryManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (!isAdmin) {
+    return null;
   }
 
   return (
