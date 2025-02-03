@@ -37,7 +37,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Input
-          value={block.content[field] as string || ""}
+          value={(block.content as any)[field] || ""}
           readOnly
           placeholder={`Select ${type}...`}
         />
@@ -49,17 +49,17 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
           {type === "image" ? <Image className="h-4 w-4" /> : <Video className="h-4 w-4" />}
         </Button>
       </div>
-      {block.content[field] && (
+      {(block.content as any)[field] && (
         <div className="mt-2">
           {type === "image" ? (
             <img
-              src={block.content[field] as string}
+              src={(block.content as any)[field]}
               alt={label}
               className="max-w-xs rounded"
             />
           ) : (
             <video
-              src={block.content[field] as string}
+              src={(block.content as any)[field]}
               controls
               className="max-w-xs rounded"
             />
@@ -73,11 +73,11 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
     case "image":
       return (
         <div className="space-y-4">
-          {renderMediaField("Image", "src", "image")}
+          {renderMediaField("Image", "url", "image")}
           <div className="space-y-2">
             <Label>Alt Text</Label>
             <Input
-              value={block.content.alt as string || ""}
+              value={(block.content as any).alt || ""}
               onChange={(e) => handleChange("alt", e.target.value)}
               placeholder="Enter alt text..."
             />
