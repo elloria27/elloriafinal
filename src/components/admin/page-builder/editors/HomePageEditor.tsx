@@ -20,10 +20,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     console.log('Handling input change for', field, 'with value:', e.target.value);
-    onUpdate(block.id, {
+    const updatedContent = {
       ...block.content as Record<string, unknown>,
       [field]: e.target.value
-    });
+    };
+    onUpdate(block.id, updatedContent);
   };
 
   const handleMediaSelect = (url: string) => {
@@ -38,10 +39,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       features[currentBrandIndex] = updatedFeature;
       onUpdate(block.id, { ...content, features });
     } else {
-      onUpdate(block.id, {
+      const updatedContent = {
         ...block.content as Record<string, unknown>,
         [currentField]: url
-      });
+      };
+      onUpdate(block.id, updatedContent);
     }
     setShowMediaLibrary(false);
   };
@@ -67,10 +69,11 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       };
     }
 
-    onUpdate(block.id, {
+    const updatedContent = {
       ...content,
       features: [...features, newFeature]
-    });
+    };
+    onUpdate(block.id, updatedContent);
   };
 
   const handleFeatureRemove = (index: number) => {
@@ -340,7 +343,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
 
   return (
     <div className="space-y-6 h-full">
-      <div className="font-semibold text-lg capitalize">Edit {block.type.replace(/_/g, ' ')}</div>
       <div className="h-[calc(100vh-200px)] overflow-y-auto pr-4">
         {renderEditor()}
       </div>
