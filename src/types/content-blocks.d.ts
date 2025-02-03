@@ -7,9 +7,15 @@ import {
   SustainabilityCTAContent
 } from "./sustainability";
 
-// Base interface with index signature
+// Base interface with index signature for Json compatibility
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | null | Json | any;
+  [key: string]: Json | any;
+}
+
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
 }
 
 export interface HeadingBlockContent extends BaseBlockContent {
@@ -136,6 +142,8 @@ export interface ContactHeroContent extends BaseBlockContent {
 }
 
 export interface ContactDetailsContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -145,10 +153,11 @@ export interface ContactFormContent extends BaseBlockContent {
   title?: string;
   description?: string;
   buttonText?: string;
-  secondaryButtonText?: string;
 }
 
 export interface ContactFAQContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
   faqs?: Array<{
     question: string;
     answer: string;

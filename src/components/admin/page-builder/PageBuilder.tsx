@@ -51,7 +51,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
             id: block.id,
             type: block.type as BlockType,
-            content: block.content as BlockContent,
+            content: block.content as unknown as BlockContent,
             order_index: block.order_index,
             page_id: block.page_id,
             created_at: block.created_at,
