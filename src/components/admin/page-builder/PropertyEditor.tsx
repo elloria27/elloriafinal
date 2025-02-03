@@ -94,7 +94,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
         id: block.id,
         page_id: block.page_id,
         section_type: block.type as any,
-        content: block.content,
+        content: block.content as any,
         order_index: block.order_index
       }} onUpdate={(content) => onUpdate(block.id, content)} />;
     }
