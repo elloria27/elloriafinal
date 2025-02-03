@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
+import { Json } from "@/integrations/supabase/types";
 
 interface HomePageEditorProps {
   block: ContentBlock;
@@ -16,7 +17,6 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [currentLogoIndex, setCurrentLogoIndex] = useState<number | null>(null);
 
-  // Reset local content when block changes
   useEffect(() => {
     console.log("Block changed, resetting local content:", block.content);
     setLocalContent(block.content);
@@ -34,21 +34,21 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
     const content = localContent as StoreBrandsContent;
     const logos = Array.isArray(content.logos) ? [...content.logos] : [];
     logos[currentLogoIndex] = url;
-    handleContentChange({ logos });
+    handleContentChange({ logos } as Partial<BlockContent>);
     setShowMediaLibrary(false);
   };
 
   const addLogo = () => {
     const content = localContent as StoreBrandsContent;
     const logos = Array.isArray(content.logos) ? [...content.logos, ""] : [""];
-    handleContentChange({ logos });
+    handleContentChange({ logos } as Partial<BlockContent>);
   };
 
   const removeLogo = (index: number) => {
     const content = localContent as StoreBrandsContent;
     const logos = Array.isArray(content.logos) ? [...content.logos] : [];
     logos.splice(index, 1);
-    handleContentChange({ logos });
+    handleContentChange({ logos } as Partial<BlockContent>);
   };
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
@@ -59,7 +59,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       [field]: value,
     };
     features[index] = updatedFeature;
-    handleContentChange({ features });
+    handleContentChange({ features } as Partial<BlockContent>);
   };
 
   const addFeature = () => {
@@ -70,14 +70,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
       title: "New Feature",
       description: "Feature description",
     });
-    handleContentChange({ features });
+    handleContentChange({ features } as Partial<BlockContent>);
   };
 
   const removeFeature = (index: number) => {
     const content = localContent as FeaturesContent;
     const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
-    handleContentChange({ features });
+    handleContentChange({ features } as Partial<BlockContent>);
   };
 
   switch (block.type) {
@@ -135,7 +135,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={localContent.title?.toString() || ""}
+              value={String(localContent.title || "")}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -143,7 +143,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={localContent.description?.toString() || ""}
+              value={String(localContent.description || "")}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
