@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Product {
   id: string;
@@ -26,6 +27,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [quantity, setQuantity] = useState<number>(0);
   const [reasonType, setReasonType] = useState<string>("");
   const [retailerName, setRetailerName] = useState<string>("");
+  const [details, setDetails] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleAdjustment = async () => {
@@ -76,7 +78,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           previous_quantity: currentQuantity,
           new_quantity: newQuantity,
           reason_type: reasonType,
-          reason_details: reasonType === 'retailer_shipment' ? `Shipped to ${retailerName}` : reasonType,
+          reason_details: details || reasonType,
           retailer_name: reasonType === 'retailer_shipment' ? retailerName : null,
           created_by: user.id
         });
@@ -91,6 +93,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       setQuantity(0);
       setReasonType("");
       setRetailerName("");
+      setDetails("");
     } catch (error) {
       console.error("Error adjusting inventory:", error);
       toast.error("Failed to update inventory");
@@ -169,6 +172,17 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
             />
           </div>
         )}
+
+        <div className="space-y-2">
+          <Label htmlFor="details">Additional Details</Label>
+          <Textarea
+            id="details"
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            placeholder="Enter any additional details about this adjustment"
+            className="min-h-[100px]"
+          />
+        </div>
 
         <Button 
           onClick={handleAdjustment} 
