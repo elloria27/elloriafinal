@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu } from "lucide-react";
+import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu, Settings } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -185,14 +185,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   const BlocksList = () => (
     <div className="space-y-2">
       <Button 
@@ -252,47 +244,92 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
       {isMobile ? (
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50">
-              <Menu className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] sm:w-[340px]">
-            <BlocksList />
-          </SheetContent>
-        </Sheet>
+        <>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] sm:w-[340px]">
+              <SheetHeader>
+                <SheetTitle>Components</SheetTitle>
+              </SheetHeader>
+              <BlocksList />
+            </SheetContent>
+          </Sheet>
+
+          {selectedBlock && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="fixed top-4 right-4 z-50"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-[280px] sm:w-[340px]">
+                <SheetHeader>
+                  <SheetTitle>Edit Component</SheetTitle>
+                </SheetHeader>
+                <PropertyEditor
+                  block={selectedBlock}
+                  onUpdate={handleUpdateBlock}
+                />
+              </SheetContent>
+            </Sheet>
+          )}
+        </>
       ) : (
-        <div className="w-64 bg-gray-100 p-4 border-r overflow-y-auto">
-          <BlocksList />
-        </div>
+        <>
+          <div className="w-64 bg-gray-100 p-4 border-r overflow-y-auto">
+            <BlocksList />
+          </div>
+          {selectedBlock && (
+            <div className="w-80 bg-gray-100 p-4 border-l overflow-y-auto">
+              <PropertyEditor
+                block={selectedBlock}
+                onUpdate={handleUpdateBlock}
+              />
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex-1 overflow-auto relative">
-        {isMobile && (
-          <div className="sticky top-0 z-10 bg-white p-4 border-b flex justify-between items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-            >
-              {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-              {showPreview ? 'Show Editor' : 'Show Preview'}
-            </Button>
-            
-            <Button
-              size="sm"
-              onClick={handleSaveLayout}
-              disabled={!hasUnsavedChanges || isSaving}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Layout'}
-            </Button>
-          </div>
-        )}
+        <div className="sticky top-0 z-10 bg-white p-4 border-b flex justify-between items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPreview(!showPreview)}
+          >
+            {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+            {showPreview ? 'Show Editor' : 'Show Preview'}
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={handleSaveLayout}
+            disabled={!hasUnsavedChanges || isSaving}
+            className="ml-2"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save Layout'}
+          </Button>
+        </div>
         
         <div className={`h-full ${isMobile && !showPreview ? 'hidden' : ''}`}>
           <PreviewPane 
@@ -303,51 +340,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         </div>
       </div>
 
-      {selectedBlock && (
-        isMobile ? (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="fixed bottom-20 right-4 z-50"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-[280px] sm:w-[340px]">
-              <PropertyEditor
-                block={selectedBlock}
-                onUpdate={handleUpdateBlock}
-              />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <div className="w-80 bg-gray-100 p-4 border-l overflow-y-auto">
-            <PropertyEditor
-              block={selectedBlock}
-              onUpdate={handleUpdateBlock}
-            />
-          </div>
-        )
-      )}
-
       <ComponentPicker
         open={showComponentPicker}
         onClose={() => setShowComponentPicker(false)}
         onSelect={handleAddBlock}
       />
-
-      {!isMobile && (
-        <Button
-          className="fixed bottom-4 right-4 z-50"
-          onClick={handleSaveLayout}
-          disabled={!hasUnsavedChanges || isSaving}
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save Layout'}
-        </Button>
-      )}
     </div>
   );
 };
