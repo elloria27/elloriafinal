@@ -1,175 +1,282 @@
-import { useEffect, useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
+import { ContentBlock, CustomSolutionsHeroContent, CustomSolutionsServicesContent, CustomSolutionsProcessContent, CustomSolutionsCtaContent } from "@/types/content-blocks";
 
 interface CustomSolutionsEditorProps {
   block: ContentBlock;
-  onUpdate: (blockId: string, content: BlockContent) => void;
+  onUpdate: (blockId: string, content: any) => void;
 }
 
 export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditorProps) => {
-  const [content, setContent] = useState<BlockContent>(block.content);
-
-  // Reset content when block changes
-  useEffect(() => {
-    console.log('Block changed in CustomSolutionsEditor:', block);
-    setContent(block.content);
-  }, [block.id, block.content]);
-
-  const handleChange = (key: string, value: string | number | boolean | string[] | null) => {
-    const updatedContent = { ...content, [key]: value };
-    setContent(updatedContent);
-    onUpdate(block.id, updatedContent);
+  const handleContentChange = (updates: Partial<CustomSolutionsHeroContent | CustomSolutionsServicesContent | CustomSolutionsProcessContent | CustomSolutionsCtaContent>) => {
+    onUpdate(block.id, {
+      ...block.content,
+      ...updates,
+    });
   };
 
-  const handleArrayChange = (key: string, value: string) => {
-    const arrayValue = value.split(',').map(item => item.trim());
-    handleChange(key, arrayValue);
+  const handleServiceAdd = () => {
+    const content = block.content as CustomSolutionsServicesContent;
+    const services = Array.isArray(content.services) ? content.services : [];
+    handleContentChange({
+      services: [
+        ...services,
+        {
+          icon: "Package",
+          title: "New Service",
+          description: "Service description",
+        },
+      ],
+    });
   };
 
-  console.log('Rendering CustomSolutionsEditor with block type:', block.type);
-  console.log('Current content:', content);
+  const handleServiceRemove = (index: number) => {
+    const content = block.content as CustomSolutionsServicesContent;
+    const services = Array.isArray(content.services) ? [...content.services] : [];
+    services.splice(index, 1);
+    handleContentChange({ services });
+  };
+
+  const handleServiceUpdate = (index: number, updates: Partial<{ icon: string; title: string; description: string }>) => {
+    const content = block.content as CustomSolutionsServicesContent;
+    const services = Array.isArray(content.services) ? [...content.services] : [];
+    services[index] = { ...services[index], ...updates };
+    handleContentChange({ services });
+  };
+
+  const handleProcessStepAdd = () => {
+    const content = block.content as CustomSolutionsProcessContent;
+    const steps = Array.isArray(content.steps) ? content.steps : [];
+    handleContentChange({
+      steps: [
+        ...steps,
+        {
+          number: steps.length + 1,
+          title: "New Step",
+          description: "Step description",
+        },
+      ],
+    });
+  };
+
+  const handleProcessStepRemove = (index: number) => {
+    const content = block.content as CustomSolutionsProcessContent;
+    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
+    steps.splice(index, 1);
+    // Update step numbers
+    steps.forEach((step, i) => {
+      step.number = i + 1;
+    });
+    handleContentChange({ steps });
+  };
+
+  const handleProcessStepUpdate = (index: number, updates: Partial<{ title: string; description: string }>) => {
+    const content = block.content as CustomSolutionsProcessContent;
+    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
+    steps[index] = { ...steps[index], ...updates };
+    handleContentChange({ steps });
+  };
 
   switch (block.type) {
     case "custom_solutions_hero":
+      const heroContent = block.content as CustomSolutionsHeroContent;
       return (
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={(content.title as string) || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter section title"
+              value={heroContent.title || ""}
+              onChange={(e) => handleContentChange({ title: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="subtitle">Subtitle</Label>
             <Input
               id="subtitle"
-              value={(content.subtitle as string) || ''}
-              onChange={(e) => handleChange('subtitle', e.target.value)}
-              placeholder="Enter section subtitle"
+              value={heroContent.subtitle || ""}
+              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea
+            <Input
               id="description"
-              value={(content.description as string) || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Enter section description"
+              value={heroContent.description || ""}
+              onChange={(e) => handleContentChange({ description: e.target.value })}
             />
           </div>
         </div>
       );
 
     case "custom_solutions_services":
+      const servicesContent = block.content as CustomSolutionsServicesContent;
       return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="title">Section Title</Label>
             <Input
               id="title"
-              value={(content.title as string) || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter section title"
+              value={servicesContent.title || ""}
+              onChange={(e) => handleContentChange({ title: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="subtitle">Subtitle</Label>
+          <div>
+            <Label htmlFor="subtitle">Section Subtitle</Label>
             <Input
               id="subtitle"
-              value={(content.subtitle as string) || ''}
-              onChange={(e) => handleChange('subtitle', e.target.value)}
-              placeholder="Enter section subtitle"
+              value={servicesContent.subtitle || ""}
+              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="services">Services</Label>
-            <Textarea
-              id="services"
-              value={Array.isArray(content.services) ? content.services.join(', ') : ''}
-              onChange={(e) => handleArrayChange('services', e.target.value)}
-              placeholder="Enter services, separated by commas"
-            />
+          <div className="space-y-4">
+            <Label>Services</Label>
+            {Array.isArray(servicesContent.services) && servicesContent.services.map((service, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Service {index + 1}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleServiceRemove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div>
+                  <Label>Icon</Label>
+                  <Input
+                    value={service.icon}
+                    onChange={(e) => handleServiceUpdate(index, { icon: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={service.title}
+                    onChange={(e) => handleServiceUpdate(index, { title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={service.description}
+                    onChange={(e) => handleServiceUpdate(index, { description: e.target.value })}
+                  />
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleServiceAdd}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Service
+            </Button>
           </div>
         </div>
       );
 
     case "custom_solutions_process":
+      const processContent = block.content as CustomSolutionsProcessContent;
       return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="title">Section Title</Label>
             <Input
               id="title"
-              value={(content.title as string) || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter section title"
+              value={processContent.title || ""}
+              onChange={(e) => handleContentChange({ title: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="steps">Steps</Label>
-            <Textarea
-              id="steps"
-              value={Array.isArray(content.steps) ? content.steps.join(', ') : ''}
-              onChange={(e) => handleArrayChange('steps', e.target.value)}
-              placeholder="Enter steps, separated by commas"
-            />
+          <div className="space-y-4">
+            <Label>Process Steps</Label>
+            {Array.isArray(processContent.steps) && processContent.steps.map((step, index) => (
+              <div key={index} className="p-4 border rounded-lg space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Step {step.number}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleProcessStepRemove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div>
+                  <Label>Title</Label>
+                  <Input
+                    value={step.title}
+                    onChange={(e) => handleProcessStepUpdate(index, { title: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={step.description}
+                    onChange={(e) => handleProcessStepUpdate(index, { description: e.target.value })}
+                  />
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleProcessStepAdd}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Process Step
+            </Button>
           </div>
         </div>
       );
 
     case "custom_solutions_cta":
+      const ctaContent = block.content as CustomSolutionsCtaContent;
       return (
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={(content.title as string) || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Enter section title"
+              value={ctaContent.title || ""}
+              onChange={(e) => handleContentChange({ title: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea
+            <Input
               id="description"
-              value={(content.description as string) || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Enter section description"
+              value={ctaContent.description || ""}
+              onChange={(e) => handleContentChange({ description: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="buttonText">Button Text</Label>
             <Input
               id="buttonText"
-              value={(content.buttonText as string) || ''}
-              onChange={(e) => handleChange('buttonText', e.target.value)}
-              placeholder="Enter button text"
+              value={ctaContent.buttonText || ""}
+              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="buttonLink">Button Link</Label>
             <Input
               id="buttonLink"
-              value={(content.buttonLink as string) || ''}
-              onChange={(e) => handleChange('buttonLink', e.target.value)}
-              placeholder="Enter button link"
+              value={ctaContent.buttonLink || ""}
+              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
             />
           </div>
         </div>
       );
 
     default:
-      return (
-        <div className="p-4 text-center text-gray-500">
-          No properties available for this component type
-        </div>
-      );
+      return null;
   }
 };

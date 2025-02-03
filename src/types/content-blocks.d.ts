@@ -1,7 +1,7 @@
 import { Json } from "@/integrations/supabase/types";
 
 export interface BaseBlockContent {
-  [key: string]: string | number | boolean | string[] | null | Json | undefined;
+  [key: string]: string | number | boolean | null | Json;
 }
 
 export interface FeatureItem {
@@ -401,4 +401,3 @@ export interface DeliveryMethod {
   created_at?: string;
   updated_at?: string;
 }
-

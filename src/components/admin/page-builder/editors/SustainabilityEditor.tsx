@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import { ContentBlock, BlockContent, SustainabilityContent } from "@/types/content-blocks";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 
 interface SustainabilityEditorProps {
   block: ContentBlock;
@@ -12,153 +11,177 @@ interface SustainabilityEditorProps {
 }
 
 export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorProps) => {
-  const [content, setContent] = useState<SustainabilityContent>(block.content as SustainabilityContent);
+  console.log("Rendering SustainabilityEditor with block:", block);
 
-  useEffect(() => {
-    console.log('Block changed in SustainabilityEditor:', block);
-    setContent(block.content as SustainabilityContent);
-  }, [block.id, block.content]);
+  const content = block.content as SustainabilityContent;
 
-  const handleChange = (key: string, value: any) => {
-    const updatedContent = { ...content, [key]: value };
-    setContent(updatedContent);
-    onUpdate(block.id, updatedContent);
+  const handleUpdate = (updates: Partial<SustainabilityContent>) => {
+    onUpdate(block.id, {
+      ...content,
+      ...updates,
+    });
   };
 
-  const handleStatChange = (index: number, field: string, value: string) => {
+  const handleStatUpdate = (index: number, field: string, value: string) => {
     const updatedStats = [...(content.stats || [])];
     updatedStats[index] = {
       ...updatedStats[index],
-      [field]: value
+      [field]: value,
     };
-    handleChange('stats', updatedStats);
+    handleUpdate({ stats: updatedStats });
   };
 
   const addStat = () => {
     const newStat = {
-      icon: '',
-      title: '',
-      description: '',
-      color: '#000000'
+      icon: "Leaf",
+      title: "New Stat",
+      description: "Description",
+      color: "bg-accent-green",
     };
-    handleChange('stats', [...(content.stats || []), newStat]);
+    handleUpdate({ stats: [...(content.stats || []), newStat] });
   };
 
   const removeStat = (index: number) => {
-    const updatedStats = [...(content.stats || [])].filter((_, i) => i !== index);
-    handleChange('stats', updatedStats);
+    const updatedStats = [...(content.stats || [])];
+    updatedStats.splice(index, 1);
+    handleUpdate({ stats: updatedStats });
   };
 
-  const handleTimelineChange = (index: number, value: string) => {
+  const handleTimelineUpdate = (index: number, value: string) => {
     const updatedTimeline = [...(content.timelineItems || [])];
     updatedTimeline[index] = value;
-    handleChange('timelineItems', updatedTimeline);
+    handleUpdate({ timelineItems: updatedTimeline });
   };
 
   const addTimelineItem = () => {
-    handleChange('timelineItems', [...(content.timelineItems || []), '']);
+    handleUpdate({
+      timelineItems: [...(content.timelineItems || []), "New Timeline Item"],
+    });
   };
 
   const removeTimelineItem = (index: number) => {
-    const updatedTimeline = [...(content.timelineItems || [])].filter((_, i) => i !== index);
-    handleChange('timelineItems', updatedTimeline);
+    const updatedTimeline = [...(content.timelineItems || [])];
+    updatedTimeline.splice(index, 1);
+    handleUpdate({ timelineItems: updatedTimeline });
   };
-
-  console.log('Rendering SustainabilityEditor with block type:', block.type);
-  console.log('Current content:', content);
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
-          value={content.title || ''}
-          onChange={(e) => handleChange('title', e.target.value)}
-          placeholder="Enter section title"
-        />
+      <div className="space-y-4">
+        <div>
+          <Label>Title</Label>
+          <Input
+            value={content.title || ""}
+            onChange={(e) => handleUpdate({ title: e.target.value })}
+            placeholder="Enter section title"
+          />
+        </div>
+
+        <div>
+          <Label>Description</Label>
+          <Textarea
+            value={content.description || ""}
+            onChange={(e) => handleUpdate({ description: e.target.value })}
+            placeholder="Enter section description"
+          />
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={content.description || ''}
-          onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Enter section description"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Stats</Label>
-        <div className="space-y-4">
-          {content.stats?.map((stat, index) => (
-            <div key={index} className="space-y-2 p-4 border rounded-lg relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={() => removeStat(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Input
-                value={stat.icon || ''}
-                onChange={(e) => handleStatChange(index, 'icon', e.target.value)}
-                placeholder="Icon name"
-                className="mb-2"
-              />
-              <Input
-                value={stat.title || ''}
-                onChange={(e) => handleStatChange(index, 'title', e.target.value)}
-                placeholder="Title"
-                className="mb-2"
-              />
-              <Input
-                value={stat.description || ''}
-                onChange={(e) => handleStatChange(index, 'description', e.target.value)}
-                placeholder="Description"
-                className="mb-2"
-              />
-              <Input
-                type="color"
-                value={stat.color || '#000000'}
-                onChange={(e) => handleStatChange(index, 'color', e.target.value)}
-                className="mb-2"
-              />
-            </div>
-          ))}
-          <Button onClick={addStat} variant="outline" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label>Statistics</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addStat}
+          >
+            <Plus className="w-4 h-4 mr-2" />
             Add Stat
           </Button>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label>Timeline Items</Label>
-        <div className="space-y-4">
-          {content.timelineItems?.map((item, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                value={item}
-                onChange={(e) => handleTimelineChange(index, e.target.value)}
-                placeholder="Timeline item"
-              />
+        {content.stats?.map((stat, index) => (
+          <div key={index} className="space-y-2 p-4 border rounded-lg">
+            <div className="flex justify-between items-center">
+              <Label>Stat {index + 1}</Label>
               <Button
+                type="button"
                 variant="ghost"
-                size="icon"
-                onClick={() => removeTimelineItem(index)}
+                size="sm"
+                onClick={() => removeStat(index)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Minus className="w-4 h-4" />
               </Button>
             </div>
-          ))}
-          <Button onClick={addTimelineItem} variant="outline" className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
+
+            <Input
+              value={stat.title}
+              onChange={(e) => handleStatUpdate(index, "title", e.target.value)}
+              placeholder="Stat title"
+            />
+
+            <Input
+              value={stat.description}
+              onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
+              placeholder="Stat description"
+            />
+
+            <select
+              value={stat.icon}
+              onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
+              className="w-full border rounded-md p-2"
+            >
+              <option value="Leaf">Leaf</option>
+              <option value="Recycle">Recycle</option>
+              <option value="Package">Package</option>
+              <option value="Factory">Factory</option>
+            </select>
+
+            <select
+              value={stat.color}
+              onChange={(e) => handleStatUpdate(index, "color", e.target.value)}
+              className="w-full border rounded-md p-2"
+            >
+              <option value="bg-accent-green">Green</option>
+              <option value="bg-accent-purple">Purple</option>
+              <option value="bg-accent-peach">Peach</option>
+            </select>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label>Timeline Items</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addTimelineItem}
+          >
+            <Plus className="w-4 h-4 mr-2" />
             Add Timeline Item
           </Button>
         </div>
+
+        {content.timelineItems?.map((item, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <Input
+              value={item}
+              onChange={(e) => handleTimelineUpdate(index, e.target.value)}
+              placeholder="Timeline item text"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeTimelineItem(index)}
+            >
+              <Minus className="w-4 h-4" />
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );
