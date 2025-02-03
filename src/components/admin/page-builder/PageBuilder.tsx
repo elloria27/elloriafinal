@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { ContentBlock, BlockType, BlockContent } from "@/types/content-blocks";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { GripVertical, Trash2, Edit2 } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+
+type ContentBlockRow = Database['public']['Tables']['content_blocks']['Row'];
 
 interface PageBuilderProps {
   pageId: string;
@@ -26,7 +29,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleAddBlock = async (type: BlockType) => {
     try {
-      const newBlock: ContentBlock = {
+      const newBlock: ContentBlockRow = {
         id: crypto.randomUUID(),
         type,
         content: {},
@@ -42,7 +45,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks([...blocks, newBlock]);
+      setBlocks([...blocks, newBlock as ContentBlock]);
       setShowComponentPicker(false);
       toast.success("Component added successfully");
     } catch (error) {
@@ -115,7 +118,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       console.log('Reordering blocks:', updatedBlocks);
 
-      const updateData = updatedBlocks.map(({ id, order_index, type, content, page_id }) => ({
+      const updateData: ContentBlockRow[] = updatedBlocks.map(({ id, order_index, type, content, page_id }) => ({
         id,
         order_index,
         type,
