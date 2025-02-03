@@ -7,6 +7,13 @@ export type BlockType = Database['public']['Enums']['content_block_type'] |
   'business_contact' |
   'custom_solutions_process';
 
+// Base interface for all content types
+interface BaseContent extends Record<string, Json> {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
 export interface ContentBlock {
   id: string;
   type: BlockType;
@@ -47,14 +54,7 @@ export type BlockContent =
   | ImageBlockContent
   | HeadingBlockContent;
 
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface HeroContent extends BaseContent {
   videoUrl?: string;
   videoPoster?: string;
   shopNowText?: string;
@@ -62,10 +62,7 @@ export interface HeroContent {
   backgroundImage?: string;
 }
 
-export interface FeaturesContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface FeaturesContent extends BaseContent {
   features?: FeatureItem[];
 }
 
@@ -76,30 +73,20 @@ export interface FeatureItem extends Record<string, Json> {
   detail?: string;
 }
 
-export interface GameChangerContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface GameChangerContent extends BaseContent {
   features?: FeatureItem[];
 }
 
-export interface StoreBrandsContent {
-  title?: string;
-  subtitle?: string;
+export interface StoreBrandsContent extends BaseContent {
   features?: FeatureItem[];
   buttonText?: string;
 }
 
-export interface ProductCarouselContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface ProductCarouselContent extends BaseContent {
   products?: string[];
 }
 
-export interface CompetitorComparisonContent {
-  title?: string;
-  subtitle?: string;
+export interface CompetitorComparisonContent extends BaseContent {
   buttonText?: string;
   buttonUrl?: string;
   metrics?: {
@@ -111,9 +98,7 @@ export interface CompetitorComparisonContent {
   }[];
 }
 
-export interface TestimonialsContent {
-  title?: string;
-  subtitle?: string;
+export interface TestimonialsContent extends BaseContent {
   testimonials?: {
     name: string;
     rating: number;
@@ -123,23 +108,16 @@ export interface TestimonialsContent {
   items?: any[];
 }
 
-export interface BlogPreviewContent {
-  title?: string;
-  subtitle?: string;
+export interface BlogPreviewContent extends BaseContent {
   posts?: string[];
   buttonText?: string;
 }
 
-export interface NewsletterContent {
-  title?: string;
-  subtitle?: string;
+export interface NewsletterContent extends BaseContent {
   buttonText?: string;
 }
 
-export interface SustainabilityContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface SustainabilityContent extends BaseContent {
   stats?: SustainabilityStat[];
   materials?: SustainabilityMaterial[];
   timeline?: SustainabilityTimelineItem[];
@@ -147,26 +125,19 @@ export interface SustainabilityContent {
 
 export interface AboutHeroContent extends HeroContent {}
 
-export interface AboutStoryContent {
-  title?: string;
-  subtitle?: string;
+export interface AboutStoryContent extends BaseContent {
   content?: string;
   videoUrl?: string;
   videoThumbnail?: string;
 }
 
-export interface AboutMissionContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface AboutMissionContent extends BaseContent {
   values?: FeatureItem[];
 }
 
 export interface AboutSustainabilityContent extends SustainabilityContent {}
 
-export interface AboutTeamContent {
-  title?: string;
-  subtitle?: string;
+export interface AboutTeamContent extends BaseContent {
   members?: {
     name: string;
     role: string;
@@ -175,9 +146,7 @@ export interface AboutTeamContent {
   }[];
 }
 
-export interface AboutCustomerImpactContent {
-  title?: string;
-  description?: string;
+export interface AboutCustomerImpactContent extends BaseContent {
   stats?: {
     value: string;
     label: string;
@@ -190,49 +159,34 @@ export interface AboutCustomerImpactContent {
   }[];
 }
 
-export interface AboutCtaContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface AboutCtaContent extends BaseContent {
   buttonText?: string;
   buttonLink?: string;
   primaryButtonText?: string;
   secondaryButtonText?: string;
 }
 
-export interface ContactHeroContent {
-  title?: string;
-  subtitle?: string;
-}
+export interface ContactHeroContent extends BaseContent {}
 
-export interface ContactDetailsContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface ContactDetailsContent extends BaseContent {
   address?: string;
   phone?: string;
   email?: string;
 }
 
-export interface ContactFormContent {
-  title?: string;
-  description?: string;
+export interface ContactFormContent extends BaseContent {
   buttonText?: string;
   secondaryButtonText?: string;
 }
 
-export interface ContactFAQContent {
-  title?: string;
-  description?: string;
+export interface ContactFAQContent extends BaseContent {
   faqs?: {
     question: string;
     answer: string;
   }[];
 }
 
-export interface ContactBusinessContent {
-  title?: string;
-  description?: string;
+export interface ContactBusinessContent extends BaseContent {
   email?: string;
   buttonText?: string;
   buttonLink?: string;
@@ -240,35 +194,30 @@ export interface ContactBusinessContent {
 
 export interface BusinessHeroContent extends HeroContent {}
 
-export interface BusinessSolutionsContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
+export interface BusinessSolutionsContent extends BaseContent {
   solutions?: FeatureItem[];
 }
 
 export interface BusinessContactContent extends ContactBusinessContent {}
 
-export interface CustomSolutionsProcessContent {
-  title?: string;
-  subtitle?: string;
+export interface CustomSolutionsProcessContent extends BaseContent {
   steps?: CustomSolutionsProcessStep[];
 }
 
-export interface CustomSolutionsProcessStep {
+export interface CustomSolutionsProcessStep extends Record<string, Json> {
   title: string;
   description: string;
   icon: string;
   number?: number;
 }
 
-export interface ImageBlockContent {
+export interface ImageBlockContent extends BaseContent {
   url?: string;
   alt?: string;
   caption?: string;
 }
 
-export interface HeadingBlockContent {
+export interface HeadingBlockContent extends BaseContent {
   text?: string;
   level?: 1 | 2 | 3 | 4 | 5 | 6;
   alignment?: 'left' | 'center' | 'right';
