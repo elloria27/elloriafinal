@@ -24,6 +24,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [showComponentPicker, setShowComponentPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const initializeBlocks = async () => {
@@ -56,32 +57,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
           console.log('No blocks in DB, using initial blocks:', initialBlocks);
-          const savedBlocks = await Promise.all(
-            initialBlocks.map(async (block, index) => {
-              const insertData: ContentBlockInsert = {
-                id: block.id,
-                page_id: pageId,
-                type: block.type as Database['public']['Enums']['content_block_type'],
-                content: block.content,
-                order_index: index
-              };
-
-              const { data, error: insertError } = await supabase
-                .from('content_blocks')
-                .insert(insertData)
-                .select()
-                .single();
-
-              if (insertError) {
-                console.error('Error saving initial block to DB:', insertError);
-                throw insertError;
-              }
-
-              return block;
-            })
-          );
-
-          console.log('Saved initial blocks to DB:', savedBlocks);
           setBlocks(initialBlocks);
         }
       } catch (error) {
@@ -159,8 +134,13 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleSaveLayout = async () => {
+    if (!hasUnsavedChanges) return;
+    
+    setIsSaving(true);
     try {
-      // Delete removed blocks
+      console.log('Saving layout with blocks:', blocks);
+
+      // First, delete removed blocks
       const existingBlockIds = blocks.map(block => block.id);
       const { error: deleteError } = await supabase
         .from('content_blocks')
@@ -168,10 +148,13 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         .eq('page_id', pageId)
         .not('id', 'in', existingBlockIds);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Error deleting blocks:', deleteError);
+        throw deleteError;
+      }
 
-      // Update or insert blocks
-      const promises = blocks.map(block => {
+      // Then update or insert blocks
+      const blockUpdates = blocks.map(block => {
         const blockData: ContentBlockInsert = {
           id: block.id,
           page_id: pageId,
@@ -179,19 +162,27 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           content: block.content,
           order_index: block.order_index
         };
-
         return supabase
           .from('content_blocks')
           .upsert(blockData)
           .select();
       });
 
-      await Promise.all(promises);
+      const results = await Promise.all(blockUpdates);
+      const errors = results.filter(result => result.error);
+
+      if (errors.length > 0) {
+        console.error('Errors saving blocks:', errors);
+        throw new Error('Failed to save some blocks');
+      }
+
       setHasUnsavedChanges(false);
       toast.success("Layout saved successfully");
     } catch (error) {
       console.error('Error saving layout:', error);
       toast.error("Failed to save layout");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -288,10 +279,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       <Button
         className="fixed bottom-4 right-4"
         onClick={handleSaveLayout}
-        disabled={!hasUnsavedChanges}
+        disabled={!hasUnsavedChanges || isSaving}
       >
         <Save className="w-4 h-4 mr-2" />
-        Save Layout
+        {isSaving ? 'Saving...' : 'Save Layout'}
       </Button>
     </div>
   );
