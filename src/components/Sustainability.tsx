@@ -6,6 +6,13 @@ import { SustainabilityMission } from "./sustainability/SustainabilityMission";
 import { SustainabilityMaterials } from "./sustainability/SustainabilityMaterials";
 import { SustainabilityFAQ } from "./sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "./sustainability/SustainabilityCTA";
+import { 
+  SustainabilityHeroContent, 
+  SustainabilityMissionContent,
+  SustainabilityMaterialsContent,
+  SustainabilityFAQContent,
+  SustainabilityCTAContent 
+} from "@/types/sustainability";
 
 interface SustainabilityProps {
   pageId?: string;
@@ -32,7 +39,7 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
         }
 
         console.log('Fetched content blocks:', data);
-        setBlocks(data || []);
+        setBlocks(data as ContentBlock[]);
       } catch (error) {
         console.error('Failed to fetch content blocks:', error);
       } finally {
@@ -53,18 +60,18 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
     // Map the content block type to the appropriate component
     switch (block.type) {
       case "hero":
-        return <SustainabilityHero content={block.content} />;
+        return <SustainabilityHero content={block.content as SustainabilityHeroContent} />;
       case "sustainability":
         // For mission and FAQ sections which now use the 'sustainability' type
         if (block.content.isMission) {
-          return <SustainabilityMission content={block.content} />;
+          return <SustainabilityMission content={block.content as SustainabilityMissionContent} />;
         } else {
-          return <SustainabilityFAQ content={block.content} />;
+          return <SustainabilityFAQ content={block.content as SustainabilityFAQContent} />;
         }
       case "features":
-        return <SustainabilityMaterials content={block.content} />;
+        return <SustainabilityMaterials content={block.content as SustainabilityMaterialsContent} />;
       case "newsletter":
-        return <SustainabilityCTA content={block.content} />;
+        return <SustainabilityCTA content={block.content as SustainabilityCTAContent} />;
       default:
         return null;
     }
