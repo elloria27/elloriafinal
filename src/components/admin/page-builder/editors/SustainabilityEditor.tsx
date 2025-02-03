@@ -22,7 +22,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
     });
   };
 
-  const handleStatUpdate = (index: number, field: string, value: string) => {
+  const handleStatUpdate = (index: number, field: keyof typeof content.stats[0], value: string) => {
     const updatedStats = [...(content.stats || [])];
     updatedStats[index] = {
       ...updatedStats[index],
@@ -34,9 +34,9 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
   const addStat = () => {
     const newStat = {
       icon: "Leaf",
-      title: "New Stat",
+      value: "New Value",
+      label: "New Label",
       description: "Description",
-      color: "bg-accent-green",
     };
     handleUpdate({ stats: [...(content.stats || []), newStat] });
   };
@@ -47,22 +47,51 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
     handleUpdate({ stats: updatedStats });
   };
 
-  const handleTimelineUpdate = (index: number, value: string) => {
-    const updatedTimeline = [...(content.timelineItems || [])];
-    updatedTimeline[index] = value;
-    handleUpdate({ timelineItems: updatedTimeline });
+  const handleMaterialUpdate = (index: number, field: keyof typeof content.materials[0], value: string) => {
+    const updatedMaterials = [...(content.materials || [])];
+    updatedMaterials[index] = {
+      ...updatedMaterials[index],
+      [field]: value,
+    };
+    handleUpdate({ materials: updatedMaterials });
   };
 
-  const addTimelineItem = () => {
-    handleUpdate({
-      timelineItems: [...(content.timelineItems || []), "New Timeline Item"],
-    });
+  const addMaterial = () => {
+    const newMaterial = {
+      icon: "Leaf",
+      title: "New Material",
+      description: "Description",
+    };
+    handleUpdate({ materials: [...(content.materials || []), newMaterial] });
   };
 
-  const removeTimelineItem = (index: number) => {
-    const updatedTimeline = [...(content.timelineItems || [])];
-    updatedTimeline.splice(index, 1);
-    handleUpdate({ timelineItems: updatedTimeline });
+  const removeMaterial = (index: number) => {
+    const updatedMaterials = [...(content.materials || [])];
+    updatedMaterials.splice(index, 1);
+    handleUpdate({ materials: updatedMaterials });
+  };
+
+  const handleFaqUpdate = (index: number, field: keyof typeof content.faqs[0], value: string) => {
+    const updatedFaqs = [...(content.faqs || [])];
+    updatedFaqs[index] = {
+      ...updatedFaqs[index],
+      [field]: value,
+    };
+    handleUpdate({ faqs: updatedFaqs });
+  };
+
+  const addFaq = () => {
+    const newFaq = {
+      question: "New Question",
+      answer: "New Answer",
+    };
+    handleUpdate({ faqs: [...(content.faqs || []), newFaq] });
+  };
+
+  const removeFaq = (index: number) => {
+    const updatedFaqs = [...(content.faqs || [])];
+    updatedFaqs.splice(index, 1);
+    handleUpdate({ faqs: updatedFaqs });
   };
 
   return (
@@ -85,104 +114,171 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
             placeholder="Enter section description"
           />
         </div>
-      </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label>Statistics</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addStat}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Stat
-          </Button>
-        </div>
-
-        {content.stats?.map((stat, index) => (
-          <div key={index} className="space-y-2 p-4 border rounded-lg">
-            <div className="flex justify-between items-center">
-              <Label>Stat {index + 1}</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeStat(index)}
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-            </div>
-
+        {block.type === "sustainability_hero" && (
+          <div>
+            <Label>Background Image URL</Label>
             <Input
-              value={stat.title}
-              onChange={(e) => handleStatUpdate(index, "title", e.target.value)}
-              placeholder="Stat title"
+              value={content.backgroundImage || ""}
+              onChange={(e) => handleUpdate({ backgroundImage: e.target.value })}
+              placeholder="Enter background image URL"
             />
-
-            <Input
-              value={stat.description}
-              onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
-              placeholder="Stat description"
-            />
-
-            <select
-              value={stat.icon}
-              onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
-              className="w-full border rounded-md p-2"
-            >
-              <option value="Leaf">Leaf</option>
-              <option value="Recycle">Recycle</option>
-              <option value="Package">Package</option>
-              <option value="Factory">Factory</option>
-            </select>
-
-            <select
-              value={stat.color}
-              onChange={(e) => handleStatUpdate(index, "color", e.target.value)}
-              className="w-full border rounded-md p-2"
-            >
-              <option value="bg-accent-green">Green</option>
-              <option value="bg-accent-purple">Purple</option>
-              <option value="bg-accent-peach">Peach</option>
-            </select>
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label>Timeline Items</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addTimelineItem}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Timeline Item
-          </Button>
-        </div>
-
-        {content.timelineItems?.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <Input
-              value={item}
-              onChange={(e) => handleTimelineUpdate(index, e.target.value)}
-              placeholder="Timeline item text"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeTimelineItem(index)}
-            >
-              <Minus className="w-4 h-4" />
+      {block.type === "sustainability_mission" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Statistics</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addStat}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Stat
             </Button>
           </div>
-        ))}
-      </div>
+
+          {content.stats?.map((stat, index) => (
+            <div key={index} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <Label>Stat {index + 1}</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeStat(index)}>
+                  <Minus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Input
+                value={stat.value}
+                onChange={(e) => handleStatUpdate(index, "value", e.target.value)}
+                placeholder="Stat value"
+              />
+
+              <Input
+                value={stat.label}
+                onChange={(e) => handleStatUpdate(index, "label", e.target.value)}
+                placeholder="Stat label"
+              />
+
+              <Input
+                value={stat.description}
+                onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
+                placeholder="Stat description"
+              />
+
+              <select
+                value={stat.icon}
+                onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="Leaf">Leaf</option>
+                <option value="PackageCheck">Package Check</option>
+                <option value="Globe">Globe</option>
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {block.type === "sustainability_materials" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>Materials</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addMaterial}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Material
+            </Button>
+          </div>
+
+          {content.materials?.map((material, index) => (
+            <div key={index} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <Label>Material {index + 1}</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeMaterial(index)}>
+                  <Minus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Input
+                value={material.title}
+                onChange={(e) => handleMaterialUpdate(index, "title", e.target.value)}
+                placeholder="Material title"
+              />
+
+              <Input
+                value={material.description}
+                onChange={(e) => handleMaterialUpdate(index, "description", e.target.value)}
+                placeholder="Material description"
+              />
+
+              <select
+                value={material.icon}
+                onChange={(e) => handleMaterialUpdate(index, "icon", e.target.value)}
+                className="w-full border rounded-md p-2"
+              >
+                <option value="TreePine">Tree Pine</option>
+                <option value="Recycle">Recycle</option>
+                <option value="Factory">Factory</option>
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {block.type === "sustainability_faq" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>FAQs</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addFaq}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add FAQ
+            </Button>
+          </div>
+
+          {content.faqs?.map((faq, index) => (
+            <div key={index} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <Label>FAQ {index + 1}</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeFaq(index)}>
+                  <Minus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Input
+                value={faq.question}
+                onChange={(e) => handleFaqUpdate(index, "question", e.target.value)}
+                placeholder="Question"
+              />
+
+              <Textarea
+                value={faq.answer}
+                onChange={(e) => handleFaqUpdate(index, "answer", e.target.value)}
+                placeholder="Answer"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {block.type === "sustainability_cta" && (
+        <div className="space-y-4">
+          <div>
+            <Label>Button Text</Label>
+            <Input
+              value={content.buttonText || ""}
+              onChange={(e) => handleUpdate({ buttonText: e.target.value })}
+              placeholder="Enter button text"
+            />
+          </div>
+
+          <div>
+            <Label>Button Link</Label>
+            <Input
+              value={content.buttonLink || ""}
+              onChange={(e) => handleUpdate({ buttonLink: e.target.value })}
+              placeholder="Enter button link"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
