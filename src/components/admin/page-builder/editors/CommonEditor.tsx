@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,20 +12,12 @@ interface CommonEditorProps {
 }
 
 export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
-  const [localContent, setLocalContent] = useState(block.content);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [currentField, setCurrentField] = useState<string>("");
 
-  // Reset local content when block changes
-  useEffect(() => {
-    console.log("Block changed, resetting local content:", block.content);
-    setLocalContent(block.content);
-  }, [block.id, block.content]);
-
   const handleChange = (key: string, value: any) => {
-    const updatedContent = { ...localContent, [key]: value };
-    setLocalContent(updatedContent);
+    const updatedContent = { ...block.content, [key]: value };
     onUpdate(block.id, updatedContent);
   };
 
