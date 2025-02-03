@@ -118,7 +118,7 @@ export const InventoryManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
+      <div className="flex">
         {isMobile ? (
           <Sheet>
             <SheetTrigger asChild>
@@ -136,7 +136,7 @@ export const InventoryManagement = () => {
           </div>
         )}
         
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 p-6 ml-0 md:ml-64">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-2">Inventory Management</h1>
             <p className="text-gray-600 mb-6">Manage product inventory levels and track stock movements</p>
