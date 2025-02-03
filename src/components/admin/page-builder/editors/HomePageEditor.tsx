@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem, HeroContent, FeaturesContent, StoreBrandsContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -31,34 +31,40 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleLogoSelect = (url: string) => {
     if (currentLogoIndex === null || block.type !== "store_brands") return;
     
-    const logos = Array.isArray(localContent.logos) ? [...localContent.logos] : [];
+    const content = localContent as StoreBrandsContent;
+    const logos = Array.isArray(content.logos) ? [...content.logos] : [];
     logos[currentLogoIndex] = url;
     handleContentChange({ logos });
     setShowMediaLibrary(false);
   };
 
   const addLogo = () => {
-    const logos = Array.isArray(localContent.logos) ? [...localContent.logos, ""] : [""];
+    const content = localContent as StoreBrandsContent;
+    const logos = Array.isArray(content.logos) ? [...content.logos, ""] : [""];
     handleContentChange({ logos });
   };
 
   const removeLogo = (index: number) => {
-    const logos = Array.isArray(localContent.logos) ? [...localContent.logos] : [];
+    const content = localContent as StoreBrandsContent;
+    const logos = Array.isArray(content.logos) ? [...content.logos] : [];
     logos.splice(index, 1);
     handleContentChange({ logos });
   };
 
   const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
-    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
-    features[index] = {
+    const content = localContent as FeaturesContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
+    const updatedFeature = {
       ...features[index],
       [field]: value,
     };
+    features[index] = updatedFeature;
     handleContentChange({ features });
   };
 
   const addFeature = () => {
-    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
+    const content = localContent as FeaturesContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
     features.push({
       icon: "Star",
       title: "New Feature",
@@ -68,19 +74,21 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const removeFeature = (index: number) => {
-    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
+    const content = localContent as FeaturesContent;
+    const features = Array.isArray(content.features) ? [...content.features] : [];
     features.splice(index, 1);
     handleContentChange({ features });
   };
 
   switch (block.type) {
-    case "hero":
+    case "hero": {
+      const heroContent = localContent as HeroContent;
       return (
         <div className="space-y-4">
           <div>
             <Label>Title</Label>
             <Input
-              value={localContent.title || ""}
+              value={heroContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter hero title"
             />
@@ -88,7 +96,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={localContent.subtitle || ""}
+              value={heroContent.subtitle || ""}
               onChange={(e) => handleContentChange({ subtitle: e.target.value })}
               placeholder="Enter subtitle"
             />
@@ -96,7 +104,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={localContent.description || ""}
+              value={heroContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -104,7 +112,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Button Text</Label>
             <Input
-              value={localContent.buttonText || ""}
+              value={heroContent.buttonText || ""}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
             />
@@ -112,13 +120,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Button Link</Label>
             <Input
-              value={localContent.buttonLink || ""}
+              value={heroContent.buttonLink || ""}
               onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
               placeholder="Enter button link"
             />
           </div>
         </div>
       );
+    }
 
     case "game_changer":
       return (
@@ -126,7 +135,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={localContent.title || ""}
+              value={localContent.title?.toString() || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -134,7 +143,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={localContent.description || ""}
+              value={localContent.description?.toString() || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -142,13 +151,14 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
         </div>
       );
 
-    case "store_brands":
+    case "store_brands": {
+      const brandsContent = localContent as StoreBrandsContent;
       return (
         <div className="space-y-4">
           <div>
             <Label>Title</Label>
             <Input
-              value={localContent.title || ""}
+              value={brandsContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -156,7 +166,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={localContent.description || ""}
+              value={brandsContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -175,10 +185,10 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
               </Button>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {(localContent.logos || []).map((logo, index) => (
+              {Array.isArray(brandsContent.logos) && brandsContent.logos.map((logo, index) => (
                 <div key={index} className="relative group">
                   <img
-                    src={logo}
+                    src={logo || "/placeholder.svg"}
                     alt={`Brand logo ${index + 1}`}
                     className="w-full h-32 object-contain border rounded p-2"
                     onClick={() => {
@@ -207,14 +217,16 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           />
         </div>
       );
+    }
 
-    case "features":
+    case "features": {
+      const featuresContent = localContent as FeaturesContent;
       return (
         <div className="space-y-6">
           <div>
             <Label>Title</Label>
             <Input
-              value={localContent.title || ""}
+              value={featuresContent.title || ""}
               onChange={(e) => handleContentChange({ title: e.target.value })}
               placeholder="Enter section title"
             />
@@ -222,7 +234,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           <div>
             <Label>Description</Label>
             <Input
-              value={localContent.description || ""}
+              value={featuresContent.description || ""}
               onChange={(e) => handleContentChange({ description: e.target.value })}
               placeholder="Enter description"
             />
@@ -240,7 +252,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
                 Add Feature
               </Button>
             </div>
-            {(localContent.features || []).map((feature, index) => (
+            {Array.isArray(featuresContent.features) && featuresContent.features.map((feature, index) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Feature {index + 1}</Label>
@@ -293,6 +305,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
           </div>
         </div>
       );
+    }
 
     default:
       return null;
