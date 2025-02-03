@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 interface InventoryLog {
   id: string;
@@ -23,6 +24,7 @@ interface InventoryLog {
   reason_details: string | null;
   retailer_name: string | null;
   created_at: string;
+  created_by: string | null;
   product: Product;
 }
 
@@ -42,7 +44,13 @@ export const InventoryLogs = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setLogs(data);
+
+        // Parse the product data for each log entry
+        const parsedLogs = data.map(log => ({
+          ...log,
+          product: parseProduct(log.product)
+        }));
+        setLogs(parsedLogs);
       } catch (error) {
         console.error("Error fetching inventory logs:", error);
         toast.error("Failed to fetch inventory logs");
@@ -53,12 +61,6 @@ export const InventoryLogs = () => {
 
     fetchLogs();
   }, []);
-
-  const formatReasonType = (type: string) => {
-    return type.split("_").map(word => 
-      word.charAt(0) + word.slice(1).toLowerCase()
-    ).join(" ");
-  };
 
   if (loading) {
     return <div>Loading logs...</div>;
@@ -87,13 +89,15 @@ export const InventoryLogs = () => {
               </TableCell>
               <TableCell className="font-medium">{log.product.name}</TableCell>
               <TableCell>
-                <Badge variant={log.quantity_change >= 0 ? "success" : "destructive"}>
+                <Badge variant={log.quantity_change >= 0 ? "default" : "destructive"}>
                   {log.quantity_change >= 0 ? "+" : ""}{log.quantity_change}
                 </Badge>
               </TableCell>
               <TableCell>{log.new_quantity}</TableCell>
               <TableCell>
-                {formatReasonType(log.reason_type)}
+                {log.reason_type.split("_").map(word => 
+                  word.charAt(0) + word.slice(1).toLowerCase()
+                ).join(" ")}
                 {log.retailer_name && ` (${log.retailer_name})`}
               </TableCell>
               <TableCell>{log.reason_details || "-"}</TableCell>

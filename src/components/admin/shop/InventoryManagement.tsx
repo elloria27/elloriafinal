@@ -7,6 +7,7 @@ import { InventoryAdjustment } from "./inventory/InventoryAdjustment";
 import { InventoryList } from "./inventory/InventoryList";
 import { InventoryLogs } from "./inventory/InventoryLogs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 interface InventoryItem {
   id: string;
@@ -38,7 +39,12 @@ export const InventoryManagement = () => {
       }
 
       console.log("Inventory fetched successfully:", data);
-      setInventory(data);
+      // Parse the product data for each inventory item
+      const parsedInventory = data.map(item => ({
+        ...item,
+        product: parseProduct(item.product)
+      }));
+      setInventory(parsedInventory);
     } catch (error) {
       console.error("Error in fetchInventory:", error);
       toast.error("An unexpected error occurred");
