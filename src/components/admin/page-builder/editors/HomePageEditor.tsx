@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, FeatureItem } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ interface HomePageEditorProps {
 }
 
 export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
-  const [localContent, setLocalContent] = useState(block.content);
+  const [localContent, setLocalContent] = useState<BlockContent>(block.content);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [currentLogoIndex, setCurrentLogoIndex] = useState<number | null>(null);
 
@@ -31,25 +31,25 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   const handleLogoSelect = (url: string) => {
     if (currentLogoIndex === null || block.type !== "store_brands") return;
     
-    const logos = [...(localContent.logos || [])];
+    const logos = Array.isArray(localContent.logos) ? [...localContent.logos] : [];
     logos[currentLogoIndex] = url;
     handleContentChange({ logos });
     setShowMediaLibrary(false);
   };
 
   const addLogo = () => {
-    const logos = [...(localContent.logos || []), ""];
+    const logos = Array.isArray(localContent.logos) ? [...localContent.logos, ""] : [""];
     handleContentChange({ logos });
   };
 
   const removeLogo = (index: number) => {
-    const logos = [...(localContent.logos || [])];
+    const logos = Array.isArray(localContent.logos) ? [...localContent.logos] : [];
     logos.splice(index, 1);
     handleContentChange({ logos });
   };
 
-  const handleFeatureChange = (index: number, field: string, value: string) => {
-    const features = [...(localContent.features || [])];
+  const handleFeatureChange = (index: number, field: keyof FeatureItem, value: string) => {
+    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
     features[index] = {
       ...features[index],
       [field]: value,
@@ -58,7 +58,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const addFeature = () => {
-    const features = [...(localContent.features || [])];
+    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
     features.push({
       icon: "Star",
       title: "New Feature",
@@ -68,7 +68,7 @@ export const HomePageEditor = ({ block, onUpdate }: HomePageEditorProps) => {
   };
 
   const removeFeature = (index: number) => {
-    const features = [...(localContent.features || [])];
+    const features = Array.isArray(localContent.features) ? [...localContent.features] : [];
     features.splice(index, 1);
     handleContentChange({ features });
   };

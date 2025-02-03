@@ -26,6 +26,34 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
     onUpdate(block.id, updatedContent);
   };
 
+  const addSolution = () => {
+    const solutionsContent = localContent as BusinessSolutionsContent;
+    const solutions = [...(solutionsContent.solutions || [])];
+    solutions.push({
+      icon: "",
+      title: "",
+      description: ""
+    });
+    handleContentChange({ solutions });
+  };
+
+  const removeSolution = (index: number) => {
+    const solutionsContent = localContent as BusinessSolutionsContent;
+    const solutions = [...(solutionsContent.solutions || [])];
+    solutions.splice(index, 1);
+    handleContentChange({ solutions });
+  };
+
+  const handleSolutionChange = (index: number, field: keyof BusinessSolutionsContent["solutions"][0], value: string) => {
+    const solutionsContent = localContent as BusinessSolutionsContent;
+    const solutions = [...(solutionsContent.solutions || [])];
+    solutions[index] = {
+      ...solutions[index],
+      [field]: value
+    };
+    handleContentChange({ solutions });
+  };
+
   switch (block.type) {
     case "business_hero":
       const heroContent = localContent as ForBusinessHeroContent;
