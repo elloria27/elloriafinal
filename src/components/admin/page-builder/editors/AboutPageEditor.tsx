@@ -18,7 +18,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
     setContent(block.content);
   }, [block.id, block.content]);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string | number | boolean | string[] | null) => {
     const updatedContent = { ...content, [key]: value };
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
@@ -35,7 +35,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter section title"
             />
@@ -44,7 +44,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="subtitle">Subtitle</Label>
             <Input
               id="subtitle"
-              value={content.subtitle || ''}
+              value={(content.subtitle as string) || ''}
               onChange={(e) => handleChange('subtitle', e.target.value)}
               placeholder="Enter section subtitle"
             />
@@ -59,7 +59,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="content">Story Content</Label>
             <Textarea
               id="content"
-              value={content.content || ''}
+              value={(content.content as string) || ''}
               onChange={(e) => handleChange('content', e.target.value)}
               placeholder="Enter the story content"
             />
@@ -74,7 +74,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="mission">Mission Statement</Label>
             <Textarea
               id="mission"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter the mission statement"
             />
@@ -89,7 +89,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="team">Team Description</Label>
             <Textarea
               id="team"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter team description"
             />
@@ -104,7 +104,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label htmlFor="impact">Customer Impact</Label>
             <Textarea
               id="impact"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter customer impact description"
             />

@@ -18,10 +18,15 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
     setContent(block.content);
   }, [block.id, block.content]);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string | number | boolean | string[] | null) => {
     const updatedContent = { ...content, [key]: value };
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
+  };
+
+  const handleArrayChange = (key: string, value: string) => {
+    const arrayValue = value.split(',').map(item => item.trim());
+    handleChange(key, arrayValue);
   };
 
   console.log('Rendering CustomSolutionsEditor with block type:', block.type);
@@ -35,7 +40,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter section title"
             />
@@ -44,7 +49,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="subtitle">Subtitle</Label>
             <Input
               id="subtitle"
-              value={content.subtitle || ''}
+              value={(content.subtitle as string) || ''}
               onChange={(e) => handleChange('subtitle', e.target.value)}
               placeholder="Enter section subtitle"
             />
@@ -53,7 +58,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter section description"
             />
@@ -68,7 +73,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter section title"
             />
@@ -77,7 +82,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="subtitle">Subtitle</Label>
             <Input
               id="subtitle"
-              value={content.subtitle || ''}
+              value={(content.subtitle as string) || ''}
               onChange={(e) => handleChange('subtitle', e.target.value)}
               placeholder="Enter section subtitle"
             />
@@ -86,8 +91,8 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="services">Services</Label>
             <Textarea
               id="services"
-              value={content.services ? content.services.join(', ') : ''}
-              onChange={(e) => handleChange('services', e.target.value.split(', '))}
+              value={Array.isArray(content.services) ? content.services.join(', ') : ''}
+              onChange={(e) => handleArrayChange('services', e.target.value)}
               placeholder="Enter services, separated by commas"
             />
           </div>
@@ -101,7 +106,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter section title"
             />
@@ -110,8 +115,8 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="steps">Steps</Label>
             <Textarea
               id="steps"
-              value={content.steps ? content.steps.join(', ') : ''}
-              onChange={(e) => handleChange('steps', e.target.value.split(', '))}
+              value={Array.isArray(content.steps) ? content.steps.join(', ') : ''}
+              onChange={(e) => handleArrayChange('steps', e.target.value)}
               placeholder="Enter steps, separated by commas"
             />
           </div>
@@ -125,7 +130,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter section title"
             />
@@ -134,7 +139,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter section description"
             />
@@ -143,7 +148,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="buttonText">Button Text</Label>
             <Input
               id="buttonText"
-              value={content.buttonText || ''}
+              value={(content.buttonText as string) || ''}
               onChange={(e) => handleChange('buttonText', e.target.value)}
               placeholder="Enter button text"
             />
@@ -152,7 +157,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Label htmlFor="buttonLink">Button Link</Label>
             <Input
               id="buttonLink"
-              value={content.buttonLink || ''}
+              value={(content.buttonLink as string) || ''}
               onChange={(e) => handleChange('buttonLink', e.target.value)}
               placeholder="Enter button link"
             />

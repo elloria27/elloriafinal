@@ -18,7 +18,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
     setContent(block.content);
   }, [block.id, block.content]);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string | number | boolean | string[] | null) => {
     const updatedContent = { ...content, [key]: value };
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
@@ -35,7 +35,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter title"
             />
@@ -44,7 +44,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="subtitle">Subtitle</Label>
             <Input
               id="subtitle"
-              value={content.subtitle || ''}
+              value={(content.subtitle as string) || ''}
               onChange={(e) => handleChange('subtitle', e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -59,7 +59,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter title"
             />
@@ -68,7 +68,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={content.description || ''}
+              value={(content.description as string) || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter description"
             />
@@ -83,7 +83,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              value={content.email || ''}
+              value={(content.email as string) || ''}
               onChange={(e) => handleChange('email', e.target.value)}
               placeholder="Enter email"
             />
@@ -92,7 +92,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="buttonText">Button Text</Label>
             <Input
               id="buttonText"
-              value={content.buttonText || ''}
+              value={(content.buttonText as string) || ''}
               onChange={(e) => handleChange('buttonText', e.target.value)}
               placeholder="Enter button text"
             />
@@ -101,7 +101,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Label htmlFor="buttonLink">Button Link</Label>
             <Input
               id="buttonLink"
-              value={content.buttonLink || ''}
+              value={(content.buttonLink as string) || ''}
               onChange={(e) => handleChange('buttonLink', e.target.value)}
               placeholder="Enter button link"
             />

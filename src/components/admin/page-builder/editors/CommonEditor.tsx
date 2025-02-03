@@ -18,7 +18,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
     setContent(block.content);
   }, [block.id, block.content]);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: string | number | boolean | string[] | null) => {
     const updatedContent = { ...content, [key]: value };
     setContent(updatedContent);
     onUpdate(block.id, updatedContent);
@@ -35,7 +35,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="text">Heading Text</Label>
             <Input
               id="text"
-              value={content.text || ''}
+              value={(content.text as string) || ''}
               onChange={(e) => handleChange('text', e.target.value)}
               placeholder="Enter heading text"
             />
@@ -44,8 +44,9 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="size">Heading Size</Label>
             <select
               id="size"
-              value={content.size || 'h2'}
+              value={(content.size as string) || 'h2'}
               onChange={(e) => handleChange('size', e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
             >
               <option value="h1">H1</option>
               <option value="h2">H2</option>
@@ -63,7 +64,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="text">Text Content</Label>
             <Textarea
               id="text"
-              value={content.text || ''}
+              value={(content.text as string) || ''}
               onChange={(e) => handleChange('text', e.target.value)}
               placeholder="Enter text content"
             />
@@ -78,7 +79,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="url">Image URL</Label>
             <Input
               id="url"
-              value={content.url || ''}
+              value={(content.url as string) || ''}
               onChange={(e) => handleChange('url', e.target.value)}
               placeholder="Enter image URL"
             />
@@ -87,7 +88,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="alt">Alt Text</Label>
             <Input
               id="alt"
-              value={content.alt || ''}
+              value={(content.alt as string) || ''}
               onChange={(e) => handleChange('alt', e.target.value)}
               placeholder="Enter alt text"
             />
@@ -102,7 +103,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="url">Video URL</Label>
             <Input
               id="url"
-              value={content.url || ''}
+              value={(content.url as string) || ''}
               onChange={(e) => handleChange('url', e.target.value)}
               placeholder="Enter video URL"
             />
@@ -111,7 +112,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="title">Video Title</Label>
             <Input
               id="title"
-              value={content.title || ''}
+              value={(content.title as string) || ''}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="Enter video title"
             />
@@ -126,7 +127,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="text">Button Text</Label>
             <Input
               id="text"
-              value={content.text || ''}
+              value={(content.text as string) || ''}
               onChange={(e) => handleChange('text', e.target.value)}
               placeholder="Enter button text"
             />
@@ -135,7 +136,7 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="url">Button URL</Label>
             <Input
               id="url"
-              value={content.url || ''}
+              value={(content.url as string) || ''}
               onChange={(e) => handleChange('url', e.target.value)}
               placeholder="Enter button URL"
             />
@@ -144,8 +145,9 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label htmlFor="variant">Button Variant</Label>
             <select
               id="variant"
-              value={content.variant || 'default'}
+              value={(content.variant as string) || 'default'}
               onChange={(e) => handleChange('variant', e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
             >
               <option value="default">Default</option>
               <option value="outline">Outline</option>
