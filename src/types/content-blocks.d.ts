@@ -1,4 +1,11 @@
 import { Json } from "@/integrations/supabase/types";
+import { 
+  SustainabilityHeroContent,
+  SustainabilityMissionContent,
+  SustainabilityMaterialsContent,
+  SustainabilityFAQContent,
+  SustainabilityCTAContent
+} from "./sustainability";
 
 export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
@@ -321,7 +328,12 @@ export type BlockContent =
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | CustomSolutionsCtaContent
+  | SustainabilityHeroContent
+  | SustainabilityMissionContent
+  | SustainabilityMaterialsContent
+  | SustainabilityFAQContent
+  | SustainabilityCTAContent;
 
 export type BlockType = 
   | "heading" 

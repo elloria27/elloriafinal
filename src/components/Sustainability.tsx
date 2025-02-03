@@ -60,18 +60,18 @@ export const Sustainability = ({ pageId }: SustainabilityProps) => {
     // Map the content block type to the appropriate component
     switch (block.type) {
       case "hero":
-        return <SustainabilityHero content={block.content as SustainabilityHeroContent} />;
+        return <SustainabilityHero content={(block.content as unknown) as SustainabilityHeroContent} />;
       case "sustainability":
         // For mission and FAQ sections which now use the 'sustainability' type
-        if (block.content.isMission) {
-          return <SustainabilityMission content={block.content as SustainabilityMissionContent} />;
+        if ((block.content as any).isMission) {
+          return <SustainabilityMission content={(block.content as unknown) as SustainabilityMissionContent} />;
         } else {
-          return <SustainabilityFAQ content={block.content as SustainabilityFAQContent} />;
+          return <SustainabilityFAQ content={(block.content as unknown) as SustainabilityFAQContent} />;
         }
       case "features":
-        return <SustainabilityMaterials content={block.content as SustainabilityMaterialsContent} />;
+        return <SustainabilityMaterials content={(block.content as unknown) as SustainabilityMaterialsContent} />;
       case "newsletter":
-        return <SustainabilityCTA content={block.content as SustainabilityCTAContent} />;
+        return <SustainabilityCTA content={(block.content as unknown) as SustainabilityCTAContent} />;
       default:
         return null;
     }
