@@ -1,203 +1,228 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
   Users,
   FileText,
-  BookOpen,
+  FolderOpen,
+  Image as ImageIcon,
   Settings,
-  ShoppingCart,
-  Package,
-  FolderIcon,
   ChevronDown,
-  Globe,
-  Building2,
-  ExternalLink,
-  LogOut,
-  LayoutDashboard,
-  Image,
-  Lock,
-  Tag,
-  CreditCard,
-  Truck,
-  DollarSign,
-  Gift
+  Store,
+  Heart,
+  BookOpen,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
-interface SidebarItem {
-  title: string;
-  icon: React.ElementType;
-  href?: string;
-  description?: string;
-  items?: { title: string; href: string; icon: React.ElementType; description?: string }[];
-}
-
-const sidebarItems: SidebarItem[] = [
-  {
-    title: "Site",
-    icon: Globe,
-    items: [
-      { title: "Dashboard Overview", href: "/admin?tab=dashboard", icon: LayoutDashboard },
-      { title: "User Management", href: "/admin?tab=users", icon: Users },
-      { title: "Page Management", href: "/admin?tab=pages", icon: FileText },
-      { title: "Blog Management", href: "/admin?tab=blog", icon: BookOpen },
-      { title: "Media Library", href: "/admin?tab=media", icon: Image },
-      { title: "Site Settings", href: "/admin?tab=settings", icon: Settings }
-    ]
-  },
-  {
-    title: "Shop",
-    icon: ShoppingCart,
-    items: [
-      { title: "Order Management", href: "/admin?tab=orders", icon: ShoppingCart },
-      { title: "Product Management", href: "/admin?tab=products", icon: Package },
-      { title: "Payment Methods", href: "/admin?tab=payment-methods", icon: CreditCard },
-      { title: "Delivery Methods", href: "/admin?tab=delivery-methods", icon: Truck },
-      { title: "Promo Codes", href: "/admin?tab=promo-codes", icon: Tag }
-    ]
-  },
-  {
-    title: "Marketing",
-    icon: DollarSign,
-    items: [
-      { 
-        title: "Donations", 
-        href: "/admin?tab=donations", 
-        icon: Gift,
-        description: "View and manage donations"
-      }
-    ]
-  },
-  {
-    title: "HRM",
-    icon: Building2,
-    items: [
-      { 
-        title: "Company Documents", 
-        href: "/admin?tab=files", 
-        icon: Lock,
-        description: "Private company documents (admin only)"
-      }
-    ]
-  }
-];
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AdminSidebarProps {
-  profile: any;
+  profile?: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+  } | null;
   onClose?: () => void;
 }
 
+const MENU_ITEMS = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/admin?tab=dashboard",
+  },
+  {
+    title: "Products",
+    icon: Package,
+    href: "/admin?tab=products",
+  },
+  {
+    title: "Orders",
+    icon: ShoppingCart,
+    href: "/admin?tab=orders",
+  },
+  {
+    title: "Shop",
+    icon: Store,
+    items: [
+      {
+        title: "Payment Methods",
+        href: "/admin?tab=payment-methods",
+      },
+      {
+        title: "Delivery Methods",
+        href: "/admin?tab=delivery-methods",
+      },
+      {
+        title: "Inventory Management",
+        href: "/admin?tab=inventory",
+      },
+      {
+        title: "Promo Codes",
+        href: "/admin?tab=promo-codes",
+      },
+    ],
+  },
+  {
+    title: "Users",
+    icon: Users,
+    href: "/admin?tab=users",
+  },
+  {
+    title: "Content",
+    icon: FileText,
+    items: [
+      {
+        title: "Pages",
+        href: "/admin?tab=pages",
+      },
+      {
+        title: "Blog",
+        href: "/admin?tab=blog",
+      },
+    ],
+  },
+  {
+    title: "Files",
+    icon: FolderOpen,
+    href: "/admin?tab=files",
+  },
+  {
+    title: "Media",
+    icon: ImageIcon,
+    href: "/admin?tab=media",
+  },
+  {
+    title: "Donations",
+    icon: Heart,
+    href: "/admin?tab=donations",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/admin?tab=settings",
+  },
+];
+
 export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "dashboard";
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Signed out successfully");
-      navigate("/");
-      if (onClose) {
-        onClose();
-      }
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out");
-    }
-  };
-
-  const handleNavigate = (href: string) => {
-    navigate(href);
-    if (onClose) {
-      onClose();
-    }
+  const toggleExpanded = (title: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(title)
+        ? prev.filter((item) => item !== title)
+        : [...prev, title]
+    );
   };
 
   return (
-    <div className="h-full w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">Hello, {profile?.full_name || 'Admin'} 👋</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-2 w-full"
-          onClick={() => {
-            window.open("/", "_blank");
-            if (onClose) onClose();
-          }}
-        >
-          <ExternalLink className="mr-2 h-4 w-4" />
-          View Website
-        </Button>
+    <div className="flex h-full min-h-screen w-full flex-col border-r bg-card">
+      <div className="p-6">
+        <Link to="/" className="flex items-center gap-2">
+          <BookOpen className="h-6 w-6" />
+          <span className="font-semibold">Admin Panel</span>
+        </Link>
       </div>
-      
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="space-y-2">
-          {sidebarItems.map((item) => (
-            <li key={item.title}>
-              {item.items ? (
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-between"
-                    >
-                      <span className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4" />
-                        {item.title}
-                      </span>
-                      <ChevronDown className="h-4 w-4 transition-transform ui-expanded:rotate-180" />
-                    </Button>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent>
-                    <ul className="pl-4 space-y-2 mt-2">
-                      {item.items.map((subItem) => (
-                        <li key={subItem.title}>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleNavigate(subItem.href)}
-                          >
-                            <span className="flex items-center gap-2">
-                              <subItem.icon className="h-4 w-4" />
-                              {subItem.title}
-                            </span>
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => handleNavigate(item.href!)}
-                >
-                  <span className="flex items-center gap-2">
-                    <item.icon className="h-4 w-4" />
-                    {item.title}
-                  </span>
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
 
-      <div className="p-4 border-t border-gray-200">
-        <Button 
-          variant="destructive" 
-          className="w-full flex items-center gap-2"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4" />
-          Sign Out
-        </Button>
+      <ScrollArea className="flex-1 px-3">
+        <div className="space-y-1 py-2">
+          {MENU_ITEMS.map((item) => {
+            if (item.items) {
+              const isExpanded = expandedItems.includes(item.title);
+              const isActive = item.items.some(
+                (subItem) =>
+                  subItem.href.split("=")[1] === currentTab
+              );
+
+              return (
+                <div key={item.title}>
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={cn("w-full justify-between", 
+                      isActive && "bg-accent"
+                    )}
+                    onClick={() => toggleExpanded(item.title)}
+                  >
+                    <span className="flex items-center">
+                      {item.icon && (
+                        <item.icon className="mr-2 h-4 w-4" />
+                      )}
+                      {item.title}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        isExpanded && "rotate-180"
+                      )}
+                    />
+                  </Button>
+                  {isExpanded && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.items.map((subItem) => (
+                        <Button
+                          key={subItem.title}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start",
+                            subItem.href.split("=")[1] === currentTab &&
+                              "bg-accent"
+                          )}
+                          asChild
+                          onClick={onClose}
+                        >
+                          <Link to={subItem.href}>{subItem.title}</Link>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <Button
+                key={item.title}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start",
+                  item.href.split("=")[1] === currentTab && "bg-accent"
+                )}
+                asChild
+                onClick={onClose}
+              >
+                <Link to={item.href}>
+                  {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+                  {item.title}
+                </Link>
+              </Button>
+            );
+          })}
+        </div>
+      </ScrollArea>
+
+      <div className="mt-auto p-4">
+        <div className="flex items-center gap-2 rounded-lg border p-4">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={profile?.avatar_url}
+              alt={profile?.full_name || "Admin"}
+            />
+            <AvatarFallback>
+              {profile?.full_name?.[0] || "A"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {profile?.full_name || "Admin User"}
+            </span>
+            <span className="text-xs text-gray-500">Administrator</span>
+          </div>
+        </div>
       </div>
     </div>
   );
