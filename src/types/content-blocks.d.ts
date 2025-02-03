@@ -225,14 +225,17 @@ export interface CustomSolutionsServicesContent extends BaseBlockContent {
   }>;
 }
 
+export interface CustomSolutionsProcessStep {
+  number: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
 export interface CustomSolutionsProcessContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  steps?: Array<{
-    title: string;
-    description: string;
-    icon: string;
-  }>;
+  steps?: CustomSolutionsProcessStep[];
 }
 
 export interface CustomSolutionsCtaContent extends BaseBlockContent {
@@ -332,7 +335,8 @@ export type BlockType =
   | "custom_solutions_cta"
   | "business_hero"
   | "business_solutions"
-  | "business_contact";
+  | "business_contact"
+  | "product_gallery";
 
 export interface ContentBlock {
   id: string;
@@ -342,8 +346,4 @@ export interface ContentBlock {
   page_id?: string;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content?: FeaturesContent;
 }
