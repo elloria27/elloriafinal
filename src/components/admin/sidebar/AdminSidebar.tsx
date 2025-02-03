@@ -120,6 +120,12 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
     );
   };
 
+  const handleItemClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <div className="flex h-full min-h-screen w-full flex-col border-r bg-card">
       <div className="p-6">
@@ -135,23 +141,21 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
             if (item.items) {
               const isExpanded = expandedItems.includes(item.title);
               const isActive = item.items.some(
-                (subItem) =>
-                  subItem.href.split("=")[1] === currentTab
+                (subItem) => subItem.href.split("=")[1] === currentTab
               );
 
               return (
                 <div key={item.title}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className={cn("w-full justify-between", 
+                    className={cn(
+                      "w-full justify-between",
                       isActive && "bg-accent"
                     )}
                     onClick={() => toggleExpanded(item.title)}
                   >
                     <span className="flex items-center">
-                      {item.icon && (
-                        <item.icon className="mr-2 h-4 w-4" />
-                      )}
+                      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
                       {item.title}
                     </span>
                     <ChevronDown
@@ -173,7 +177,7 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                               "bg-accent"
                           )}
                           asChild
-                          onClick={onClose}
+                          onClick={handleItemClick}
                         >
                           <Link to={subItem.href}>{subItem.title}</Link>
                         </Button>
@@ -193,7 +197,7 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                   item.href.split("=")[1] === currentTab && "bg-accent"
                 )}
                 asChild
-                onClick={onClose}
+                onClick={handleItemClick}
               >
                 <Link to={item.href}>
                   {item.icon && <item.icon className="mr-2 h-4 w-4" />}
