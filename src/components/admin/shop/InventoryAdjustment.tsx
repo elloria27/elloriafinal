@@ -37,12 +37,10 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [sku, setSku] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // Оновлена функція для заповнення всіх полів при виборі продукту
   const handleProductSelect = async (productId: string) => {
     setSelectedProduct(productId);
     
     try {
-      // Отримуємо деталі інвентаря для вибраного продукту
       const { data: inventoryData, error } = await supabase
         .from('inventory')
         .select('*')
@@ -55,12 +53,10 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       if (inventoryData) {
-        // Заповнюємо всі поля існуючими даними
         setSku(inventoryData.sku || "");
         setLocation(inventoryData.location || "");
         setUnitCost(inventoryData.unit_cost?.toString() || "");
         
-        // Отримуємо останній запис з inventory_logs для цього продукту
         const { data: lastLog } = await supabase
           .from('inventory_logs')
           .select('*')
@@ -70,12 +66,10 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           .single();
 
         if (lastLog) {
-          // Заповнюємо додаткові поля з останнього логу
           setDetails(lastLog.reason_details || "");
           setReferenceNumber(lastLog.reference_number || "");
         }
       } else {
-        // Очищаємо всі поля якщо інвентар не знайдено
         setSku("");
         setLocation("");
         setUnitCost("");
@@ -117,42 +111,38 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       const currentQuantity = product.inventory?.quantity || 0;
-      const newQuantity = currentQuantity + quantityNum;
+      const newQuantity = quantityNum;
 
       if (newQuantity < 0) {
-        toast.error("Cannot reduce stock below 0");
+        toast.error("Cannot set stock below 0");
         return;
       }
 
-      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         throw new Error("User not authenticated");
       }
 
-      // Calculate total cost
       const totalCost = quantityNum * unitCostNum;
 
-      // Update inventory
       const { error: inventoryError } = await supabase
         .from('inventory')
-        .upsert({
-          product_id: selectedProduct,
+        .update({
           quantity: newQuantity,
           location: location || product.inventory?.location,
           unit_cost: unitCostNum || product.inventory?.unit_cost,
           sku: sku || product.inventory?.sku,
           last_counted_at: reasonType === 'stock_count' ? new Date().toISOString() : undefined
-        });
+        })
+        .eq('product_id', selectedProduct);
 
       if (inventoryError) throw inventoryError;
 
-      // Log the adjustment
       const { error: logError } = await supabase
         .from('inventory_logs')
         .insert({
           product_id: selectedProduct,
-          quantity_change: quantityNum,
+          quantity_change: quantityNum - currentQuantity,
           previous_quantity: currentQuantity,
           new_quantity: newQuantity,
           reason_type: reasonType,
@@ -172,7 +162,6 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       toast.success("Inventory updated successfully");
       onUpdate();
 
-      // Reset form
       setQuantity("");
       setReasonType("");
       setRetailerName("");
