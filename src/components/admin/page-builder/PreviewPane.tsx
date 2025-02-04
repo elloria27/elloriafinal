@@ -64,89 +64,67 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
 
           switch (block.type) {
             case 'hero':
-              return <HomeHero content={block.content} />;
+              return <HomeHero {...block.content} />;
 
             case 'features':
-              return <Features content={block.content} />;
+              return <Features {...block.content} />;
 
             case 'game_changer':
-              return <GameChanger content={block.content} />;
+              return <GameChanger {...block.content} />;
 
             case 'store_brands':
-              return <StoreBrands content={block.content} />;
+              return <StoreBrands {...block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content} />;
+              return <Sustainability {...block.content} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content} />;
+              return <Testimonials {...block.content} />;
 
             case 'blog_preview':
-              return <BlogPreview content={block.content} />;
+              return <BlogPreview {...block.content} />;
 
             case 'newsletter':
-              return <Newsletter content={block.content} />;
+              return <Newsletter {...block.content} />;
 
             case 'product_carousel':
-              return <ProductCarousel content={block.content} />;
+              return <ProductCarousel {...block.content} />;
 
             case 'competitor_comparison':
-              return <CompetitorComparison content={block.content} />;
+              return <CompetitorComparison {...block.content} />;
 
             case 'about_hero_section':
-              return <AboutHero content={block.content} />;
+              return <AboutHero {...block.content} />;
 
             case 'about_story':
-              return <AboutStory content={block.content} />;
+              return <AboutStory {...block.content} />;
 
             case 'about_mission':
-              return <AboutMission content={block.content} />;
+              return <AboutMission {...block.content} />;
 
             case 'about_sustainability':
-              const sustainabilityContent = block.content as any;
-              if (sustainabilityContent.stats) {
-                return <AboutSustainability content={{
-                  ...sustainabilityContent,
-                  stats: sustainabilityContent.stats.map((stat: any) => ({
-                    ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
-                  }))
-                }} />;
-              }
-              return <AboutSustainability content={sustainabilityContent} />;
+              return <AboutSustainability {...block.content} />;
 
             case 'about_team':
-              return <AboutTeam content={block.content} />;
+              return <AboutTeam {...block.content} />;
 
             case 'about_customer_impact':
-              const customerImpactContent = block.content as any;
-              if (customerImpactContent.testimonials) {
-                return <AboutCustomerImpact content={{
-                  ...customerImpactContent,
-                  testimonials: customerImpactContent.testimonials.map((t: any) => ({
-                    quote: t.text || "",
-                    author: t.name || "",
-                    role: t.source || "",
-                    rating: t.rating || 5
-                  }))
-                }} />;
-              }
-              return <AboutCustomerImpact content={customerImpactContent} />;
+              return <AboutCustomerImpact {...block.content} />;
 
             case 'contact_hero':
-              return <ContactHero content={block.content} />;
+              return <ContactHero {...block.content} />;
 
             case 'contact_details':
-              return <ContactDetails content={block.content} />;
+              return <ContactDetails {...block.content} />;
 
             case 'contact_form':
-              return <ContactForm content={block.content} />;
+              return <ContactForm {...block.content} />;
 
             case 'contact_faq':
-              return <ContactFAQ content={block.content} />;
+              return <ContactFAQ {...block.content} />;
 
             case 'contact_business':
-              return <BusinessContact content={block.content} />;
+              return <BusinessContact {...block.content} />;
 
             case 'heading':
               const HeadingTag = ((block.content as any).size || 'h2') as keyof JSX.IntrinsicElements;
