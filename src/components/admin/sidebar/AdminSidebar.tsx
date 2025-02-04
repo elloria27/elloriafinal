@@ -58,7 +58,7 @@ const sidebarItems: SidebarItem[] = [
     items: [
       { title: "Order Management", href: "/admin?tab=orders", icon: ShoppingCart },
       { title: "Product Management", href: "/admin?tab=products", icon: Package },
-      { title: "Inventory Management", href: "/admin?tab=inventory", icon: Boxes },
+      { title: "Inventory Management", href: "/admin/inventory", icon: Boxes },
       { title: "Payment Methods", href: "/admin?tab=payment-methods", icon: CreditCard },
       { title: "Delivery Methods", href: "/admin?tab=delivery-methods", icon: Truck },
       { title: "Promo Codes", href: "/admin?tab=promo-codes", icon: Tag }
@@ -88,7 +88,7 @@ const sidebarItems: SidebarItem[] = [
       },
       {
         title: "Personal Reminders",
-        href: "/admin?tab=personal-reminders",
+        href: "/admin/personal-reminders",
         icon: Bell,
         description: "Manage your personal reminders"
       }
@@ -181,7 +181,7 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                     </ul>
                   </CollapsibleContent>
                 </Collapsible>
-              ) : (
+              ) : item.href ? (
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
@@ -192,7 +192,7 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                     {item.title}
                   </span>
                 </Button>
-              )}
+              ) : null}
             </li>
           ))}
         </ul>
