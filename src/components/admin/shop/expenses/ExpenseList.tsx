@@ -21,6 +21,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { ExpenseForm } from "./ExpenseForm"; // Add this import
 
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
@@ -257,3 +258,4 @@ export const ExpenseList = () => {
     </div>
   );
 };
+
