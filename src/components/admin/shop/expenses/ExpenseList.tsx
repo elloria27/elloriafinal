@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PenLine, Download, Trash2, Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
@@ -31,6 +32,7 @@ export const ExpenseList = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
+  const queryClient = useQueryClient();
 
   const { data: expenses, isLoading } = useQuery({
     queryKey: ["expenses", search, categoryFilter, statusFilter],
@@ -58,6 +60,54 @@ export const ExpenseList = () => {
       return data;
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("shop_company_expenses")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      toast.success("Expense deleted successfully");
+    },
+    onError: (error) => {
+      console.error("Error deleting expense:", error);
+      toast.error("Failed to delete expense");
+    },
+  });
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this expense?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleDownload = async (receiptPath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("expense-receipts")
+        .download(receiptPath);
+      
+      if (error) throw error;
+
+      // Create a download link
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = receiptPath.split("/").pop() || "receipt";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading receipt:", error);
+      toast.error("Failed to download receipt");
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-CA", {
@@ -151,15 +201,30 @@ export const ExpenseList = () => {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      // TODO: Implement edit functionality
+                      toast.info("Edit functionality coming soon");
+                    }}
+                  >
                     <PenLine className="h-4 w-4" />
                   </Button>
                   {expense.receipt_path && (
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDownload(expense.receipt_path!)}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleDelete(expense.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
