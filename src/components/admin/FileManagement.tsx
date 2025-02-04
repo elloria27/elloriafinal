@@ -27,12 +27,12 @@ export const FileManagement = () => {
 
   useEffect(() => {
     fetchFiles();
-    cleanupBrokenFolders();
+    cleanupBrokenFiles();
   }, []);
 
-  const cleanupBrokenFolders = async () => {
+  const cleanupBrokenFiles = async () => {
     try {
-      console.log('Starting cleanup of broken folders...');
+      console.log('Starting cleanup of broken files...');
       const { data: filesData, error: filesError } = await supabase.storage.from('files').list();
       
       if (filesError) {
@@ -40,29 +40,25 @@ export const FileManagement = () => {
         return;
       }
 
-      // Find all files that are actually broken folder entries
+      // Find all files that are broken (0 bytes and not folders)
       const brokenFiles = filesData.filter(file => {
-        // Check if it's a broken folder entry (0 bytes, no mimetype, not a real folder)
-        const isBrokenFolder = file.metadata?.size === 0 && 
-                             !file.metadata?.mimetype && 
-                             !file.name.includes('/');
+        const isBrokenFile = file.metadata?.size === 0 && 
+                           !file.name.endsWith('/') &&
+                           !file.name.includes('/');
         
-        // Additional check to ensure we don't delete valid folders
-        const isValidFolder = file.name.endsWith('/');
-        
-        return isBrokenFolder && !isValidFolder;
+        return isBrokenFile;
       });
 
-      console.log('Found broken folder files:', brokenFiles);
+      console.log('Found broken files:', brokenFiles);
 
-      // Delete broken folders from storage
+      // Delete broken files from storage
       for (const file of brokenFiles) {
         const { error: deleteStorageError } = await supabase.storage
           .from('files')
           .remove([file.name]);
 
         if (deleteStorageError) {
-          console.error(`Error deleting broken folder ${file.name} from storage:`, deleteStorageError);
+          console.error(`Error deleting broken file ${file.name} from storage:`, deleteStorageError);
           continue;
         }
 
@@ -76,17 +72,60 @@ export const FileManagement = () => {
           console.error(`Error deleting file share for ${file.name}:`, deleteShareError);
         }
 
-        console.log(`Successfully deleted broken folder ${file.name}`);
+        console.log(`Successfully deleted broken file ${file.name}`);
       }
 
-      if (brokenFiles.length > 0) {
-        toast.success(`Cleaned up ${brokenFiles.length} broken folder entries`);
+      // Also cleanup broken folders
+      const { data: foldersData, error: foldersError } = await supabase
+        .from('folders')
+        .select('*');
+
+      if (foldersError) {
+        console.error('Error fetching folders:', foldersError);
+        return;
+      }
+
+      // Find broken folder entries
+      const brokenFolders = filesData.filter(file => {
+        const isBrokenFolder = file.metadata?.size === 0 && 
+                             !file.metadata?.mimetype && 
+                             !file.name.includes('/') &&
+                             !file.name.endsWith('/');
+        
+        return isBrokenFolder;
+      });
+
+      for (const folder of brokenFolders) {
+        const { error: deleteFolderError } = await supabase.storage
+          .from('files')
+          .remove([folder.name]);
+
+        if (deleteFolderError) {
+          console.error(`Error deleting broken folder ${folder.name}:`, deleteFolderError);
+          continue;
+        }
+
+        const { error: deleteRecordError } = await supabase
+          .from('folders')
+          .delete()
+          .eq('path', folder.name);
+
+        if (deleteRecordError) {
+          console.error(`Error deleting folder record for ${folder.name}:`, deleteRecordError);
+        }
+
+        console.log(`Successfully deleted broken folder ${folder.name}`);
+      }
+
+      if (brokenFiles.length > 0 || brokenFolders.length > 0) {
+        toast.success(`Cleaned up ${brokenFiles.length} broken files and ${brokenFolders.length} broken folders`);
+        fetchFiles(); // Refresh the file list
       }
       
       console.log('Cleanup completed');
     } catch (error) {
-      console.error('Error in cleanupBrokenFolders:', error);
-      toast.error("Error cleaning up broken folders");
+      console.error('Error in cleanupBrokenFiles:', error);
+      toast.error("Error cleaning up broken files");
     }
   };
 
@@ -329,14 +368,6 @@ export const FileManagement = () => {
       toast.error("Failed to create folder");
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
