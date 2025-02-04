@@ -27,12 +27,12 @@ interface InventoryAdjustmentProps {
 
 export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentProps) => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
-  const [quantity, setQuantity] = useState<number>(0);
+  const [quantity, setQuantity] = useState<string>("");
   const [reasonType, setReasonType] = useState<string>("");
   const [retailerName, setRetailerName] = useState<string>("");
   const [details, setDetails] = useState<string>("");
   const [location, setLocation] = useState<string>("");
-  const [unitCost, setUnitCost] = useState<number>(0);
+  const [unitCost, setUnitCost] = useState<string>("");
   const [referenceNumber, setReferenceNumber] = useState<string>("");
   const [sku, setSku] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +40,19 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const handleAdjustment = async () => {
     if (!selectedProduct || !quantity || !reasonType) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const quantityNum = Number(quantity);
+    const unitCostNum = unitCost ? Number(unitCost) : 0;
+
+    if (isNaN(quantityNum)) {
+      toast.error("Please enter a valid number for quantity");
+      return;
+    }
+
+    if (isNaN(unitCostNum)) {
+      toast.error("Please enter a valid number for unit cost");
       return;
     }
 
@@ -53,7 +66,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       const currentQuantity = product.inventory?.quantity || 0;
-      const newQuantity = currentQuantity + quantity;
+      const newQuantity = currentQuantity + quantityNum;
 
       if (newQuantity < 0) {
         toast.error("Cannot reduce stock below 0");
@@ -67,7 +80,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       // Calculate total cost
-      const totalCost = quantity * unitCost;
+      const totalCost = quantityNum * unitCostNum;
 
       // Update inventory
       const { error: inventoryError } = await supabase
@@ -76,7 +89,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           product_id: selectedProduct,
           quantity: newQuantity,
           location: location || product.inventory?.location,
-          unit_cost: unitCost || product.inventory?.unit_cost,
+          unit_cost: unitCostNum || product.inventory?.unit_cost,
           sku: sku || product.inventory?.sku,
           last_counted_at: reasonType === 'stock_count' ? new Date().toISOString() : undefined
         });
@@ -88,14 +101,14 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
         .from('inventory_logs')
         .insert({
           product_id: selectedProduct,
-          quantity_change: quantity,
+          quantity_change: quantityNum,
           previous_quantity: currentQuantity,
           new_quantity: newQuantity,
           reason_type: reasonType,
           reason_details: details,
           retailer_name: reasonType === 'retailer_shipment' ? retailerName : null,
           location: location,
-          unit_cost: unitCost,
+          unit_cost: unitCostNum,
           total_cost: totalCost,
           reference_number: referenceNumber,
           performed_by: user.email,
@@ -109,12 +122,12 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       onUpdate();
 
       // Reset form
-      setQuantity(0);
+      setQuantity("");
       setReasonType("");
       setRetailerName("");
       setDetails("");
       setLocation("");
-      setUnitCost(0);
+      setUnitCost("");
       setReferenceNumber("");
       setSku("");
     } catch (error) {
@@ -169,9 +182,9 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
             <Label htmlFor="quantity">Quantity Change</Label>
             <Input
               id="quantity"
-              type="number"
+              type="text"
               value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              onChange={(e) => setQuantity(e.target.value)}
               placeholder="Enter quantity (negative for reduction)"
             />
           </div>
@@ -224,10 +237,10 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
             <Label htmlFor="unitCost">Unit Cost</Label>
             <Input
               id="unitCost"
-              type="number"
+              type="text"
               step="0.01"
               value={unitCost}
-              onChange={(e) => setUnitCost(Number(e.target.value))}
+              onChange={(e) => setUnitCost(e.target.value)}
               placeholder="Enter unit cost"
             />
           </div>
