@@ -20,7 +20,6 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { BusinessContact } from "@/components/business/BusinessContact";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -70,14 +69,14 @@ export const PreviewPane = ({
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
               return (
                 <HeadingTag className="text-4xl font-bold mb-4">
-                  {block.content.text || 'Heading'}
+                  {String(block.content.text || 'Heading')}
                 </HeadingTag>
               );
 
             case 'text':
               return (
                 <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                  {block.content.text || 'Text block'}
+                  {String(block.content.text || 'Text block')}
                 </p>
               );
 
@@ -85,8 +84,8 @@ export const PreviewPane = ({
               return (
                 <div className="mb-4">
                   <img
-                    src={block.content.url || '/placeholder.svg'}
-                    alt={block.content.alt || ''}
+                    src={String(block.content.url) || '/placeholder.svg'}
+                    alt={String(block.content.alt) || ''}
                     className="max-w-full h-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -96,8 +95,8 @@ export const PreviewPane = ({
               return (
                 <div className="mb-4 aspect-video">
                   <iframe
-                    src={block.content.url}
-                    title={block.content.title || 'Video'}
+                    src={String(block.content.url)}
+                    title={String(block.content.title) || 'Video'}
                     className="w-full h-full rounded-lg shadow-md"
                     allowFullScreen
                   />
@@ -115,7 +114,7 @@ export const PreviewPane = ({
                       : 'bg-primary text-white'
                   }`}
                 >
-                  {block.content.text || 'Button'}
+                  {String(block.content.text) || 'Button'}
                 </button>
               );
 
@@ -156,13 +155,29 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              return <AboutSustainability content={block.content} />;
+              const sustainabilityContent = {
+                ...block.content,
+                stats: block.content.stats?.map((stat: any) => ({
+                  ...stat,
+                  icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
+                }))
+              };
+              return <AboutSustainability content={sustainabilityContent} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              const customerImpactContent = {
+                ...block.content,
+                testimonials: block.content.testimonials?.map((t: any) => ({
+                  quote: t.text,
+                  author: t.name,
+                  role: t.source,
+                  rating: t.rating
+                }))
+              };
+              return <AboutCustomerImpact content={customerImpactContent} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
@@ -175,9 +190,6 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
-
-            case 'contact_business':
-              return <BusinessContact content={block.content} />;
 
             default:
               return (
