@@ -51,6 +51,9 @@ export const FileManagement = () => {
 
       console.log('Found broken files:', brokenFiles);
 
+      let deletedFiles = 0;
+      let deletedFolders = 0;
+
       // Delete broken files from storage
       for (const file of brokenFiles) {
         const { error: deleteStorageError } = await supabase.storage
@@ -70,9 +73,10 @@ export const FileManagement = () => {
 
         if (deleteShareError) {
           console.error(`Error deleting file share for ${file.name}:`, deleteShareError);
+        } else {
+          deletedFiles++;
+          console.log(`Successfully deleted broken file ${file.name}`);
         }
-
-        console.log(`Successfully deleted broken file ${file.name}`);
       }
 
       // Also cleanup broken folders
@@ -112,14 +116,15 @@ export const FileManagement = () => {
 
         if (deleteRecordError) {
           console.error(`Error deleting folder record for ${folder.name}:`, deleteRecordError);
+        } else {
+          deletedFolders++;
+          console.log(`Successfully deleted broken folder ${folder.name}`);
         }
-
-        console.log(`Successfully deleted broken folder ${folder.name}`);
       }
 
-      if (brokenFiles.length > 0 || brokenFolders.length > 0) {
-        toast.success(`Cleaned up ${brokenFiles.length} broken files and ${brokenFolders.length} broken folders`);
-        fetchFiles(); // Refresh the file list
+      if (deletedFiles > 0 || deletedFolders > 0) {
+        toast.success(`Cleaned up ${deletedFiles} broken files and ${deletedFolders} broken folders`);
+        await fetchFiles(); // Refresh the file list
       }
       
       console.log('Cleanup completed');

@@ -136,7 +136,6 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
       );
     }
 
-    // For other file types (like DOCX), show a message
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">
