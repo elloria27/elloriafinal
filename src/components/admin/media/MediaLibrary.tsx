@@ -16,6 +16,7 @@ export const MediaLibrary = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchFiles();
@@ -62,6 +63,7 @@ export const MediaLibrary = () => {
       console.log('File uploaded successfully');
       toast.success("File uploaded successfully");
       await fetchFiles();
+      setDialogOpen(false); // Close the dialog after successful upload
     } catch (error) {
       console.error('Error in handleFileUpload:', error);
       toast.error("Failed to upload file");
@@ -124,7 +126,7 @@ export const MediaLibrary = () => {
           >
             <List className="h-4 w-4" />
           </Button>
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
