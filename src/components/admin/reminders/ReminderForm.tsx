@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 interface ReminderFormProps {
   reminder?: any;
@@ -21,12 +21,12 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: reminder ? {
       ...reminder,
-      reminder_date: format(utcToZonedTime(new Date(reminder.reminder_date), 'America/Winnipeg'), 'yyyy-MM-dd'),
+      reminder_date: format(toZonedTime(new Date(reminder.reminder_date), 'America/Winnipeg'), 'yyyy-MM-dd'),
       reminder_time: reminder.reminder_time.slice(0, 5)
     } : {
       title: '',
       description: '',
-      reminder_date: format(utcToZonedTime(new Date(), 'America/Winnipeg'), 'yyyy-MM-dd'),
+      reminder_date: format(toZonedTime(new Date(), 'America/Winnipeg'), 'yyyy-MM-dd'),
       reminder_time: '09:00',
       recurrence: 'none',
       email_notify: true,
@@ -47,7 +47,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
       }
 
       // Convert the date to UTC before saving
-      const reminderDate = zonedTimeToUtc(new Date(data.reminder_date), 'America/Winnipeg');
+      const reminderDate = fromZonedTime(new Date(data.reminder_date), 'America/Winnipeg');
       
       const reminderData = {
         ...data,

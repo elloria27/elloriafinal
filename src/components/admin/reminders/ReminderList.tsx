@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 import { Edit, Trash2, Search } from "lucide-react";
 import {
   Table,
@@ -51,7 +51,7 @@ export const ReminderList = ({ reminders, onEdit, onUpdate }: ReminderListProps)
   );
 
   const formatDate = (date: string) => {
-    const utcDate = zonedTimeToUtc(new Date(date), 'America/Winnipeg');
+    const utcDate = fromZonedTime(new Date(date), 'America/Winnipeg');
     return format(utcDate, 'MMM d, yyyy');
   };
 
