@@ -166,8 +166,8 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] p-0">
-        <DialogHeader className="px-6 py-4 border-b">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b">
           <DialogTitle className="text-xl font-semibold">
             {expenseToEdit ? "Edit Expense" : "Add New Expense"}
           </DialogTitle>
@@ -181,20 +181,19 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
           </Button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-4">
-          <div className="space-y-4">
-            <div>
+        <form onSubmit={handleSubmit} className="space-y-4 px-6 py-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="mt-1.5"
                 required
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
@@ -203,7 +202,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,7 +218,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="amount">Amount (CAD)</Label>
               <Input
                 id="amount"
@@ -227,24 +226,22 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 step="0.01"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="mt-1.5"
                 required
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="date">Date</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="mt-1.5"
                 required
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="payment_method">Payment Method</Label>
               <Select
                 value={formData.payment_method}
@@ -253,7 +250,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger>
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,39 +261,37 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="vendor_name">Vendor Name</Label>
               <Input
                 id="vendor_name"
                 value={formData.vendor_name}
                 onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
-                className="mt-1.5"
                 required
               />
             </div>
 
-            <div>
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="receipt">Receipt (Optional)</Label>
               <Input
                 id="receipt"
                 type="file"
                 accept="image/*,.pdf"
                 onChange={(e) => setReceipt(e.target.files ? e.target.files[0] : null)}
-                className="mt-1.5"
               />
             </div>
 
-            <div>
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="mt-1.5"
+                className="min-h-[80px]"
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
@@ -305,7 +300,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger className="mt-1.5">
+                <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -316,7 +311,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white">
             <Button
               type="button"
               variant="outline"
