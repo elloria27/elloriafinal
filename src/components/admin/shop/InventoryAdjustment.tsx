@@ -38,19 +38,53 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [loading, setLoading] = useState(false);
 
   // Оновлена функція для заповнення всіх полів при виборі продукту
-  const handleProductSelect = (productId: string) => {
+  const handleProductSelect = async (productId: string) => {
     setSelectedProduct(productId);
-    const product = products.find(p => p.id === productId);
-    if (product?.inventory) {
-      // Заповнюємо всі поля існуючими даними
-      setSku(product.inventory.sku || "");
-      setLocation(product.inventory.location || "");
-      setUnitCost(product.inventory.unit_cost?.toString() || "");
-    } else {
-      // Очищаємо поля якщо інвентар не знайдено
-      setSku("");
-      setLocation("");
-      setUnitCost("");
+    
+    try {
+      // Отримуємо деталі інвентаря для вибраного продукту
+      const { data: inventoryData, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('product_id', productId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching inventory details:', error);
+        return;
+      }
+
+      if (inventoryData) {
+        // Заповнюємо всі поля існуючими даними
+        setSku(inventoryData.sku || "");
+        setLocation(inventoryData.location || "");
+        setUnitCost(inventoryData.unit_cost?.toString() || "");
+        
+        // Отримуємо останній запис з inventory_logs для цього продукту
+        const { data: lastLog } = await supabase
+          .from('inventory_logs')
+          .select('*')
+          .eq('product_id', productId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (lastLog) {
+          // Заповнюємо додаткові поля з останнього логу
+          setDetails(lastLog.reason_details || "");
+          setReferenceNumber(lastLog.reference_number || "");
+        }
+      } else {
+        // Очищаємо всі поля якщо інвентар не знайдено
+        setSku("");
+        setLocation("");
+        setUnitCost("");
+        setDetails("");
+        setReferenceNumber("");
+      }
+    } catch (error) {
+      console.error('Error in handleProductSelect:', error);
+      toast.error("Failed to load product details");
     }
   };
 
