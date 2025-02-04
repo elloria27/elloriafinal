@@ -39,9 +39,12 @@ export const AnalyticsWidget = () => {
         
         const { data: viewsData, error: viewsError } = await supabase
           .from('page_views')
-          .select('*');
+          .select('*')
+          .order('created_at', { ascending: true });
 
         if (viewsError) throw viewsError;
+
+        console.log('Raw views data:', viewsData);
 
         // Process countries data
         const countryCount: Record<string, number> = {};
@@ -87,9 +90,9 @@ export const AnalyticsWidget = () => {
         const today = new Date();
         const last7Days = Array.from({ length: 7 }, (_, i) => {
           const date = new Date(today);
-          date.setDate(date.getDate() - i);
+          date.setDate(date.getDate() - (6 - i)); // Changed to show last 7 days including today
           return date.toISOString().split('T')[0];
-        }).reverse();
+        });
 
         // Initialize all days with 0 views
         last7Days.forEach(date => {
@@ -109,11 +112,16 @@ export const AnalyticsWidget = () => {
           views
         }));
 
+        console.log('Processed daily views:', dailyViews);
+
+        // Calculate total page views
+        const totalPageViews = viewsData?.length || 0;
+
         // Calculate average time (placeholder for now)
         const avgTimeMinutes = 5;
 
         const analyticsData: AnalyticsData = {
-          pageViews: viewsData?.length || 0,
+          pageViews: totalPageViews,
           averageTimeOnSite: `${avgTimeMinutes}m`,
           topCountries,
           topCities,
@@ -121,7 +129,7 @@ export const AnalyticsWidget = () => {
           dailyViews
         };
 
-        console.log('Analytics data processed:', analyticsData);
+        console.log('Final analytics data:', analyticsData);
         setAnalyticsData(analyticsData);
         setError(null);
       } catch (err) {
@@ -133,6 +141,23 @@ export const AnalyticsWidget = () => {
     };
 
     fetchAnalytics();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('analytics_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'page_views' },
+        () => {
+          console.log('Page views updated, refreshing data...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {
