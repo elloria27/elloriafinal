@@ -22,14 +22,14 @@ const handler = async (_req: Request): Promise<Response> => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-    // Fetch reminders due tomorrow
+    // Fetch reminders due tomorrow with admin profiles
     const { data: reminders, error: reminderError } = await supabase
       .from('hrm_personal_reminders')
       .select(`
         *,
-        profiles (
-          full_name,
-          email
+        profiles!hrm_personal_reminders_admin_id_fkey (
+          email,
+          full_name
         )
       `)
       .eq('reminder_date', tomorrowStr)
@@ -42,19 +42,24 @@ const handler = async (_req: Request): Promise<Response> => {
 
     // Send emails for each reminder
     const emailPromises = reminders?.map(async (reminder) => {
-      if (!reminder.profiles?.email) {
+      const adminEmail = reminder.profiles?.email;
+      const adminName = reminder.profiles?.full_name || 'Admin';
+
+      if (!adminEmail) {
         console.log(`No email found for reminder ${reminder.id}`);
         return;
       }
 
       try {
+        console.log(`Sending reminder email to ${adminEmail} for reminder: ${reminder.title}`);
+        
         const emailResponse = await resend.emails.send({
           from: "Elloria HRM <notifications@elloria.ca>",
-          to: [reminder.profiles.email],
+          to: [adminEmail],
           subject: `Reminder: ${reminder.title}`,
           html: `
             <h1>Reminder Alert - ${reminder.title}</h1>
-            <p>Hello ${reminder.profiles.full_name || 'Admin'},</p>
+            <p>Hello ${adminName},</p>
             <p>This is a reminder for your scheduled task:</p>
             <ul>
               <li><strong>Title:</strong> ${reminder.title}</li>
