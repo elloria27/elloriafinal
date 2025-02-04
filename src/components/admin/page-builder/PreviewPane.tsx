@@ -105,13 +105,29 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              return <AboutSustainability content={block.content} />;
+              // Type cast to ensure compatibility
+              return <AboutSustainability content={{
+                ...block.content,
+                stats: (block.content.stats || []).map(stat => ({
+                  ...stat,
+                  icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
+                }))
+              }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              // Transform testimonials data structure
+              return <AboutCustomerImpact content={{
+                ...block.content,
+                testimonials: block.content.testimonials?.map(t => ({
+                  quote: t.text,
+                  author: t.name,
+                  role: t.source,
+                  rating: t.rating
+                }))
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
