@@ -17,11 +17,12 @@ interface ReminderFormProps {
 export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
     defaultValues: reminder ? {
       ...reminder,
       reminder_date: format(new Date(reminder.reminder_date), 'yyyy-MM-dd'),
-      reminder_time: reminder.reminder_time.slice(0, 5)
+      reminder_time: reminder.reminder_time.slice(0, 5),
+      recurrence: reminder.recurrence
     } : {
       title: '',
       description: '',
@@ -44,12 +45,14 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         throw new Error('You must be logged in to create reminders');
       }
 
+      // Ensure the date is saved exactly as selected without timezone conversion
       const reminderData = {
         ...data,
+        reminder_date: data.reminder_date,
         admin_id: user.id
       };
 
-      console.log("Submitting with admin_id:", reminderData);
+      console.log("Final reminder data being submitted:", reminderData);
 
       const { error } = reminder 
         ? await supabase
@@ -115,7 +118,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         <label className="text-sm font-medium">Recurrence</label>
         <Select 
           defaultValue={reminder?.recurrence || 'none'}
-          onValueChange={(value) => register('recurrence').onChange({ target: { value } })}
+          onValueChange={(value) => setValue('recurrence', value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select recurrence" />
@@ -136,7 +139,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         </div>
         <Switch
           defaultChecked={reminder?.email_notify ?? true}
-          onCheckedChange={(checked) => register('email_notify').onChange({ target: { value: checked } })}
+          onCheckedChange={(checked) => setValue('email_notify', checked)}
         />
       </div>
 
@@ -147,7 +150,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         </div>
         <Switch
           defaultChecked={reminder?.status ?? true}
-          onCheckedChange={(checked) => register('status').onChange({ target: { value: checked } })}
+          onCheckedChange={(checked) => setValue('status', checked)}
         />
       </div>
 
