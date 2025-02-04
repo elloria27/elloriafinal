@@ -3,6 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
 import { Features } from "@/components/Features";
+import { GameChanger } from "@/components/GameChanger";
+import { StoreBrands } from "@/components/StoreBrands";
+import { Sustainability } from "@/components/Sustainability";
+import { Testimonials } from "@/components/Testimonials";
+import { BlogPreview } from "@/components/BlogPreview";
+import { Newsletter } from "@/components/Newsletter";
+import { ProductCarousel } from "@/components/ProductCarousel";
+import { CompetitorComparison } from "@/components/CompetitorComparison";
+import { AboutHero } from "@/components/about/AboutHero";
+import { AboutStory } from "@/components/about/AboutStory";
+import { AboutMission } from "@/components/about/AboutMission";
+import { AboutSustainability } from "@/components/about/AboutSustainability";
+import { AboutTeam } from "@/components/about/AboutTeam";
+import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
+import { ContactHero } from "@/components/contact/ContactHero";
+import { ContactDetails } from "@/components/contact/ContactDetails";
+import { ContactForm } from "@/components/contact/ContactForm";
+import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { BusinessContact } from "@/components/contact/BusinessContact";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -51,6 +70,63 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
 
             case 'features':
               return <Features content={block.content} />;
+
+            case 'game_changer':
+              return <GameChanger content={block.content} />;
+
+            case 'store_brands':
+              return <StoreBrands content={block.content} />;
+
+            case 'sustainability':
+              return <Sustainability content={block.content} />;
+
+            case 'testimonials':
+              return <Testimonials content={block.content} />;
+
+            case 'blog_preview':
+              return <BlogPreview content={block.content} />;
+
+            case 'newsletter':
+              return <Newsletter content={block.content} />;
+
+            case 'product_carousel':
+              return <ProductCarousel content={block.content} />;
+
+            case 'competitor_comparison':
+              return <CompetitorComparison content={block.content} />;
+
+            case 'about_hero_section':
+              return <AboutHero content={block.content} />;
+
+            case 'about_story':
+              return <AboutStory content={block.content} />;
+
+            case 'about_mission':
+              return <AboutMission content={block.content} />;
+
+            case 'about_sustainability':
+              return <AboutSustainability content={block.content} />;
+
+            case 'about_team':
+              return <AboutTeam content={block.content} />;
+
+            case 'about_customer_impact':
+              return <AboutCustomerImpact content={block.content} />;
+
+            case 'contact_hero':
+              return <ContactHero content={block.content} />;
+
+            case 'contact_details':
+              return <ContactDetails content={block.content} />;
+
+            case 'contact_form':
+              return <ContactForm content={block.content} />;
+
+            case 'contact_faq':
+              return <ContactFAQ content={block.content} />;
+
+            case 'contact_business':
+              return <BusinessContact content={block.content} />;
 
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
