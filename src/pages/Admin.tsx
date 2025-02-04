@@ -13,6 +13,7 @@ import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
 import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodManagement";
 import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
 import { DonationManagement } from "@/components/admin/DonationManagement";
+import { InventoryManagement } from "@/components/admin/InventoryManagement";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -133,6 +134,8 @@ const Admin = () => {
         return <DeliveryMethodManagement />;
       case "donations":
         return <DonationManagement />;
+      case "inventory":
+        return <InventoryManagement />;
       default:
         return <Dashboard />;
     }

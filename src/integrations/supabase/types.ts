@@ -515,6 +515,124 @@ export type Database = {
           },
         ]
       }
+      inventory: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_counted_at: string | null
+          location: string | null
+          low_stock_threshold: number | null
+          optimal_stock: number | null
+          product_id: string
+          quantity: number
+          reorder_point: number | null
+          sku: string | null
+          unit_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_counted_at?: string | null
+          location?: string | null
+          low_stock_threshold?: number | null
+          optimal_stock?: number | null
+          product_id: string
+          quantity?: number
+          reorder_point?: number | null
+          sku?: string | null
+          unit_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_counted_at?: string | null
+          location?: string | null
+          low_stock_threshold?: number | null
+          optimal_stock?: number | null
+          product_id?: string
+          quantity?: number
+          reorder_point?: number | null
+          sku?: string | null
+          unit_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_logs: {
+        Row: {
+          adjustment_type: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          location: string | null
+          new_quantity: number
+          performed_by: string | null
+          previous_quantity: number
+          product_id: string
+          quantity_change: number
+          reason_details: string | null
+          reason_type: string
+          reference_number: string | null
+          retailer_name: string | null
+          total_cost: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          adjustment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          new_quantity: number
+          performed_by?: string | null
+          previous_quantity: number
+          product_id: string
+          quantity_change: number
+          reason_details?: string | null
+          reason_type: string
+          reference_number?: string | null
+          retailer_name?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          adjustment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          new_quantity?: number
+          performed_by?: string | null
+          previous_quantity?: number
+          product_id?: string
+          quantity_change?: number
+          reason_details?: string | null
+          reason_type?: string
+          reference_number?: string | null
+          retailer_name?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           applied_promo_code: Json | null
