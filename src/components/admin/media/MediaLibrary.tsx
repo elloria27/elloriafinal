@@ -33,7 +33,7 @@ export const MediaLibrary = () => {
       }
 
       console.log('Media files fetched successfully:', data);
-      setFiles(data);
+      setFiles(data || []);
     } catch (error) {
       console.error('Error in fetchFiles:', error);
       toast.error("Failed to fetch media files");
@@ -47,7 +47,6 @@ export const MediaLibrary = () => {
       setUploading(true);
       console.log('Uploading media file:', file.name);
 
-      const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
@@ -62,7 +61,7 @@ export const MediaLibrary = () => {
 
       console.log('File uploaded successfully');
       toast.success("File uploaded successfully");
-      fetchFiles();
+      await fetchFiles();
     } catch (error) {
       console.error('Error in handleFileUpload:', error);
       toast.error("Failed to upload file");
@@ -73,7 +72,7 @@ export const MediaLibrary = () => {
 
   const handleFileDelete = async (fileName: string) => {
     try {
-      console.log('Deleting file:', fileName);
+      console.log('Attempting to delete file:', fileName);
       const { error } = await supabase.storage
         .from('media')
         .remove([fileName]);
@@ -86,7 +85,8 @@ export const MediaLibrary = () => {
 
       console.log('File deleted successfully');
       toast.success("File deleted successfully");
-      fetchFiles();
+      // Update the files list after successful deletion
+      setFiles(files.filter(file => file.name !== fileName));
     } catch (error) {
       console.error('Error in handleFileDelete:', error);
       toast.error("Failed to delete file");
