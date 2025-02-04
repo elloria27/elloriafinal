@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { Loader2, AlertCircle, TrendingUp, TrendingDown, FileDown } from "lucide-react";
+import { jsPDF } from "jspdf";
 import {
   Table,
   TableBody,
@@ -150,6 +150,77 @@ export const InventoryManagement = () => {
     ).length;
   };
 
+  const generatePDF = () => {
+    try {
+      console.log("Generating inventory PDF report...");
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text("Inventory Report", 105, 15, { align: "center" });
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 25, { align: "center" });
+      
+      // Add summary statistics
+      doc.setFontSize(14);
+      doc.text("Summary", 20, 40);
+      doc.setFontSize(12);
+      doc.text(`Total Inventory Value: ${formatCurrency(calculateTotalValue())}`, 20, 50);
+      doc.text(`Low Stock Items: ${getLowStockCount()}`, 20, 60);
+      doc.text(`Over Stock Items: ${getOverStockCount()}`, 20, 70);
+      
+      // Add inventory table
+      const tableHeaders = ["Product", "SKU", "Location", "Stock", "Value"];
+      const startY = 90;
+      let currentY = startY;
+      
+      // Table header
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, currentY - 5, 170, 10, "F");
+      doc.setFont("helvetica", "bold");
+      doc.text("Product", 22, currentY);
+      doc.text("SKU", 72, currentY);
+      doc.text("Location", 102, currentY);
+      doc.text("Stock", 142, currentY);
+      doc.text("Value", 162, currentY);
+      
+      currentY += 10;
+      doc.setFont("helvetica", "normal");
+
+      // Table content
+      products.forEach((product) => {
+        const quantity = product.inventory?.quantity || 0;
+        const unitCost = product.inventory?.unit_cost || 0;
+        const totalValue = quantity * unitCost;
+        
+        // Check if we need a new page
+        if (currentY > 270) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        // Wrap long product names
+        const splitName = doc.splitTextToSize(product.name, 45);
+        doc.text(splitName, 22, currentY);
+        
+        doc.text(product.inventory?.sku || "-", 72, currentY);
+        doc.text(product.inventory?.location || "-", 102, currentY);
+        doc.text(quantity.toString(), 142, currentY);
+        doc.text(formatCurrency(totalValue), 162, currentY);
+        
+        currentY += splitName.length > 1 ? 20 : 10;
+      });
+      
+      // Save the PDF
+      doc.save("inventory-report.pdf");
+      console.log("PDF generated successfully");
+      toast.success("Inventory report downloaded successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate inventory report");
+    }
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -162,20 +233,21 @@ export const InventoryManagement = () => {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-bold">Inventory Management</h2>
-        <p className="text-muted-foreground">
-          Manage product inventory levels and track stock movements
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Inventory Management</h2>
+            <p className="text-muted-foreground">
+              Manage product inventory levels and track stock movements
+            </p>
+          </div>
+          <Button onClick={generatePDF} className="flex items-center gap-2">
+            <FileDown className="h-4 w-4" />
+            Export Report
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
