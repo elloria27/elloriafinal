@@ -37,6 +37,7 @@ export const AnalyticsWidget = () => {
       try {
         console.log('Fetching analytics data...');
         
+        // Fetch all page views
         const { data: viewsData, error: viewsError } = await supabase
           .from('page_views')
           .select('*')
@@ -46,9 +47,13 @@ export const AnalyticsWidget = () => {
 
         console.log('Raw views data:', viewsData);
 
-        // Process countries data
+        if (!viewsData) {
+          throw new Error('No views data received');
+        }
+
+        // Process countries data - filter out null values and sort by visits
         const countryCount: Record<string, number> = {};
-        viewsData?.forEach((view) => {
+        viewsData.forEach((view) => {
           if (view.country) {
             countryCount[view.country] = (countryCount[view.country] || 0) + 1;
           }
@@ -59,9 +64,11 @@ export const AnalyticsWidget = () => {
           .sort((a, b) => b.visits - a.visits)
           .slice(0, 5);
 
-        // Process cities data
+        console.log('Processed top countries:', topCountries);
+
+        // Process cities data - filter out null values and sort by visits
         const cityCount: Record<string, number> = {};
-        viewsData?.forEach((view) => {
+        viewsData.forEach((view) => {
           if (view.city) {
             cityCount[view.city] = (cityCount[view.city] || 0) + 1;
           }
@@ -72,11 +79,14 @@ export const AnalyticsWidget = () => {
           .sort((a, b) => b.visits - a.visits)
           .slice(0, 5);
 
-        // Process pages data
+        console.log('Processed top cities:', topCities);
+
+        // Process pages data - filter out null values and sort by views
         const pageCount: Record<string, number> = {};
-        viewsData?.forEach((view) => {
+        viewsData.forEach((view) => {
           if (view.page_path) {
-            pageCount[view.page_path] = (pageCount[view.page_path] || 0) + 1;
+            const path = view.page_path === '/' ? 'Home' : view.page_path.replace(/^\//, '');
+            pageCount[path] = (pageCount[path] || 0) + 1;
           }
         });
 
@@ -85,12 +95,14 @@ export const AnalyticsWidget = () => {
           .sort((a, b) => b.views - a.views)
           .slice(0, 5);
 
+        console.log('Processed top pages:', topPages);
+
         // Process daily views data
         const dailyViewsMap = new Map<string, number>();
         const today = new Date();
         const last7Days = Array.from({ length: 7 }, (_, i) => {
           const date = new Date(today);
-          date.setDate(date.getDate() - (6 - i)); // Changed to show last 7 days including today
+          date.setDate(date.getDate() - (6 - i));
           return date.toISOString().split('T')[0];
         });
 
@@ -100,7 +112,7 @@ export const AnalyticsWidget = () => {
         });
 
         // Count views for each day
-        viewsData?.forEach(view => {
+        viewsData.forEach(view => {
           const date = new Date(view.created_at).toISOString().split('T')[0];
           if (dailyViewsMap.has(date)) {
             dailyViewsMap.set(date, (dailyViewsMap.get(date) || 0) + 1);
@@ -115,7 +127,7 @@ export const AnalyticsWidget = () => {
         console.log('Processed daily views:', dailyViews);
 
         // Calculate total page views
-        const totalPageViews = viewsData?.length || 0;
+        const totalPageViews = viewsData.length;
 
         // Calculate average time (placeholder for now)
         const avgTimeMinutes = 5;
@@ -236,7 +248,7 @@ export const AnalyticsWidget = () => {
             <div className="space-y-2">
               {analyticsData.topPages.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
-                  <span className="truncate flex-1">{item.page}</span>
+                  <span className="truncate flex-1 capitalize">{item.page}</span>
                   <span className="text-muted-foreground ml-2">{item.views}</span>
                 </div>
               ))}
