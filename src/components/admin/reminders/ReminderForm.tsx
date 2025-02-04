@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface ReminderFormProps {
   reminder?: any;
@@ -20,7 +20,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm({
     defaultValues: reminder ? {
       ...reminder,
-      reminder_date: format(new Date(reminder.reminder_date), 'yyyy-MM-dd'),
+      reminder_date: format(parseISO(reminder.reminder_date), 'yyyy-MM-dd'),
       reminder_time: reminder.reminder_time.slice(0, 5),
       recurrence: reminder.recurrence
     } : {
@@ -37,7 +37,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
   const onSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
-      console.log("Submitting reminder data:", data);
+      console.log("Form data being submitted:", data);
 
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -45,10 +45,9 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         throw new Error('You must be logged in to create reminders');
       }
 
-      // Ensure the date is saved exactly as selected without timezone conversion
       const reminderData = {
         ...data,
-        reminder_date: data.reminder_date,
+        reminder_date: data.reminder_date, // Save the date exactly as selected
         admin_id: user.id
       };
 

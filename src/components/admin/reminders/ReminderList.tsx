@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Edit, Trash2, Search } from "lucide-react";
 import {
   Table,
@@ -50,7 +50,8 @@ export const ReminderList = ({ reminders, onEdit, onUpdate }: ReminderListProps)
   );
 
   const formatDate = (date: string) => {
-    return format(new Date(date), 'MMM d, yyyy');
+    // Parse the ISO date string and format it
+    return format(parseISO(date), 'MMM d, yyyy');
   };
 
   return (
