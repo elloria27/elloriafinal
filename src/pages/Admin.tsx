@@ -22,6 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -139,6 +140,8 @@ const Admin = () => {
         return <InventoryManagement />;
       case "personal-reminders":
         return <PersonalReminders />;
+      case "company-expenses":
+        return <ExpenseManagement />;
       default:
         return <Dashboard />;
     }

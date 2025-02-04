@@ -1211,6 +1211,54 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_company_expenses: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string | null
+          created_by: string | null
+          date: string
+          id: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_path: string | null
+          status: Database["public"]["Enums"]["expense_status"]
+          title: string
+          updated_at: string | null
+          vendor_name: string
+        }
+        Insert: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_path?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          title: string
+          updated_at?: string | null
+          vendor_name: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_path?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          title?: string
+          updated_at?: string | null
+          vendor_name?: string
+        }
+        Relationships: []
+      }
       shop_settings: {
         Row: {
           created_at: string
@@ -1547,8 +1595,19 @@ export type Database = {
         | "contact_form"
         | "contact_faq"
         | "contact_business"
+      expense_category:
+        | "inventory"
+        | "marketing"
+        | "office_supplies"
+        | "utilities"
+        | "employee_benefits"
+        | "logistics"
+        | "software"
+        | "other"
+      expense_status: "paid" | "pending"
       flow_intensity: "light" | "medium" | "heavy" | "spotting"
       page_view_type: "page_view" | "exit"
+      payment_method: "cash" | "bank_transfer" | "credit_card"
       post_status: "draft" | "published"
       promo_code_type: "percentage" | "fixed_amount"
       referral_status: "pending" | "completed"
