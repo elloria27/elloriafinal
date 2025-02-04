@@ -28,13 +28,15 @@ interface PreviewPaneProps {
   onSelectBlock: (block: ContentBlock) => void;
   selectedBlockId?: string;
   onDeleteBlock?: (blockId: string) => void;
+  isAdmin?: boolean;
 }
 
 export const PreviewPane = ({ 
   blocks, 
   onSelectBlock, 
   selectedBlockId,
-  onDeleteBlock 
+  onDeleteBlock,
+  isAdmin = false
 }: PreviewPaneProps) => {
   console.log('Rendering blocks:', blocks);
   
@@ -43,31 +45,42 @@ export const PreviewPane = ({
     
     const blockContent = (
       <div className="group relative">
-        <div className="absolute right-2 top-2 flex gap-2 z-10">
-          <Button
-            variant={selectedBlockId === block.id ? "default" : "ghost"}
-            size="sm"
-            className={`${
-              selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-            } transition-opacity`}
-            onClick={() => onSelectBlock(block)}
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          
-          {onDeleteBlock && (
+        {isAdmin && (
+          <div className="absolute right-2 top-2 flex gap-2 z-10">
             <Button
-              variant="ghost"
+              variant={selectedBlockId === block.id ? "default" : "ghost"}
               size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
-              onClick={() => onDeleteBlock(block.id)}
+              className={`${
+                selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              } transition-opacity`}
+              onClick={() => onSelectBlock(block)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Edit2 className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+            
+            {onDeleteBlock && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
+                onClick={() => onDeleteBlock(block.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
 
         {(() => {
+          if (isAdmin) {
+            return (
+              <div className="p-4 border border-dashed rounded-lg border-gray-300">
+                <div className="font-medium">{block.type}</div>
+                <div className="text-sm text-gray-500">Click to edit content</div>
+              </div>
+            );
+          }
+
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;

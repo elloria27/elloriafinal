@@ -336,6 +336,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             blocks={blocks} 
             onSelectBlock={setSelectedBlock}
             selectedBlockId={selectedBlock?.id}
+            onDeleteBlock={handleDeleteBlock}
+            isAdmin={true}
           />
         </div>
       </div>
