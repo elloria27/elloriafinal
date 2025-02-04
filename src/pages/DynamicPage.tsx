@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
 import { toast } from "sonner";
 
@@ -48,7 +48,12 @@ export default function DynamicPage() {
         console.log('Found content blocks:', contentBlocks);
         
         if (contentBlocks) {
-          setBlocks(contentBlocks);
+          // Transform the content to match ContentBlock type
+          const typedBlocks: ContentBlock[] = contentBlocks.map(block => ({
+            ...block,
+            content: block.content as BlockContent
+          }));
+          setBlocks(typedBlocks);
         }
       } catch (error) {
         console.error('Error in fetchPage:', error);
@@ -75,7 +80,6 @@ export default function DynamicPage() {
         blocks={blocks}
         onSelectBlock={() => {}}
         selectedBlockId={null}
-        isPreview={true}
       />
     </div>
   );
