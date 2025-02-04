@@ -80,7 +80,10 @@ export const ExpenseList = () => {
           />
           <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+        <Select 
+          value={categoryFilter} 
+          onValueChange={(value: ExpenseCategory | "") => setCategoryFilter(value)}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -96,7 +99,10 @@ export const ExpenseList = () => {
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select 
+          value={statusFilter} 
+          onValueChange={(value: ExpenseStatus | "") => setStatusFilter(value)}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
