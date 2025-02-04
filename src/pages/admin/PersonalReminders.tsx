@@ -1,16 +1,37 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { ReminderList } from "@/components/admin/reminders/ReminderList";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 const PersonalReminders = () => {
-  const { profile, isLoading } = useProfile();
+  const { profile, isLoading: profileLoading } = useProfile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  if (isLoading) {
+  const { data: reminders, isLoading: remindersLoading, refetch } = useQuery({
+    queryKey: ['personal-reminders'],
+    queryFn: async () => {
+      console.log('Fetching reminders...');
+      const { data, error } = await supabase
+        .from('hrm_personal_reminders')
+        .select('*')
+        .order('reminder_date', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const handleEdit = (reminder: any) => {
+    console.log('Editing reminder:', reminder);
+    // Handle edit logic here
+  };
+
+  if (profileLoading || remindersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -47,7 +68,11 @@ const PersonalReminders = () => {
         <div className="flex-1 overflow-y-auto">
           <main className="p-6">
             <div className="container mx-auto">
-              <ReminderList />
+              <ReminderList 
+                reminders={reminders || []}
+                onEdit={handleEdit}
+                onUpdate={refetch}
+              />
             </div>
           </main>
         </div>
