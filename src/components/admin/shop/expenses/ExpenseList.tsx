@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2, Download, Search } from "lucide-react";
+import { PenLine, Download, Trash2, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -152,7 +152,7 @@ export const ExpenseList = () => {
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm">
-                    <Edit2 className="h-4 w-4" />
+                    <PenLine className="h-4 w-4" />
                   </Button>
                   {expense.receipt_path && (
                     <Button variant="ghost" size="sm">
