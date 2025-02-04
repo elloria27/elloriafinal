@@ -515,6 +515,48 @@ export type Database = {
           },
         ]
       }
+      hrm_personal_reminders: {
+        Row: {
+          admin_id: string
+          created_at: string
+          description: string | null
+          email_notify: boolean
+          id: string
+          recurrence: Database["public"]["Enums"]["reminder_recurrence"]
+          reminder_date: string
+          reminder_time: string
+          status: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          description?: string | null
+          email_notify?: boolean
+          id?: string
+          recurrence?: Database["public"]["Enums"]["reminder_recurrence"]
+          reminder_date: string
+          reminder_time: string
+          status?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          description?: string | null
+          email_notify?: boolean
+          id?: string
+          recurrence?: Database["public"]["Enums"]["reminder_recurrence"]
+          reminder_date?: string
+          reminder_time?: string
+          status?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           created_at: string | null
@@ -1428,6 +1470,21 @@ export type Database = {
           count: number
         }[]
       }
+      get_upcoming_reminders: {
+        Args: {
+          days_ahead?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          reminder_date: string
+          reminder_time: string
+          recurrence: Database["public"]["Enums"]["reminder_recurrence"]
+          email_notify: boolean
+          status: boolean
+        }[]
+      }
       increment_post_view_count: {
         Args: {
           post_id: string
@@ -1495,6 +1552,7 @@ export type Database = {
       post_status: "draft" | "published"
       promo_code_type: "percentage" | "fixed_amount"
       referral_status: "pending" | "completed"
+      reminder_recurrence: "none" | "weekly" | "monthly" | "yearly"
       supported_currency: "USD" | "EUR" | "UAH" | "CAD"
       supported_language: "en" | "fr" | "uk"
       sustainability_section_type:
