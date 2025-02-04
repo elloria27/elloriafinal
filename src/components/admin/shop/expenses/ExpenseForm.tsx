@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,9 +34,21 @@ interface ExpenseFormData {
 interface ExpenseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  expenseToEdit?: {
+    id: string;
+    title: string;
+    category: ExpenseCategory;
+    amount: number;
+    date: string;
+    payment_method: PaymentMethod;
+    vendor_name: string;
+    notes: string;
+    status: ExpenseStatus;
+    receipt_path: string | null;
+  } | null;
 }
 
-export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
+export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormProps) => {
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: "",
     category: "inventory",
@@ -52,9 +64,35 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
 
   const queryClient = useQueryClient();
 
-  const { mutate: createExpense, isPending } = useMutation({
+  useEffect(() => {
+    if (expenseToEdit) {
+      setFormData({
+        title: expenseToEdit.title,
+        category: expenseToEdit.category,
+        amount: expenseToEdit.amount.toString(),
+        date: expenseToEdit.date,
+        payment_method: expenseToEdit.payment_method,
+        vendor_name: expenseToEdit.vendor_name,
+        notes: expenseToEdit.notes || "",
+        status: expenseToEdit.status,
+      });
+    } else {
+      setFormData({
+        title: "",
+        category: "inventory",
+        amount: "",
+        date: "",
+        payment_method: "cash",
+        vendor_name: "",
+        notes: "",
+        status: "pending",
+      });
+    }
+  }, [expenseToEdit]);
+
+  const { mutate: saveExpense, isPending } = useMutation({
     mutationFn: async () => {
-      let receiptPath = null;
+      let receiptPath = expenseToEdit?.receipt_path || null;
 
       if (receipt) {
         const fileExt = receipt.name.split(".").pop();
@@ -66,21 +104,45 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
 
         if (uploadError) throw uploadError;
         
+        // If we're updating and there was an old receipt, delete it
+        if (expenseToEdit?.receipt_path) {
+          await supabase.storage
+            .from("expense-receipts")
+            .remove([expenseToEdit.receipt_path]);
+        }
+        
         receiptPath = fileName;
       }
 
-      const { error } = await supabase.from("shop_company_expenses").insert({
-        ...formData,
-        amount: parseFloat(formData.amount),
-        receipt_path: receiptPath,
-      });
+      if (expenseToEdit) {
+        // Update existing expense
+        const { error } = await supabase
+          .from("shop_company_expenses")
+          .update({
+            ...formData,
+            amount: parseFloat(formData.amount),
+            receipt_path: receiptPath,
+          })
+          .eq('id', expenseToEdit.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Create new expense
+        const { error } = await supabase
+          .from("shop_company_expenses")
+          .insert({
+            ...formData,
+            amount: parseFloat(formData.amount),
+            receipt_path: receiptPath,
+          });
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["expense-stats"] });
-      toast.success("Expense created successfully");
+      toast.success(expenseToEdit ? "Expense updated successfully" : "Expense created successfully");
       onOpenChange(false);
       setFormData({
         title: "",
@@ -95,14 +157,14 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
       setReceipt(null);
     },
     onError: (error) => {
-      console.error("Error creating expense:", error);
-      toast.error("Failed to create expense");
+      console.error("Error saving expense:", error);
+      toast.error(expenseToEdit ? "Failed to update expense" : "Failed to create expense");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createExpense();
+    saveExpense();
   };
 
   return (
@@ -268,4 +330,4 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
       </DialogContent>
     </Dialog>
   );
-};
+});

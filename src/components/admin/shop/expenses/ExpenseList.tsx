@@ -32,6 +32,7 @@ export const ExpenseList = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
+  const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: expenses, isLoading } = useQuery({
@@ -63,6 +64,23 @@ export const ExpenseList = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Get the expense to check for receipt
+      const { data: expense } = await supabase
+        .from("shop_company_expenses")
+        .select("receipt_path")
+        .eq("id", id)
+        .single();
+
+      // If there's a receipt, delete it first
+      if (expense?.receipt_path) {
+        const { error: storageError } = await supabase.storage
+          .from("expense-receipts")
+          .remove([expense.receipt_path]);
+        
+        if (storageError) throw storageError;
+      }
+
+      // Then delete the expense record
       const { error } = await supabase
         .from("shop_company_expenses")
         .delete()
@@ -204,10 +222,7 @@ export const ExpenseList = () => {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => {
-                      // TODO: Implement edit functionality
-                      toast.info("Edit functionality coming soon");
-                    }}
+                    onClick={() => setExpenseToEdit(expense)}
                   >
                     <PenLine className="h-4 w-4" />
                   </Button>
@@ -233,6 +248,12 @@ export const ExpenseList = () => {
           ))}
         </TableBody>
       </Table>
+
+      <ExpenseForm 
+        open={expenseToEdit !== null} 
+        onOpenChange={(open) => !open && setExpenseToEdit(null)}
+        expenseToEdit={expenseToEdit}
+      />
     </div>
   );
 };
