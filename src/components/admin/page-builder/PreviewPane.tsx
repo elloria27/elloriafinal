@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
@@ -20,6 +21,7 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { Json } from "@/integrations/supabase/types";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -34,6 +36,8 @@ export const PreviewPane = ({
   selectedBlockId,
   onDeleteBlock 
 }: PreviewPaneProps) => {
+  console.log('Rendering blocks:', blocks);
+  
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
@@ -158,15 +162,18 @@ export const PreviewPane = ({
               const sustainabilityStats = Array.isArray(block.content.stats) 
                 ? block.content.stats.map(stat => ({
                     ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+                    value: String(stat.value || ''),
+                    label: String(stat.label || ''),
+                    description: String(stat.description || '')
                   }))
                 : [];
               
-              const sustainabilityContent = {
-                ...block.content,
+              return <AboutSustainability content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
                 stats: sustainabilityStats
-              };
-              return <AboutSustainability content={sustainabilityContent} />;
+              }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
@@ -181,11 +188,11 @@ export const PreviewPane = ({
                   }))
                 : [];
               
-              const customerImpactContent = {
-                ...block.content,
+              return <AboutCustomerImpact content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
                 testimonials
-              };
-              return <AboutCustomerImpact content={customerImpactContent} />;
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
