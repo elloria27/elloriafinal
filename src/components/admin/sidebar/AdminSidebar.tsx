@@ -23,7 +23,8 @@ import {
   Truck,
   DollarSign,
   Gift,
-  Boxes
+  Boxes,
+  Bell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -84,6 +85,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=files", 
         icon: Lock,
         description: "Private company documents (admin only)"
+      },
+      {
+        title: "Personal Reminders",
+        href: "/admin?tab=personal-reminders",
+        icon: Bell,
+        description: "Manage your personal reminders"
       }
     ]
   }
