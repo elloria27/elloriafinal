@@ -13,12 +13,13 @@ import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
 import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodManagement";
 import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
 import { DonationManagement } from "@/components/admin/DonationManagement";
+import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Admin = () => {
@@ -133,6 +134,8 @@ const Admin = () => {
         return <DeliveryMethodManagement />;
       case "donations":
         return <DonationManagement />;
+      case "inventory":
+        return <InventoryManagement />;
       default:
         return <Dashboard />;
     }
