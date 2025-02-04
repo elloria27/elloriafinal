@@ -31,10 +31,8 @@ interface PreviewPaneProps {
 }
 
 export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = true }: PreviewPaneProps) => {
-  const getContentValue = (content: BlockContent, key: string): any => {
-    return (content as any)[key];
-  };
-
+  console.log('Rendering blocks:', blocks);
+  
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
@@ -105,29 +103,35 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              // Type cast to ensure compatibility
-              return <AboutSustainability content={{
-                ...block.content,
-                stats: (block.content.stats || []).map(stat => ({
-                  ...stat,
-                  icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
-                }))
-              }} />;
+              const sustainabilityContent = block.content as any;
+              if (sustainabilityContent.stats) {
+                return <AboutSustainability content={{
+                  ...sustainabilityContent,
+                  stats: sustainabilityContent.stats.map((stat: any) => ({
+                    ...stat,
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
+                  }))
+                }} />;
+              }
+              return <AboutSustainability content={sustainabilityContent} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              // Transform testimonials data structure
-              return <AboutCustomerImpact content={{
-                ...block.content,
-                testimonials: block.content.testimonials?.map(t => ({
-                  quote: t.text,
-                  author: t.name,
-                  role: t.source,
-                  rating: t.rating
-                }))
-              }} />;
+              const customerImpactContent = block.content as any;
+              if (customerImpactContent.testimonials) {
+                return <AboutCustomerImpact content={{
+                  ...customerImpactContent,
+                  testimonials: customerImpactContent.testimonials.map((t: any) => ({
+                    quote: t.text || "",
+                    author: t.name || "",
+                    role: t.source || "",
+                    rating: t.rating || 5
+                  }))
+                }} />;
+              }
+              return <AboutCustomerImpact content={customerImpactContent} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
@@ -145,17 +149,17 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return <BusinessContact content={block.content} />;
 
             case 'heading':
-              const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
+              const HeadingTag = ((block.content as any).size || 'h2') as keyof JSX.IntrinsicElements;
               return (
                 <HeadingTag className="text-4xl font-bold mb-4">
-                  {getContentValue(block.content, 'text') || 'Heading'}
+                  {(block.content as any).text || 'Heading'}
                 </HeadingTag>
               );
 
             case 'text':
               return (
                 <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                  {getContentValue(block.content, 'text') || 'Text block'}
+                  {(block.content as any).text || 'Text block'}
                 </p>
               );
 
@@ -163,8 +167,8 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return (
                 <div className="mb-4">
                   <img
-                    src={getContentValue(block.content, 'url') || '/placeholder.svg'}
-                    alt={getContentValue(block.content, 'alt') || ''}
+                    src={(block.content as any).url || '/placeholder.svg'}
+                    alt={(block.content as any).alt || ''}
                     className="max-w-full h-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -174,8 +178,8 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return (
                 <div className="mb-4 aspect-video">
                   <iframe
-                    src={getContentValue(block.content, 'url')}
-                    title={getContentValue(block.content, 'title') || 'Video'}
+                    src={(block.content as any).url}
+                    title={(block.content as any).title || 'Video'}
                     className="w-full h-full rounded-lg shadow-md"
                     allowFullScreen
                   />
@@ -186,14 +190,14 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = 
               return (
                 <button
                   className={`px-4 py-2 rounded mb-4 ${
-                    getContentValue(block.content, 'variant') === 'outline'
+                    (block.content as any).variant === 'outline'
                       ? 'border border-primary text-primary'
-                      : getContentValue(block.content, 'variant') === 'ghost'
+                      : (block.content as any).variant === 'ghost'
                       ? 'text-primary hover:bg-primary/10'
                       : 'bg-primary text-white'
                   }`}
                 >
-                  {getContentValue(block.content, 'text') || 'Button'}
+                  {(block.content as any).text || 'Button'}
                 </button>
               );
 
