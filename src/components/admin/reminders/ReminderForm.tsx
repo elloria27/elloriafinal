@@ -38,14 +38,28 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
       setIsSubmitting(true);
       console.log("Submitting reminder data:", data);
 
+      // Get the current user's session
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to create reminders');
+      }
+
+      const reminderData = {
+        ...data,
+        admin_id: user.id // Set the admin_id to the current user's ID
+      };
+
+      console.log("Submitting with admin_id:", reminderData);
+
       const { error } = reminder 
         ? await supabase
             .from('hrm_personal_reminders')
-            .update(data)
+            .update(reminderData)
             .eq('id', reminder.id)
         : await supabase
             .from('hrm_personal_reminders')
-            .insert([data]);
+            .insert([reminderData]);
 
       if (error) throw error;
 
