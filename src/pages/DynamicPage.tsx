@@ -16,7 +16,6 @@ export default function DynamicPage() {
       try {
         console.log('Fetching page with slug:', slug);
         
-        // First fetch the page
         const { data: page, error: pageError } = await supabase
           .from('pages')
           .select('*')
@@ -32,7 +31,6 @@ export default function DynamicPage() {
 
         console.log('Found page:', page);
 
-        // Then fetch the content blocks for this page
         const { data: contentBlocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
@@ -48,7 +46,6 @@ export default function DynamicPage() {
         console.log('Found content blocks:', contentBlocks);
         
         if (contentBlocks) {
-          // Transform the content to match ContentBlock type
           const typedBlocks: ContentBlock[] = contentBlocks.map(block => ({
             ...block,
             content: block.content as BlockContent
@@ -80,6 +77,7 @@ export default function DynamicPage() {
         blocks={blocks}
         onSelectBlock={() => {}}
         selectedBlockId={null}
+        isAdmin={false}
       />
     </div>
   );
