@@ -41,6 +41,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
     setSelectedProduct(productId);
     
     try {
+      console.log("Fetching inventory data for product:", productId);
       const { data: inventoryData, error } = await supabase
         .from('inventory')
         .select('*')
@@ -53,9 +54,11 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       if (inventoryData) {
+        console.log("Found inventory data:", inventoryData);
         setSku(inventoryData.sku || "");
         setLocation(inventoryData.location || "");
         setUnitCost(inventoryData.unit_cost?.toString() || "");
+        setQuantity(inventoryData.quantity?.toString() || "0");
         
         const { data: lastLog } = await supabase
           .from('inventory_logs')
@@ -66,15 +69,18 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           .single();
 
         if (lastLog) {
+          console.log("Found last log:", lastLog);
           setDetails(lastLog.reason_details || "");
           setReferenceNumber(lastLog.reference_number || "");
         }
       } else {
+        console.log("No inventory data found, resetting fields");
         setSku("");
         setLocation("");
         setUnitCost("");
         setDetails("");
         setReferenceNumber("");
+        setQuantity("0");
       }
     } catch (error) {
       console.error('Error in handleProductSelect:', error);
@@ -88,10 +94,10 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       return;
     }
 
-    const quantityNum = Number(quantity);
+    const newQuantity = Number(quantity);
     const unitCostNum = unitCost ? Number(unitCost) : 0;
 
-    if (isNaN(quantityNum)) {
+    if (isNaN(newQuantity)) {
       toast.error("Please enter a valid number for quantity");
       return;
     }
@@ -111,7 +117,6 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       }
 
       const currentQuantity = product.inventory?.quantity || 0;
-      const newQuantity = quantityNum;
 
       if (newQuantity < 0) {
         toast.error("Cannot set stock below 0");
@@ -123,8 +128,9 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
         throw new Error("User not authenticated");
       }
 
-      const totalCost = quantityNum * unitCostNum;
-
+      console.log("Current quantity:", currentQuantity);
+      console.log("New quantity:", newQuantity);
+      
       const { error: inventoryError } = await supabase
         .from('inventory')
         .update({
@@ -136,13 +142,19 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
         })
         .eq('product_id', selectedProduct);
 
-      if (inventoryError) throw inventoryError;
+      if (inventoryError) {
+        console.error("Error updating inventory:", inventoryError);
+        throw inventoryError;
+      }
+
+      const quantityChange = newQuantity - currentQuantity;
+      console.log("Quantity change:", quantityChange);
 
       const { error: logError } = await supabase
         .from('inventory_logs')
         .insert({
           product_id: selectedProduct,
-          quantity_change: quantityNum - currentQuantity,
+          quantity_change: quantityChange,
           previous_quantity: currentQuantity,
           new_quantity: newQuantity,
           reason_type: reasonType,
@@ -150,13 +162,16 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           retailer_name: reasonType === 'retailer_shipment' ? retailerName : null,
           location: location,
           unit_cost: unitCostNum,
-          total_cost: totalCost,
+          total_cost: newQuantity * unitCostNum,
           reference_number: referenceNumber,
           performed_by: user.email,
           created_by: user.id
         });
 
-      if (logError) throw logError;
+      if (logError) {
+        console.error("Error creating inventory log:", logError);
+        throw logError;
+      }
 
       console.log("Inventory adjustment completed successfully");
       toast.success("Inventory updated successfully");
