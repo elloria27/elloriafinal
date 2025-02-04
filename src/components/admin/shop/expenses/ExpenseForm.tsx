@@ -330,4 +330,4 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
       </DialogContent>
     </Dialog>
   );
-});
+};
