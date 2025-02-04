@@ -59,7 +59,7 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Component</DialogTitle>
         </DialogHeader>
@@ -72,7 +72,7 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
                   <Button
                     key={item.type}
                     variant="outline"
-                    className="w-full justify-start"
+                    className="w-full justify-start text-sm py-6"
                     onClick={() => handleSelect(item.type as BlockType)}
                   >
                     {item.label}
