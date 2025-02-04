@@ -1,21 +1,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
-import { ReminderList } from "@/components/admin/reminders/ReminderList";
-import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { ReminderForm } from "@/components/admin/reminders/ReminderForm";
+import { ReminderList } from "@/components/admin/reminders/ReminderList";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PersonalReminders = () => {
-  const { profile, isLoading: profileLoading } = useProfile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState<any>(null);
 
-  const { data: reminders, isLoading: remindersLoading, refetch } = useQuery({
+  const { data: reminders, isLoading, refetch } = useQuery({
     queryKey: ['personal-reminders'],
     queryFn: async () => {
-      console.log('Fetching reminders...');
       const { data, error } = await supabase
         .from('hrm_personal_reminders')
         .select('*')
@@ -26,57 +24,50 @@ const PersonalReminders = () => {
     }
   });
 
-  const handleEdit = (reminder: any) => {
-    console.log('Editing reminder:', reminder);
-    // Handle edit logic here
+  const handleEditReminder = (reminder: any) => {
+    setSelectedReminder(reminder);
+    setIsFormOpen(true);
   };
 
-  if (profileLoading || remindersLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  const handleCloseForm = () => {
+    setSelectedReminder(null);
+    setIsFormOpen(false);
+    refetch();
+  };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block w-64 flex-shrink-0">
-          <AdminSidebar profile={profile} />
-        </div>
-
-        {/* Mobile Sidebar */}
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="fixed top-4 left-4 z-50 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <AdminSidebar profile={profile} onClose={() => setIsSidebarOpen(false)} />
-          </SheetContent>
-        </Sheet>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-6">
-            <div className="container mx-auto">
-              <ReminderList 
-                reminders={reminders || []}
-                onEdit={handleEdit}
-                onUpdate={refetch}
-              />
-            </div>
-          </main>
-        </div>
+    <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Personal Reminders</h1>
+        <Button onClick={() => setIsFormOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Reminder
+        </Button>
       </div>
+
+      <ReminderList 
+        reminders={reminders || []} 
+        onEdit={handleEditReminder}
+        onUpdate={refetch}
+      />
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedReminder ? 'Edit Reminder' : 'Create New Reminder'}
+            </DialogTitle>
+          </DialogHeader>
+          <ReminderForm 
+            reminder={selectedReminder}
+            onClose={handleCloseForm}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
