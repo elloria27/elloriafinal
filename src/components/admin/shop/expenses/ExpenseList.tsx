@@ -24,11 +24,12 @@ import { format } from "date-fns";
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
 type ExpenseStatus = "pending" | "paid";
+type FilterValue = ExpenseCategory | ExpenseStatus | "all";
 
 export const ExpenseList = () => {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "">("");
-  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "">("");
+  const [categoryFilter, setCategoryFilter] = useState<FilterValue>("all");
+  const [statusFilter, setStatusFilter] = useState<FilterValue>("all");
 
   const { data: expenses, isLoading } = useQuery({
     queryKey: ["expenses", search, categoryFilter, statusFilter],
@@ -42,11 +43,11 @@ export const ExpenseList = () => {
         query = query.or(`title.ilike.%${search}%,vendor_name.ilike.%${search}%`);
       }
 
-      if (categoryFilter) {
+      if (categoryFilter && categoryFilter !== "all") {
         query = query.eq("category", categoryFilter);
       }
 
-      if (statusFilter) {
+      if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter);
       }
 
@@ -82,13 +83,13 @@ export const ExpenseList = () => {
         </div>
         <Select 
           value={categoryFilter} 
-          onValueChange={(value: ExpenseCategory | "") => setCategoryFilter(value)}
+          onValueChange={(value: FilterValue) => setCategoryFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value="inventory">Inventory</SelectItem>
             <SelectItem value="marketing">Marketing</SelectItem>
             <SelectItem value="office_supplies">Office Supplies</SelectItem>
@@ -101,13 +102,13 @@ export const ExpenseList = () => {
         </Select>
         <Select 
           value={statusFilter} 
-          onValueChange={(value: ExpenseStatus | "") => setStatusFilter(value)}
+          onValueChange={(value: FilterValue) => setStatusFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
+            <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
