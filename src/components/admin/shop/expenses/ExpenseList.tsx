@@ -21,7 +21,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { ExpenseForm } from "./ExpenseForm"; // Add this import
+import { ExpenseForm } from "./ExpenseForm";
 
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
@@ -141,114 +141,121 @@ export const ExpenseList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4 mb-4">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
           <Input
             placeholder="Search expenses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm pl-10"
+            className="pl-10"
           />
           <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
         </div>
-        <Select 
-          value={categoryFilter} 
-          onValueChange={(value: CategoryFilterValue) => setCategoryFilter(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="inventory">Inventory</SelectItem>
-            <SelectItem value="marketing">Marketing</SelectItem>
-            <SelectItem value="office_supplies">Office Supplies</SelectItem>
-            <SelectItem value="utilities">Utilities</SelectItem>
-            <SelectItem value="employee_benefits">Employee Benefits</SelectItem>
-            <SelectItem value="logistics">Logistics</SelectItem>
-            <SelectItem value="software">Software</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select 
-          value={statusFilter} 
-          onValueChange={(value: StatusFilterValue) => setStatusFilter(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4 flex-col sm:flex-row md:w-auto w-full">
+          <Select 
+            value={categoryFilter} 
+            onValueChange={(value: CategoryFilterValue) => setCategoryFilter(value)}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="inventory">Inventory</SelectItem>
+              <SelectItem value="marketing">Marketing</SelectItem>
+              <SelectItem value="office_supplies">Office Supplies</SelectItem>
+              <SelectItem value="utilities">Utilities</SelectItem>
+              <SelectItem value="employee_benefits">Employee Benefits</SelectItem>
+              <SelectItem value="logistics">Logistics</SelectItem>
+              <SelectItem value="software">Software</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select 
+            value={statusFilter} 
+            onValueChange={(value: StatusFilterValue) => setStatusFilter(value)}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Vendor</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {expenses?.map((expense) => (
-            <TableRow key={expense.id}>
-              <TableCell>{format(new Date(expense.date), "MMM d, yyyy")}</TableCell>
-              <TableCell>{expense.title}</TableCell>
-              <TableCell className="capitalize">
-                {expense.category.replace("_", " ")}
-              </TableCell>
-              <TableCell>{expense.vendor_name}</TableCell>
-              <TableCell>{formatCurrency(expense.amount)}</TableCell>
-              <TableCell>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    expense.status === "paid"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {expense.status}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setExpenseToEdit(expense)}
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50">
+              <TableHead className="font-medium">Date</TableHead>
+              <TableHead className="font-medium">Title</TableHead>
+              <TableHead className="font-medium">Category</TableHead>
+              <TableHead className="font-medium">Vendor</TableHead>
+              <TableHead className="font-medium">Amount</TableHead>
+              <TableHead className="font-medium">Status</TableHead>
+              <TableHead className="font-medium text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {expenses?.map((expense) => (
+              <TableRow key={expense.id} className="hover:bg-gray-50">
+                <TableCell>{format(new Date(expense.date), "MMM d, yyyy")}</TableCell>
+                <TableCell className="font-medium">{expense.title}</TableCell>
+                <TableCell className="capitalize">
+                  {expense.category.replace("_", " ")}
+                </TableCell>
+                <TableCell>{expense.vendor_name}</TableCell>
+                <TableCell>{formatCurrency(expense.amount)}</TableCell>
+                <TableCell>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      expense.status === "paid"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
                   >
-                    <PenLine className="h-4 w-4" />
-                  </Button>
-                  {expense.receipt_path && (
+                    {expense.status}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-end gap-2">
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleDownload(expense.receipt_path!)}
+                      onClick={() => setExpenseToEdit(expense)}
+                      className="h-8 w-8 p-0"
                     >
-                      <Download className="h-4 w-4" />
+                      <PenLine className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleDelete(expense.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                    {expense.receipt_path && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDownload(expense.receipt_path!)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDelete(expense.id)}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <ExpenseForm 
         open={expenseToEdit !== null} 
@@ -258,4 +265,3 @@ export const ExpenseList = () => {
     </div>
   );
 };
-

@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
@@ -61,7 +62,6 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
   });
 
   const [receipt, setReceipt] = useState<File | null>(null);
-
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -104,7 +104,6 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
 
         if (uploadError) throw uploadError;
         
-        // If we're updating and there was an old receipt, delete it
         if (expenseToEdit?.receipt_path) {
           await supabase.storage
             .from("expense-receipts")
@@ -115,7 +114,6 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
       }
 
       if (expenseToEdit) {
-        // Update existing expense
         const { error } = await supabase
           .from("shop_company_expenses")
           .update({
@@ -127,7 +125,6 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
 
         if (error) throw error;
       } else {
-        // Create new expense
         const { error } = await supabase
           .from("shop_company_expenses")
           .insert({
@@ -169,25 +166,35 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
+      <DialogContent className="sm:max-w-[500px] p-0">
+        <DialogHeader className="px-6 py-4 border-b">
+          <DialogTitle className="text-xl font-semibold">
+            {expenseToEdit ? "Edit Expense" : "Add New Expense"}
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <div className="flex-grow overflow-y-auto space-y-4 pr-2">
-            <div className="space-y-2">
+
+        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-4">
+          <div className="space-y-4">
+            <div>
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="mt-1.5"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
@@ -196,7 +203,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,34 +219,32 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="amount">Amount (CAD)</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                className="mt-1.5"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="date">Date</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="mt-1.5"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="payment_method">Payment Method</Label>
               <Select
                 value={formData.payment_method}
@@ -248,7 +253,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,42 +264,39 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="vendor_name">Vendor Name</Label>
               <Input
                 id="vendor_name"
                 value={formData.vendor_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, vendor_name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
+                className="mt-1.5"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="receipt">Receipt (Optional)</Label>
               <Input
                 id="receipt"
                 type="file"
                 accept="image/*,.pdf"
-                onChange={(e) =>
-                  setReceipt(e.target.files ? e.target.files[0] : null)
-                }
+                onChange={(e) => setReceipt(e.target.files ? e.target.files[0] : null)}
+                className="mt-1.5"
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="notes">Notes (Optional)</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="mt-1.5"
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
@@ -303,7 +305,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
                 }
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,7 +316,7 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -322,8 +324,12 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating..." : "Create Expense"}
+            <Button 
+              type="submit" 
+              disabled={isPending}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isPending ? "Saving..." : expenseToEdit ? "Save Changes" : "Create Expense"}
             </Button>
           </div>
         </form>

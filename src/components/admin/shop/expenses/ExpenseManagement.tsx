@@ -10,10 +10,13 @@ export const ExpenseManagement = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Company Expenses</h2>
-        <Button onClick={() => setShowExpenseForm(true)}>
+        <h2 className="text-2xl font-semibold text-gray-900">Company Expenses</h2>
+        <Button 
+          onClick={() => setShowExpenseForm(true)}
+          className="bg-primary hover:bg-primary/90"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Expense
         </Button>
@@ -21,7 +24,7 @@ export const ExpenseManagement = () => {
 
       <ExpenseStats />
       
-      <Card className="p-6">
+      <Card className="p-6 shadow-sm border-gray-100">
         <ExpenseList />
       </Card>
 
