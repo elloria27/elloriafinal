@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileIcon, Download, Share2, Trash2, Eye, User, Folder } from "lucide-react";
+import { FileIcon, Download, Share2, Trash2, Eye, User, Folder, FileText, FilePdf, FileImage, FileVideo, FileAudio } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FilePreview } from "./FilePreview";
 import { ShareDialog } from "./ShareDialog";
@@ -43,6 +43,43 @@ export const FileList = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    if (!extension) return <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />;
+
+    switch (extension) {
+      case 'pdf':
+        return <FilePdf className="h-8 w-8 text-primary flex-shrink-0" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="h-8 w-8 text-primary flex-shrink-0" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return <FileImage className="h-8 w-8 text-primary flex-shrink-0" />;
+      case 'mp4':
+      case 'mov':
+      case 'avi':
+      case 'webm':
+        return <FileVideo className="h-8 w-8 text-primary flex-shrink-0" />;
+      case 'mp3':
+      case 'wav':
+      case 'ogg':
+        return <FileAudio className="h-8 w-8 text-primary flex-shrink-0" />;
+      default:
+        return <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />;
+    }
+  };
+
+  const canPreview = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const previewableExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'avi', 'webm', 'mp3', 'wav', 'ogg'];
+    return extension && previewableExtensions.includes(extension);
+  };
+
   return (
     <div className="space-y-4">
       {files.map((file) => (
@@ -56,7 +93,7 @@ export const FileList = ({
               {file.isFolder ? (
                 <Folder className="h-8 w-8 text-primary flex-shrink-0" />
               ) : (
-                <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />
+                getFileIcon(file.name)
               )}
               <div className="min-w-0">
                 <p className="font-medium truncate">
@@ -74,7 +111,7 @@ export const FileList = ({
               </div>
             </div>
             <div className="flex items-center gap-2 ml-12 sm:ml-0">
-              {!file.isFolder && !file.name.endsWith('.folder') && (
+              {!file.isFolder && canPreview(file.name) && (
                 <Button
                   variant="outline"
                   size="icon"

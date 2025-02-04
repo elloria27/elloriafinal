@@ -113,14 +113,14 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
         <img
           src={previewUrl}
           alt="File preview"
-          className="max-w-full max-h-[70vh] object-contain"
+          className="max-w-full max-h-[70vh] object-contain mx-auto rounded-lg shadow-lg"
         />
       );
     }
 
     if (fileType?.startsWith('video/')) {
       return (
-        <video controls className="max-w-full max-h-[70vh] w-full">
+        <video controls className="max-w-full max-h-[70vh] w-full rounded-lg shadow-lg">
           <source src={previewUrl} type={fileType} />
           Your browser does not support the video tag.
         </video>
@@ -136,9 +136,12 @@ export const FilePreview = ({ fileName, onClose }: FilePreviewProps) => {
       );
     }
 
+    // For other file types (like DOCX), show a message
     return (
       <div className="text-center py-8">
-        Preview not available for this file type
+        <p className="text-muted-foreground">
+          Preview not available for this file type. Please download the file to view it.
+        </p>
       </div>
     );
   };
