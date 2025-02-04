@@ -12,10 +12,13 @@ import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodMa
 import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck } from "lucide-react";
-import Dashboard from "./Dashboard";
-import SiteSettings from "./SiteSettings";
 import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
 import { InventoryManagement } from "@/components/admin/InventoryManagement";
+import { BlogManagement } from "@/components/admin/BlogManagement";
+import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
+import { DonationManagement } from "@/components/admin/DonationManagement";
+import Dashboard from "@/components/admin/Dashboard";
+import SiteSettings from "@/components/admin/settings/SiteSettings";
 
 const Admin = () => {
   const navigate = useNavigate();
