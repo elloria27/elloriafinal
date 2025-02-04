@@ -80,7 +80,6 @@ export default function DynamicPage() {
         blocks={blocks}
         onSelectBlock={() => {}}
         selectedBlockId={null}
-        isAdmin={false}
       />
     </div>
   );
