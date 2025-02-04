@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileIcon, Download, Share2, Trash2, Eye, User, Folder, FileText, FilePdf, FileImage, FileVideo, FileAudio } from "lucide-react";
+import { FileIcon, Download, Share2, Trash2, Eye, User, Folder, File, FileText, Image, Video, AudioLines } from "lucide-react";
 import { FileObject } from "@supabase/storage-js";
 import { FilePreview } from "./FilePreview";
 import { ShareDialog } from "./ShareDialog";
@@ -50,7 +50,7 @@ export const FileList = ({
 
     switch (extension) {
       case 'pdf':
-        return <FilePdf className="h-8 w-8 text-primary flex-shrink-0" />;
+        return <File className="h-8 w-8 text-primary flex-shrink-0" />;
       case 'doc':
       case 'docx':
         return <FileText className="h-8 w-8 text-primary flex-shrink-0" />;
@@ -59,16 +59,16 @@ export const FileList = ({
       case 'png':
       case 'gif':
       case 'webp':
-        return <FileImage className="h-8 w-8 text-primary flex-shrink-0" />;
+        return <Image className="h-8 w-8 text-primary flex-shrink-0" />;
       case 'mp4':
       case 'mov':
       case 'avi':
       case 'webm':
-        return <FileVideo className="h-8 w-8 text-primary flex-shrink-0" />;
+        return <Video className="h-8 w-8 text-primary flex-shrink-0" />;
       case 'mp3':
       case 'wav':
       case 'ogg':
-        return <FileAudio className="h-8 w-8 text-primary flex-shrink-0" />;
+        return <AudioLines className="h-8 w-8 text-primary flex-shrink-0" />;
       default:
         return <FileIcon className="h-8 w-8 text-primary flex-shrink-0" />;
     }
