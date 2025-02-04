@@ -44,7 +44,7 @@ export const PreviewPane = ({
     console.log('Rendering block:', block);
     
     const blockContent = (
-      <div className="group relative">
+      <div className="group relative w-full">
         {isAdmin && (
           <div className="absolute right-2 top-2 flex gap-2 z-10">
             <Button
@@ -235,7 +235,7 @@ export const PreviewPane = ({
     return (
       <div 
         key={block.id} 
-        className={`mb-6 relative rounded-lg p-2 transition-colors ${
+        className={`relative w-full ${
           selectedBlockId === block.id ? 'bg-gray-50 ring-2 ring-primary ring-opacity-50' : 'hover:bg-gray-50'
         }`}
       >
@@ -245,7 +245,7 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="p-8 bg-white rounded-lg shadow-sm">
+    <div className="w-full">
       {blocks.length > 0 ? (
         blocks.map((block) => renderBlock(block))
       ) : (
