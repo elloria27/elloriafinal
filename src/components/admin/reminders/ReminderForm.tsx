@@ -8,7 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 interface ReminderFormProps {
   reminder?: any;
@@ -21,12 +20,12 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: reminder ? {
       ...reminder,
-      reminder_date: format(toZonedTime(new Date(reminder.reminder_date), 'America/Winnipeg'), 'yyyy-MM-dd'),
+      reminder_date: format(new Date(reminder.reminder_date), 'yyyy-MM-dd'),
       reminder_time: reminder.reminder_time.slice(0, 5)
     } : {
       title: '',
       description: '',
-      reminder_date: format(toZonedTime(new Date(), 'America/Winnipeg'), 'yyyy-MM-dd'),
+      reminder_date: format(new Date(), 'yyyy-MM-dd'),
       reminder_time: '09:00',
       recurrence: 'none',
       email_notify: true,
@@ -39,19 +38,14 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
       setIsSubmitting(true);
       console.log("Submitting reminder data:", data);
 
-      // Get the current user's session
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error('You must be logged in to create reminders');
       }
 
-      // Convert the date to UTC before saving
-      const reminderDate = fromZonedTime(new Date(data.reminder_date), 'America/Winnipeg');
-      
       const reminderData = {
         ...data,
-        reminder_date: format(reminderDate, 'yyyy-MM-dd'),
         admin_id: user.id
       };
 
