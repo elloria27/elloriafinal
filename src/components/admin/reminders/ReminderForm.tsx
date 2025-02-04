@@ -21,13 +21,13 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
     defaultValues: reminder ? {
       ...reminder,
       reminder_date: format(parseISO(reminder.reminder_date), 'yyyy-MM-dd'),
-      reminder_time: format(parseISO(`2000-01-01T${reminder.reminder_time}`), 'hh:mm a'),
+      reminder_time: reminder.reminder_time.slice(0, 5),
       recurrence: reminder.recurrence
     } : {
       title: '',
       description: '',
       reminder_date: format(new Date(), 'yyyy-MM-dd'),
-      reminder_time: format(new Date().setHours(9, 0), 'hh:mm a'),
+      reminder_time: '09:00',
       recurrence: 'none',
       email_notify: true,
       status: true
@@ -45,13 +45,9 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
         throw new Error('You must be logged in to create reminders');
       }
 
-      // Convert 12-hour time format to 24-hour format for database
-      const timeDate = new Date(`2000-01-01 ${data.reminder_time}`);
-      const time24 = format(timeDate, 'HH:mm');
-
       const reminderData = {
         ...data,
-        reminder_time: time24,
+        reminder_date: data.reminder_date, // Save the date exactly as selected
         admin_id: user.id
       };
 
@@ -101,27 +97,19 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="reminder_date">Date</label>
-          <div className="relative w-full">
-            <Input
-              type="date"
-              id="reminder_date"
-              {...register('reminder_date', { required: 'Date is required' })}
-              className="w-full cursor-pointer"
-            />
-          </div>
+          <label className="text-sm font-medium">Date</label>
+          <Input
+            type="date"
+            {...register('reminder_date', { required: 'Date is required' })}
+          />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="reminder_time">Time</label>
-          <div className="relative w-full">
-            <Input
-              type="time"
-              id="reminder_time"
-              {...register('reminder_time', { required: 'Time is required' })}
-              className="w-full cursor-pointer"
-            />
-          </div>
+          <label className="text-sm font-medium">Time</label>
+          <Input
+            type="time"
+            {...register('reminder_time', { required: 'Time is required' })}
+          />
         </div>
       </div>
 
@@ -131,7 +119,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
           defaultValue={reminder?.recurrence || 'none'}
           onValueChange={(value) => setValue('recurrence', value)}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Select recurrence" />
           </SelectTrigger>
           <SelectContent>
