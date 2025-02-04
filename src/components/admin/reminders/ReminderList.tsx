@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { zonedTimeToUtc } from 'date-fns-tz';
 import { Edit, Trash2, Search } from "lucide-react";
 import {
   Table,
@@ -49,6 +50,11 @@ export const ReminderList = ({ reminders, onEdit, onUpdate }: ReminderListProps)
     reminder.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const formatDate = (date: string) => {
+    const utcDate = zonedTimeToUtc(new Date(date), 'America/Winnipeg');
+    return format(utcDate, 'MMM d, yyyy');
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -84,7 +90,7 @@ export const ReminderList = ({ reminders, onEdit, onUpdate }: ReminderListProps)
                   )}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(reminder.reminder_date), 'MMM d, yyyy')}
+                  {formatDate(reminder.reminder_date)}
                   <br />
                   <span className="text-sm text-gray-500">
                     {reminder.reminder_time.slice(0, 5)}
