@@ -111,7 +111,7 @@ const Admin = () => {
         
         <Tabs defaultValue="dashboard" className="space-y-6">
           <div className="w-full overflow-x-auto pb-2">
-            <TabsList className="w-full grid grid-cols-11 gap-1">
+            <TabsList className="w-full grid grid-cols-12 gap-1">
               <TabsTrigger value="dashboard" className="flex items-center gap-2 py-3 px-4">
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="hidden md:inline">Dashboard</span>
