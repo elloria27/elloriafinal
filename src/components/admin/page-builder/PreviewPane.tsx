@@ -1,14 +1,17 @@
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2 } from "lucide-react";
+import { HomeHero } from "@/components/home/HomeHero";
+import { Features } from "@/components/Features";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
   selectedBlockId?: string;
+  isAdmin?: boolean;
 }
 
-export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId }: PreviewPaneProps) => {
+export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId, isAdmin = true }: PreviewPaneProps) => {
   const getContentValue = (content: BlockContent, key: string): any => {
     return (content as any)[key];
   };
@@ -18,19 +21,37 @@ export const PreviewPane = ({ blocks, onSelectBlock, selectedBlockId }: PreviewP
     
     const blockContent = (
       <div className="group relative">
-        <Button
-          variant={selectedBlockId === block.id ? "default" : "ghost"}
-          size="sm"
-          className={`absolute right-2 top-2 ${
-            selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          } transition-opacity`}
-          onClick={() => onSelectBlock(block)}
-        >
-          <Edit2 className="h-4 w-4" />
-        </Button>
+        {isAdmin && (
+          <Button
+            variant={selectedBlockId === block.id ? "default" : "ghost"}
+            size="sm"
+            className={`absolute right-2 top-2 ${
+              selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            } transition-opacity`}
+            onClick={() => onSelectBlock(block)}
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        )}
 
         {(() => {
+          if (isAdmin) {
+            return (
+              <div className={`p-4 border border-dashed rounded-lg ${
+                selectedBlockId === block.id ? 'border-primary bg-primary/5' : 'border-gray-300'
+              }`}>
+                {block.type} component
+              </div>
+            );
+          }
+
           switch (block.type) {
+            case 'hero':
+              return <HomeHero content={block.content} />;
+
+            case 'features':
+              return <Features content={block.content} />;
+
             case 'heading':
               const HeadingTag = (getContentValue(block.content, 'size') || 'h2') as keyof JSX.IntrinsicElements;
               return (
