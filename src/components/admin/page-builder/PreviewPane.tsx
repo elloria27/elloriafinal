@@ -155,12 +155,16 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
+              const sustainabilityStats = Array.isArray(block.content.stats) 
+                ? block.content.stats.map(stat => ({
+                    ...stat,
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
+                  }))
+                : [];
+              
               const sustainabilityContent = {
                 ...block.content,
-                stats: block.content.stats?.map((stat: any) => ({
-                  ...stat,
-                  icon: stat.icon as "Leaf" | "Recycle" | "TreePine"
-                }))
+                stats: sustainabilityStats
               };
               return <AboutSustainability content={sustainabilityContent} />;
 
@@ -168,14 +172,18 @@ export const PreviewPane = ({
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.map(t => ({
+                    quote: String(t.text || ''),
+                    author: String(t.name || ''),
+                    role: String(t.source || ''),
+                    rating: Number(t.rating || 5)
+                  }))
+                : [];
+              
               const customerImpactContent = {
                 ...block.content,
-                testimonials: block.content.testimonials?.map((t: any) => ({
-                  quote: t.text,
-                  author: t.name,
-                  role: t.source,
-                  rating: t.rating
-                }))
+                testimonials
               };
               return <AboutCustomerImpact content={customerImpactContent} />;
 
