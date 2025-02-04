@@ -34,6 +34,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [location, setLocation] = useState<string>("");
   const [unitCost, setUnitCost] = useState<number>(0);
   const [referenceNumber, setReferenceNumber] = useState<string>("");
+  const [sku, setSku] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleAdjustment = async () => {
@@ -76,6 +77,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           quantity: newQuantity,
           location: location || product.inventory?.location,
           unit_cost: unitCost || product.inventory?.unit_cost,
+          sku: sku || product.inventory?.sku,
           last_counted_at: reasonType === 'stock_count' ? new Date().toISOString() : undefined
         });
 
@@ -114,11 +116,23 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       setLocation("");
       setUnitCost(0);
       setReferenceNumber("");
+      setSku("");
     } catch (error) {
       console.error("Error adjusting inventory:", error);
       toast.error("Failed to update inventory");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load initial SKU when product is selected
+  const handleProductSelect = (productId: string) => {
+    setSelectedProduct(productId);
+    const product = products.find(p => p.id === productId);
+    if (product?.inventory?.sku) {
+      setSku(product.inventory.sku);
+    } else {
+      setSku("");
     }
   };
 
@@ -136,7 +150,7 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
             <Label htmlFor="product">Product</Label>
             <Select
               value={selectedProduct}
-              onValueChange={setSelectedProduct}
+              onValueChange={handleProductSelect}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a product" />
@@ -165,6 +179,16 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
+            <Label htmlFor="sku">SKU</Label>
+            <Input
+              id="sku"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="Enter SKU"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="reason">Reason for Adjustment</Label>
             <Select
               value={reasonType}
@@ -183,7 +207,9 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
               </SelectContent>
             </Select>
           </div>
+        </div>
 
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <Input
@@ -191,6 +217,18 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Enter storage location"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="unitCost">Unit Cost</Label>
+            <Input
+              id="unitCost"
+              type="number"
+              step="0.01"
+              value={unitCost}
+              onChange={(e) => setUnitCost(Number(e.target.value))}
+              placeholder="Enter unit cost"
             />
           </div>
         </div>
@@ -207,28 +245,14 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="unitCost">Unit Cost</Label>
-            <Input
-              id="unitCost"
-              type="number"
-              step="0.01"
-              value={unitCost}
-              onChange={(e) => setUnitCost(Number(e.target.value))}
-              placeholder="Enter unit cost"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reference">Reference Number</Label>
-            <Input
-              id="reference"
-              value={referenceNumber}
-              onChange={(e) => setReferenceNumber(e.target.value)}
-              placeholder="Enter reference number (optional)"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="reference">Reference Number</Label>
+          <Input
+            id="reference"
+            value={referenceNumber}
+            onChange={(e) => setReferenceNumber(e.target.value)}
+            placeholder="Enter reference number (optional)"
+          />
         </div>
 
         <div className="space-y-2">
