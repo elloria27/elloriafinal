@@ -15,18 +15,34 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
+                      "employee_benefits" | "logistics" | "software" | "other";
+type PaymentMethod = "cash" | "bank_transfer" | "credit_card";
+type ExpenseStatus = "pending" | "paid";
+
+interface ExpenseFormData {
+  title: string;
+  category: ExpenseCategory;
+  amount: string;
+  date: string;
+  payment_method: PaymentMethod;
+  vendor_name: string;
+  notes: string;
+  status: ExpenseStatus;
+}
+
 interface ExpenseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ExpenseFormData>({
     title: "",
-    category: "",
+    category: "inventory",
     amount: "",
     date: "",
-    payment_method: "",
+    payment_method: "cash",
     vendor_name: "",
     notes: "",
     status: "pending",
@@ -68,10 +84,10 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
       onOpenChange(false);
       setFormData({
         title: "",
-        category: "",
+        category: "inventory",
         amount: "",
         date: "",
-        payment_method: "",
+        payment_method: "cash",
         vendor_name: "",
         notes: "",
         status: "pending",
@@ -112,7 +128,7 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
             <Label htmlFor="category">Category</Label>
             <Select
               value={formData.category}
-              onValueChange={(value) =>
+              onValueChange={(value: ExpenseCategory) =>
                 setFormData({ ...formData, category: value })
               }
               required
@@ -164,7 +180,7 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
             <Label htmlFor="payment_method">Payment Method</Label>
             <Select
               value={formData.payment_method}
-              onValueChange={(value) =>
+              onValueChange={(value: PaymentMethod) =>
                 setFormData({ ...formData, payment_method: value })
               }
               required
@@ -219,7 +235,7 @@ export const ExpenseForm = ({ open, onOpenChange }: ExpenseFormProps) => {
             <Label htmlFor="status">Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value) =>
+              onValueChange={(value: ExpenseStatus) =>
                 setFormData({ ...formData, status: value })
               }
               required

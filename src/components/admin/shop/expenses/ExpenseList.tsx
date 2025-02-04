@@ -21,10 +21,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
+type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
+                      "employee_benefits" | "logistics" | "software" | "other";
+type ExpenseStatus = "pending" | "paid";
+
 export const ExpenseList = () => {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "">("");
+  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "">("");
 
   const { data: expenses, isLoading } = useQuery({
     queryKey: ["expenses", search, categoryFilter, statusFilter],
@@ -67,14 +71,14 @@ export const ExpenseList = () => {
   return (
     <div className="space-y-4">
       <div className="flex gap-4 mb-4">
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <Input
             placeholder="Search expenses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-            icon={<Search className="h-4 w-4" />}
+            className="max-w-sm pl-10"
           />
+          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
