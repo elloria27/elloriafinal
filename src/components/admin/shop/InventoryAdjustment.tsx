@@ -37,6 +37,23 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
   const [sku, setSku] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  // Оновлена функція для заповнення всіх полів при виборі продукту
+  const handleProductSelect = (productId: string) => {
+    setSelectedProduct(productId);
+    const product = products.find(p => p.id === productId);
+    if (product?.inventory) {
+      // Заповнюємо всі поля існуючими даними
+      setSku(product.inventory.sku || "");
+      setLocation(product.inventory.location || "");
+      setUnitCost(product.inventory.unit_cost?.toString() || "");
+    } else {
+      // Очищаємо поля якщо інвентар не знайдено
+      setSku("");
+      setLocation("");
+      setUnitCost("");
+    }
+  };
+
   const handleAdjustment = async () => {
     if (!selectedProduct || !quantity || !reasonType) {
       toast.error("Please fill in all required fields");
@@ -135,17 +152,6 @@ export const InventoryAdjustment = ({ products, onUpdate }: InventoryAdjustmentP
       toast.error("Failed to update inventory");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Load initial SKU when product is selected
-  const handleProductSelect = (productId: string) => {
-    setSelectedProduct(productId);
-    const product = products.find(p => p.id === productId);
-    if (product?.inventory?.sku) {
-      setSku(product.inventory.sku);
-    } else {
-      setSku("");
     }
   };
 
