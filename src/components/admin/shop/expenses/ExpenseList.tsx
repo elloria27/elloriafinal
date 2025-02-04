@@ -24,12 +24,13 @@ import { format } from "date-fns";
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
 type ExpenseStatus = "pending" | "paid";
-type FilterValue = ExpenseCategory | ExpenseStatus | "all";
+type CategoryFilterValue = ExpenseCategory | "all";
+type StatusFilterValue = ExpenseStatus | "all";
 
 export const ExpenseList = () => {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<FilterValue>("all");
-  const [statusFilter, setStatusFilter] = useState<FilterValue>("all");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
 
   const { data: expenses, isLoading } = useQuery({
     queryKey: ["expenses", search, categoryFilter, statusFilter],
@@ -44,11 +45,11 @@ export const ExpenseList = () => {
       }
 
       if (categoryFilter && categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
+        query = query.eq("category", categoryFilter as ExpenseCategory);
       }
 
       if (statusFilter && statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+        query = query.eq("status", statusFilter as ExpenseStatus);
       }
 
       const { data, error } = await query;
@@ -83,7 +84,7 @@ export const ExpenseList = () => {
         </div>
         <Select 
           value={categoryFilter} 
-          onValueChange={(value: FilterValue) => setCategoryFilter(value)}
+          onValueChange={(value: CategoryFilterValue) => setCategoryFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Category" />
@@ -102,7 +103,7 @@ export const ExpenseList = () => {
         </Select>
         <Select 
           value={statusFilter} 
-          onValueChange={(value: FilterValue) => setStatusFilter(value)}
+          onValueChange={(value: StatusFilterValue) => setStatusFilter(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
