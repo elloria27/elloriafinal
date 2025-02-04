@@ -68,7 +68,7 @@ export const ReminderForm = ({ reminder, onClose }: ReminderFormProps) => {
           placeholder="Enter reminder title"
         />
         {errors.title && (
-          <p className="text-sm text-red-500">{errors.title.message}</p>
+          <p className="text-sm text-red-500">{errors.title.message?.toString()}</p>
         )}
       </div>
 
