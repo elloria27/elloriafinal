@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, AlertCircle, TrendingUp, TrendingDown, Menu } from "lucide-react";
+import { Loader2, AlertCircle, TrendingUp, TrendingDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,8 +16,6 @@ import { InventoryAdjustment } from "./InventoryAdjustment";
 import { InventoryLogs } from "./InventoryLogs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface Product {
   id: string;
@@ -41,7 +37,6 @@ export const InventoryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<any>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -50,7 +45,6 @@ export const InventoryManagement = () => {
         
         if (!user) {
           toast.error("Please login to access this page");
-          navigate("/login");
           return;
         }
 
@@ -72,7 +66,6 @@ export const InventoryManagement = () => {
         if (roleError || !roleData) {
           console.error('Error checking admin role:', roleError);
           toast.error("Unauthorized access - Admin privileges required");
-          navigate("/");
           return;
         }
 
@@ -81,12 +74,11 @@ export const InventoryManagement = () => {
       } catch (error) {
         console.error('Admin access check failed:', error);
         toast.error("Error verifying admin access");
-        navigate("/");
       }
     };
 
     checkAdminAccess();
-  }, [navigate]);
+  }, []);
 
   const fetchProducts = async () => {
     try {
@@ -163,7 +155,7 @@ export const InventoryManagement = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[200px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -177,146 +169,124 @@ export const InventoryManagement = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex">
-        <AdminSidebar profile={profile} />
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl font-bold">Inventory Management</h2>
+        <p className="text-muted-foreground">
+          Manage product inventory levels and track stock movements
+        </p>
       </div>
 
-      {/* Mobile Sidebar */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64">
-          <AdminSidebar profile={profile} onClose={() => {}} />
-        </SheetContent>
-      </Sheet>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Inventory Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(calculateTotalValue())}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Low Stock Items
+            </CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getLowStockCount()}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Over Stock Items
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getOverStockCount()}</div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-4 md:p-6 space-y-6 ml-0 md:ml-0">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-bold mt-12 md:mt-0">Inventory Management</h2>
-            <p className="text-muted-foreground">
-              Manage product inventory levels and track stock movements
-            </p>
+      <div className="bg-white rounded-lg shadow">
+        <Tabs defaultValue="overview" className="w-full">
+          <div className="overflow-x-auto">
+            <TabsList className="w-full md:w-auto p-0">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="adjust">Stock Adjustment</TabsTrigger>
+              <TabsTrigger value="logs">Movement Logs</TabsTrigger>
+            </TabsList>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Inventory Value
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(calculateTotalValue())}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Low Stock Items
-                </CardTitle>
-                <TrendingDown className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{getLowStockCount()}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Over Stock Items
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{getOverStockCount()}</div>
-              </CardContent>
-            </Card>
-          </div>
+          <TabsContent value="overview" className="mt-4">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product Name</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Current Stock</TableHead>
+                    <TableHead className="text-right">Reorder Point</TableHead>
+                    <TableHead className="text-right">Optimal Stock</TableHead>
+                    <TableHead className="text-right">Unit Cost</TableHead>
+                    <TableHead className="text-right">Total Value</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => {
+                    const quantity = product.inventory?.quantity || 0;
+                    const unitCost = product.inventory?.unit_cost || 0;
+                    const totalValue = quantity * unitCost;
+                    const reorderPoint = product.inventory?.reorder_point || 50;
+                    const optimalStock = product.inventory?.optimal_stock || 200;
 
-          <div className="bg-white rounded-lg shadow">
-            <Tabs defaultValue="overview" className="w-full">
-              <div className="overflow-x-auto">
-                <TabsList className="w-full md:w-auto p-0">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="adjust">Stock Adjustment</TabsTrigger>
-                  <TabsTrigger value="logs">Movement Logs</TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="overview" className="mt-4">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product Name</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead className="text-right">Current Stock</TableHead>
-                        <TableHead className="text-right">Reorder Point</TableHead>
-                        <TableHead className="text-right">Optimal Stock</TableHead>
-                        <TableHead className="text-right">Unit Cost</TableHead>
-                        <TableHead className="text-right">Total Value</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell className="whitespace-nowrap">{product.name}</TableCell>
+                        <TableCell>{product.inventory?.sku || '-'}</TableCell>
+                        <TableCell>{product.inventory?.location || '-'}</TableCell>
+                        <TableCell className="text-right">{quantity}</TableCell>
+                        <TableCell className="text-right">{reorderPoint}</TableCell>
+                        <TableCell className="text-right">{optimalStock}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(unitCost)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(totalValue)}</TableCell>
+                        <TableCell className="text-right">
+                          {quantity <= reorderPoint ? (
+                            <div className="flex items-center justify-end gap-2 text-yellow-600">
+                              <AlertCircle className="h-4 w-4" />
+                              Low Stock
+                            </div>
+                          ) : quantity > optimalStock ? (
+                            <div className="flex items-center justify-end gap-2 text-yellow-600">
+                              <TrendingUp className="h-4 w-4" />
+                              Over Stock
+                            </div>
+                          ) : (
+                            <span className="text-green-600">Optimal</span>
+                          )}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products.map((product) => {
-                        const quantity = product.inventory?.quantity || 0;
-                        const unitCost = product.inventory?.unit_cost || 0;
-                        const totalValue = quantity * unitCost;
-                        const reorderPoint = product.inventory?.reorder_point || 50;
-                        const optimalStock = product.inventory?.optimal_stock || 200;
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
 
-                        return (
-                          <TableRow key={product.id}>
-                            <TableCell className="whitespace-nowrap">{product.name}</TableCell>
-                            <TableCell>{product.inventory?.sku || '-'}</TableCell>
-                            <TableCell>{product.inventory?.location || '-'}</TableCell>
-                            <TableCell className="text-right">{quantity}</TableCell>
-                            <TableCell className="text-right">{reorderPoint}</TableCell>
-                            <TableCell className="text-right">{optimalStock}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(unitCost)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(totalValue)}</TableCell>
-                            <TableCell className="text-right">
-                              {quantity <= reorderPoint ? (
-                                <div className="flex items-center justify-end gap-2 text-yellow-600">
-                                  <AlertCircle className="h-4 w-4" />
-                                  Low Stock
-                                </div>
-                              ) : quantity > optimalStock ? (
-                                <div className="flex items-center justify-end gap-2 text-yellow-600">
-                                  <TrendingUp className="h-4 w-4" />
-                                  Over Stock
-                                </div>
-                              ) : (
-                                <span className="text-green-600">Optimal</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
+          <TabsContent value="adjust">
+            <InventoryAdjustment products={products} onUpdate={fetchProducts} />
+          </TabsContent>
 
-              <TabsContent value="adjust">
-                <InventoryAdjustment products={products} onUpdate={fetchProducts} />
-              </TabsContent>
-
-              <TabsContent value="logs">
-                <InventoryLogs />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+          <TabsContent value="logs">
+            <InventoryLogs />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
