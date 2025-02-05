@@ -8,10 +8,6 @@ interface MediaLibraryModalProps {
   type?: "image" | "video";
 }
 
-interface MediaLibraryProps {
-  onSelect: (url: string) => void;
-}
-
 export const MediaLibraryModal = ({ open, onClose, onSelect, type = "image" }: MediaLibraryModalProps) => {
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
@@ -19,7 +15,7 @@ export const MediaLibraryModal = ({ open, onClose, onSelect, type = "image" }: M
         <DialogHeader>
           <DialogTitle>Media Library</DialogTitle>
         </DialogHeader>
-        <MediaLibrary onSelect={onSelect} />
+        <MediaLibrary onSelect={onSelect} type={type} />
       </DialogContent>
     </Dialog>
   );
