@@ -18,9 +18,6 @@ export interface PageBuilderProps {
   initialBlocks: ContentBlock[];
 }
 
-type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
-type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
-
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
@@ -46,6 +43,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           throw error;
         }
 
+        console.log('Fetched blocks:', dbBlocks);
+
         if (dbBlocks && dbBlocks.length > 0) {
           const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
             id: block.id,
@@ -56,8 +55,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             created_at: block.created_at,
             updated_at: block.updated_at
           }));
+          console.log('Transformed blocks:', transformedBlocks);
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
+          console.log('Using initial blocks:', initialBlocks);
           setBlocks(initialBlocks);
         }
       } catch (error) {
