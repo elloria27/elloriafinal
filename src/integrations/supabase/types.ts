@@ -1595,6 +1595,7 @@ export type Database = {
         | "contact_form"
         | "contact_faq"
         | "contact_business"
+        | "donation_hero"
       expense_category:
         | "inventory"
         | "marketing"
