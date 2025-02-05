@@ -49,18 +49,6 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "sustainability_cta", label: "Sustainability CTA" },
       ],
     },
-    {
-      category: "Donation",
-      items: [
-        { type: "donation_hero", label: "Donation Hero" },
-        { type: "donation_form", label: "Donation Form" },
-        { type: "donation_impact", label: "Donation Impact" },
-        { type: "donation_faq", label: "Donation FAQ" },
-        { type: "donation_join_movement", label: "Join Movement" },
-        { type: "donation_partners", label: "Donation Partners" },
-        { type: "donation_stories", label: "Donation Stories" },
-      ],
-    },
   ];
 
   const handleSelect = (type: BlockType) => {
