@@ -236,6 +236,61 @@ export interface AboutCtaContent extends BaseBlockContent {
   backgroundGradient?: string;
 }
 
+export interface CustomSolutionsHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface CustomSolutionsServicesContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  services?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface CustomSolutionsProcessContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  steps?: Array<{
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface CustomSolutionsCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
+export interface ForBusinessHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface BusinessSolutionsContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  solutions?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface BusinessContactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+}
+
 export interface FeatureItem {
   icon: string;
   title: string;
@@ -285,7 +340,14 @@ export type BlockContent =
   | AboutSustainabilityContent
   | AboutTeamContent
   | AboutCustomerImpactContent
-  | AboutCtaContent;
+  | AboutCtaContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent;
 
 export type BlockType = 
   | "heading" 
