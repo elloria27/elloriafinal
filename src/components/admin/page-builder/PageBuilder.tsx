@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu, Settings } from "lucide-react";
+import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu, Settings, PanelLeft } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -11,6 +11,7 @@ import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -28,6 +29,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -45,8 +47,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           throw error;
         }
 
-        console.log('Blocks from DB:', dbBlocks);
-
         if (dbBlocks && dbBlocks.length > 0) {
           const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
             id: block.id,
@@ -57,10 +57,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             created_at: block.created_at,
             updated_at: block.updated_at
           }));
-          console.log('Setting blocks from DB:', transformedBlocks);
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
-          console.log('No blocks in DB, using initial blocks:', initialBlocks);
           setBlocks(initialBlocks);
         }
       } catch (error) {
@@ -104,15 +102,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
 
     setHasUnsavedChanges(true);
+    toast.success("Block deleted");
   };
 
   const handleAddBlock = (blockType: BlockType) => {
-    const defaultContent: BlockContent = {};
-    
     const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
       type: blockType,
-      content: defaultContent,
+      content: {},
       order_index: blocks.length,
       page_id: pageId
     };
@@ -121,6 +118,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     setShowComponentPicker(false);
     setSelectedBlock(newBlock);
     setHasUnsavedChanges(true);
+    toast.success(`Added ${blockType} block`);
   };
 
   const handleUpdateBlock = (blockId: string, content: BlockContent) => {
@@ -141,21 +139,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     if (!hasUnsavedChanges) return;
     
     setIsSaving(true);
-    console.log('Saving layout with blocks:', blocks);
-
+    
     try {
-      // Delete all existing blocks for this page
       const { error: deleteError } = await supabase
         .from('content_blocks')
         .delete()
         .eq('page_id', pageId);
 
-      if (deleteError) {
-        console.error('Error deleting blocks:', deleteError);
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
-      // Insert all current blocks
       if (blocks.length > 0) {
         const blocksToInsert: ContentBlockInsert[] = blocks.map(block => ({
           id: block.id,
@@ -169,10 +161,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           .from('content_blocks')
           .insert(blocksToInsert);
 
-        if (insertError) {
-          console.error('Error saving blocks:', insertError);
-          throw insertError;
-        }
+        if (insertError) throw insertError;
       }
 
       setHasUnsavedChanges(false);
@@ -186,10 +175,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const BlocksList = () => (
-    <div className="space-y-2">
+    <div className="space-y-4 p-4">
       <Button 
         onClick={() => setShowComponentPicker(true)}
-        className="w-full mb-4"
+        className="w-full"
+        size="lg"
       >
         <Plus className="w-4 h-4 mr-2" />
         Add Component
@@ -213,13 +203,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={`p-3 bg-white rounded-lg shadow cursor-pointer group ${
-                        selectedBlock?.id === block.id ? 'ring-2 ring-primary' : ''
-                      }`}
+                      className={cn(
+                        "p-4 bg-white rounded-lg shadow-sm border cursor-pointer group transition-all",
+                        selectedBlock?.id === block.id && "ring-2 ring-primary border-primary",
+                        "hover:border-primary/50"
+                      )}
                       onClick={() => setSelectedBlock(block)}
                     >
                       <div className="flex items-center justify-between">
-                        <span>{block.type}</span>
+                        <span className="font-medium">{block.type}</span>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -254,15 +246,16 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
-      {isMobile ? (
-        <>
+      {/* Mobile Controls */}
+      {isMobile && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-white border-b">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50">
+              <Button variant="outline" size="icon">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] sm:w-[340px]">
+            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
               <SheetHeader>
                 <SheetTitle>Components</SheetTitle>
               </SheetHeader>
@@ -270,18 +263,34 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             </SheetContent>
           </Sheet>
 
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+              {showPreview ? 'Editor' : 'Preview'}
+            </Button>
+            
+            <Button
+              size="sm"
+              onClick={handleSaveLayout}
+              disabled={!hasUnsavedChanges || isSaving}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+
           {selectedBlock && (
             <Sheet>
               <SheetTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="fixed top-4 right-4 z-50"
-                >
+                <Button variant="outline" size="icon">
                   <Settings className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="w-[280px] sm:w-[340px]">
+              <SheetContent className="w-[300px] sm:w-[400px]">
                 <SheetHeader>
                   <SheetTitle>Edit Component</SheetTitle>
                 </SheetHeader>
@@ -292,55 +301,76 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
               </SheetContent>
             </Sheet>
           )}
-        </>
-      ) : (
+        </div>
+      )}
+
+      {/* Desktop Layout */}
+      {!isMobile && (
         <>
-          <div className="w-64 bg-gray-100 p-4 border-r overflow-y-auto">
+          <div className={cn(
+            "border-r bg-gray-50/50 transition-all duration-300",
+            showSidebar ? "w-80" : "w-0 overflow-hidden"
+          )}>
             <BlocksList />
           </div>
-          {selectedBlock && (
-            <div className="w-80 bg-gray-100 p-4 border-l overflow-y-auto">
-              <PropertyEditor
-                block={selectedBlock}
-                onUpdate={handleUpdateBlock}
-              />
+
+          <div className="flex-1 flex flex-col">
+            <div className="sticky top-0 z-10 bg-white border-b p-4 flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSidebar(!showSidebar)}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
+                  {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                  {showPreview ? 'Editor' : 'Preview'}
+                </Button>
+                
+                <Button
+                  size="sm"
+                  onClick={handleSaveLayout}
+                  disabled={!hasUnsavedChanges || isSaving}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              <div className="container py-8">
+                <PreviewPane 
+                  blocks={blocks} 
+                  onSelectBlock={setSelectedBlock}
+                  selectedBlockId={selectedBlock?.id}
+                  onDeleteBlock={handleDeleteBlock}
+                  isAdmin={!showPreview}
+                />
+              </div>
+            </div>
+          </div>
+
+          {selectedBlock && !showPreview && (
+            <div className="w-96 border-l bg-gray-50/50 overflow-y-auto">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Edit Component</h3>
+                <PropertyEditor
+                  block={selectedBlock}
+                  onUpdate={handleUpdateBlock}
+                />
+              </div>
             </div>
           )}
         </>
       )}
-
-      <div className="flex-1 overflow-auto relative">
-        <div className="sticky top-0 z-10 bg-white p-4 border-b flex justify-between items-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowPreview(!showPreview)}
-          >
-            {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-            {showPreview ? 'Show Editor' : 'Show Preview'}
-          </Button>
-          
-          <Button
-            size="sm"
-            onClick={handleSaveLayout}
-            disabled={!hasUnsavedChanges || isSaving}
-            className="ml-2"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save Layout'}
-          </Button>
-        </div>
-        
-        <div className={`h-full ${isMobile && !showPreview ? 'hidden' : ''}`}>
-          <PreviewPane 
-            blocks={blocks} 
-            onSelectBlock={setSelectedBlock}
-            selectedBlockId={selectedBlock?.id}
-            onDeleteBlock={handleDeleteBlock}
-            isAdmin={true}
-          />
-        </div>
-      </div>
 
       <ComponentPicker
         open={showComponentPicker}

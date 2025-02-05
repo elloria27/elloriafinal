@@ -21,7 +21,7 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { Json } from "@/integrations/supabase/types";
+import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -46,13 +46,14 @@ export const PreviewPane = ({
     const blockContent = (
       <div className="group relative w-full">
         {isAdmin && (
-          <div className="absolute right-2 top-2 flex gap-2 z-10">
+          <div className="absolute right-4 top-4 flex gap-2 z-10">
             <Button
               variant={selectedBlockId === block.id ? "default" : "ghost"}
               size="sm"
-              className={`${
-                selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              } transition-opacity`}
+              className={cn(
+                selectedBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+                "transition-opacity"
+              )}
               onClick={() => onSelectBlock(block)}
             >
               <Edit2 className="h-4 w-4" />
@@ -74,8 +75,8 @@ export const PreviewPane = ({
         {(() => {
           if (isAdmin) {
             return (
-              <div className="p-4 border border-dashed rounded-lg border-gray-300">
-                <div className="font-medium">{block.type}</div>
+              <div className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50">
+                <div className="font-medium text-lg mb-1">{block.type}</div>
                 <div className="text-sm text-gray-500">Click to edit content</div>
               </div>
             );
@@ -235,9 +236,11 @@ export const PreviewPane = ({
     return (
       <div 
         key={block.id} 
-        className={`relative w-full ${
-          selectedBlockId === block.id ? 'bg-gray-50 ring-2 ring-primary ring-opacity-50' : 'hover:bg-gray-50'
-        }`}
+        className={cn(
+          "relative w-full",
+          selectedBlockId === block.id && "ring-2 ring-primary ring-opacity-50",
+          !isAdmin && "mb-0"
+        )}
       >
         {blockContent}
       </div>
