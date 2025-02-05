@@ -21,14 +21,15 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
-      category: "About Page",
+      category: "Home",
       items: [
-        { type: "about_hero_section", label: "About Hero" },
-        { type: "about_story", label: "About Story" },
-        { type: "about_mission", label: "About Mission" },
-        { type: "about_sustainability", label: "About Sustainability" },
-        { type: "about_team", label: "About Team" },
-        { type: "about_customer_impact", label: "About Customer Impact" },
+        { type: "hero", label: "Hero" },
+        { type: "features", label: "Features" },
+        { type: "testimonials", label: "Testimonials" },
+        { type: "newsletter", label: "Newsletter" },
+        { type: "blog_preview", label: "Blog Preview" },
+        { type: "store_brands", label: "Store Brands" },
+        { type: "game_changer", label: "Game Changer" },
       ],
     },
     {
