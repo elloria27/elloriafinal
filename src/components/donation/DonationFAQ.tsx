@@ -1,89 +1,59 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { motion } from "framer-motion";
 
-interface DonationFAQProps {
-  content: {
-    title?: string;
-    description?: string;
-    faqs?: Array<{
-      question: string;
-      answer: string;
-    }>;
-  };
-}
-
-export const DonationFAQ = ({ content }: DonationFAQProps) => {
-  const [faqs, setFaqs] = useState(content.faqs || []);
-
-  const handleAddFAQ = () => {
-    setFaqs([...faqs, { question: "", answer: "" }]);
-  };
-
-  const handleRemoveFAQ = (index: number) => {
-    const updatedFaqs = faqs.filter((_, i) => i !== index);
-    setFaqs(updatedFaqs);
-  };
-
-  const handleChange = (index: number, field: string, value: string) => {
-    const updatedFaqs = faqs.map((faq, i) => 
-      i === index ? { ...faq, [field]: value } : faq
-    );
-    setFaqs(updatedFaqs);
-  };
+export const DonationFAQ = () => {
+  const faqs = [
+    {
+      question: "Where does my donation go?",
+      answer: "Your donation directly supports our program to provide essential hygiene products to women and girls in need. We work with local partners to ensure efficient distribution."
+    },
+    {
+      question: "Are donations tax-deductible?",
+      answer: "Yes, all donations are tax-deductible. You will receive a receipt for your contribution that can be used for tax purposes."
+    },
+    {
+      question: "How do I know my contribution makes a difference?",
+      answer: "We regularly share impact reports and stories from beneficiaries. You can also opt in to receive updates about how your donation is helping communities."
+    },
+    {
+      question: "Can I make a recurring donation?",
+      answer: "Yes, you can set up monthly donations to provide ongoing support. This helps us plan and maintain consistent support for our beneficiaries."
+    }
+  ];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <Label>Title</Label>
-        <Input
-          value={content.title || ""}
-          onChange={(e) => content.title = e.target.value}
-        />
-      </div>
-      <div>
-        <Label>Description</Label>
-        <Textarea
-          value={content.description || ""}
-          onChange={(e) => content.description = e.target.value}
-        />
-      </div>
-      <div>
-        <Label>FAQs</Label>
-        {faqs.map((faq, index) => (
-          <div key={index} className="space-y-2 mt-2 p-4 border rounded-lg">
-            <Input
-              placeholder="Question"
-              value={faq.question}
-              onChange={(e) => handleChange(index, "question", e.target.value)}
-            />
-            <Textarea
-              placeholder="Answer"
-              value={faq.answer}
-              onChange={(e) => handleChange(index, "answer", e.target.value)}
-            />
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleRemoveFAQ(index)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddFAQ}
-          className="mt-2"
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
         >
-          <Plus className="h-4 w-4 mr-2" /> Add FAQ
-        </Button>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Frequently Asked Questions</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Find answers to common questions about our donation program.
+          </p>
+        </motion.div>
+
+        <div className="max-w-2xl mx-auto">
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-left">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent>{faq.answer}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

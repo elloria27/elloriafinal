@@ -1,19 +1,39 @@
-interface DonationJoinMovementProps {
-  content: {
-    title?: string;
-    description?: string;
-    buttonText?: string;
-  };
-}
+import { motion } from "framer-motion";
+import { Heart } from "lucide-react";
 
-export const DonationJoinMovement = ({ content }: DonationJoinMovementProps) => {
+export const DonationJoinMovement = () => {
   return (
-    <div className="p-8 bg-gray-100">
-      <h2 className="text-2xl font-bold">{content.title}</h2>
-      <p className="mt-4">{content.description}</p>
-      <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
-        {content.buttonText}
-      </button>
-    </div>
+    <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto"
+        >
+          <div className="mb-8 text-primary">
+            <Heart className="w-16 h-16 mx-auto" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Join Our Movement Today
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Together, we can make a lasting impact on women's health and dignity.
+            Your support helps us reach more communities and change more lives.
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
+            onClick={() => {
+              const form = document.querySelector("#donation-form");
+              form?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            Make a Difference Now
+          </motion.button>
+        </motion.div>
+      </div>
+    </section>
   );
 };
