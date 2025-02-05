@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
 import { AboutStory } from "@/components/about/AboutStory";
+import { AboutMission } from "@/components/about/AboutMission";
 import { AboutSustainability } from "@/components/about/AboutSustainability";
 import { AboutTeam } from "@/components/about/AboutTeam";
 import { AboutCustomerImpact } from "@/components/about/AboutCustomerImpact";
@@ -11,6 +12,7 @@ import {
   ContentBlock, 
   AboutHeroContent, 
   AboutStoryContent, 
+  AboutMissionContent, 
   AboutSustainabilityContent, 
   AboutTeamContent, 
   AboutCustomerImpactContent, 
@@ -84,6 +86,10 @@ export default function About() {
 
       <AboutStory 
         content={getBlockContent('about_story') as AboutStoryContent}
+      />
+
+      <AboutMission 
+        content={getBlockContent('about_mission') as AboutMissionContent}
       />
 
       <AboutSustainability 
