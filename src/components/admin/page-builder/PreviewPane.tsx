@@ -21,6 +21,13 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { DonationHero } from "@/components/donation/DonationHero";
+import { DonationForm } from "@/components/donation/DonationForm";
+import { DonationImpact } from "@/components/donation/DonationImpact";
+import { DonationFAQ } from "@/components/donation/DonationFAQ";
+import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
+import { DonationPartners } from "@/components/donation/DonationPartners";
+import { DonationStories } from "@/components/donation/DonationStories";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -222,6 +229,27 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
+
+            case 'donation_hero':
+              return <DonationHero content={block.content} />;
+
+            case 'donation_form':
+              return <DonationForm content={block.content} />;
+
+            case 'donation_impact':
+              return <DonationImpact content={block.content} />;
+
+            case 'donation_faq':
+              return <DonationFAQ content={block.content} />;
+
+            case 'donation_join_movement':
+              return <DonationJoinMovement content={block.content} />;
+
+            case 'donation_partners':
+              return <DonationPartners content={block.content} />;
+
+            case 'donation_stories':
+              return <DonationStories content={block.content} />;
 
             default:
               return (
