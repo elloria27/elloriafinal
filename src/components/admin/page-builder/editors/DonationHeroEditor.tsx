@@ -34,7 +34,7 @@ export const DonationHeroEditor = ({ block, onUpdate }: DonationHeroEditorProps)
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
-          value={block.content.title || ''}
+          value={String(block.content.title || '')}
           onChange={(e) => handleUpdate('title', e.target.value)}
           placeholder="Enter hero title"
         />
@@ -44,7 +44,7 @@ export const DonationHeroEditor = ({ block, onUpdate }: DonationHeroEditorProps)
         <Label htmlFor="subtitle">Subtitle</Label>
         <Textarea
           id="subtitle"
-          value={block.content.subtitle || ''}
+          value={String(block.content.subtitle || '')}
           onChange={(e) => handleUpdate('subtitle', e.target.value)}
           placeholder="Enter hero subtitle"
         />
@@ -54,7 +54,7 @@ export const DonationHeroEditor = ({ block, onUpdate }: DonationHeroEditorProps)
         <Label htmlFor="buttonText">Button Text</Label>
         <Input
           id="buttonText"
-          value={block.content.buttonText || ''}
+          value={String(block.content.buttonText || '')}
           onChange={(e) => handleUpdate('buttonText', e.target.value)}
           placeholder="Enter button text"
         />

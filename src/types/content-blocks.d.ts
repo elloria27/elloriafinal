@@ -369,7 +369,20 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "donation_hero";
+  | "donation_hero"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta"
+  | "product_gallery";
 
 export interface ContentBlock {
   id: string;

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -197,19 +197,17 @@ export const PreviewPane = ({
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => ({
-                    quote: String(t.text || ''),
-                    author: String(t.name || ''),
-                    role: String(t.source || ''),
-                    rating: Number(t.rating || 5)
-                  }))
-                : [];
+              const impactContent = block.content as AboutCustomerImpactContent;
+              const formattedTestimonials = impactContent.testimonials?.map(t => ({
+                name: t.author,
+                rating: t.rating,
+                text: t.quote,
+                source: t.role || ''
+              }));
               
               return <AboutCustomerImpact content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                testimonials
+                ...impactContent,
+                testimonials: formattedTestimonials || []
               }} />;
 
             case 'contact_hero':
