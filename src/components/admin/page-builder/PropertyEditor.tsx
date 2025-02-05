@@ -8,7 +8,6 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
-import { DonationHeroEditor } from "./editors/DonationHeroEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -82,10 +81,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
-    if (block.type === "donation_hero") {
-      return <DonationHeroEditor block={block} onUpdate={onUpdate} />;
-    }
-
     if (block.type === "competitor_comparison") {
       return <CompetitorComparisonEditor block={block} onUpdate={onUpdate} />;
     }

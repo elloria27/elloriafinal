@@ -305,13 +305,6 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
-export interface DonationHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  buttonText?: string;
-  backgroundImage?: string;
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -328,18 +321,18 @@ export type BlockContent =
   | NewsletterContent
   | ProductCarouselContent
   | CompetitorComparisonContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
   | ContactHeroContent
   | ContactDetailsContent
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
-  | DonationHeroContent;
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -355,6 +348,7 @@ export type BlockType =
   | "store_brands"
   | "sustainability"
   | "product_carousel"
+  | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison"
@@ -364,12 +358,12 @@ export type BlockType =
   | "about_sustainability"
   | "about_team"
   | "about_customer_impact"
+  | "about_cta"
   | "contact_hero"
   | "contact_details"
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "donation_hero"
   | "business_hero"
   | "business_solutions"
   | "business_contact"
@@ -381,8 +375,7 @@ export type BlockType =
   | "sustainability_mission"
   | "sustainability_materials"
   | "sustainability_faq"
-  | "sustainability_cta"
-  | "product_gallery";
+  | "sustainability_cta";
 
 export interface ContentBlock {
   id: string;

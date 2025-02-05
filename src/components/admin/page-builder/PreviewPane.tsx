@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -21,7 +21,6 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { DonationHero } from "@/components/donation/DonationHero";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -180,7 +179,7 @@ export const PreviewPane = ({
               const sustainabilityStats = Array.isArray(block.content.stats) 
                 ? block.content.stats.map(stat => ({
                     ...stat,
-                    icon: stat.icon || "Leaf",
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
                     value: String(stat.value || ''),
                     label: String(stat.label || ''),
                     description: String(stat.description || '')
@@ -197,8 +196,20 @@ export const PreviewPane = ({
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              const impactContent = block.content as AboutCustomerImpactContent;
-              return <AboutCustomerImpact content={impactContent} />;
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.map(t => ({
+                    quote: String(t.text || ''),
+                    author: String(t.name || ''),
+                    role: String(t.source || ''),
+                    rating: Number(t.rating || 5)
+                  }))
+                : [];
+              
+              return <AboutCustomerImpact content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                testimonials
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
@@ -211,9 +222,6 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
-
-            case 'donation_hero':
-              return <DonationHero content={block.content} />;
 
             default:
               return (
