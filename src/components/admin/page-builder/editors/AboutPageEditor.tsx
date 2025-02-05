@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent, AboutHeroContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,16 +23,78 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleImageSelect = (url: string) => {
+    console.log("Selected image:", url, "for field:", currentImageField);
     handleChange(currentImageField, url);
     setShowMediaLibrary(false);
   };
 
   const openMediaLibrary = (fieldName: string) => {
+    console.log("Opening media library for field:", fieldName);
     setCurrentImageField(fieldName);
     setShowMediaLibrary(true);
   };
 
   switch (block.type) {
+    case "about_hero_section": {
+      const content = block.content as AboutHeroContent;
+      return (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Title</Label>
+            <Input
+              value={content.title || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+              placeholder="Enter title"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Subtitle</Label>
+            <Textarea
+              value={content.subtitle || ""}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
+              placeholder="Enter subtitle"
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Background Image</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={content.backgroundImage || ""}
+                onChange={(e) => handleChange("backgroundImage", e.target.value)}
+                placeholder="Select background image"
+                readOnly
+              />
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => openMediaLibrary("backgroundImage")}
+              >
+                Browse
+              </Button>
+            </div>
+            {content.backgroundImage && (
+              <img 
+                src={content.backgroundImage} 
+                alt="Background preview" 
+                className="mt-2 max-h-40 rounded-lg"
+              />
+            )}
+          </div>
+
+          {showMediaLibrary && (
+            <MediaLibraryModal
+              open={showMediaLibrary}
+              onClose={() => setShowMediaLibrary(false)}
+              onSelect={handleImageSelect}
+            />
+          )}
+        </div>
+      );
+    }
+
     case "about_story": {
       const content = block.content as AboutStoryContent;
       return (
@@ -520,7 +582,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
         </div>
       );
     }
-      
+
     default:
       return null;
   }
