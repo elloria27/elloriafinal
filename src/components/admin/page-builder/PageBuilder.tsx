@@ -13,6 +13,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
+
 export interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
