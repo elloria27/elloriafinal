@@ -75,7 +75,10 @@ export const PreviewPane = ({
         {(() => {
           if (isAdmin) {
             return (
-              <div className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50">
+              <div 
+                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
+                onClick={() => onSelectBlock(block)}
+              >
                 <div className="font-medium text-lg mb-1">{block.type}</div>
                 <div className="text-sm text-gray-500">Click to edit content</div>
               </div>

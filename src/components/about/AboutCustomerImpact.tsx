@@ -6,13 +6,8 @@ interface AboutCustomerImpactProps {
   content?: AboutCustomerImpactContent;
 }
 
-interface StatItem {
-  value: string;
-  label: string;
-}
-
 export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) => {
-  const defaultStats: StatItem[] = [
+  const defaultStats = [
     {
       value: "1M+",
       label: "Happy Customers"
@@ -48,8 +43,7 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
     }
   ];
 
-  // Ensure stats is an array, otherwise use default
-  const stats = Array.isArray(content?.stats) ? content.stats : defaultStats;
+  const stats = content?.stats || defaultStats;
   const testimonials = content?.testimonials || defaultTestimonials;
 
   const getIconComponent = (index: number) => {
