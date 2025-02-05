@@ -21,7 +21,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter hero title"
             />
@@ -29,7 +29,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={String(block.content.subtitle || "")}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter hero subtitle"
             />
@@ -37,7 +37,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Background Image URL</Label>
             <Input
-              value={block.content.backgroundImage || ""}
+              value={String(block.content.backgroundImage || "")}
               onChange={(e) => handleChange("backgroundImage", e.target.value)}
               placeholder="Enter background image URL"
             />
@@ -51,15 +51,15 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Fixed Amounts (comma-separated)</Label>
             <Input
-              value={(block.content.fixedAmounts || []).join(", ")}
-              onChange={(e) => handleChange("fixedAmounts", e.target.value.split(",").map(Number))}
+              value={Array.isArray(block.content.fixedAmounts) ? block.content.fixedAmounts.join(", ") : ""}
+              onChange={(e) => handleChange("fixedAmounts", e.target.value.split(",").map(num => Number(num.trim())))}
               placeholder="25, 50, 100"
             />
           </div>
           <div>
             <Label>Button Text</Label>
             <Input
-              value={block.content.buttonText || ""}
+              value={String(block.content.buttonText || "")}
               onChange={(e) => handleChange("buttonText", e.target.value)}
               placeholder="Enter button text"
             />
@@ -73,7 +73,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter impact section title"
             />
@@ -81,7 +81,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={String(block.content.description || "")}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter impact description"
             />
@@ -95,7 +95,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter FAQ section title"
             />
@@ -103,7 +103,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={String(block.content.description || "")}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter FAQ description"
             />
@@ -117,7 +117,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter section title"
             />
@@ -125,7 +125,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={String(block.content.description || "")}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
             />
@@ -133,7 +133,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Button Text</Label>
             <Input
-              value={block.content.buttonText || ""}
+              value={String(block.content.buttonText || "")}
               onChange={(e) => handleChange("buttonText", e.target.value)}
               placeholder="Enter button text"
             />
@@ -147,7 +147,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter partners section title"
             />
@@ -155,7 +155,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={String(block.content.description || "")}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter partners description"
             />
@@ -169,7 +169,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={String(block.content.title || "")}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter stories section title"
             />
@@ -177,7 +177,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           <div>
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={String(block.content.description || "")}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter stories description"
             />

@@ -8,6 +8,7 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
+import { DonationEditor } from "./editors/DonationEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
