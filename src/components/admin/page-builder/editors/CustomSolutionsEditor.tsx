@@ -55,7 +55,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
       description: "Step description",
     };
     handleContentChange({
-      steps: [...steps, newStep] as any, // Type assertion to avoid Json compatibility error
+      steps: [...steps, newStep] as any,
     });
   };
 
@@ -63,18 +63,17 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps.splice(index, 1);
-    // Update step numbers
     steps.forEach((step, i) => {
       step.number = i + 1;
     });
-    handleContentChange({ steps: steps as any }); // Type assertion to avoid Json compatibility error
+    handleContentChange({ steps: steps as any });
   };
 
   const handleProcessStepUpdate = (index: number, updates: Partial<ProcessStep>) => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps[index] = { ...steps[index], ...updates };
-    handleContentChange({ steps: steps as any }); // Type assertion to avoid Json compatibility error
+    handleContentChange({ steps: steps as any });
   };
 
   switch (block.type) {

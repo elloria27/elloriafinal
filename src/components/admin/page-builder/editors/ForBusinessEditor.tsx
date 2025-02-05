@@ -25,7 +25,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="title"
               value={heroContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value as string })}
             />
           </div>
           <div>
@@ -33,7 +33,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="subtitle"
               value={heroContent.subtitle || ""}
-              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
+              onChange={(e) => handleContentChange({ subtitle: e.target.value as string })}
             />
           </div>
           <div>
@@ -41,7 +41,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="description"
               value={heroContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
+              onChange={(e) => handleContentChange({ description: e.target.value as string })}
             />
           </div>
         </div>
@@ -56,7 +56,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="title"
               value={solutionsContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value as string })}
             />
           </div>
           <div>
@@ -64,7 +64,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="description"
               value={solutionsContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
+              onChange={(e) => handleContentChange({ description: e.target.value as string })}
             />
           </div>
         </div>
@@ -79,7 +79,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="email"
               value={contactContent.email || ""}
-              onChange={(e) => handleContentChange({ email: e.target.value })}
+              onChange={(e) => handleContentChange({ email: e.target.value as string })}
             />
           </div>
           <div>
@@ -87,7 +87,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             <Input
               id="phone"
               value={contactContent.phone || ""}
-              onChange={(e) => handleContentChange({ phone: e.target.value })}
+              onChange={(e) => handleContentChange({ phone: e.target.value as string })}
             />
           </div>
         </div>
