@@ -15,6 +15,7 @@ interface AboutPageEditorProps {
 export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [currentImageField, setCurrentImageField] = useState<string>("");
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
 
   const handleChange = (key: string, value: any) => {
     console.log("Updating content:", key, value);
@@ -23,14 +24,15 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleImageSelect = (url: string) => {
-    console.log("Selected image:", url, "for field:", currentImageField);
+    console.log("Selected media:", url, "for field:", currentImageField);
     handleChange(currentImageField, url);
     setShowMediaLibrary(false);
   };
 
-  const openMediaLibrary = (fieldName: string) => {
-    console.log("Opening media library for field:", fieldName);
+  const openMediaLibrary = (fieldName: string, type: "image" | "video" = "image") => {
+    console.log("Opening media library for field:", fieldName, "type:", type);
     setCurrentImageField(fieldName);
+    setMediaType(type);
     setShowMediaLibrary(true);
   };
 
@@ -129,11 +131,21 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-2">
             <Label>Video URL</Label>
-            <Input
-              value={content.videoUrl || ""}
-              onChange={(e) => handleChange("videoUrl", e.target.value)}
-              placeholder="Enter video URL"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                value={content.videoUrl || ""}
+                onChange={(e) => handleChange("videoUrl", e.target.value)}
+                placeholder="Enter video URL or select from library"
+                readOnly={showMediaLibrary}
+              />
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => openMediaLibrary("videoUrl", "video")}
+              >
+                Browse
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -148,7 +160,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               <Button 
                 type="button"
                 variant="outline"
-                onClick={() => openMediaLibrary("videoThumbnail")}
+                onClick={() => openMediaLibrary("videoThumbnail", "image")}
               >
                 Browse
               </Button>
@@ -167,7 +179,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               open={showMediaLibrary}
               onClose={() => setShowMediaLibrary(false)}
               onSelect={handleImageSelect}
-              type="image"
+              type={mediaType}
             />
           )}
         </div>
