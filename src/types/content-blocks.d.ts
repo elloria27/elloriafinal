@@ -218,13 +218,17 @@ export interface AboutTeamContent extends BaseBlockContent {
     role: string;
     image?: string;
     quote?: string;
-    bio?: string;
+    bio?: string;  // Added bio field
   }>;
 }
 
 export interface AboutCustomerImpactContent extends BaseBlockContent {
   title?: string;
   description?: string;
+  stats?: Array<{
+    value: string;
+    label: string;
+  }>;
   testimonials?: Array<{
     quote: string;
     author: string;
@@ -413,4 +417,3 @@ export interface DeliveryMethod {
   created_at?: string;
   updated_at?: string;
 }
-
