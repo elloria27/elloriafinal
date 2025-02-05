@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { BlockEditorProps } from "@/types";
+import { BlockEditorProps } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const AboutPageEditor = ({ block, onUpdate }: BlockEditorProps) => {
-  const [title, setTitle] = useState(block.content?.title || "");
-  const [description, setDescription] = useState(block.content?.description || "");
+  const [title, setTitle] = useState(block.content?.title as string || "");
+  const [description, setDescription] = useState(block.content?.description as string || "");
 
   useEffect(() => {
-    setTitle(block.content?.title || "");
-    setDescription(block.content?.description || "");
+    setTitle(block.content?.title as string || "");
+    setDescription(block.content?.description as string || "");
   }, [block]);
 
   const handleChange = (field: string, value: any) => {
