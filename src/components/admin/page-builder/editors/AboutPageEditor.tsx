@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Image } from "lucide-react";
 
 interface AboutPageEditorProps {
   block: ContentBlock;
@@ -25,7 +25,18 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
   const handleImageSelect = (url: string) => {
     console.log("Selected media:", url, "for field:", currentImageField);
-    handleChange(currentImageField, url);
+    
+    // Handle team member image updates
+    if (currentImageField.startsWith('members.')) {
+      const [, indexStr, field] = currentImageField.split('.');
+      const index = parseInt(indexStr);
+      const members = [...(block.content as AboutTeamContent).members || []];
+      members[index] = { ...members[index], [field]: url };
+      handleChange('members', members);
+    } else {
+      handleChange(currentImageField, url);
+    }
+    
     setShowMediaLibrary(false);
   };
 
@@ -450,11 +461,9 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <Button 
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setCurrentImageField(`members.${index}.image`);
-                      setShowMediaLibrary(true);
-                    }}
+                    onClick={() => openMediaLibrary(`members.${index}.image`)}
                   >
+                    <Image className="h-4 w-4 mr-2" />
                     Browse
                   </Button>
                 </div>
@@ -490,7 +499,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               type="button"
               variant="outline"
               onClick={() => {
-                const newMembers = [...members, { name: '', role: '' }];
+                const newMembers = [...members, { name: '', role: '', image: '' }];
                 handleChange("members", newMembers);
               }}
             >
@@ -498,6 +507,15 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               Add Team Member
             </Button>
           </div>
+
+          {showMediaLibrary && (
+            <MediaLibraryModal
+              open={showMediaLibrary}
+              onClose={() => setShowMediaLibrary(false)}
+              onSelect={handleImageSelect}
+              type={mediaType}
+            />
+          )}
         </div>
       );
     }
