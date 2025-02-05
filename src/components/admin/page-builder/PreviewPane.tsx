@@ -19,18 +19,18 @@ interface PreviewPaneProps {
   isAdmin?: boolean;
 }
 
-export const PreviewPane = ({ 
-  blocks, 
-  onSelectBlock, 
+export const PreviewPane = ({
+  blocks,
+  onSelectBlock,
   selectedBlockId,
   onDeleteBlock,
   isAdmin = false
 }: PreviewPaneProps) => {
   console.log('Rendering blocks:', blocks);
-  
+
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
-    
+
     const blockContent = (
       <div className="group relative w-full">
         {isAdmin && (
@@ -46,7 +46,7 @@ export const PreviewPane = ({
             >
               <Edit2 className="h-4 w-4" />
             </Button>
-            
+
             {onDeleteBlock && (
               <Button
                 variant="ghost"
@@ -63,7 +63,7 @@ export const PreviewPane = ({
         {(() => {
           if (isAdmin) {
             return (
-              <div 
+              <div
                 className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
                 onClick={() => onSelectBlock(block)}
               >
@@ -75,19 +75,19 @@ export const PreviewPane = ({
 
           switch (block.type) {
             case 'donation_hero':
-              return <DonationHero content={block.content} />;
+              return <DonationHero {...block.content} />;
             case 'donation_form':
-              return <DonationForm content={block.content} />;
+              return <DonationForm {...block.content} />;
             case 'donation_impact':
-              return <DonationImpact content={block.content} />;
+              return <DonationImpact {...block.content} />;
             case 'donation_stories':
-              return <DonationStories content={block.content} />;
+              return <DonationStories {...block.content} />;
             case 'donation_partners':
-              return <DonationPartners content={block.content} />;
+              return <DonationPartners {...block.content} />;
             case 'donation_faq':
-              return <DonationFAQ content={block.content} />;
+              return <DonationFAQ {...block.content} />;
             case 'donation_join_movement':
-              return <DonationJoinMovement content={block.content} />;
+              return <DonationJoinMovement {...block.content} />;
             default:
               return (
                 <div className={`p-4 border border-dashed rounded-lg ${
@@ -102,8 +102,8 @@ export const PreviewPane = ({
     );
 
     return (
-      <div 
-        key={block.id} 
+      <div
+        key={block.id}
         className={cn(
           "relative w-full",
           selectedBlockId === block.id && "ring-2 ring-primary ring-opacity-50",
