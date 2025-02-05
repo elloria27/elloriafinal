@@ -55,8 +55,8 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
       description: "Step description",
     };
     handleContentChange({
-      steps: [...steps, newStep] as any,
-    });
+      steps: [...steps, newStep],
+    } as Partial<CustomSolutionsProcessContent>);
   };
 
   const handleProcessStepRemove = (index: number) => {
@@ -66,14 +66,14 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
     steps.forEach((step, i) => {
       step.number = i + 1;
     });
-    handleContentChange({ steps: steps as any });
+    handleContentChange({ steps } as Partial<CustomSolutionsProcessContent>);
   };
 
   const handleProcessStepUpdate = (index: number, updates: Partial<ProcessStep>) => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps[index] = { ...steps[index], ...updates };
-    handleContentChange({ steps: steps as any });
+    handleContentChange({ steps } as Partial<CustomSolutionsProcessContent>);
   };
 
   switch (block.type) {
@@ -86,7 +86,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="title"
               value={heroContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value } as Partial<CustomSolutionsHeroContent>)}
             />
           </div>
           <div>
@@ -94,7 +94,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="subtitle"
               value={heroContent.subtitle || ""}
-              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
+              onChange={(e) => handleContentChange({ subtitle: e.target.value } as Partial<CustomSolutionsHeroContent>)}
             />
           </div>
           <div>
@@ -102,7 +102,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="description"
               value={heroContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
+              onChange={(e) => handleContentChange({ description: e.target.value } as Partial<CustomSolutionsHeroContent>)}
             />
           </div>
         </div>
@@ -117,7 +117,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="title"
               value={servicesContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value } as Partial<CustomSolutionsServicesContent>)}
             />
           </div>
           <div>
@@ -125,7 +125,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="subtitle"
               value={servicesContent.subtitle || ""}
-              onChange={(e) => handleContentChange({ subtitle: e.target.value })}
+              onChange={(e) => handleContentChange({ subtitle: e.target.value } as Partial<CustomSolutionsServicesContent>)}
             />
           </div>
           <div className="space-y-4">
@@ -187,7 +187,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="title"
               value={processContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value } as Partial<CustomSolutionsProcessContent>)}
             />
           </div>
           <div className="space-y-4">
@@ -242,7 +242,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="title"
               value={ctaContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
+              onChange={(e) => handleContentChange({ title: e.target.value } as Partial<CustomSolutionsCtaContent>)}
             />
           </div>
           <div>
@@ -250,7 +250,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="description"
               value={ctaContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
+              onChange={(e) => handleContentChange({ description: e.target.value } as Partial<CustomSolutionsCtaContent>)}
             />
           </div>
           <div>
@@ -258,7 +258,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="buttonText"
               value={ctaContent.buttonText || ""}
-              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
+              onChange={(e) => handleContentChange({ buttonText: e.target.value } as Partial<CustomSolutionsCtaContent>)}
             />
           </div>
           <div>
@@ -266,7 +266,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
             <Input
               id="buttonLink"
               value={ctaContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
+              onChange={(e) => handleContentChange({ buttonLink: e.target.value } as Partial<CustomSolutionsCtaContent>)}
             />
           </div>
         </div>
