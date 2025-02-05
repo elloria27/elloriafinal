@@ -21,13 +21,6 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { DonationHero } from "@/components/donation/DonationHero";
-import { DonationForm } from "@/components/donation/DonationForm";
-import { DonationImpact } from "@/components/donation/DonationImpact";
-import { DonationFAQ } from "@/components/donation/DonationFAQ";
-import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
-import { DonationPartners } from "@/components/donation/DonationPartners";
-import { DonationStories } from "@/components/donation/DonationStories";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -183,13 +176,40 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              return <AboutSustainability content={block.content} />;
+              const sustainabilityStats = Array.isArray(block.content.stats) 
+                ? block.content.stats.map(stat => ({
+                    ...stat,
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+                    value: String(stat.value || ''),
+                    label: String(stat.label || ''),
+                    description: String(stat.description || '')
+                  }))
+                : [];
+              
+              return <AboutSustainability content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                stats: sustainabilityStats
+              }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.map(t => ({
+                    quote: String(t.text || ''),
+                    author: String(t.name || ''),
+                    role: String(t.source || ''),
+                    rating: Number(t.rating || 5)
+                  }))
+                : [];
+              
+              return <AboutCustomerImpact content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                testimonials
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
@@ -202,27 +222,6 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
-
-            case 'donation_hero':
-              return <DonationHero content={block.content} />;
-
-            case 'donation_form':
-              return <DonationForm content={block.content} />;
-
-            case 'donation_impact':
-              return <DonationImpact content={block.content} />;
-
-            case 'donation_faq':
-              return <DonationFAQ content={block.content} />;
-
-            case 'donation_join_movement':
-              return <DonationJoinMovement content={block.content} />;
-
-            case 'donation_partners':
-              return <DonationPartners content={block.content} />;
-
-            case 'donation_stories':
-              return <DonationStories content={block.content} />;
 
             default:
               return (
