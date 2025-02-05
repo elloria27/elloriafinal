@@ -1,28 +1,11 @@
 import { motion } from "framer-motion";
-import { DonationPartnersProps } from "@/types/content-blocks";
 
-export const DonationPartners = ({ content }: DonationPartnersProps) => {
-  const partners = content.partners || [
-    {
-      name: "Local Women's Shelters",
-      logo: "/placeholder.svg",
-      description: "Supporting women in crisis"
-    },
-    {
-      name: "Community Health Centers",
-      logo: "/placeholder.svg",
-      description: "Providing essential healthcare"
-    },
-    {
-      name: "Educational Institutions",
-      logo: "/placeholder.svg",
-      description: "Empowering through education"
-    },
-    {
-      name: "Non-Profit Organizations",
-      logo: "/placeholder.svg",
-      description: "Creating lasting change"
-    }
+export const DonationPartners = () => {
+  const partners = [
+    "Local Women's Shelters",
+    "Community Health Centers",
+    "Educational Institutions",
+    "Non-Profit Organizations"
   ];
 
   return (
@@ -34,11 +17,9 @@ export const DonationPartners = ({ content }: DonationPartnersProps) => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            {content.title || "Our Partners in Change"}
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Partners in Change</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {content.description || "We work with trusted organizations to ensure your donations reach those who need them most."}
+            We work with trusted organizations to ensure your donations reach those who need them most.
           </p>
         </motion.div>
 
@@ -51,15 +32,7 @@ export const DonationPartners = ({ content }: DonationPartnersProps) => {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="bg-white p-6 rounded-lg shadow-lg text-center"
             >
-              <img
-                src={partner.logo}
-                alt={partner.name}
-                className="w-24 h-24 mx-auto mb-4 object-contain"
-              />
-              <h3 className="text-xl font-semibold text-gray-900">{partner.name}</h3>
-              {partner.description && (
-                <p className="text-gray-600 mt-2">{partner.description}</p>
-              )}
+              <h3 className="text-xl font-semibold text-gray-900">{partner}</h3>
             </motion.div>
           ))}
         </div>

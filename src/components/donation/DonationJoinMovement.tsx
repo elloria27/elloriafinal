@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import { DonationJoinMovementProps } from "@/types/content-blocks";
 
-export const DonationJoinMovement = ({ content }: DonationJoinMovementProps) => {
+export const DonationJoinMovement = () => {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-accent-purple/10">
       <div className="container mx-auto px-4">
@@ -16,10 +15,11 @@ export const DonationJoinMovement = ({ content }: DonationJoinMovementProps) => 
             <Heart className="w-16 h-16 mx-auto" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            {content.title || "Join Our Movement Today"}
+            Join Our Movement Today
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            {content.description || "Together, we can make a lasting impact on women's health and dignity. Your support helps us reach more communities and change more lives."}
+            Together, we can make a lasting impact on women's health and dignity.
+            Your support helps us reach more communities and change more lives.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -30,7 +30,7 @@ export const DonationJoinMovement = ({ content }: DonationJoinMovementProps) => 
               form?.scrollIntoView({ behavior: "smooth" });
             }}
           >
-            {content.buttonText || "Make a Difference Now"}
+            Make a Difference Now
           </motion.button>
         </motion.div>
       </div>

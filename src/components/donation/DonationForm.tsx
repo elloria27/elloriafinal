@@ -1,19 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { DonationFormProps } from "@/types/content-blocks";
 
-export const DonationForm = ({ content }: DonationFormProps) => {
+export const DonationForm = () => {
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Check for success parameter in URL
+    const success = searchParams.get("success");
+    if (success === "true") {
+      toast.success(
+        "Thank you for your generous donation! Your support makes a real difference.",
+        {
+          duration: 6000,
+        }
+      );
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,20 +53,22 @@ export const DonationForm = ({ content }: DonationFormProps) => {
         }
       );
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       if (response?.url) {
         window.location.href = response.url;
       }
     } catch (error) {
       console.error("Error processing donation:", error);
-      toast.error(content.errorMessage || "There was an error processing your donation. Please try again.");
+      toast.error(
+        "There was an error processing your donation. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  const fixedAmounts = content.fixedAmounts || [25, 50, 100];
 
   return (
     <section className="py-20 bg-white" id="donation-form">
@@ -84,9 +100,9 @@ export const DonationForm = ({ content }: DonationFormProps) => {
                 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-4"
               >
-                {fixedAmounts.map((value) => (
+                {["25", "50", "100"].map((value) => (
                   <div key={value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={value.toString()} id={`amount-${value}`} />
+                    <RadioGroupItem value={value} id={`amount-${value}`} />
                     <Label htmlFor={`amount-${value}`}>${value}</Label>
                   </div>
                 ))}
@@ -137,7 +153,7 @@ export const DonationForm = ({ content }: DonationFormProps) => {
               className="w-full bg-primary hover:bg-primary/90"
               disabled={loading || (!amount && !customAmount)}
             >
-              {loading ? "Processing..." : (content.buttonText || "Donate Now")}
+              {loading ? "Processing..." : "Donate Now"}
             </Button>
 
             <p className="text-sm text-gray-500 text-center mt-4">

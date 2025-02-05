@@ -1,11 +1,18 @@
 import { motion } from "framer-motion";
-import { DonationHeroProps } from "@/types/content-blocks";
 
-export const DonationHero = ({ content }: DonationHeroProps) => {
+export const DonationHero = () => {
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-20">
       <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 to-primary/20" />
       
+      <div className="absolute inset-0">
+        <img
+          src="/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png"
+          alt="Women supporting women"
+          className="w-full h-full object-cover opacity-40"
+        />
+      </div>
+
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -14,10 +21,12 @@ export const DonationHero = ({ content }: DonationHeroProps) => {
           className="max-w-3xl mx-auto text-center"
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
-            {content.title || "Join Us in Supporting Women and Children in Need"}
+            Join Us in Supporting{" "}
+            <span className="text-primary">Women and Children in Need</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-800 mb-8">
-            {content.subtitle || "Your contribution helps provide essential hygiene products and support to those who need it most."}
+            Your contribution helps provide essential hygiene products and support to
+            those who need it most.
           </p>
           <button
             onClick={() => {

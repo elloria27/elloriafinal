@@ -8,7 +8,6 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
-import { DonationEditor } from "./editors/DonationEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -70,17 +69,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "custom_solutions_cta",
   ];
 
-  // Donation page components
-  const donationComponents = [
-    "donation_hero",
-    "donation_form",
-    "donation_impact",
-    "donation_faq",
-    "donation_join_movement",
-    "donation_partners",
-    "donation_stories"
-  ];
-
   // Common components
   const commonComponents = [
     "heading",
@@ -99,10 +87,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (block.type === "product_carousel") {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
-    }
-
-    if (donationComponents.includes(block.type)) {
-      return <DonationEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (sustainabilityComponents.includes(block.type)) {

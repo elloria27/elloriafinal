@@ -13,12 +13,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
-
 export interface PageBuilderProps {
   pageId: string;
   initialBlocks: ContentBlock[];
 }
+
+type ContentBlockType = Database['public']['Tables']['content_blocks']['Row'];
+type ContentBlockInsert = Database['public']['Tables']['content_blocks']['Insert'];
 
 export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -45,8 +46,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           throw error;
         }
 
-        console.log('Fetched blocks:', dbBlocks);
-
         if (dbBlocks && dbBlocks.length > 0) {
           const transformedBlocks: ContentBlock[] = dbBlocks.map(block => ({
             id: block.id,
@@ -57,10 +56,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             created_at: block.created_at,
             updated_at: block.updated_at
           }));
-          console.log('Transformed blocks:', transformedBlocks);
           setBlocks(transformedBlocks);
         } else if (initialBlocks && initialBlocks.length > 0) {
-          console.log('Using initial blocks:', initialBlocks);
           setBlocks(initialBlocks);
         }
       } catch (error) {
