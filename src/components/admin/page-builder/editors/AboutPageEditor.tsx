@@ -39,7 +39,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
+              value={block.content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -48,7 +48,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={(block.content.subtitle as string) || ""}
+              value={block.content.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -57,7 +57,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Content</Label>
             <Textarea
-              value={(block.content.content as string) || ""}
+              value={block.content.content || ""}
               onChange={(e) => handleChange("content", e.target.value)}
               placeholder="Enter content"
               rows={5}
@@ -67,7 +67,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Video URL</Label>
             <Input
-              value={(block.content.videoUrl as string) || ""}
+              value={block.content.videoUrl || ""}
               onChange={(e) => handleChange("videoUrl", e.target.value)}
               placeholder="Enter video URL"
             />
@@ -77,7 +77,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label>Video Thumbnail</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={(block.content.videoThumbnail as string) || ""}
+                value={block.content.videoThumbnail || ""}
                 onChange={(e) => handleChange("videoThumbnail", e.target.value)}
                 placeholder="Select thumbnail"
                 readOnly
@@ -92,7 +92,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             </div>
             {block.content.videoThumbnail && (
               <img 
-                src={block.content.videoThumbnail as string} 
+                src={block.content.videoThumbnail} 
                 alt="Thumbnail preview" 
                 className="mt-2 max-h-40 rounded-lg"
               />
@@ -109,7 +109,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
+              value={block.content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -118,7 +118,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={(block.content.description as string) || ""}
+              value={block.content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -127,7 +127,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Values</Label>
-            {values.map((value: any, index: number) => (
+            {values.map((value, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Value {index + 1}</Label>
@@ -143,10 +143,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   </Button>
                 </div>
                 <select
-                  value={value.icon || 'Leaf'}
+                  value={value.icon}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...value, icon: e.target.value };
+                    newValues[index] = { ...value, icon: e.target.value as 'Leaf' | 'Star' | 'Heart' };
                     handleChange("values", newValues);
                   }}
                   className="w-full p-2 border rounded-md"
@@ -156,7 +156,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <option value="Heart">Heart</option>
                 </select>
                 <Input
-                  value={value.title || ''}
+                  value={value.title}
                   onChange={(e) => {
                     const newValues = [...values];
                     newValues[index] = { ...value, title: e.target.value };
@@ -165,7 +165,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   placeholder="Value title"
                 />
                 <Input
-                  value={value.description || ''}
+                  value={value.description}
                   onChange={(e) => {
                     const newValues = [...values];
                     newValues[index] = { ...value, description: e.target.value };
@@ -198,7 +198,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
+              value={block.content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -207,7 +207,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={(block.content.description as string) || ""}
+              value={block.content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -216,7 +216,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Stats</Label>
-            {stats.map((stat: any, index: number) => (
+            {stats.map((stat, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Stat {index + 1}</Label>
@@ -232,10 +232,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   </Button>
                 </div>
                 <select
-                  value={stat.icon || 'Leaf'}
+                  value={stat.icon}
                   onChange={(e) => {
                     const newStats = [...stats];
-                    newStats[index] = { ...stat, icon: e.target.value };
+                    newStats[index] = { ...stat, icon: e.target.value as 'Leaf' | 'Recycle' | 'TreePine' };
                     handleChange("stats", newStats);
                   }}
                   className="w-full p-2 border rounded-md"
@@ -245,7 +245,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <option value="TreePine">TreePine</option>
                 </select>
                 <Input
-                  value={stat.value || ''}
+                  value={stat.value}
                   onChange={(e) => {
                     const newStats = [...stats];
                     newStats[index] = { ...stat, value: e.target.value };
@@ -254,7 +254,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   placeholder="Stat value"
                 />
                 <Input
-                  value={stat.label || ''}
+                  value={stat.label}
                   onChange={(e) => {
                     const newStats = [...stats];
                     newStats[index] = { ...stat, label: e.target.value };
@@ -263,7 +263,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   placeholder="Stat label"
                 />
                 <Input
-                  value={stat.description || ''}
+                  value={stat.description}
                   onChange={(e) => {
                     const newStats = [...stats];
                     newStats[index] = { ...stat, description: e.target.value };
@@ -296,7 +296,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
+              value={block.content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -305,7 +305,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={(block.content.subtitle as string) || ""}
+              value={block.content.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -313,7 +313,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Team Members</Label>
-            {members.map((member: any, index: number) => (
+            {members.map((member, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Member {index + 1}</Label>
@@ -329,7 +329,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   </Button>
                 </div>
                 <Input
-                  value={member.name || ''}
+                  value={member.name}
                   onChange={(e) => {
                     const newMembers = [...members];
                     newMembers[index] = { ...member, name: e.target.value };
@@ -338,7 +338,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   placeholder="Member name"
                 />
                 <Input
-                  value={member.role || ''}
+                  value={member.role}
                   onChange={(e) => {
                     const newMembers = [...members];
                     newMembers[index] = { ...member, role: e.target.value };
@@ -419,7 +419,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content.title as string) || ""}
+              value={block.content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -428,7 +428,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={(block.content.description as string) || ""}
+              value={block.content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -437,7 +437,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Testimonials</Label>
-            {testimonials.map((testimonial: any, index: number) => (
+            {testimonials.map((testimonial, index) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Testimonial {index + 1}</Label>
@@ -510,7 +510,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
-
+      
     default:
       return null;
   }
