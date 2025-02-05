@@ -203,7 +203,7 @@ export interface AboutSustainabilityContent extends BaseBlockContent {
   title?: string;
   description?: string;
   stats?: Array<{
-    icon: "Leaf" | "Recycle" | "TreePine";
+    icon: 'Leaf' | 'Recycle' | 'TreePine';
     value: string;
     label: string;
     description: string;
@@ -326,12 +326,13 @@ export type BlockContent =
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent;
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent;
 
 export type BlockType = 
   | "heading" 
