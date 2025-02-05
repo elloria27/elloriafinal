@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2, Menu, Settings, PanelLeft, Laptop, Smartphone, Tablet } from "lucide-react";
+import { Plus, Save, Trash2, Menu, Settings } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -12,7 +12,6 @@ import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -30,7 +29,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -245,11 +243,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     );
   }
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:flex-row">
-      {/* Mobile Controls */}
-      {isMobile && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-white border-b">
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <div className="flex items-center justify-between p-4 border-b bg-white">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">
@@ -264,17 +261,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             </SheetContent>
           </Sheet>
 
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={handleSaveLayout}
-              disabled={!hasUnsavedChanges || isSaving}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            onClick={handleSaveLayout}
+            disabled={!hasUnsavedChanges || isSaving}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save'}
+          </Button>
 
           {selectedBlock && (
             <Sheet>
@@ -295,99 +290,77 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
             </Sheet>
           )}
         </div>
-      )}
 
-      {/* Desktop Layout */}
-      {!isMobile && (
-        <>
-          <div className={cn(
-            "border-r bg-gray-50/50 transition-all duration-300",
-            showSidebar ? "w-80" : "w-0 overflow-hidden"
-          )}>
-            <BlocksList />
+        <div className="flex-1 overflow-auto bg-gray-50">
+          <div className="max-w-[100vw] mx-auto bg-white">
+            <PreviewPane 
+              blocks={blocks} 
+              onSelectBlock={setSelectedBlock}
+              selectedBlockId={selectedBlock?.id}
+              onDeleteBlock={handleDeleteBlock}
+              isAdmin={true}
+            />
           </div>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="flex-1 flex flex-col">
-            <div className="sticky top-0 z-10 bg-white border-b p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowSidebar(!showSidebar)}
-                  >
-                    <PanelLeft className="h-4 w-4" />
-                  </Button>
+  return (
+    <div className="flex h-[calc(100vh-4rem)]">
+      <div className={cn(
+        "border-r bg-gray-50/50 transition-all duration-300",
+        showSidebar ? "w-80" : "w-0 overflow-hidden"
+      )}>
+        <BlocksList />
+      </div>
 
-                  <div className="border rounded-lg p-1 flex gap-1">
-                    <Button
-                      variant={viewportMode === 'desktop' ? 'default' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewportMode('desktop')}
-                    >
-                      <Laptop className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={viewportMode === 'tablet' ? 'default' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewportMode('tablet')}
-                    >
-                      <Tablet className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={viewportMode === 'mobile' ? 'default' : 'ghost'}
-                      size="icon"
-                      onClick={() => setViewportMode('mobile')}
-                    >
-                      <Smartphone className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+      <div className="flex-1 flex flex-col">
+        <div className="sticky top-0 z-10 bg-white border-b p-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSidebar(!showSidebar)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
 
-                <Button
-                  size="sm"
-                  onClick={handleSaveLayout}
-                  disabled={!hasUnsavedChanges || isSaving}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-auto bg-gray-100">
-              <div 
-                className={cn(
-                  "mx-auto transition-all duration-300 bg-white shadow-lg my-8",
-                  viewportMode === 'desktop' && "max-w-[1200px]",
-                  viewportMode === 'tablet' && "max-w-[768px]",
-                  viewportMode === 'mobile' && "max-w-[375px]"
-                )}
-              >
-                <PreviewPane 
-                  blocks={blocks} 
-                  onSelectBlock={setSelectedBlock}
-                  selectedBlockId={selectedBlock?.id}
-                  onDeleteBlock={handleDeleteBlock}
-                  isAdmin={true}
-                />
-              </div>
-            </div>
+            <Button
+              size="sm"
+              onClick={handleSaveLayout}
+              disabled={!hasUnsavedChanges || isSaving}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
+        </div>
 
-          {selectedBlock && (
-            <div className="w-96 border-l bg-gray-50/50 overflow-y-auto">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Edit Component</h3>
-                <PropertyEditor
-                  block={selectedBlock}
-                  onUpdate={handleUpdateBlock}
-                />
-              </div>
-            </div>
-          )}
-        </>
+        <div className="flex-1 overflow-auto bg-gray-100">
+          <div className="max-w-[1200px] mx-auto bg-white shadow-lg my-8">
+            <PreviewPane 
+              blocks={blocks} 
+              onSelectBlock={setSelectedBlock}
+              selectedBlockId={selectedBlock?.id}
+              onDeleteBlock={handleDeleteBlock}
+              isAdmin={true}
+            />
+          </div>
+        </div>
+      </div>
+
+      {selectedBlock && (
+        <div className="w-96 border-l bg-gray-50/50 overflow-y-auto">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Edit Component</h3>
+            <PropertyEditor
+              block={selectedBlock}
+              onUpdate={handleUpdateBlock}
+            />
+          </div>
+        </div>
       )}
 
       <ComponentPicker
