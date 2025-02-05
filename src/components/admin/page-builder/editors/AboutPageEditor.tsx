@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutHeroContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -28,31 +28,39 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleArrayUpdate = (key: string, index: number, field: string, value: any) => {
-    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
+    const currentArray = block.content[key];
+    if (!Array.isArray(currentArray)) return;
+    
+    const array = [...currentArray];
     array[index] = { ...array[index], [field]: value };
     handleChange(key, array);
   };
 
   const addArrayItem = (key: string, defaultItem: any) => {
-    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
+    const currentArray = block.content[key];
+    const array = Array.isArray(currentArray) ? [...currentArray] : [];
     array.push(defaultItem);
     handleChange(key, array);
   };
 
   const removeArrayItem = (key: string, index: number) => {
-    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
+    const currentArray = block.content[key];
+    if (!Array.isArray(currentArray)) return;
+    
+    const array = [...currentArray];
     array.splice(index, 1);
     handleChange(key, array);
   };
 
   switch (block.type) {
     case "about_hero_section":
+      const heroContent = block.content as AboutHeroContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={heroContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -61,7 +69,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={heroContent.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -71,7 +79,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label>Background Image</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={block.content.backgroundImage || ""}
+                value={heroContent.backgroundImage || ""}
                 onChange={(e) => handleChange("backgroundImage", e.target.value)}
                 placeholder="Enter image URL"
                 readOnly
@@ -87,9 +95,9 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                 Browse
               </Button>
             </div>
-            {block.content.backgroundImage && (
+            {heroContent.backgroundImage && (
               <img 
-                src={block.content.backgroundImage} 
+                src={heroContent.backgroundImage} 
                 alt="Background preview" 
                 className="mt-2 max-h-40 rounded-lg"
               />
@@ -99,12 +107,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
       );
 
     case "about_story":
+      const storyContent = block.content as AboutStoryContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={storyContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -113,7 +122,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={storyContent.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -122,7 +131,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Content</Label>
             <Textarea
-              value={block.content.content || ""}
+              value={storyContent.content || ""}
               onChange={(e) => handleChange("content", e.target.value)}
               placeholder="Enter content"
               rows={4}
@@ -132,7 +141,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Video URL</Label>
             <Input
-              value={block.content.videoUrl || ""}
+              value={storyContent.videoUrl || ""}
               onChange={(e) => handleChange("videoUrl", e.target.value)}
               placeholder="Enter video URL"
             />
@@ -142,7 +151,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label>Video Thumbnail</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={block.content.videoThumbnail || ""}
+                value={storyContent.videoThumbnail || ""}
                 onChange={(e) => handleChange("videoThumbnail", e.target.value)}
                 placeholder="Enter thumbnail URL"
                 readOnly
@@ -158,9 +167,9 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                 Browse
               </Button>
             </div>
-            {block.content.videoThumbnail && (
+            {storyContent.videoThumbnail && (
               <img 
-                src={block.content.videoThumbnail} 
+                src={storyContent.videoThumbnail} 
                 alt="Thumbnail preview" 
                 className="mt-2 max-h-40 rounded-lg"
               />
@@ -170,12 +179,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
       );
 
     case "about_mission":
+      const missionContent = block.content as AboutMissionContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={missionContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -184,7 +194,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={missionContent.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -209,7 +219,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(block.content.values || []).map((value: any, index: number) => (
+            {(missionContent.values || []).map((value: any, index: number) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Value {index + 1}</Label>
@@ -261,12 +271,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
       );
 
     case "about_sustainability":
+      const sustainabilityContent = block.content as AboutSustainabilityContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={sustainabilityContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -275,7 +286,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={sustainabilityContent.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -301,7 +312,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(block.content.stats || []).map((stat: any, index: number) => (
+            {(sustainabilityContent.stats || []).map((stat: any, index: number) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Stat {index + 1}</Label>
@@ -362,12 +373,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
       );
 
     case "about_team":
+      const teamContent = block.content as AboutTeamContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={teamContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -376,7 +388,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={teamContent.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -402,7 +414,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(block.content.members || []).map((member: any, index: number) => (
+            {(teamContent.members || []).map((member: any, index: number) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Member {index + 1}</Label>
@@ -489,12 +501,13 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
       );
 
     case "about_customer_impact":
+      const customerImpactContent = block.content as AboutCustomerImpactContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={customerImpactContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -503,7 +516,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={customerImpactContent.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -529,7 +542,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               </Button>
             </div>
 
-            {(block.content.testimonials || []).map((testimonial: any, index: number) => (
+            {(customerImpactContent.testimonials || []).map((testimonial: any, index: number) => (
               <div key={index} className="space-y-2 p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <Label>Testimonial {index + 1}</Label>
@@ -586,7 +599,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
-      
+
     default:
       return null;
   }
