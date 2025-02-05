@@ -305,6 +305,56 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface DonationHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface DonationImpactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  impacts?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface DonationStoriesContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stories?: Array<{
+    name: string;
+    role: string;
+    quote: string;
+    image?: string;
+  }>;
+}
+
+export interface DonationPartnersContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  partners?: Array<{
+    name: string;
+  }>;
+}
+
+export interface DonationFAQContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface DonationJoinMovementContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -332,7 +382,13 @@ export type BlockContent =
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | CustomSolutionsCtaContent
+  | DonationHeroContent
+  | DonationImpactContent
+  | DonationStoriesContent
+  | DonationPartnersContent
+  | DonationFAQContent
+  | DonationJoinMovementContent;
 
 export type BlockType = 
   | "heading" 
@@ -375,7 +431,13 @@ export type BlockType =
   | "sustainability_mission"
   | "sustainability_materials"
   | "sustainability_faq"
-  | "sustainability_cta";
+  | "sustainability_cta"
+  | "donation_hero"
+  | "donation_impact"
+  | "donation_stories"
+  | "donation_partners"
+  | "donation_faq"
+  | "donation_join_movement";
 
 export interface ContentBlock {
   id: string;

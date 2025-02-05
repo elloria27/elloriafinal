@@ -8,6 +8,7 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
+import { DonationEditor } from "./editors/DonationEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -69,6 +70,16 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "custom_solutions_cta",
   ];
 
+  // Donation page components
+  const donationComponents = [
+    "donation_hero",
+    "donation_impact",
+    "donation_stories",
+    "donation_partners",
+    "donation_faq",
+    "donation_join_movement"
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -81,6 +92,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
+    if (donationComponents.includes(block.type)) {
+      return <DonationEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (block.type === "competitor_comparison") {
       return <CompetitorComparisonEditor block={block} onUpdate={onUpdate} />;
     }
