@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Users, Star, Heart } from "lucide-react";
+import { AboutCustomerImpactContent } from "@/types/content-blocks";
 
 interface AboutCustomerImpactProps {
   content?: AboutCustomerImpactContent;
@@ -43,8 +43,9 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
     }
   ];
 
-  const stats = content?.stats || defaultStats;
-  const testimonials = content?.testimonials || defaultTestimonials;
+  // Ensure we're working with arrays by providing defaults
+  const stats = Array.isArray(content?.stats) ? content.stats : defaultStats;
+  const testimonials = Array.isArray(content?.testimonials) ? content.testimonials : defaultTestimonials;
 
   const getIconComponent = (index: number) => {
     switch (index) {
