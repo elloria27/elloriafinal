@@ -180,7 +180,7 @@ export const PreviewPane = ({
               const sustainabilityStats = Array.isArray(block.content.stats) 
                 ? block.content.stats.map(stat => ({
                     ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+                    icon: stat.icon || "Leaf",
                     value: String(stat.value || ''),
                     label: String(stat.label || ''),
                     description: String(stat.description || '')
@@ -198,17 +198,7 @@ export const PreviewPane = ({
 
             case 'about_customer_impact':
               const impactContent = block.content as AboutCustomerImpactContent;
-              const formattedTestimonials = impactContent.testimonials?.map(t => ({
-                name: t.author,
-                rating: t.rating,
-                text: t.quote,
-                source: t.role || ''
-              }));
-              
-              return <AboutCustomerImpact content={{
-                ...impactContent,
-                testimonials: formattedTestimonials || []
-              }} />;
+              return <AboutCustomerImpact content={impactContent} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
