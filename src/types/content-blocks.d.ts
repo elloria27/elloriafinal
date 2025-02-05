@@ -305,6 +305,95 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface DonationHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+}
+
+export interface DonationFormContent extends BaseBlockContent {
+  fixedAmounts?: number[];
+  buttonText?: string;
+  successMessage?: string;
+  errorMessage?: string;
+}
+
+export interface DonationImpactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  impacts?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+    value?: string;
+  }>;
+}
+
+export interface DonationFAQContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface DonationJoinMovementContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
+export interface DonationPartnersContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  partners?: Array<{
+    name: string;
+    logo: string;
+    description?: string;
+  }>;
+}
+
+export interface DonationStoriesContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stories?: Array<{
+    title: string;
+    description: string;
+    image?: string;
+    author?: string;
+    date?: string;
+  }>;
+}
+
+export interface DonationHeroProps {
+  content: DonationHeroContent;
+}
+
+export interface DonationFormProps {
+  content: DonationFormContent;
+}
+
+export interface DonationImpactProps {
+  content: DonationImpactContent;
+}
+
+export interface DonationFAQProps {
+  content: DonationFAQContent;
+}
+
+export interface DonationJoinMovementProps {
+  content: DonationJoinMovementContent;
+}
+
+export interface DonationPartnersProps {
+  content: DonationPartnersContent;
+}
+
+export interface DonationStoriesProps {
+  content: DonationStoriesContent;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -321,18 +410,13 @@ export type BlockContent =
   | NewsletterContent
   | ProductCarouselContent
   | CompetitorComparisonContent
-  | ContactHeroContent
-  | ContactDetailsContent
-  | ContactFormContent
-  | ContactFAQContent
-  | ContactBusinessContent
-  | ForBusinessHeroContent
-  | BusinessSolutionsContent
-  | BusinessContactContent
-  | CustomSolutionsHeroContent
-  | CustomSolutionsServicesContent
-  | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | DonationHeroContent
+  | DonationFormContent
+  | DonationImpactContent
+  | DonationFAQContent
+  | DonationJoinMovementContent
+  | DonationPartnersContent
+  | DonationStoriesContent;
 
 export type BlockType = 
   | "heading" 
@@ -349,33 +433,15 @@ export type BlockType =
   | "sustainability"
   | "product_carousel"
   | "product_gallery"
-  | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison"
-  | "about_hero_section"
-  | "about_story"
-  | "about_mission"
-  | "about_sustainability"
-  | "about_team"
-  | "about_customer_impact"
-  | "about_cta"
-  | "contact_hero"
-  | "contact_details"
-  | "contact_form"
-  | "contact_faq"
-  | "contact_business"
-  | "business_hero"
-  | "business_solutions"
-  | "business_contact"
-  | "custom_solutions_hero"
-  | "custom_solutions_services"
-  | "custom_solutions_process"
-  | "custom_solutions_cta"
-  | "sustainability_hero"
-  | "sustainability_mission"
-  | "sustainability_materials"
-  | "sustainability_faq"
-  | "sustainability_cta";
+  | "donation_hero"
+  | "donation_form"
+  | "donation_impact"
+  | "donation_faq"
+  | "donation_join_movement"
+  | "donation_partners"
+  | "donation_stories";
 
 export interface ContentBlock {
   id: string;

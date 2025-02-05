@@ -36,6 +36,18 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
+      category: "Donation",
+      items: [
+        { type: "donation_hero", label: "Donation Hero" },
+        { type: "donation_form", label: "Donation Form" },
+        { type: "donation_impact", label: "Donation Impact" },
+        { type: "donation_faq", label: "Donation FAQ" },
+        { type: "donation_join_movement", label: "Join Movement" },
+        { type: "donation_partners", label: "Partners" },
+        { type: "donation_stories", label: "Stories" },
+      ],
+    },
+    {
       category: "About Page",
       items: [
         { type: "about_hero_section", label: "About Hero" },
