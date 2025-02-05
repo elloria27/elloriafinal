@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutStoryContent, AboutMissionContent, AboutSustainabilityContent, AboutTeamContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -33,13 +33,14 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   switch (block.type) {
-    case "about_story":
+    case "about_story": {
+      const content = block.content as AboutStoryContent;
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -48,7 +49,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={content.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -57,7 +58,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Content</Label>
             <Textarea
-              value={block.content.content || ""}
+              value={content.content || ""}
               onChange={(e) => handleChange("content", e.target.value)}
               placeholder="Enter content"
               rows={5}
@@ -67,7 +68,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Video URL</Label>
             <Input
-              value={block.content.videoUrl || ""}
+              value={content.videoUrl || ""}
               onChange={(e) => handleChange("videoUrl", e.target.value)}
               placeholder="Enter video URL"
             />
@@ -77,7 +78,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label>Video Thumbnail</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={block.content.videoThumbnail || ""}
+                value={content.videoThumbnail || ""}
                 onChange={(e) => handleChange("videoThumbnail", e.target.value)}
                 placeholder="Select thumbnail"
                 readOnly
@@ -90,9 +91,9 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                 Browse
               </Button>
             </div>
-            {block.content.videoThumbnail && (
+            {content.videoThumbnail && (
               <img 
-                src={block.content.videoThumbnail} 
+                src={content.videoThumbnail} 
                 alt="Thumbnail preview" 
                 className="mt-2 max-h-40 rounded-lg"
               />
@@ -100,16 +101,18 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
+    }
 
-    case "about_mission":
-      const values = Array.isArray(block.content.values) ? block.content.values : [];
+    case "about_mission": {
+      const content = block.content as AboutMissionContent;
+      const values = Array.isArray(content.values) ? content.values : [];
       
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -118,7 +121,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -189,16 +192,18 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
+    }
 
-    case "about_sustainability":
-      const stats = Array.isArray(block.content.stats) ? block.content.stats : [];
+    case "about_sustainability": {
+      const content = block.content as AboutSustainabilityContent;
+      const stats = Array.isArray(content.stats) ? content.stats : [];
       
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -207,7 +212,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -287,16 +292,18 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
+    }
 
-    case "about_team":
-      const members = Array.isArray(block.content.members) ? block.content.members : [];
+    case "about_team": {
+      const content = block.content as AboutTeamContent;
+      const members = Array.isArray(content.members) ? content.members : [];
       
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -305,7 +312,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={content.subtitle || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -410,16 +417,18 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
+    }
 
-    case "about_customer_impact":
-      const testimonials = Array.isArray(block.content.testimonials) ? block.content.testimonials : [];
+    case "about_customer_impact": {
+      const content = block.content as AboutCustomerImpactContent;
+      const testimonials = Array.isArray(content.testimonials) ? content.testimonials : [];
       
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -428,7 +437,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={content.description || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -510,6 +519,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           </div>
         </div>
       );
+    }
       
     default:
       return null;
