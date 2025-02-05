@@ -15,7 +15,7 @@ export const MediaLibraryModal = ({ open, onClose, onSelect, type = "image" }: M
         <DialogHeader>
           <DialogTitle>Media Library</DialogTitle>
         </DialogHeader>
-        <MediaLibrary onSelect={onSelect} />
+        <MediaLibrary onSelect={onSelect} type={type} />
       </DialogContent>
     </Dialog>
   );

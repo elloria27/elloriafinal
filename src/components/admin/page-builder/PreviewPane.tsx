@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, TestimonialsContent, AboutSustainabilityContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -50,6 +50,15 @@ export const PreviewPane = ({
       source: t.role || ''
     });
 
+    const mapSustainabilityStats = (stats: any[]) => {
+      return stats.map(stat => ({
+        icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+        value: String(stat.value || ''),
+        label: String(stat.label || ''),
+        description: String(stat.description || '')
+      }));
+    };
+
     const blockContent = (
       <div className="group relative w-full">
         {isAdmin && (
@@ -80,18 +89,6 @@ export const PreviewPane = ({
         )}
 
         {(() => {
-          if (isAdmin) {
-            return (
-              <div 
-                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
-                onClick={() => onSelectBlock(block)}
-              >
-                <div className="font-medium text-lg mb-1">{block.type}</div>
-                <div className="text-sm text-gray-500">Click to edit content</div>
-              </div>
-            );
-          }
-
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -166,7 +163,7 @@ export const PreviewPane = ({
                 ? block.content.testimonials.map(mapTestimonial)
                 : [];
               return <Testimonials content={{
-                ...block.content,
+                ...block.content as TestimonialsContent,
                 testimonials
               }} />;
 
@@ -189,7 +186,13 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              return <AboutSustainability content={block.content} />;
+              const stats = Array.isArray(block.content.stats) 
+                ? mapSustainabilityStats(block.content.stats)
+                : [];
+              return <AboutSustainability content={{
+                ...block.content as AboutSustainabilityContent,
+                stats
+              }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
