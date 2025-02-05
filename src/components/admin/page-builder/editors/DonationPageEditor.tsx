@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationFormContent, DonationImpactContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface DonationPageEditorProps {
@@ -42,7 +42,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={(block.content as DonationHeroContent).title || ""}
+              value={block.content.title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -51,7 +51,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={(block.content as DonationHeroContent).subtitle || ""}
+              value={block.content.subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -61,7 +61,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
             <Label>Background Image</Label>
             <div className="flex gap-2">
               <Input
-                value={(block.content as DonationHeroContent).backgroundImage || ""}
+                value={block.content.backgroundImage || ""}
                 readOnly
                 placeholder="Select an image..."
               />
@@ -78,7 +78,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Button Text</Label>
             <Input
-              value={(block.content as DonationHeroContent).buttonText || ""}
+              value={block.content.buttonText || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, buttonText: e.target.value })
               }
