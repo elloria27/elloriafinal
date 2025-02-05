@@ -72,17 +72,29 @@ export interface SustainabilityContent extends BaseBlockContent {
     label: string;
     description: string;
   }>;
+  materials?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+  buttonText?: string;
+  buttonLink?: string;
+  timelineItems?: string[];
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  testimonials?: {
+  testimonials?: Array<{
     name: string;
     rating: number;
     text: string;
     source: string;
-  }[];
+  }>;
 }
 
 export interface BlogPreviewContent extends BaseBlockContent {
@@ -206,10 +218,6 @@ export interface AboutTeamContent extends BaseBlockContent {
 export interface AboutCustomerImpactContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  stats?: Array<{
-    value: string;
-    label: string;
-  }>;
   testimonials?: Array<{
     quote: string;
     author: string;
@@ -233,6 +241,21 @@ export interface FeatureItem {
   title: string;
   description: string;
   detail?: string;
+}
+
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
+export interface HeroProps {
+  content?: HeroContent;
+}
+
+export interface MediaLibraryModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (url: string) => void;
+  type?: 'image' | 'video';
 }
 
 export type BlockContent = 
@@ -288,7 +311,24 @@ export type BlockType =
   | "about_sustainability"
   | "about_team"
   | "about_customer_impact"
-  | "about_cta";
+  | "about_cta"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta";
 
 export interface ContentBlock {
   id: string;
