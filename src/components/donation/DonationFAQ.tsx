@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { DonationFAQProps } from "@/types/content-blocks";
 
 export const DonationFAQ = ({ content }: DonationFAQProps) => {
-  const faqs = content.faqs || [
+  const faqs = content?.faqs || [
     {
       question: "Where does my donation go?",
       answer: "Your donation directly supports our program to provide essential hygiene products to women and girls in need. We work with local partners to ensure efficient distribution."
@@ -37,10 +37,10 @@ export const DonationFAQ = ({ content }: DonationFAQProps) => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            {content.title || "Frequently Asked Questions"}
+            {content?.title || "Frequently Asked Questions"}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {content.description || "Find answers to common questions about our donation program."}
+            {content?.description || "Find answers to common questions about our donation program."}
           </p>
         </motion.div>
 
