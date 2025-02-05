@@ -367,31 +367,31 @@ export interface DonationStoriesContent extends BaseBlockContent {
 }
 
 export interface DonationHeroProps {
-  content: DonationHeroContent;
-}
-
-export interface DonationFormProps {
-  content: DonationFormContent;
+  content?: DonationHeroContent;
 }
 
 export interface DonationImpactProps {
-  content: DonationImpactContent;
+  content?: DonationImpactContent;
 }
 
-export interface DonationFAQProps {
-  content: DonationFAQContent;
-}
-
-export interface DonationJoinMovementProps {
-  content: DonationJoinMovementContent;
-}
-
-export interface DonationPartnersProps {
-  content: DonationPartnersContent;
+export interface DonationFormProps {
+  content?: DonationFormContent;
 }
 
 export interface DonationStoriesProps {
-  content: DonationStoriesContent;
+  content?: DonationStoriesContent;
+}
+
+export interface DonationPartnersProps {
+  content?: DonationPartnersContent;
+}
+
+export interface DonationFAQProps {
+  content?: DonationFAQContent;
+}
+
+export interface DonationJoinMovementProps {
+  content?: DonationJoinMovementContent;
 }
 
 export type BlockContent = 
@@ -435,6 +435,29 @@ export type BlockType =
   | "product_gallery"
   | "game_changer"
   | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta"
   | "donation_hero"
   | "donation_form"
   | "donation_impact"
