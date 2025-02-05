@@ -18,16 +18,24 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
   const handleChange = (key: string, value: any) => {
     console.log("Updating content:", key, value);
-    const updatedContent = { ...block.content, [key]: value };
+    const updatedContent = { 
+      ...block.content as Record<string, any>,
+      [key]: value 
+    };
     onUpdate(block.id, updatedContent);
   };
 
   const handleImageSelect = (url: string) => {
     if (currentImageField.includes('.')) {
       const [arrayName, index, field] = currentImageField.split('.');
-      const array = Array.isArray(block.content[arrayName]) ? [...block.content[arrayName]] : [];
-      array[Number(index)] = { ...array[Number(index)], [field]: url };
-      handleChange(arrayName, array);
+      const array = [...(block.content[arrayName] as any[] || [])];
+      if (array[Number(index)]) {
+        array[Number(index)] = { 
+          ...array[Number(index)] as Record<string, any>,
+          [field]: url 
+        };
+        handleChange(arrayName, array);
+      }
     } else {
       handleChange(currentImageField, url);
     }
@@ -153,7 +161,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={value.icon || 'Leaf'}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...newValues[index], icon: e.target.value };
+                    newValues[index] = { 
+                      ...newValues[index] as Record<string, any>,
+                      icon: e.target.value 
+                    };
                     handleChange("values", newValues);
                   }}
                   className="w-full p-2 border rounded-md"
@@ -166,7 +177,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={value.title || ''}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...newValues[index], title: e.target.value };
+                    newValues[index] = { 
+                      ...newValues[index] as Record<string, any>,
+                      title: e.target.value 
+                    };
                     handleChange("values", newValues);
                   }}
                   placeholder="Value title"
@@ -175,7 +189,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={value.description || ''}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...newValues[index], description: e.target.value };
+                    newValues[index] = { 
+                      ...newValues[index] as Record<string, any>,
+                      description: e.target.value 
+                    };
                     handleChange("values", newValues);
                   }}
                   placeholder="Value description"
@@ -241,7 +258,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={member.name || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...newMembers[index], name: e.target.value };
+                    newMembers[index] = { 
+                      ...newMembers[index] as Record<string, any>,
+                      name: e.target.value 
+                    };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member name"
@@ -250,7 +270,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={member.role || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...newMembers[index], role: e.target.value };
+                    newMembers[index] = { 
+                      ...newMembers[index] as Record<string, any>,
+                      role: e.target.value 
+                    };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member role"
@@ -260,7 +283,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                     value={member.image || ''}
                     onChange={(e) => {
                       const newMembers = [...members];
-                      newMembers[index] = { ...newMembers[index], image: e.target.value };
+                      newMembers[index] = { 
+                        ...newMembers[index] as Record<string, any>,
+                        image: e.target.value 
+                      };
                       handleChange("members", newMembers);
                     }}
                     placeholder="Member image"
@@ -288,7 +314,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={member.quote || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...newMembers[index], quote: e.target.value };
+                    newMembers[index] = { 
+                      ...newMembers[index] as Record<string, any>,
+                      quote: e.target.value 
+                    };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member quote (optional)"
@@ -297,7 +326,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   value={member.bio || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...newMembers[index], bio: e.target.value };
+                    newMembers[index] = { 
+                      ...newMembers[index] as Record<string, any>,
+                      bio: e.target.value 
+                    };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member bio (optional)"
