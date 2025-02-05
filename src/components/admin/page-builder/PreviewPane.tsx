@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, TestimonialsContent, AboutSustainabilityContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -43,22 +43,6 @@ export const PreviewPane = ({
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
-    const mapTestimonial = (t: any) => ({
-      name: t.author || '',
-      rating: t.rating || 5,
-      text: t.quote || '',
-      source: t.role || ''
-    });
-
-    const mapSustainabilityStats = (stats: any[]) => {
-      return stats.map(stat => ({
-        icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
-        value: String(stat.value || ''),
-        label: String(stat.label || ''),
-        description: String(stat.description || '')
-      }));
-    };
-
     const blockContent = (
       <div className="group relative w-full">
         {isAdmin && (
@@ -89,6 +73,18 @@ export const PreviewPane = ({
         )}
 
         {(() => {
+          if (isAdmin) {
+            return (
+              <div 
+                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
+                onClick={() => onSelectBlock(block)}
+              >
+                <div className="font-medium text-lg mb-1">{block.type}</div>
+                <div className="text-sm text-gray-500">Click to edit content</div>
+              </div>
+            );
+          }
+
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -159,13 +155,7 @@ export const PreviewPane = ({
               return <Sustainability content={block.content} />;
 
             case 'testimonials':
-              const testimonials = Array.isArray(block.content.testimonials) 
-                ? block.content.testimonials.map(mapTestimonial)
-                : [];
-              return <Testimonials content={{
-                ...block.content as TestimonialsContent,
-                testimonials
-              }} />;
+              return <Testimonials content={block.content} />;
 
             case 'blog_preview':
               return <BlogPreview content={block.content} />;
@@ -186,19 +176,40 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              const stats = Array.isArray(block.content.stats) 
-                ? mapSustainabilityStats(block.content.stats)
+              const sustainabilityStats = Array.isArray(block.content.stats) 
+                ? block.content.stats.map(stat => ({
+                    ...stat,
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+                    value: String(stat.value || ''),
+                    label: String(stat.label || ''),
+                    description: String(stat.description || '')
+                  }))
                 : [];
+              
               return <AboutSustainability content={{
-                ...block.content as AboutSustainabilityContent,
-                stats
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                stats: sustainabilityStats
               }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.map(t => ({
+                    quote: String(t.text || ''),
+                    author: String(t.name || ''),
+                    role: String(t.source || ''),
+                    rating: Number(t.rating || 5)
+                  }))
+                : [];
+              
+              return <AboutCustomerImpact content={{
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                testimonials
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;

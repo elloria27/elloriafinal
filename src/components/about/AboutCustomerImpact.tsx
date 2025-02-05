@@ -10,41 +10,35 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
   const defaultStats = [
     {
       value: "1M+",
-      label: "Happy Customers",
-      icon: "Users",
-      description: "Satisfied customers worldwide"
+      label: "Happy Customers"
     },
     {
       value: "4.9",
-      label: "Average Rating",
-      icon: "Star",
-      description: "Based on customer reviews"
+      label: "Average Rating"
     },
     {
       value: "96%",
-      label: "Would Recommend",
-      icon: "Heart",
-      description: "Customer satisfaction rate"
+      label: "Would Recommend"
     }
   ];
 
   const defaultTestimonials = [
     {
-      name: "Sarah M.",
-      text: "Elloria's products have completely changed my perspective on sustainable feminine care.",
-      source: "Loyal Customer",
+      quote: "Elloria's products have completely changed my perspective on sustainable feminine care.",
+      author: "Sarah M.",
+      role: "Loyal Customer",
       rating: 5
     },
     {
-      name: "Emily R.",
-      text: "Not only are their products eco-friendly, but they're also incredibly comfortable and reliable.",
-      source: "Customer Since 2021",
+      quote: "Not only are their products eco-friendly, but they're also incredibly comfortable and reliable.",
+      author: "Emily R.",
+      role: "Customer Since 2021",
       rating: 5
     },
     {
-      name: "Jessica L.",
-      text: "I love knowing that my choice in feminine care products is making a positive impact on the environment.",
-      source: "Environmental Advocate",
+      quote: "I love knowing that my choice in feminine care products is making a positive impact on the environment.",
+      author: "Jessica L.",
+      role: "Environmental Advocate",
       rating: 5
     }
   ];
@@ -52,13 +46,13 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
   const stats = content?.stats || defaultStats;
   const testimonials = content?.testimonials || defaultTestimonials;
 
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case "Users":
+  const getIconComponent = (index: number) => {
+    switch (index) {
+      case 0:
         return <Users className="w-8 h-8 text-primary" />;
-      case "Star":
+      case 1:
         return <Star className="w-8 h-8 text-primary" />;
-      case "Heart":
+      case 2:
         return <Heart className="w-8 h-8 text-primary" />;
       default:
         return <Users className="w-8 h-8 text-primary" />;
@@ -81,7 +75,7 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-20">
-          {Array.isArray(stats) && stats.map((stat, index) => (
+          {stats.map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -91,19 +85,16 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="text-center"
             >
               <div className="flex justify-center mb-4">
-                {getIconComponent(stat.icon)}
+                {getIconComponent(index)}
               </div>
               <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
               <p className="text-gray-600">{stat.label}</p>
-              {stat.description && (
-                <p className="text-sm text-gray-500 mt-2">{stat.description}</p>
-              )}
             </motion.div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {Array.isArray(testimonials) && testimonials.map((testimonial, index) => (
+          {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -117,10 +108,10 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
                   <Star key={i} className="w-5 h-5 text-primary" fill="#0094F4" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
+              <p className="text-gray-700 mb-4 italic">"{testimonial.quote}"</p>
               <div>
-                <p className="font-semibold">{testimonial.name}</p>
-                <p className="text-gray-500 text-sm">{testimonial.source}</p>
+                <p className="font-semibold">{testimonial.author}</p>
+                <p className="text-gray-500 text-sm">{testimonial.role}</p>
               </div>
             </motion.div>
           ))}

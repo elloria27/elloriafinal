@@ -4,6 +4,13 @@ export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
 }
 
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+  detail?: string;
+}
+
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -89,12 +96,12 @@ export interface SustainabilityContent extends BaseBlockContent {
 export interface TestimonialsContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  testimonials?: Array<{
+  testimonials?: {
     name: string;
     rating: number;
     text: string;
     source: string;
-  }>;
+  }[];
 }
 
 export interface BlogPreviewContent extends BaseBlockContent {
@@ -211,7 +218,7 @@ export interface AboutTeamContent extends BaseBlockContent {
     role: string;
     image?: string;
     quote?: string;
-    bio?: string;
+    bio?: string;  // Added bio field
   }>;
 }
 
@@ -219,16 +226,14 @@ export interface AboutCustomerImpactContent extends BaseBlockContent {
   title?: string;
   description?: string;
   stats?: Array<{
-    icon: string;
     value: string;
     label: string;
-    description: string;
   }>;
   testimonials?: Array<{
-    name: string;
+    quote: string;
+    author: string;
+    role?: string;
     rating: number;
-    text: string;
-    source: string;
   }>;
 }
 
@@ -242,46 +247,12 @@ export interface AboutCtaContent extends BaseBlockContent {
   backgroundGradient?: string;
 }
 
-export interface CustomSolutionsHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  backgroundImage?: string;
-}
-
-export interface CustomSolutionsServicesContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  services?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface ProcessStep {
-  [key: string]: string | number; // Add index signature
-  number: number;
-  title: string;
-  description: string;
-}
-
-export interface CustomSolutionsProcessContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  steps?: ProcessStep[];
-}
-
-export interface CustomSolutionsCtaContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
 export interface ForBusinessHeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  backgroundImage?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
 export interface BusinessSolutionsContent extends BaseBlockContent {
@@ -298,29 +269,40 @@ export interface BusinessContactContent extends BaseBlockContent {
   title?: string;
   description?: string;
   email?: string;
-  phone?: string;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
+export interface CustomSolutionsHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
 }
 
-export interface FeaturesProps {
-  content?: FeaturesContent;
+export interface CustomSolutionsServicesContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  services?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
 }
 
-export interface HeroProps {
-  content?: HeroContent;
+export interface CustomSolutionsProcessContent extends BaseBlockContent {
+  title?: string;
+  steps?: Array<{
+    number: number;
+    title: string;
+    description: string;
+  }>;
 }
 
-export interface MediaLibraryModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (url: string) => void;
-  type?: 'image' | 'video';
+export interface CustomSolutionsCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
 }
 
 export type BlockContent = 
@@ -344,20 +326,13 @@ export type BlockContent =
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
-  | AboutHeroContent
-  | AboutStoryContent
-  | AboutMissionContent
-  | AboutSustainabilityContent
-  | AboutTeamContent
-  | AboutCustomerImpactContent
-  | AboutCtaContent
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent
-  | ForBusinessHeroContent
-  | BusinessSolutionsContent
-  | BusinessContactContent;
+  | CustomSolutionsCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -408,6 +383,37 @@ export interface ContentBlock {
   content: BlockContent;
   order_index: number;
   page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FeaturesProps {
+  content?: FeaturesContent;
+}
+
+export interface HeroProps {
+  content?: HeroContent;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  processing_fee: number;
+  icon_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DeliveryMethod {
+  id: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  base_price: number;
+  estimated_days?: string;
+  regions?: string[];
   created_at?: string;
   updated_at?: string;
 }
