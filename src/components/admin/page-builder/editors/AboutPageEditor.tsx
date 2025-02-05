@@ -28,19 +28,19 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleArrayUpdate = (key: string, index: number, field: string, value: any) => {
-    const array = [...(block.content[key] || [])];
+    const array = Array.isArray(block.content[key]) ? [...(block.content[key] as any[])] : [];
     array[index] = { ...array[index], [field]: value };
     handleChange(key, array);
   };
 
   const addArrayItem = (key: string, defaultItem: any) => {
-    const array = [...(block.content[key] || [])];
+    const array = Array.isArray(block.content[key]) ? [...(block.content[key] as any[])] : [];
     array.push(defaultItem);
     handleChange(key, array);
   };
 
   const removeArrayItem = (key: string, index: number) => {
-    const array = [...(block.content[key] || [])];
+    const array = Array.isArray(block.content[key]) ? [...(block.content[key] as any[])] : [];
     array.splice(index, 1);
     handleChange(key, array);
   };

@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MediaLibrary } from "./MediaLibrary";
 
-interface MediaLibraryModalProps {
+export interface MediaLibraryModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
