@@ -50,14 +50,15 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
   const handleProcessStepAdd = () => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? content.steps : [];
+    const newStep = {
+      number: steps.length + 1,
+      title: "New Step",
+      description: "Step description",
+    };
     handleContentChange({
       steps: [
         ...steps,
-        {
-          number: steps.length + 1,
-          title: "New Step",
-          description: "Step description",
-        },
+        newStep,
       ],
     });
   };
