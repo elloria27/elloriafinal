@@ -23,7 +23,14 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleImageSelect = (url: string) => {
-    handleChange(currentImageField, url);
+    if (currentImageField.includes('.')) {
+      const [arrayName, index, field] = currentImageField.split('.');
+      const array = Array.isArray(block.content[arrayName]) ? [...block.content[arrayName]] : [];
+      array[Number(index)] = { ...array[Number(index)], [field]: url };
+      handleChange(arrayName, array);
+    } else {
+      handleChange(currentImageField, url);
+    }
     setShowMediaLibrary(false);
   };
 
@@ -39,7 +46,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content.title as string) || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -48,7 +55,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content.subtitle as string) || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -57,7 +64,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Content</Label>
             <Textarea
-              value={block.content.content || ""}
+              value={(block.content.content as string) || ""}
               onChange={(e) => handleChange("content", e.target.value)}
               placeholder="Enter content"
               rows={5}
@@ -67,7 +74,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Video URL</Label>
             <Input
-              value={block.content.videoUrl || ""}
+              value={(block.content.videoUrl as string) || ""}
               onChange={(e) => handleChange("videoUrl", e.target.value)}
               placeholder="Enter video URL"
             />
@@ -77,7 +84,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             <Label>Video Thumbnail</Label>
             <div className="flex items-center gap-2">
               <Input
-                value={block.content.videoThumbnail || ""}
+                value={(block.content.videoThumbnail as string) || ""}
                 onChange={(e) => handleChange("videoThumbnail", e.target.value)}
                 placeholder="Select thumbnail"
                 readOnly
@@ -92,7 +99,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
             </div>
             {block.content.videoThumbnail && (
               <img 
-                src={block.content.videoThumbnail} 
+                src={block.content.videoThumbnail as string} 
                 alt="Thumbnail preview" 
                 className="mt-2 max-h-40 rounded-lg"
               />
@@ -109,7 +116,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content.title as string) || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -118,7 +125,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Description</Label>
             <Textarea
-              value={block.content.description || ""}
+              value={(block.content.description as string) || ""}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Enter description"
               rows={3}
@@ -127,7 +134,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Values</Label>
-            {values.map((value, index) => (
+            {values.map((value: any, index: number) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Value {index + 1}</Label>
@@ -143,10 +150,10 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   </Button>
                 </div>
                 <select
-                  value={value.icon}
+                  value={value.icon || 'Leaf'}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...value, icon: e.target.value as 'Leaf' | 'Star' | 'Heart' };
+                    newValues[index] = { ...newValues[index], icon: e.target.value };
                     handleChange("values", newValues);
                   }}
                   className="w-full p-2 border rounded-md"
@@ -156,19 +163,19 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   <option value="Heart">Heart</option>
                 </select>
                 <Input
-                  value={value.title}
+                  value={value.title || ''}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...value, title: e.target.value };
+                    newValues[index] = { ...newValues[index], title: e.target.value };
                     handleChange("values", newValues);
                   }}
                   placeholder="Value title"
                 />
                 <Input
-                  value={value.description}
+                  value={value.description || ''}
                   onChange={(e) => {
                     const newValues = [...values];
-                    newValues[index] = { ...value, description: e.target.value };
+                    newValues[index] = { ...newValues[index], description: e.target.value };
                     handleChange("values", newValues);
                   }}
                   placeholder="Value description"
@@ -190,104 +197,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
         </div>
       );
 
-    case "about_sustainability":
-      const stats = Array.isArray(block.content.stats) ? block.content.stats : [];
-      
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="Enter title"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea
-              value={block.content.description || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter description"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <Label>Stats</Label>
-            {stats.map((stat, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Stat {index + 1}</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const newStats = stats.filter((_, i) => i !== index);
-                      handleChange("stats", newStats);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <select
-                  value={stat.icon}
-                  onChange={(e) => {
-                    const newStats = [...stats];
-                    newStats[index] = { ...stat, icon: e.target.value as 'Leaf' | 'Recycle' | 'TreePine' };
-                    handleChange("stats", newStats);
-                  }}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="Leaf">Leaf</option>
-                  <option value="Recycle">Recycle</option>
-                  <option value="TreePine">TreePine</option>
-                </select>
-                <Input
-                  value={stat.value}
-                  onChange={(e) => {
-                    const newStats = [...stats];
-                    newStats[index] = { ...stat, value: e.target.value };
-                    handleChange("stats", newStats);
-                  }}
-                  placeholder="Stat value"
-                />
-                <Input
-                  value={stat.label}
-                  onChange={(e) => {
-                    const newStats = [...stats];
-                    newStats[index] = { ...stat, label: e.target.value };
-                    handleChange("stats", newStats);
-                  }}
-                  placeholder="Stat label"
-                />
-                <Input
-                  value={stat.description}
-                  onChange={(e) => {
-                    const newStats = [...stats];
-                    newStats[index] = { ...stat, description: e.target.value };
-                    handleChange("stats", newStats);
-                  }}
-                  placeholder="Stat description"
-                />
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const newStats = [...stats, { icon: 'Leaf', value: '', label: '', description: '' }];
-                handleChange("stats", newStats);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Stat
-            </Button>
-          </div>
-        </div>
-      );
-
     case "about_team":
       const members = Array.isArray(block.content.members) ? block.content.members : [];
       
@@ -296,7 +205,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content.title as string) || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
@@ -305,7 +214,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content.subtitle as string) || ""}
               onChange={(e) => handleChange("subtitle", e.target.value)}
               placeholder="Enter subtitle"
             />
@@ -313,7 +222,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
           <div className="space-y-4">
             <Label>Team Members</Label>
-            {members.map((member, index) => (
+            {members.map((member: any, index: number) => (
               <div key={index} className="p-4 border rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Member {index + 1}</Label>
@@ -329,29 +238,29 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   </Button>
                 </div>
                 <Input
-                  value={member.name}
+                  value={member.name || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...member, name: e.target.value };
+                    newMembers[index] = { ...newMembers[index], name: e.target.value };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member name"
                 />
                 <Input
-                  value={member.role}
+                  value={member.role || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...member, role: e.target.value };
+                    newMembers[index] = { ...newMembers[index], role: e.target.value };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member role"
                 />
                 <div className="flex items-center gap-2">
                   <Input
-                    value={member.image || ""}
+                    value={member.image || ''}
                     onChange={(e) => {
                       const newMembers = [...members];
-                      newMembers[index] = { ...member, image: e.target.value };
+                      newMembers[index] = { ...newMembers[index], image: e.target.value };
                       handleChange("members", newMembers);
                     }}
                     placeholder="Member image"
@@ -376,19 +285,19 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
                   />
                 )}
                 <Input
-                  value={member.quote || ""}
+                  value={member.quote || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...member, quote: e.target.value };
+                    newMembers[index] = { ...newMembers[index], quote: e.target.value };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member quote (optional)"
                 />
                 <Textarea
-                  value={member.bio || ""}
+                  value={member.bio || ''}
                   onChange={(e) => {
                     const newMembers = [...members];
-                    newMembers[index] = { ...member, bio: e.target.value };
+                    newMembers[index] = { ...newMembers[index], bio: e.target.value };
                     handleChange("members", newMembers);
                   }}
                   placeholder="Member bio (optional)"
@@ -400,7 +309,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               type="button"
               variant="outline"
               onClick={() => {
-                const newMembers = [...members, { name: '', role: '' }];
+                const newMembers = [...members, { name: '', role: '', image: '' }];
                 handleChange("members", newMembers);
               }}
             >
@@ -411,106 +320,6 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
         </div>
       );
 
-    case "about_customer_impact":
-      const testimonials = Array.isArray(block.content.testimonials) ? block.content.testimonials : [];
-      
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={block.content.title || ""}
-              onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="Enter title"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea
-              value={block.content.description || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter description"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <Label>Testimonials</Label>
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="p-4 border rounded-lg space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label>Testimonial {index + 1}</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const newTestimonials = testimonials.filter((_, i) => i !== index);
-                      handleChange("testimonials", newTestimonials);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Textarea
-                  value={testimonial.quote}
-                  onChange={(e) => {
-                    const newTestimonials = [...testimonials];
-                    newTestimonials[index] = { ...testimonial, quote: e.target.value };
-                    handleChange("testimonials", newTestimonials);
-                  }}
-                  placeholder="Testimonial quote"
-                  rows={3}
-                />
-                <Input
-                  value={testimonial.author}
-                  onChange={(e) => {
-                    const newTestimonials = [...testimonials];
-                    newTestimonials[index] = { ...testimonial, author: e.target.value };
-                    handleChange("testimonials", newTestimonials);
-                  }}
-                  placeholder="Author name"
-                />
-                <Input
-                  value={testimonial.role || ""}
-                  onChange={(e) => {
-                    const newTestimonials = [...testimonials];
-                    newTestimonials[index] = { ...testimonial, role: e.target.value };
-                    handleChange("testimonials", newTestimonials);
-                  }}
-                  placeholder="Author role (optional)"
-                />
-                <div className="space-y-2">
-                  <Label>Rating (1-5)</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={testimonial.rating}
-                    onChange={(e) => {
-                      const newTestimonials = [...testimonials];
-                      newTestimonials[index] = { ...testimonial, rating: Number(e.target.value) };
-                      handleChange("testimonials", newTestimonials);
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const newTestimonials = [...testimonials, { quote: '', author: '', rating: 5 }];
-                handleChange("testimonials", newTestimonials);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Testimonial
-            </Button>
-          </div>
-        </div>
-      );
-      
     default:
       return null;
   }
