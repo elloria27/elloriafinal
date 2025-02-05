@@ -21,6 +21,7 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { DonationHero } from "@/components/donation/DonationHero";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -222,6 +223,9 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
+
+            case 'donation_hero':
+              return <DonationHero content={block.content} />;
 
             default:
               return (

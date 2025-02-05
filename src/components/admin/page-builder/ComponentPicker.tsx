@@ -21,6 +21,12 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
+      category: "Donation",
+      items: [
+        { type: "donation_hero", label: "Donation Hero" },
+      ],
+    },
+    {
       category: "Home",
       items: [
         { type: "hero", label: "Hero" },
