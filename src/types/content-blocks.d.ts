@@ -52,6 +52,11 @@ export interface FeaturesContent extends BaseBlockContent {
   features?: FeatureItem[];
 }
 
+// Add FeaturesProps interface
+export interface FeaturesProps {
+  content: FeaturesContent;
+}
+
 export interface GameChangerContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
@@ -451,3 +456,13 @@ export type BlockType =
   | "donation_join_movement"
   | "donation_partners"
   | "donation_stories";
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
