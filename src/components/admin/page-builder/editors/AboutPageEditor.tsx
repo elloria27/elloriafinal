@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ContentBlock, BlockContent, AboutSustainabilityContent, AboutMissionContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, AboutHeroContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
 
 interface AboutPageEditorProps {
   block: ContentBlock;
@@ -11,135 +11,74 @@ interface AboutPageEditorProps {
 }
 
 export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
+
   const handleChange = (key: string, value: any) => {
     console.log("Updating content:", key, value);
     const updatedContent = { ...block.content, [key]: value };
     onUpdate(block.id, updatedContent);
   };
 
-  const handleStatUpdate = (index: number, field: string, value: string) => {
-    const content = block.content as AboutSustainabilityContent;
-    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
-    stats[index] = {
-      ...stats[index],
-      [field]: value,
-    };
-    handleChange("stats", stats);
-  };
-
-  const addStat = () => {
-    const content = block.content as AboutSustainabilityContent;
-    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
-    const newStat = {
-      icon: "Leaf",
-      value: "New Value",
-      label: "New Label",
-      description: "New Description",
-    };
-    handleChange("stats", [...stats, newStat]);
-  };
-
-  const removeStat = (index: number) => {
-    const content = block.content as AboutSustainabilityContent;
-    const stats = Array.isArray(content.stats) ? [...content.stats] : [];
-    stats.splice(index, 1);
-    handleChange("stats", stats);
+  const handleImageSelect = (url: string) => {
+    handleChange('backgroundImage', url);
+    setShowMediaLibrary(false);
   };
 
   switch (block.type) {
-    case "about_sustainability":
-      const sustainabilityContent = block.content as AboutSustainabilityContent;
-      const stats = Array.isArray(sustainabilityContent.stats) ? sustainabilityContent.stats : [];
+    case "about_hero_section":
+      const heroContent = block.content as AboutHeroContent;
       
       return (
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={sustainabilityContent.title || ""}
+              value={heroContent.title || ""}
               onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter title"
             />
           </div>
+          
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>Subtitle</Label>
             <Input
-              value={sustainabilityContent.description || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter description"
+              value={heroContent.subtitle || ""}
+              onChange={(e) => handleChange("subtitle", e.target.value)}
+              placeholder="Enter subtitle"
             />
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Statistics</Label>
-              <Button
+          <div className="space-y-2">
+            <Label>Background Image</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={heroContent.backgroundImage || ""}
+                onChange={(e) => handleChange("backgroundImage", e.target.value)}
+                placeholder="Enter image URL"
+                readOnly
+              />
+              <Button 
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={addStat}
+                onClick={() => setShowMediaLibrary(true)}
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Stat
+                Browse
               </Button>
             </div>
-
-            {stats.map((stat, index) => (
-              <div key={index} className="space-y-2 p-4 border rounded-lg">
-                <div className="flex justify-between items-center">
-                  <Label>Stat {index + 1}</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeStat(index)}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Icon</Label>
-                  <select
-                    value={stat.icon}
-                    onChange={(e) => handleStatUpdate(index, "icon", e.target.value)}
-                    className="w-full border rounded-md p-2"
-                  >
-                    <option value="Leaf">Leaf</option>
-                    <option value="Recycle">Recycle</option>
-                    <option value="TreePine">Tree Pine</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Value</Label>
-                  <Input
-                    value={stat.value}
-                    onChange={(e) => handleStatUpdate(index, "value", e.target.value)}
-                    placeholder="Enter value (e.g., 55%, 50K+)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Label</Label>
-                  <Input
-                    value={stat.label}
-                    onChange={(e) => handleStatUpdate(index, "label", e.target.value)}
-                    placeholder="Enter label"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input
-                    value={stat.description}
-                    onChange={(e) => handleStatUpdate(index, "description", e.target.value)}
-                    placeholder="Enter description"
-                  />
-                </div>
-              </div>
-            ))}
+            {heroContent.backgroundImage && (
+              <img 
+                src={heroContent.backgroundImage} 
+                alt="Background preview" 
+                className="mt-2 max-h-40 rounded-lg"
+              />
+            )}
           </div>
+
+          <MediaLibraryModal
+            open={showMediaLibrary}
+            onClose={() => setShowMediaLibrary(false)}
+            onSelect={handleImageSelect}
+          />
         </div>
       );
       
