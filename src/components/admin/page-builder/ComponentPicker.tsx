@@ -21,6 +21,21 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
+      category: "Home",
+      items: [
+        { type: "hero", label: "Hero" },
+        { type: "store_brands", label: "Store brands" },
+        { type: "features", label: "Features" },
+        { type: "sustainability", label: "Sustainability" },
+        { type: "product_carousel", label: "Product carousel" },
+        { type: "testimonials", label: "Testimonials" },
+        { type: "competitor_comparison", label: "Competitor comparison" },
+        { type: "newsletter", label: "Newsletter" },
+        { type: "blog_preview", label: "Blog Preview" },
+        { type: "game_changer", label: "Game Changer" },
+      ],
+    },
+    {
       category: "About Page",
       items: [
         { type: "about_hero_section", label: "About Hero" },
