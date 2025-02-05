@@ -1,11 +1,14 @@
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { BlockType } from "@/types/content-blocks";
 
-interface ComponentPickerProps {
+export interface ComponentPickerProps {
+  open: boolean;
+  onClose: () => void;
   onSelect: (type: BlockType) => void;
 }
 
-export const ComponentPicker = ({ onSelect }: ComponentPickerProps) => {
+export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProps) => {
   const components: { type: BlockType; label: string; category: string }[] = [
     // Common Components
     { type: "heading", label: "Heading", category: "Common" },
@@ -52,26 +55,30 @@ export const ComponentPicker = ({ onSelect }: ComponentPickerProps) => {
   const categories = Array.from(new Set(components.map(c => c.category)));
 
   return (
-    <div className="p-4 space-y-6">
-      {categories.map(category => (
-        <div key={category}>
-          <h3 className="font-semibold mb-3">{category} Components</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {components
-              .filter(c => c.category === category)
-              .map(component => (
-                <Button
-                  key={component.type}
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => onSelect(component.type)}
-                >
-                  {component.label}
-                </Button>
-              ))}
-          </div>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <div className="p-4 space-y-6">
+          {categories.map(category => (
+            <div key={category}>
+              <h3 className="font-semibold mb-3">{category} Components</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {components
+                  .filter(c => c.category === category)
+                  .map(component => (
+                    <Button
+                      key={component.type}
+                      variant="outline"
+                      className="justify-start"
+                      onClick={() => onSelect(component.type)}
+                    >
+                      {component.label}
+                    </Button>
+                  ))}
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
