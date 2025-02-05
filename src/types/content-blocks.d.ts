@@ -4,13 +4,6 @@ export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
 }
 
-export interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
-  detail?: string;
-}
-
 export interface HeadingBlockContent extends BaseBlockContent {
   text?: string;
   size?: 'h1' | 'h2' | 'h3' | 'h4';
@@ -79,18 +72,6 @@ export interface SustainabilityContent extends BaseBlockContent {
     label: string;
     description: string;
   }>;
-  materials?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-  faqs?: Array<{
-    question: string;
-    answer: string;
-  }>;
-  buttonText?: string;
-  buttonLink?: string;
-  timelineItems?: string[];
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
@@ -218,7 +199,7 @@ export interface AboutTeamContent extends BaseBlockContent {
     role: string;
     image?: string;
     quote?: string;
-    bio?: string;  // Added bio field
+    bio?: string;
   }>;
 }
 
@@ -247,62 +228,11 @@ export interface AboutCtaContent extends BaseBlockContent {
   backgroundGradient?: string;
 }
 
-export interface ForBusinessHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
-export interface BusinessSolutionsContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  solutions?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface BusinessContactContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  email?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
-export interface CustomSolutionsHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-}
-
-export interface CustomSolutionsServicesContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  services?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface CustomSolutionsProcessContent extends BaseBlockContent {
-  title?: string;
-  steps?: Array<{
-    number: number;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface CustomSolutionsCtaContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  buttonLink?: string;
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+  detail?: string;
 }
 
 export type BlockContent = 
@@ -326,13 +256,13 @@ export type BlockContent =
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
-  | ForBusinessHeroContent
-  | BusinessSolutionsContent
-  | BusinessContactContent
-  | CustomSolutionsHeroContent
-  | CustomSolutionsServicesContent
-  | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -358,24 +288,7 @@ export type BlockType =
   | "about_sustainability"
   | "about_team"
   | "about_customer_impact"
-  | "about_cta"
-  | "contact_hero"
-  | "contact_details"
-  | "contact_form"
-  | "contact_faq"
-  | "contact_business"
-  | "business_hero"
-  | "business_solutions"
-  | "business_contact"
-  | "custom_solutions_hero"
-  | "custom_solutions_services"
-  | "custom_solutions_process"
-  | "custom_solutions_cta"
-  | "sustainability_hero"
-  | "sustainability_mission"
-  | "sustainability_materials"
-  | "sustainability_faq"
-  | "sustainability_cta";
+  | "about_cta";
 
 export interface ContentBlock {
   id: string;
@@ -383,37 +296,6 @@ export interface ContentBlock {
   content: BlockContent;
   order_index: number;
   page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface FeaturesProps {
-  content?: FeaturesContent;
-}
-
-export interface HeroProps {
-  content?: HeroContent;
-}
-
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  description?: string;
-  is_active: boolean;
-  processing_fee: number;
-  icon_url?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface DeliveryMethod {
-  id: string;
-  name: string;
-  description?: string;
-  is_active: boolean;
-  base_price: number;
-  estimated_days?: string;
-  regions?: string[];
   created_at?: string;
   updated_at?: string;
 }
