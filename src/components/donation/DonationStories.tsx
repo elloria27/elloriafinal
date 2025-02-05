@@ -1,59 +1,104 @@
-import { motion } from "framer-motion";
+import { ContentBlock } from "@/types/content-blocks";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
 
-export const DonationStories = () => {
-  const stories = [
-    {
-      name: "Sarah Johnson",
-      role: "Community Leader",
-      quote: "The support from Elloria has transformed lives in our community. Women now have access to essential products they desperately needed.",
-      image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png"
-    },
-    {
-      name: "Maria Rodriguez",
-      role: "Program Beneficiary",
-      quote: "Thanks to these donations, I can focus on my education without worry. It's more than products - it's dignity and opportunity.",
-      image: "/lovable-uploads/42c0dc8a-d937-4255-9c12-d484082d26e6.png"
-    }
-  ];
+interface DonationStoriesProps {
+  content: {
+    title?: string;
+    description?: string;
+    stories?: Array<{
+      name: string;
+      role: string;
+      quote: string;
+      image?: string;
+    }>;
+  };
+}
+
+export const DonationStories = ({ content }: DonationStoriesProps) => {
+  const handleArrayUpdate = (index: number, updates: Partial<DonationStoriesProps['content']['stories'][number]>) => {
+    const updatedStories = [...(content.stories || [])];
+    updatedStories[index] = { ...updatedStories[index], ...updates };
+    // Call a function to update the parent state with the new stories array
+  };
+
+  const handleAddStory = () => {
+    const newStory = { name: "", role: "", quote: "", image: "" };
+    // Call a function to update the parent state with the new story added to the stories array
+  };
+
+  const handleRemoveStory = (index: number) => {
+    const updatedStories = [...(content.stories || [])];
+    updatedStories.splice(index, 1);
+    // Call a function to update the parent state with the updated stories array
+  };
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Stories of Impact</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Real stories from women whose lives have been touched by your generosity.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {stories.map((story, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="bg-white p-6 rounded-lg shadow-lg"
-            >
-              <div className="flex flex-col items-center">
-                <img
-                  src={story.image}
-                  alt={story.name}
-                  className="w-20 h-20 rounded-full object-cover mb-4"
-                />
-                <blockquote className="text-gray-600 italic mb-4">{story.quote}</blockquote>
-                <cite className="not-italic font-semibold text-gray-900">{story.name}</cite>
-                <p className="text-sm text-gray-500">{story.role}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+    <div className="space-y-4">
+      <div>
+        <Label>Title</Label>
+        <Input
+          value={content.title || ""}
+          onChange={(e) => {
+            // Call a function to update the parent state with the new title
+          }}
+        />
       </div>
-    </section>
+      <div>
+        <Label>Description</Label>
+        <Textarea
+          value={content.description || ""}
+          onChange={(e) => {
+            // Call a function to update the parent state with the new description
+          }}
+        />
+      </div>
+      <div>
+        <Label>Stories</Label>
+        {(content.stories || []).map((story, index) => (
+          <div key={index} className="space-y-2 mt-2 p-4 border rounded-lg">
+            <Input
+              placeholder="Name"
+              value={story.name}
+              onChange={(e) => handleArrayUpdate(index, { name: e.target.value })}
+            />
+            <Input
+              placeholder="Role"
+              value={story.role}
+              onChange={(e) => handleArrayUpdate(index, { role: e.target.value })}
+            />
+            <Textarea
+              placeholder="Quote"
+              value={story.quote}
+              onChange={(e) => handleArrayUpdate(index, { quote: e.target.value })}
+            />
+            <Input
+              placeholder="Image URL"
+              value={story.image}
+              onChange={(e) => handleArrayUpdate(index, { image: e.target.value })}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleRemoveStory(index)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAddStory}
+          className="mt-2"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Story
+        </Button>
+      </div>
+    </div>
   );
 };

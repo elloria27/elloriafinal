@@ -15,17 +15,17 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
     onUpdate(block.id, { ...block.content, ...updates });
   };
 
-  const handleArrayUpdate = <T extends any[]>(
+  const handleArrayUpdate = <T extends Record<string, any>>(
     field: string,
     index: number,
-    updates: Partial<T[number]>
+    updates: Partial<T>
   ) => {
-    const array = [...((block.content[field] as T) || [])];
+    const array = [...((block.content[field] as T[]) || [])];
     array[index] = { ...array[index], ...updates };
     handleUpdate({ [field]: array });
   };
 
-  const handleAddItem = <T extends any>(field: string, defaultItem: T) => {
+  const handleAddItem = <T extends Record<string, any>>(field: string, defaultItem: T) => {
     const array = [...((block.content[field] as T[]) || [])];
     array.push(defaultItem);
     handleUpdate({ [field]: array });
