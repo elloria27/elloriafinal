@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2, Menu, Settings, PanelLeft } from "lucide-react";
+import { Plus, Save, Trash2, Menu, Settings, PanelLeft, Laptop, Smartphone, Tablet } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -12,6 +12,7 @@ import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export interface PageBuilderProps {
   pageId: string;
@@ -29,6 +30,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     <div className="space-y-4 p-4">
       <Button 
         onClick={() => setShowComponentPicker(true)}
-        className="w-full"
+        className="w-full bg-primary hover:bg-primary/90"
         size="lg"
       >
         <Plus className="w-4 h-4 mr-2" />
@@ -210,7 +212,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                       onClick={() => setSelectedBlock(block)}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{block.type}</span>
+                        <span className="font-medium capitalize">{block.type.replace(/_/g, ' ')}</span>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -267,6 +269,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
               size="sm"
               onClick={handleSaveLayout}
               disabled={!hasUnsavedChanges || isSaving}
+              className="bg-primary hover:bg-primary/90"
             >
               <Save className="w-4 h-4 mr-2" />
               {isSaving ? 'Saving...' : 'Save'}
@@ -305,29 +308,63 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           </div>
 
           <div className="flex-1 flex flex-col">
-            <div className="sticky top-0 z-10 bg-white border-b p-4 flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSidebar(!showSidebar)}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </Button>
+            <div className="sticky top-0 z-10 bg-white border-b p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowSidebar(!showSidebar)}
+                  >
+                    <PanelLeft className="h-4 w-4" />
+                  </Button>
 
-              <div className="flex items-center gap-2">
+                  <div className="border rounded-lg p-1 flex gap-1">
+                    <Button
+                      variant={viewportMode === 'desktop' ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewportMode('desktop')}
+                    >
+                      <Laptop className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewportMode === 'tablet' ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewportMode('tablet')}
+                    >
+                      <Tablet className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewportMode === 'mobile' ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewportMode('mobile')}
+                    >
+                      <Smartphone className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
                 <Button
                   size="sm"
                   onClick={handleSaveLayout}
                   disabled={!hasUnsavedChanges || isSaving}
+                  className="bg-primary hover:bg-primary/90"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save'}
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto">
-              <div className="container py-8">
+            <div className="flex-1 overflow-auto bg-gray-100">
+              <div 
+                className={cn(
+                  "mx-auto transition-all duration-300 bg-white shadow-lg my-8",
+                  viewportMode === 'desktop' && "max-w-[1200px]",
+                  viewportMode === 'tablet' && "max-w-[768px]",
+                  viewportMode === 'mobile' && "max-w-[375px]"
+                )}
+              >
                 <PreviewPane 
                   blocks={blocks} 
                   onSelectBlock={setSelectedBlock}
