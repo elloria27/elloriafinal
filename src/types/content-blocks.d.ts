@@ -464,7 +464,8 @@ export type BlockType =
   | "donation_faq"
   | "donation_join_movement"
   | "donation_partners"
-  | "donation_stories";
+  | "donation_stories"
+  | "elevating_essentials";  // Added this missing type
 
 export interface ContentBlock {
   id: string;
