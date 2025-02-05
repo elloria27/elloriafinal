@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2, ArrowLeft, ArrowRight, Menu, Settings, PanelLeft } from "lucide-react";
+import { Plus, Save, Trash2, Menu, Settings, PanelLeft } from "lucide-react";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
@@ -28,7 +28,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const isMobile = useIsMobile();
 
@@ -265,15 +264,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-            >
-              {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-              {showPreview ? 'Editor' : 'Preview'}
-            </Button>
-            
-            <Button
               size="sm"
               onClick={handleSaveLayout}
               disabled={!hasUnsavedChanges || isSaving}
@@ -326,15 +316,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? <ArrowLeft className="h-4 w-4 mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-                  {showPreview ? 'Editor' : 'Preview'}
-                </Button>
-                
-                <Button
                   size="sm"
                   onClick={handleSaveLayout}
                   disabled={!hasUnsavedChanges || isSaving}
@@ -352,13 +333,13 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                   onSelectBlock={setSelectedBlock}
                   selectedBlockId={selectedBlock?.id}
                   onDeleteBlock={handleDeleteBlock}
-                  isAdmin={!showPreview}
+                  isAdmin={true}
                 />
               </div>
             </div>
           </div>
 
-          {selectedBlock && !showPreview && (
+          {selectedBlock && (
             <div className="w-96 border-l bg-gray-50/50 overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Edit Component</h3>
