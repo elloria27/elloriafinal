@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, CustomSolutionsHeroContent, CustomSolutionsServicesContent, CustomSolutionsProcessContent, CustomSolutionsCtaContent, ProcessStep } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 interface CustomSolutionsEditorProps {
   block: ContentBlock;
@@ -29,21 +30,21 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
           description: "Service description",
         },
       ],
-    });
+    } as Partial<CustomSolutionsServicesContent>);
   };
 
   const handleServiceRemove = (index: number) => {
     const content = block.content as CustomSolutionsServicesContent;
     const services = Array.isArray(content.services) ? [...content.services] : [];
     services.splice(index, 1);
-    handleContentChange({ services });
+    handleContentChange({ services } as Partial<CustomSolutionsServicesContent>);
   };
 
   const handleServiceUpdate = (index: number, updates: Partial<{ icon: string; title: string; description: string }>) => {
     const content = block.content as CustomSolutionsServicesContent;
     const services = Array.isArray(content.services) ? [...content.services] : [];
     services[index] = { ...services[index], ...updates };
-    handleContentChange({ services });
+    handleContentChange({ services } as Partial<CustomSolutionsServicesContent>);
   };
 
   const handleProcessStepAdd = () => {
