@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ContentBlock, BusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
+import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -8,7 +8,7 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<BusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
+  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
     onUpdate(block.id, {
       ...block.content,
       ...updates,
@@ -17,7 +17,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
 
   switch (block.type) {
     case "business_hero":
-      const heroContent = block.content as BusinessHeroContent;
+      const heroContent = block.content as ForBusinessHeroContent;
       return (
         <div className="space-y-4">
           <div>

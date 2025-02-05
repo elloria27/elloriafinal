@@ -56,7 +56,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
   const handleProcessStepAdd = () => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? content.steps : [];
-    const newStep = {
+    const newStep: ProcessStep = {
       number: steps.length + 1,
       title: "New Step",
       description: "Step description",
@@ -77,7 +77,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
     handleContentChange({ steps });
   };
 
-  const handleProcessStepUpdate = (index: number, updates: Partial<{ title: string; description: string }>) => {
+  const handleProcessStepUpdate = (index: number, updates: Partial<ProcessStep>) => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps[index] = { ...steps[index], ...updates };
