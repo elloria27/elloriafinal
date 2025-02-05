@@ -28,19 +28,19 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
   };
 
   const handleArrayUpdate = (key: string, index: number, field: string, value: any) => {
-    const array = [...(block.content[key] || [])];
+    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
     array[index] = { ...array[index], [field]: value };
     handleChange(key, array);
   };
 
   const addArrayItem = (key: string, defaultItem: any) => {
-    const array = [...(block.content[key] || [])];
+    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
     array.push(defaultItem);
     handleChange(key, array);
   };
 
   const removeArrayItem = (key: string, index: number) => {
-    const array = [...(block.content[key] || [])];
+    const array = [...(Array.isArray(block.content[key]) ? block.content[key] : [])];
     array.splice(index, 1);
     handleChange(key, array);
   };
@@ -590,4 +590,15 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
     default:
       return null;
   }
+
+  return (
+    <div className="space-y-4">
+      <MediaLibraryModal
+        open={showMediaLibrary}
+        onClose={() => setShowMediaLibrary(false)}
+        onSelect={handleImageSelect}
+        type="image"
+      />
+    </div>
+  );
 };
