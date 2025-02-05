@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Plus, Save, Trash2, Menu, ChevronLeft, PanelLeft } from "lucide-react";
@@ -9,7 +9,7 @@ import { PreviewPane } from "./PreviewPane";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlockType, ContentBlock, BlockContent } from "@/types/content-blocks";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [showSidebar, setShowSidebar] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const initializeBlocks = async () => {
@@ -43,7 +42,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
         if (error) throw error;
 
         if (dbBlocks?.length > 0) {
-          setBlocks(dbBlocks);
+          // Convert database content to frontend ContentBlock type
+          const convertedBlocks: ContentBlock[] = dbBlocks.map(block => ({
+            ...block,
+            content: block.content as BlockContent
+          }));
+          setBlocks(convertedBlocks);
         } else if (initialBlocks?.length > 0) {
           setBlocks(initialBlocks);
         }
@@ -136,9 +140,18 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       if (deleteError) throw deleteError;
 
       if (blocks.length > 0) {
+        // Convert blocks to database format
+        const dbBlocks = blocks.map(block => ({
+          id: block.id,
+          type: block.type,
+          content: block.content,
+          order_index: block.order_index,
+          page_id: pageId
+        }));
+
         const { error: insertError } = await supabase
           .from('content_blocks')
-          .insert(blocks);
+          .insert(dbBlocks);
 
         if (insertError) throw insertError;
       }

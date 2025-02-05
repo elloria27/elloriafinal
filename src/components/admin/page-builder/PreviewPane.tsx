@@ -121,11 +121,11 @@ export const PreviewPane = ({
         case 'about_mission':
           return <AboutMission content={block.content} />;
         case 'about_sustainability':
-          return <AboutSustainability content={block.content} />;
+          return <AboutSustainability content={block.content as any} />;
         case 'about_team':
           return <AboutTeam content={block.content} />;
         case 'about_customer_impact':
-          return <AboutCustomerImpact content={block.content} />;
+          return <AboutCustomerImpact content={block.content as any} />;
         case 'contact_hero':
           return <ContactHero content={block.content} />;
         case 'contact_details':
