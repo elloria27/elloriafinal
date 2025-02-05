@@ -106,6 +106,15 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   };
 
   const handleAddBlock = (blockType: BlockType) => {
+    // Check if block type already exists
+    const blockExists = blocks.some(block => block.type === blockType);
+    
+    if (blockExists) {
+      toast.error(`A ${blockType} block already exists on this page`);
+      setShowComponentPicker(false);
+      return;
+    }
+
     const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
       type: blockType,
