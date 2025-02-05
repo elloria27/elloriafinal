@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageBuilder } from "@/components/admin/page-builder/PageBuilder";
 import { MediaManager } from "@/components/admin/media/MediaManager";
@@ -16,10 +15,6 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("pages");
   const navigate = useNavigate();
   const { signOut } = useAuth();
-
-  const handleMediaSelect = (url: string) => {
-    console.log("Selected media:", url);
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,7 +49,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="pages" className="space-y-4">
-            <PageBuilder />
+            <PageBuilder pageId="home" initialBlocks={[]} />
           </TabsContent>
           <TabsContent value="products" className="space-y-4">
             <Products />

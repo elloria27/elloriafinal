@@ -55,8 +55,8 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
 
   const handleProcessStepAdd = () => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = (Array.isArray(content.steps) ? content.steps : []) as ProcessStep[];
-    const newStep: ProcessStep = {
+    const steps = Array.isArray(content.steps) ? content.steps : [];
+    const newStep = {
       number: steps.length + 1,
       title: "New Step",
       description: "Step description",
@@ -68,7 +68,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
 
   const handleProcessStepRemove = (index: number) => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = (Array.isArray(content.steps) ? [...content.steps] : []) as ProcessStep[];
+    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps.splice(index, 1);
     // Update step numbers
     steps.forEach((step, i) => {
@@ -79,7 +79,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
 
   const handleProcessStepUpdate = (index: number, updates: Partial<{ title: string; description: string }>) => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = (Array.isArray(content.steps) ? [...content.steps] : []) as ProcessStep[];
+    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps[index] = { ...steps[index], ...updates };
     handleContentChange({ steps });
   };
