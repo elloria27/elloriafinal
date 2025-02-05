@@ -218,11 +218,17 @@ export interface AboutTeamContent extends BaseBlockContent {
 export interface AboutCustomerImpactContent extends BaseBlockContent {
   title?: string;
   description?: string;
+  stats?: Array<{
+    icon: string;
+    value: string;
+    label: string;
+    description: string;
+  }>;
   testimonials?: Array<{
-    quote: string;
-    author: string;
-    role?: string;
+    name: string;
     rating: number;
+    text: string;
+    source: string;
   }>;
 }
 
