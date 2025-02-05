@@ -308,7 +308,6 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
 export interface DonationHeroContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  backgroundImage?: string;
 }
 
 export interface DonationFormContent extends BaseBlockContent {
