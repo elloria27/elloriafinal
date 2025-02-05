@@ -18,7 +18,7 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
 
   const handleChange = (key: string, value: any) => {
     console.log("Updating content:", key, value);
-    const updatedContent = { ...block.content, [key]: value };
+    const updatedContent = { ...block.content as object, [key]: value };
     onUpdate(block.id, updatedContent);
   };
 
