@@ -328,7 +328,18 @@ export type BlockContent =
   | NewsletterContent
   | ProductCarouselContent
   | CompetitorComparisonContent
-  | DonationHeroContent;  // Додаємо новий тип
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent
+  | DonationHeroContent;
 
 export type BlockType = 
   | "heading" 
@@ -344,11 +355,21 @@ export type BlockType =
   | "store_brands"
   | "sustainability"
   | "product_carousel"
-  | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison"
-  | "donation_hero";  // Додаємо новий тип
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business"
+  | "donation_hero";
 
 export interface ContentBlock {
   id: string;
