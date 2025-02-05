@@ -1,11 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MediaLibrary } from "./MediaLibrary";
 
 interface MediaLibraryModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
   type?: "image" | "video";
+}
+
+interface MediaLibraryProps {
+  onSelect: (url: string) => void;
+  type: "image" | "video";
 }
 
 export const MediaLibraryModal = ({ open, onClose, onSelect, type = "image" }: MediaLibraryModalProps) => {
