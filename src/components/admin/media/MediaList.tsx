@@ -8,9 +8,10 @@ import { toast } from "sonner";
 interface MediaListProps {
   files: FileObject[];
   onDelete: (fileName: string) => void;
+  onSelect?: (url: string) => void;
 }
 
-export const MediaList = ({ files, onDelete }: MediaListProps) => {
+export const MediaList = ({ files, onDelete, onSelect }: MediaListProps) => {
   const getFileUrl = (fileName: string) => {
     const { data } = supabase.storage.from('media').getPublicUrl(fileName);
     return data.publicUrl;
@@ -36,7 +37,10 @@ export const MediaList = ({ files, onDelete }: MediaListProps) => {
         return (
           <Card key={file.id} className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div 
+                className="flex items-center gap-4 cursor-pointer" 
+                onClick={() => onSelect && onSelect(url)}
+              >
                 <FileIcon className="h-8 w-8 text-primary" />
                 <div>
                   <p className="font-medium">
