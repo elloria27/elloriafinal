@@ -8,6 +8,7 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
+import { DonationPageEditor } from "./editors/DonationPageEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -115,6 +116,20 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (commonComponents.includes(block.type)) {
       return <CommonEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    const donationComponents = [
+      "donation_hero",
+      "donation_form",
+      "donation_impact",
+      "donation_stories",
+      "donation_partners",
+      "donation_faq",
+      "donation_join_movement"
+    ];
+
+    if (donationComponents.includes(block.type)) {
+      return <DonationPageEditor block={block} onUpdate={onUpdate} />;
     }
 
     console.warn(`No editor available for block type: ${block.type}`);

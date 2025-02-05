@@ -218,7 +218,7 @@ export interface AboutTeamContent extends BaseBlockContent {
     role: string;
     image?: string;
     quote?: string;
-    bio?: string;  // Added bio field
+    bio?: string;
   }>;
 }
 
@@ -305,10 +305,66 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
-export type BlockContent = 
-  | HeadingBlockContent 
-  | TextBlockContent 
-  | ImageBlockContent 
+export interface DonationHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  backgroundImage?: string;
+  buttonText?: string;
+}
+
+export interface DonationFormContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  defaultAmounts?: string[];
+  buttonText?: string;
+}
+
+export interface DonationImpactContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  impacts?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface DonationStoriesContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  stories?: Array<{
+    name: string;
+    role: string;
+    quote: string;
+    image?: string;
+  }>;
+}
+
+export interface DonationPartnersContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  partners?: string[];
+}
+
+export interface DonationFAQContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface DonationJoinMovementContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+}
+
+export type BlockContent =
+  | HeadingBlockContent
+  | TextBlockContent
+  | ImageBlockContent
   | VideoBlockContent
   | ButtonBlockContent
   | HeroContent
@@ -326,25 +382,39 @@ export type BlockContent =
   | ContactFormContent
   | ContactFAQContent
   | ContactBusinessContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent
   | ForBusinessHeroContent
   | BusinessSolutionsContent
   | BusinessContactContent
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | CustomSolutionsCtaContent
+  | DonationHeroContent
+  | DonationFormContent
+  | DonationImpactContent
+  | DonationStoriesContent
+  | DonationPartnersContent
+  | DonationFAQContent
+  | DonationJoinMovementContent;
 
-export type BlockType = 
-  | "heading" 
-  | "text" 
-  | "image" 
-  | "video" 
-  | "button" 
-  | "hero" 
-  | "features" 
-  | "testimonials" 
-  | "newsletter" 
-  | "blog_preview" 
+export type BlockType =
+  | "heading"
+  | "text"
+  | "image"
+  | "video"
+  | "button"
+  | "hero"
+  | "features"
+  | "testimonials"
+  | "newsletter"
+  | "blog_preview"
   | "store_brands"
   | "sustainability"
   | "product_carousel"
@@ -375,7 +445,14 @@ export type BlockType =
   | "sustainability_mission"
   | "sustainability_materials"
   | "sustainability_faq"
-  | "sustainability_cta";
+  | "sustainability_cta"
+  | "donation_hero"
+  | "donation_form"
+  | "donation_impact"
+  | "donation_stories"
+  | "donation_partners"
+  | "donation_faq"
+  | "donation_join_movement";
 
 export interface ContentBlock {
   id: string;
