@@ -183,40 +183,13 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              const sustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.map(stat => ({
-                    ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
-                    value: String(stat.value || ''),
-                    label: String(stat.label || ''),
-                    description: String(stat.description || '')
-                  }))
-                : [];
-              
-              return <AboutSustainability content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                stats: sustainabilityStats
-              }} />;
+              return <AboutSustainability content={block.content} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => ({
-                    quote: String(t.text || ''),
-                    author: String(t.name || ''),
-                    role: String(t.source || ''),
-                    rating: Number(t.rating || 5)
-                  }))
-                : [];
-              
-              return <AboutCustomerImpact content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                testimonials
-              }} />;
+              return <AboutCustomerImpact content={block.content} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
