@@ -34,14 +34,6 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
               placeholder="Enter hero subtitle"
             />
           </div>
-          <div>
-            <Label>Background Image URL</Label>
-            <Input
-              value={String(block.content.backgroundImage || "")}
-              onChange={(e) => handleChange("backgroundImage", e.target.value)}
-              placeholder="Enter background image URL"
-            />
-          </div>
         </div>
       );
 
