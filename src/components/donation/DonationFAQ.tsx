@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { DonationFAQProps } from "@/types/content-blocks";
 
 export const DonationFAQ = ({ content }: DonationFAQProps) => {
-  const faqs = content?.faqs || [
+  const defaultFaqs = [
     {
       question: "Where does my donation go?",
       answer: "Your donation directly supports our program to provide essential hygiene products to women and girls in need. We work with local partners to ensure efficient distribution."
@@ -26,6 +26,8 @@ export const DonationFAQ = ({ content }: DonationFAQProps) => {
       answer: "Yes, you can set up monthly donations to provide ongoing support. This helps us plan and maintain consistent support for our beneficiaries."
     }
   ];
+
+  const faqs = content?.faqs?.length ? content.faqs : defaultFaqs;
 
   return (
     <section className="py-20 bg-white">
