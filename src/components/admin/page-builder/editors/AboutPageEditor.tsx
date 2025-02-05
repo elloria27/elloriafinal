@@ -161,6 +161,15 @@ export const AboutPageEditor = ({ block, onUpdate }: AboutPageEditorProps) => {
               />
             )}
           </div>
+
+          {showMediaLibrary && (
+            <MediaLibraryModal
+              open={showMediaLibrary}
+              onClose={() => setShowMediaLibrary(false)}
+              onSelect={handleImageSelect}
+              type="image"
+            />
+          )}
         </div>
       );
     }
