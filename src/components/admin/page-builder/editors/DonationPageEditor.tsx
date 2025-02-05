@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationFormContent, DonationImpactContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
 import { MediaLibraryModal } from "../../media/MediaLibraryModal";
 
 interface DonationPageEditorProps {
@@ -42,7 +42,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationHeroContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -51,7 +51,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationHeroContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -61,7 +61,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
             <Label>Background Image</Label>
             <div className="flex gap-2">
               <Input
-                value={block.content.backgroundImage || ""}
+                value={(block.content as DonationHeroContent).backgroundImage || ""}
                 readOnly
                 placeholder="Select an image..."
               />
@@ -78,7 +78,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Button Text</Label>
             <Input
-              value={block.content.buttonText || ""}
+              value={(block.content as DonationHeroContent).buttonText || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, buttonText: e.target.value })
               }
@@ -93,7 +93,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationFormContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -102,7 +102,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationFormContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -111,7 +111,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Default Amounts (comma-separated)</Label>
             <Input
-              value={(block.content.defaultAmounts || []).join(", ")}
+              value={(block.content as DonationFormContent).defaultAmounts?.join(", ") || ""}
               onChange={(e) =>
                 onUpdate(block.id, {
                   ...block.content,
@@ -123,7 +123,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Button Text</Label>
             <Input
-              value={block.content.buttonText || ""}
+              value={(block.content as DonationFormContent).buttonText || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, buttonText: e.target.value })
               }
@@ -138,7 +138,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationImpactContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -147,7 +147,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationImpactContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -156,7 +156,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Impact Items</Label>
             <div className="space-y-4">
-              {(block.content.impacts || []).map((impact, index) => (
+              {(block.content as DonationImpactContent).impacts?.map((impact, index) => (
                 <div key={index} className="space-y-2 p-4 border rounded-lg">
                   <Input
                     placeholder="Icon name"
@@ -222,7 +222,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationStoriesContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -231,7 +231,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationStoriesContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -240,7 +240,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Stories</Label>
             <div className="space-y-4">
-              {(block.content.stories || []).map((story, index) => (
+              {(block.content as DonationStoriesContent).stories?.map((story, index) => (
                 <div key={index} className="space-y-2 p-4 border rounded-lg">
                   <Input
                     placeholder="Name"
@@ -321,7 +321,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationPartnersContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -330,7 +330,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationPartnersContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -339,7 +339,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Partners (one per line)</Label>
             <Textarea
-              value={(block.content.partners || []).join("\n")}
+              value={(block.content as DonationPartnersContent).partners?.join("\n") || ""}
               onChange={(e) =>
                 onUpdate(block.id, {
                   ...block.content,
@@ -357,7 +357,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationFAQContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -366,7 +366,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationFAQContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -375,7 +375,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>FAQs</Label>
             <div className="space-y-4">
-              {(block.content.faqs || []).map((faq, index) => (
+              {(block.content as DonationFAQContent).faqs?.map((faq, index) => (
                 <div key={index} className="space-y-2 p-4 border rounded-lg">
                   <Input
                     placeholder="Question"
@@ -432,7 +432,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={block.content.title || ""}
+              value={(block.content as DonationJoinMovementContent).title || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, title: e.target.value })
               }
@@ -441,7 +441,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <Input
-              value={block.content.subtitle || ""}
+              value={(block.content as DonationJoinMovementContent).subtitle || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, subtitle: e.target.value })
               }
@@ -450,7 +450,7 @@ export const DonationPageEditor = ({ block, onUpdate }: DonationPageEditorProps)
           <div className="space-y-2">
             <Label>Button Text</Label>
             <Input
-              value={block.content.buttonText || ""}
+              value={(block.content as DonationJoinMovementContent).buttonText || ""}
               onChange={(e) =>
                 onUpdate(block.id, { ...block.content, buttonText: e.target.value })
               }
