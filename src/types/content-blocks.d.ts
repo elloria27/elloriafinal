@@ -259,6 +259,7 @@ export interface CustomSolutionsServicesContent extends BaseBlockContent {
 }
 
 export interface ProcessStep {
+  [key: string]: string | number; // Add index signature
   number: number;
   title: string;
   description: string;

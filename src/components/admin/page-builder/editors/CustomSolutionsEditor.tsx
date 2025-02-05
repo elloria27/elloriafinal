@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -56,7 +55,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
       description: "Step description",
     };
     handleContentChange({
-      steps: [...steps, newStep],
+      steps: [...steps, newStep] as any, // Type assertion to avoid Json compatibility error
     });
   };
 
@@ -68,14 +67,14 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
     steps.forEach((step, i) => {
       step.number = i + 1;
     });
-    handleContentChange({ steps });
+    handleContentChange({ steps: steps as any }); // Type assertion to avoid Json compatibility error
   };
 
   const handleProcessStepUpdate = (index: number, updates: Partial<ProcessStep>) => {
     const content = block.content as CustomSolutionsProcessContent;
     const steps = Array.isArray(content.steps) ? [...content.steps] : [];
     steps[index] = { ...steps[index], ...updates };
-    handleContentChange({ steps });
+    handleContentChange({ steps: steps as any }); // Type assertion to avoid Json compatibility error
   };
 
   switch (block.type) {
