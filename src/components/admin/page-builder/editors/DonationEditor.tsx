@@ -15,18 +15,18 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
     onUpdate(block.id, { ...block.content, ...updates });
   };
 
-  const handleArrayUpdate = (
+  const handleArrayUpdate = <T extends any[]>(
     field: string,
     index: number,
-    updates: Record<string, any>
+    updates: Partial<T[number]>
   ) => {
-    const array = [...((block.content[field] as any[]) || [])];
+    const array = [...((block.content[field] as T) || [])];
     array[index] = { ...array[index], ...updates };
     handleUpdate({ [field]: array });
   };
 
-  const handleAddItem = (field: string, defaultItem: any) => {
-    const array = [...((block.content[field] as any[]) || [])];
+  const handleAddItem = <T extends any>(field: string, defaultItem: T) => {
+    const array = [...((block.content[field] as T[]) || [])];
     array.push(defaultItem);
     handleUpdate({ [field]: array });
   };
@@ -38,55 +38,56 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
   };
 
   switch (block.type) {
-    case "donation_hero":
-      const heroContent = block.content as DonationHeroContent;
+    case "donation_hero": {
+      const content = block.content as DonationHeroContent;
       return (
         <div className="space-y-4">
           <div>
             <Label>Title</Label>
             <Input
-              value={heroContent.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleUpdate({ title: e.target.value })}
             />
           </div>
           <div>
             <Label>Subtitle</Label>
             <Input
-              value={heroContent.subtitle || ""}
+              value={content.subtitle || ""}
               onChange={(e) => handleUpdate({ subtitle: e.target.value })}
             />
           </div>
           <div>
             <Label>Background Image URL</Label>
             <Input
-              value={heroContent.backgroundImage || ""}
+              value={content.backgroundImage || ""}
               onChange={(e) => handleUpdate({ backgroundImage: e.target.value })}
             />
           </div>
         </div>
       );
+    }
 
-    case "donation_impact":
-      const impactContent = block.content as DonationImpactContent;
+    case "donation_impact": {
+      const content = block.content as DonationImpactContent;
       return (
         <div className="space-y-4">
           <div>
             <Label>Title</Label>
             <Input
-              value={impactContent.title || ""}
+              value={content.title || ""}
               onChange={(e) => handleUpdate({ title: e.target.value })}
             />
           </div>
           <div>
             <Label>Description</Label>
             <Textarea
-              value={impactContent.description || ""}
+              value={content.description || ""}
               onChange={(e) => handleUpdate({ description: e.target.value })}
             />
           </div>
           <div>
             <Label>Impact Items</Label>
-            {(impactContent.impacts || []).map((impact, index) => (
+            {(content.impacts || []).map((impact, index) => (
               <div key={index} className="space-y-2 mt-2 p-4 border rounded-lg">
                 <Input
                   placeholder="Icon"
@@ -138,6 +139,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
           </div>
         </div>
       );
+    }
 
     case "donation_stories":
       return (
