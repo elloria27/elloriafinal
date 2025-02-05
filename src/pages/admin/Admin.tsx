@@ -1,179 +1,80 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { ProductManagement } from "@/components/admin/ProductManagement";
-import { OrderManagement } from "@/components/admin/OrderManagement";
-import { UserManagement } from "@/components/admin/UserManagement";
-import { PageManagement } from "@/components/admin/PageManagement";
-import { FileManagement } from "@/components/admin/FileManagement";
-import { BlogManagement } from "@/components/admin/BlogManagement";
-import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
-import { PromoCodeManagement } from "@/components/admin/PromoCodeManagement";
-import { PaymentMethodManagement } from "@/components/admin/shop/PaymentMethodManagement";
-import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethodManagement";
-import { DonationManagement } from "@/components/admin/DonationManagement";
-import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
-import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
-import Dashboard from "./Dashboard";
-import SiteSettings from "./SiteSettings";
-import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck, Boxes } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageBuilder } from "@/components/admin/page-builder/PageBuilder";
+import { MediaManager } from "@/components/admin/media/MediaManager";
+import { Settings } from "@/components/admin/settings/Settings";
+import { Products } from "@/components/admin/products/Products";
+import { Orders } from "@/components/admin/orders/Orders";
+import { Users } from "@/components/admin/users/Users";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-const Admin = () => {
+const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState("pages");
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const isMobile = useIsMobile();
-  
-  const currentTab = searchParams.get("tab") || "dashboard";
+  const { signOut } = useAuth();
 
-  useEffect(() => {
-    const checkAdminAccess = async () => {
-      try {
-        console.log("Checking authentication status...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          throw sessionError;
-        }
+  const handleMediaSelect = (url: string) => {
+    console.log("Selected media:", url);
+  };
 
-        if (!session) {
-          console.log('No active session, redirecting to login');
-          navigate("/login?redirectTo=/admin");
-          return;
-        }
-
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          console.log('Profile data:', profileData);
-          setProfile(profileData);
-        }
-
-        const { data: roleData, error: roleError } = await supabase
-          .rpc('is_admin', {
-            user_id: session.user.id
-          });
-
-        if (roleError) {
-          console.error('Error checking admin role:', roleError);
-          throw roleError;
-        }
-
-        if (!roleData) {
-          console.log('User is not an admin, access denied');
-          toast.error("Unauthorized access - Admin privileges required");
-          navigate("/");
-          return;
-        }
-
-        setIsAdmin(true);
-        toast.success("Welcome to Admin Panel");
-
-      } catch (error) {
-        console.error('Admin access check failed:', error);
-        toast.error("Error verifying admin access");
-        navigate("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAdminAccess();
-  }, [navigate]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
-  const renderContent = () => {
-    switch (currentTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "products":
-        return <ProductManagement />;
-      case "orders":
-        return <OrderManagement />;
-      case "users":
-        return <UserManagement />;
-      case "pages":
-        return <PageManagement />;
-      case "blog":
-        return <BlogManagement />;
-      case "files":
-        return <FileManagement />;
-      case "media":
-        return <MediaLibrary />;
-      case "settings":
-        return <SiteSettings />;
-      case "promo-codes":
-        return <PromoCodeManagement />;
-      case "payment-methods":
-        return <PaymentMethodManagement />;
-      case "delivery-methods":
-        return <DeliveryMethodManagement />;
-      case "donations":
-        return <DonationManagement />;
-      case "inventory":
-        return <InventoryManagement />;
-      case "personal-reminders":
-        return <PersonalReminders />;
-      default:
-        return <Dashboard />;
-    }
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
-        {isMobile ? (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-80">
-              <AdminSidebar profile={profile} onClose={() => {}} />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          <div className="w-64 flex-shrink-0">
-            <AdminSidebar profile={profile} />
+    <div className="min-h-screen bg-background">
+      <div className="border-b">
+        <div className="flex h-16 items-center px-4">
+          <div className="ml-auto flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              title="Sign out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
-        )}
-        
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-6">
-            <div className="container mx-auto">
-              {renderContent()}
-            </div>
-          </main>
         </div>
+      </div>
+
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="pages">Pages</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+          <TabsContent value="pages" className="space-y-4">
+            <PageBuilder />
+          </TabsContent>
+          <TabsContent value="products" className="space-y-4">
+            <Products />
+          </TabsContent>
+          <TabsContent value="orders" className="space-y-4">
+            <Orders />
+          </TabsContent>
+          <TabsContent value="media" className="space-y-4">
+            <MediaManager />
+          </TabsContent>
+          <TabsContent value="users" className="space-y-4">
+            <Users />
+          </TabsContent>
+          <TabsContent value="settings" className="space-y-4">
+            <Settings />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 };
 
-export default Admin;
+export default AdminDashboard;

@@ -10,6 +10,12 @@ interface CustomSolutionsEditorProps {
   onUpdate: (blockId: string, content: any) => void;
 }
 
+interface ProcessStep {
+  number: number;
+  title: string;
+  description: string;
+}
+
 export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditorProps) => {
   const handleContentChange = (updates: Partial<CustomSolutionsHeroContent | CustomSolutionsServicesContent | CustomSolutionsProcessContent | CustomSolutionsCtaContent>) => {
     onUpdate(block.id, {
@@ -49,23 +55,20 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
 
   const handleProcessStepAdd = () => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = Array.isArray(content.steps) ? content.steps : [];
-    const newStep = {
+    const steps = (Array.isArray(content.steps) ? content.steps : []) as ProcessStep[];
+    const newStep: ProcessStep = {
       number: steps.length + 1,
       title: "New Step",
       description: "Step description",
     };
     handleContentChange({
-      steps: [
-        ...steps,
-        newStep,
-      ],
+      steps: [...steps, newStep],
     });
   };
 
   const handleProcessStepRemove = (index: number) => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
+    const steps = (Array.isArray(content.steps) ? [...content.steps] : []) as ProcessStep[];
     steps.splice(index, 1);
     // Update step numbers
     steps.forEach((step, i) => {
@@ -76,7 +79,7 @@ export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditor
 
   const handleProcessStepUpdate = (index: number, updates: Partial<{ title: string; description: string }>) => {
     const content = block.content as CustomSolutionsProcessContent;
-    const steps = Array.isArray(content.steps) ? [...content.steps] : [];
+    const steps = (Array.isArray(content.steps) ? [...content.steps] : []) as ProcessStep[];
     steps[index] = { ...steps[index], ...updates };
     handleContentChange({ steps });
   };
