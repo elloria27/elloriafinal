@@ -3,17 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, CustomSolutionsHeroContent, CustomSolutionsServicesContent, CustomSolutionsProcessContent, CustomSolutionsCtaContent } from "@/types/content-blocks";
+import { ContentBlock, CustomSolutionsHeroContent, CustomSolutionsServicesContent, CustomSolutionsProcessContent, CustomSolutionsCtaContent, ProcessStep } from "@/types/content-blocks";
 
 interface CustomSolutionsEditorProps {
   block: ContentBlock;
   onUpdate: (blockId: string, content: any) => void;
-}
-
-interface ProcessStep {
-  number: number;
-  title: string;
-  description: string;
 }
 
 export const CustomSolutionsEditor = ({ block, onUpdate }: CustomSolutionsEditorProps) => {

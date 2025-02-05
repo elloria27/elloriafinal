@@ -258,13 +258,16 @@ export interface CustomSolutionsServicesContent extends BaseBlockContent {
   }>;
 }
 
+export interface ProcessStep {
+  number: number;
+  title: string;
+  description: string;
+}
+
 export interface CustomSolutionsProcessContent extends BaseBlockContent {
   title?: string;
   description?: string;
-  steps?: Array<{
-    title: string;
-    description: string;
-  }>;
+  steps?: ProcessStep[];
 }
 
 export interface CustomSolutionsCtaContent extends BaseBlockContent {
