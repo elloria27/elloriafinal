@@ -10,12 +10,7 @@ import { MediaList } from "./MediaList";
 import { MediaUpload } from "./MediaUpload";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
-interface MediaLibraryProps {
-  onSelect?: (url: string) => void;
-  type?: "image" | "video";
-}
-
-export const MediaLibrary = ({ onSelect, type = "image" }: MediaLibraryProps) => {
+export const MediaLibrary = () => {
   const [files, setFiles] = useState<FileObject[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -155,9 +150,9 @@ export const MediaLibrary = ({ onSelect, type = "image" }: MediaLibraryProps) =>
       </div>
 
       {viewMode === 'grid' ? (
-        <MediaGrid files={filteredFiles} onDelete={handleFileDelete} onSelect={onSelect} />
+        <MediaGrid files={filteredFiles} onDelete={handleFileDelete} />
       ) : (
-        <MediaList files={filteredFiles} onDelete={handleFileDelete} onSelect={onSelect} />
+        <MediaList files={filteredFiles} onDelete={handleFileDelete} />
       )}
     </div>
   );

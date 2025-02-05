@@ -7,10 +7,9 @@ import { toast } from "sonner";
 interface MediaGridProps {
   files: FileObject[];
   onDelete: (fileName: string) => void;
-  onSelect?: (url: string) => void;
 }
 
-export const MediaGrid = ({ files, onDelete, onSelect }: MediaGridProps) => {
+export const MediaGrid = ({ files, onDelete }: MediaGridProps) => {
   const getFileUrl = (fileName: string) => {
     const { data } = supabase.storage.from('media').getPublicUrl(fileName);
     return data.publicUrl;
@@ -32,10 +31,7 @@ export const MediaGrid = ({ files, onDelete, onSelect }: MediaGridProps) => {
         const url = getFileUrl(file.name);
         return (
           <div key={file.id} className="border rounded-lg overflow-hidden">
-            <div 
-              className="aspect-square relative bg-gray-100 cursor-pointer" 
-              onClick={() => onSelect && onSelect(url)}
-            >
+            <div className="aspect-square relative bg-gray-100">
               {isImageFile(file.name) ? (
                 <img
                   src={url}

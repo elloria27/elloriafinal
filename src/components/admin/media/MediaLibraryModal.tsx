@@ -5,17 +5,16 @@ interface MediaLibraryModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
-  type?: "image" | "video";
 }
 
-export const MediaLibraryModal = ({ open, onClose, onSelect, type = "image" }: MediaLibraryModalProps) => {
+export const MediaLibraryModal = ({ open, onClose, onSelect }: MediaLibraryModalProps) => {
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Media Library</DialogTitle>
         </DialogHeader>
-        <MediaLibrary onSelect={onSelect} type={type} />
+        <MediaLibrary onSelect={onSelect} />
       </DialogContent>
     </Dialog>
   );
