@@ -1,4 +1,5 @@
 import { Json } from "@/integrations/supabase/types";
+import { ReactNode } from "react";
 
 export interface BaseBlockContent {
   [key: string]: string | number | boolean | null | Json;
@@ -15,10 +16,20 @@ export interface ContentBlock {
 export interface BlockContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  description?: string;
-  features?: Json[];
-  items?: Json[];
-  testimonials?: Json[] | Record<string, Json>;
+  description?: string | ReactNode;
+  features?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+    detail?: string;
+  }>;
+  items?: Array<any>;
+  testimonials?: Array<{
+    quote: string;
+    author: string;
+    role: string;
+    rating: number;
+  }>;
   buttonText?: string;
   buttonUrl?: string;
 }
@@ -37,68 +48,76 @@ export interface FeaturesProps {
 }
 
 export interface FeaturesContent extends BlockContent {
-  features?: {
+  features?: Array<{
     icon: string;
     title: string;
     description: string;
-  }[];
+  }>;
 }
 
 export interface GameChangerContent extends BlockContent {
-  features?: {
+  features?: Array<{
     icon: string;
     title: string;
     description: string;
     detail?: string;
-  }[];
+  }>;
 }
 
 export interface StoreBrandsContent extends BlockContent {
-  features?: Json[];
+  features?: Array<{
+    name: string;
+    logo: string;
+    link: string;
+  }>;
 }
 
 export interface SustainabilityContent extends BlockContent {
-  stats?: {
+  stats?: Array<{
     icon: string;
     title: string;
     description: string;
     color: string;
-  }[];
+  }>;
   timelineItems?: string[];
 }
 
 export interface ProductCarouselContent extends BlockContent {
-  products?: {
+  products?: Array<{
     id: string;
     name: string;
     description: string;
     price: number;
     image: string;
-  }[];
+  }>;
 }
 
 export interface CompetitorComparisonContent extends BlockContent {
-  metrics?: {
+  metrics?: Array<{
     category: string;
     elloria: number;
     competitors: number;
     icon: string;
     description: string;
-  }[];
+  }>;
 }
 
 export interface TestimonialsContent extends BlockContent {
-  testimonials?: Json[] | Record<string, Json>;
-  items?: Json[];
+  testimonials?: Array<{
+    quote: string;
+    author: string;
+    role: string;
+    rating: number;
+  }>;
 }
 
 export interface BlogPreviewContent extends BlockContent {
-  posts?: {
+  posts?: Array<{
     id: string;
     title: string;
     excerpt: string;
     image: string;
-  }[];
+  }>;
 }
 
 export interface NewsletterContent extends BlockContent {
@@ -110,44 +129,45 @@ export interface AboutHeroContent extends BlockContent {
 }
 
 export interface AboutStoryContent extends BlockContent {
-  milestones?: {
+  milestones?: Array<{
     year: string;
     title: string;
     description: string;
-  }[];
+  }>;
+  videoUrl?: string;
 }
 
 export interface AboutMissionContent extends BlockContent {
-  values?: {
+  values?: Array<{
     title: string;
     description: string;
     icon: string;
-  }[];
+  }>;
 }
 
 export interface AboutSustainabilityContent extends BlockContent {
-  initiatives?: {
+  initiatives?: Array<{
     title: string;
     description: string;
     icon: string;
-  }[];
+  }>;
 }
 
 export interface AboutTeamContent extends BlockContent {
-  team?: {
+  team?: Array<{
     name: string;
     role: string;
     image: string;
     bio: string;
-  }[];
+  }>;
 }
 
 export interface AboutCustomerImpactContent extends BlockContent {
-  stories?: {
+  stories?: Array<{
     name: string;
     story: string;
     image: string;
-  }[];
+  }>;
 }
 
 export interface AboutCtaContent extends BlockContent {
@@ -155,15 +175,18 @@ export interface AboutCtaContent extends BlockContent {
   buttonUrl?: string;
 }
 
-export interface ContactHeroContent extends BlockContent {}
+export interface ContactHeroContent extends BlockContent {
+  title?: string;
+  subtitle?: string;
+}
 
 export interface ContactDetailsContent extends BlockContent {
-  locations?: {
+  locations?: Array<{
     city: string;
     address: string;
     phone: string;
     email: string;
-  }[];
+  }>;
 }
 
 export interface ContactFormContent extends BlockContent {
@@ -171,16 +194,16 @@ export interface ContactFormContent extends BlockContent {
 }
 
 export interface ContactFAQContent extends BlockContent {
-  faqs?: {
+  faqs?: Array<{
     question: string;
     answer: string;
-  }[];
+  }>;
 }
 
 export interface ContactBusinessContent extends BlockContent {
-  services?: {
+  services?: Array<{
     title: string;
     description: string;
     icon: string;
-  }[];
+  }>;
 }
