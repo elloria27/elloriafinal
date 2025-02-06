@@ -50,6 +50,7 @@ export const SEOHead = ({
   const defaultTitle = siteSettings?.site_title || 'Eco Curve Interact';
   const defaultDescription = siteSettings?.meta_description || 'Sustainable solutions for a better future';
   const defaultKeywords = siteSettings?.meta_keywords || '';
+  const currentUrl = window.location.href;
   
   return (
     <Helmet>
@@ -59,13 +60,14 @@ export const SEOHead = ({
       <meta name="keywords" content={keywords || defaultKeywords} />
       
       {/* Canonical URL */}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+      <link rel="canonical" href={canonicalUrl || currentUrl} />
       
       {/* Open Graph meta tags */}
       <meta property="og:title" content={ogTitle || title || defaultTitle} />
       <meta property="og:description" content={ogDescription || description || defaultDescription} />
       {ogImage && <meta property="og:image" content={ogImage} />}
       <meta property="og:type" content="website" />
+      <meta property="og:url" content={canonicalUrl || currentUrl} />
       
       {/* Additional meta tags */}
       <meta name="twitter:card" content="summary_large_image" />
