@@ -278,8 +278,11 @@ export const PreviewPane = ({
       {blocks.length > 0 ? (
         blocks.map((block) => renderBlock(block))
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-center text-gray-500">
-          No content blocks yet. Click "Add Component" to get started.
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-gray-500 text-center">
+            <p>No content blocks yet.</p>
+            <p>Click "Add Component" to get started.</p>
+          </div>
         </div>
       )}
     </div>
