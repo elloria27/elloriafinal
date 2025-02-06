@@ -31,6 +31,15 @@ import { SustainabilityMaterials } from "@/components/sustainability/Sustainabil
 import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
 
+// Import new donation components
+import { DonationHero } from "@/components/donation/DonationHero";
+import { DonationImpact } from "@/components/donation/DonationImpact";
+import { DonationForm } from "@/components/donation/DonationForm";
+import { DonationStories } from "@/components/donation/DonationStories";
+import { DonationPartners } from "@/components/donation/DonationPartners";
+import { DonationFAQ } from "@/components/donation/DonationFAQ";
+import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
+
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
@@ -268,6 +277,28 @@ export const PreviewPane = ({
             
             case 'sustainability_cta':
               return <SustainabilityCTA content={block.content} />;
+
+            // Add new donation component cases
+            case 'donation_hero':
+              return <DonationHero content={block.content} />;
+            
+            case 'donation_impact':
+              return <DonationImpact content={block.content} />;
+            
+            case 'donation_form':
+              return <DonationForm content={block.content} />;
+            
+            case 'donation_stories':
+              return <DonationStories content={block.content} />;
+            
+            case 'donation_partners':
+              return <DonationPartners content={block.content} />;
+            
+            case 'donation_faq':
+              return <DonationFAQ content={block.content} />;
+            
+            case 'donation_join_movement':
+              return <DonationJoinMovement content={block.content} />;
 
             default:
               return (
