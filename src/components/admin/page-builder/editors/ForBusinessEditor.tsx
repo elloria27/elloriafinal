@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent, ForBusinessCtaContent } from "@/types/content-blocks";
+import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -13,7 +13,7 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent | ForBusinessCtaContent>) => {
+  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent>) => {
     onUpdate(block.id, {
       ...block.content,
       ...updates,
@@ -179,100 +179,6 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
               Add Solution
             </Button>
           </div>
-        </div>
-      );
-
-    case "for_business_contact":
-      const contactContent = block.content as BusinessContactContent;
-      return (
-        <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={contactContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter section title"
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={contactContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter description"
-            />
-          </div>
-          <div>
-            <Label>Email</Label>
-            <Input
-              value={contactContent.email || ""}
-              onChange={(e) => handleContentChange({ email: e.target.value })}
-              placeholder="Enter contact email"
-            />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={contactContent.buttonText || ""}
-              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
-              placeholder="Enter button text"
-            />
-          </div>
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={contactContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
-              placeholder="Enter button link"
-            />
-          </div>
-        </div>
-      );
-
-    case "for_business_cta":
-      const ctaContent = block.content as ForBusinessCtaContent;
-      return (
-        <div className="space-y-4">
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={ctaContent.title || ""}
-              onChange={(e) => handleContentChange({ title: e.target.value })}
-              placeholder="Enter CTA title"
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={ctaContent.description || ""}
-              onChange={(e) => handleContentChange({ description: e.target.value })}
-              placeholder="Enter CTA description"
-            />
-          </div>
-          <div>
-            <Label>Button Text</Label>
-            <Input
-              value={ctaContent.buttonText || ""}
-              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
-              placeholder="Enter button text"
-            />
-          </div>
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={ctaContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
-              placeholder="Enter button link"
-            />
-          </div>
-        </div>
-      );
-
-    case "for_business_consultation":
-    case "for_business_bulk_orders":
-      return (
-        <div className="p-4 text-center text-gray-500">
-          This component has no editable properties as it opens a dialog
         </div>
       );
 

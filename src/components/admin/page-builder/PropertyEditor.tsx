@@ -1,4 +1,3 @@
-
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -59,11 +58,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   // Business page components
   const businessComponents = [
     "for_business_hero",
-    "for_business_solutions",
-    "for_business_contact",
-    "for_business_cta",
-    "for_business_consultation",
-    "for_business_bulk_orders"
+    "for_business_solutions"
   ];
 
   // Custom Solutions page components
@@ -152,4 +147,3 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
-

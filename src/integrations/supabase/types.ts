@@ -347,7 +347,7 @@ export type Database = {
           id: string
           order_index: number
           page_id: string | null
-          type: Database["public"]["Enums"]["content_block_type"]
+          type: Database["public"]["Enums"]["block_type"]
           updated_at: string | null
         }
         Insert: {
@@ -356,7 +356,7 @@ export type Database = {
           id?: string
           order_index: number
           page_id?: string | null
-          type: Database["public"]["Enums"]["content_block_type"]
+          type: Database["public"]["Enums"]["block_type"]
           updated_at?: string | null
         }
         Update: {
@@ -365,7 +365,7 @@ export type Database = {
           id?: string
           order_index?: number
           page_id?: string | null
-          type?: Database["public"]["Enums"]["content_block_type"]
+          type?: Database["public"]["Enums"]["block_type"]
           updated_at?: string | null
         }
         Relationships: [
@@ -1635,21 +1635,54 @@ export type Database = {
     }
     Enums: {
       block_type:
+        | "heading"
+        | "text"
+        | "image"
+        | "video"
+        | "button"
+        | "spacer"
         | "hero"
-        | "elevating_essentials"
-        | "game_changer"
         | "features"
+        | "testimonials"
+        | "newsletter"
+        | "blog_preview"
         | "store_brands"
         | "sustainability"
         | "product_carousel"
-        | "testimonials"
-        | "newsletter"
+        | "product_gallery"
+        | "elevating_essentials"
+        | "game_changer"
+        | "competitor_comparison"
         | "about_hero_section"
         | "about_story"
         | "about_mission"
         | "about_sustainability"
         | "about_team"
         | "about_customer_impact"
+        | "about_cta"
+        | "contact_hero"
+        | "contact_details"
+        | "contact_form"
+        | "contact_faq"
+        | "contact_business"
+        | "custom_solutions_hero"
+        | "custom_solutions_services"
+        | "custom_solutions_process"
+        | "custom_solutions_cta"
+        | "sustainability_hero"
+        | "sustainability_mission"
+        | "sustainability_materials"
+        | "sustainability_faq"
+        | "sustainability_cta"
+        | "donation_hero"
+        | "donation_impact"
+        | "donation_form"
+        | "donation_stories"
+        | "donation_partners"
+        | "donation_faq"
+        | "donation_join_movement"
+        | "for_business_hero"
+        | "for_business_solutions"
       component_status: "draft" | "published" | "archived"
       content_block_type:
         | "heading"
