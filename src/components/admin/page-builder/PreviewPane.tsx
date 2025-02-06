@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
@@ -201,13 +202,13 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content} />;
+              return <Sustainability content={block.content as SustainabilityContent} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content} />;
+              return <Testimonials content={block.content as TestimonialsContent} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              return <AboutCustomerImpact content={block.content as AboutCustomerImpactContent} />;
 
             case 'donation_hero':
               return <DonationHero content={block.content as DonationHeroContent} />;
