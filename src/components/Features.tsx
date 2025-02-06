@@ -12,7 +12,7 @@ const iconMap: { [key: string]: any } = {
   Shrink
 };
 
-export const Features = ({ content }: FeaturesProps) => {
+export const Features = ({ features, title, subtitle, description }: FeaturesProps) => {
   const defaultFeatures = [
     {
       icon: "Shrink",
@@ -46,8 +46,8 @@ export const Features = ({ content }: FeaturesProps) => {
     }
   ];
 
-  // Use content.features if available, otherwise use defaultFeatures
-  const features = content?.features || defaultFeatures;
+  // Use features if available, otherwise use defaultFeatures
+  const displayFeatures = features || defaultFeatures;
 
   return (
     <section className="py-32 bg-gradient-to-b from-white via-accent-purple/5 to-white">
@@ -60,20 +60,20 @@ export const Features = ({ content }: FeaturesProps) => {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {content?.title || "Why Choose Elloria?"}
+            {title || "Why Choose Elloria?"}
           </h2>
           <p className="text-gray-600 text-xl max-w-3xl mx-auto">
-            {content?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability"}
+            {subtitle || "Experience the perfect blend of comfort, protection, and sustainability"}
           </p>
-          {content?.description && (
+          {description && (
             <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
-              {content.description}
+              {description}
             </p>
           )}
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => {
+          {displayFeatures.map((feature, index) => {
             const Icon = iconMap[feature.icon] || Droplets;
             return (
               <motion.div

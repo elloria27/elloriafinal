@@ -1,152 +1,71 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { HomeHero } from "@/components/home/HomeHero";
+import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
-import { StoreBrands } from "@/components/StoreBrands";
-import { Sustainability } from "@/components/Sustainability";
-import { ProductCarousel } from "@/components/ProductCarousel";
 import { CompetitorComparison } from "@/components/CompetitorComparison";
+import { ProductCarousel } from "@/components/ProductCarousel";
 import { Testimonials } from "@/components/Testimonials";
-import { BlogPreview } from "@/components/BlogPreview";
 import { Newsletter } from "@/components/Newsletter";
+import { StoreBrands } from "@/components/StoreBrands";
 import { GameChanger } from "@/components/GameChanger";
-import { SEOHead } from "@/components/SEOHead";
-import { useSEO } from "@/hooks/useSEO";
-import { toast } from "sonner";
-import { 
-  ContentBlock, 
-  BaseBlockContent,
-  HeroContent,
-  FeaturesProps,
-  GameChangerContent,
-  StoreBrandsContent,
-  SustainabilityContent,
-  ProductCarouselContent,
-  TestimonialsContent,
-  BlogPreviewContent,
-  NewsletterContent
-} from "@/types/content-blocks";
+import { Sustainability } from "@/components/Sustainability";
+import { supabase } from "@/integrations/supabase/client";
+import { ContentBlock } from "@/types/content-blocks";
 
-const Index = () => {
+export const Index = () => {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);
-  const { seoData, loading: seoLoading } = useSEO();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchHomePageContent = async () => {
+    const fetchContent = async () => {
       try {
-        console.log('Fetching homepage content...');
-        
-        // First, get the homepage slug from site settings
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('site_settings')
-          .select('homepage_slug')
-          .limit(1)
-          .maybeSingle();
-
-        if (settingsError) {
-          console.error('Error fetching homepage slug:', settingsError);
-          toast.error("Error loading homepage content");
-          return;
-        }
-
-        // If no settings found or no homepage_slug set, use 'index' as default
-        const homepageSlug = settingsData?.homepage_slug || 'index';
-        console.log('Homepage slug:', homepageSlug);
-
-        // Then fetch the page content using the slug
-        const { data: pageData, error: pageError } = await supabase
-          .from('pages')
-          .select('id')
-          .eq('slug', homepageSlug)
-          .maybeSingle();
-
-        if (pageError) {
-          console.error('Error fetching page:', pageError);
-          toast.error("Error loading page content");
-          return;
-        }
-
-        if (!pageData) {
-          console.log('No page found with slug:', homepageSlug);
-          setBlocks([]);
-          return;
-        }
-
-        console.log('Page ID:', pageData.id);
-
-        // Finally, fetch the content blocks for this page
-        const { data: blocksData, error: blocksError } = await supabase
+        const { data, error } = await supabase
           .from('content_blocks')
           .select('*')
-          .eq('page_id', pageData.id)
+          .eq('page_id', 'home')
           .order('order_index');
 
-        if (blocksError) {
-          console.error('Error fetching content blocks:', blocksError);
-          toast.error("Error loading page content");
-          return;
-        }
+        if (error) throw error;
 
-        console.log('Content blocks:', blocksData);
-
-        // Transform the blocks data to match ContentBlock type
-        const transformedBlocks = blocksData?.map(block => ({
-          ...block,
-          content: block.content as BaseBlockContent
-        })) || [];
-
-        setBlocks(transformedBlocks);
-      } catch (error) {
-        console.error('Error:', error);
-        toast.error("Error loading page content");
+        setBlocks(data || []);
+      } catch (err) {
+        console.error('Error fetching content:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHomePageContent();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'content_blocks' },
-        () => {
-          console.log('Content blocks updated, refreshing...');
-          fetchHomePageContent();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    fetchContent();
   }, []);
 
   const renderBlock = (block: ContentBlock) => {
+    console.log('Rendering block:', block.type, block.content);
+
     switch (block.type) {
       case 'hero':
-        return <HomeHero content={block.content as HeroContent} />;
+        return <Hero content={block.content} />;
       case 'features':
-        return <Features content={block.content as FeaturesProps} />;
-      case 'game_changer':
-        return <GameChanger content={block.content as GameChangerContent} />;
-      case 'store_brands':
-        return <StoreBrands content={block.content as unknown as StoreBrandsContent} />;
-      case 'sustainability':
-        return <Sustainability content={block.content as SustainabilityContent} />;
-      case 'product_carousel':
-        return <ProductCarousel content={block.content as ProductCarouselContent} />;
-      case 'competitor_comparison':
+        return <Features 
+          features={block.content.features}
+          title={block.content.title}
+          subtitle={block.content.subtitle}
+          description={block.content.description}
+        />;
+      case 'competitor-comparison':
         return <CompetitorComparison content={block.content} />;
+      case 'product-carousel':
+        return <ProductCarousel content={block.content} />;
       case 'testimonials':
-        return <Testimonials content={block.content as TestimonialsContent} />;
-      case 'blog_preview':
-        return <BlogPreview content={block.content as BlogPreviewContent} />;
+        return <Testimonials content={block.content} />;
       case 'newsletter':
-        return <Newsletter content={block.content as NewsletterContent} />;
+        return <Newsletter content={block.content} />;
+      case 'store-brands':
+        return <StoreBrands content={block.content} />;
+      case 'game-changer':
+        return <GameChanger content={block.content} />;
+      case 'sustainability':
+        return <Sustainability content={block.content} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
@@ -155,31 +74,31 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      <SEOHead
-        title={seoData?.meta_title || undefined}
-        description={seoData?.meta_description || undefined}
-        keywords={seoData?.meta_keywords || undefined}
-        canonicalUrl={seoData?.canonical_url || undefined}
-        ogTitle={seoData?.og_title || undefined}
-        ogDescription={seoData?.og_description || undefined}
-        ogImage={seoData?.og_image || undefined}
-      />
-      <main className="flex-grow pt-20">
-        {blocks.map((block) => (
-          <div key={block.id}>
-            {renderBlock(block)}
-          </div>
-        ))}
-      </main>
-    </>
+    <main>
+      {blocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
+        </div>
+      ))}
+    </main>
   );
 };
 

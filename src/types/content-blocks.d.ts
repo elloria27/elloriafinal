@@ -18,18 +18,24 @@ export interface ContentBlock {
 }
 
 export interface CompetitorComparisonContent extends BaseBlockContent {
-  competitors?: Array<{
-    name: string;
-    features: string[];
+  metrics?: Array<{
+    category: string;
+    elloria: number;
+    competitors: number;
+    icon: string;
+    description: string;
   }>;
 }
 
-export interface FeaturesProps extends BaseBlockContent {
+export interface FeaturesProps {
   features?: Array<{
     icon: string;
     title: string;
     description: string;
   }>;
+  title?: string;
+  subtitle?: string;
+  description?: string;
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
@@ -63,6 +69,7 @@ export interface AboutHeroContent extends BaseBlockContent {
 export interface AboutStoryContent extends BaseBlockContent {
   videoUrl: string;
   videoThumbnail: string;
+  content?: string;
 }
 
 export interface AboutSustainabilityContent extends BaseBlockContent {
@@ -83,15 +90,22 @@ export interface AboutTeamContent extends BaseBlockContent {
   }>;
 }
 
+export interface AboutMissionContent extends BaseBlockContent {
+  values?: Array<{
+    title: string;
+    description: string;
+    icon: string;
+  }>;
+}
+
 export interface AboutCtaContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
   primaryButtonText?: string;
   secondaryButtonText?: string;
 }
 
 export interface ContactFormContent extends BaseBlockContent {
   submitText?: string;
+  secondaryButtonText?: string;
 }
 
 export interface ContactDetailsContent extends BaseBlockContent {
@@ -103,6 +117,18 @@ export interface ContactDetailsContent extends BaseBlockContent {
 export interface ContactBusinessContent extends BaseBlockContent {
   email: string;
   buttonLink: string;
+}
+
+export interface ContactHeroContent extends BaseBlockContent {
+  title: string;
+  subtitle: string;
+}
+
+export interface ContactFAQContent extends BaseBlockContent {
+  faqs: Array<{
+    question: string;
+    answer: string;
+  }>;
 }
 
 export interface HeroContent extends BaseBlockContent {
