@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -96,6 +95,32 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "donation_join_movement", label: "Join Movement", description: "Call to action" },
       ],
     },
+    {
+      category: "Thanks",
+      icon: "Heart",
+      items: [
+        { 
+          type: "thanks_welcome", 
+          label: "Welcome Section", 
+          description: "Thank you message with promo code" 
+        },
+        { 
+          type: "thanks_referral", 
+          label: "Referral Program", 
+          description: "Share and reward tiers" 
+        },
+        { 
+          type: "thanks_special_offer", 
+          label: "Special Offer", 
+          description: "Promotional offer with CTA" 
+        },
+        { 
+          type: "thanks_newsletter", 
+          label: "Newsletter", 
+          description: "Email subscription form" 
+        }
+      ]
+    }
   ];
 
   const filteredComponents = components.map(category => ({

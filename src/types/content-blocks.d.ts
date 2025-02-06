@@ -367,6 +367,34 @@ export interface DonationJoinMovementContent extends BaseBlockContent {
   icon?: string;
 }
 
+export interface ThanksWelcomeContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  promoCode?: string;
+}
+
+export interface ThanksReferralContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  referralTiers?: Array<{
+    count: number;
+    reward: string;
+  }>;
+}
+
+export interface ThanksSpecialOfferContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
+export interface ThanksNewsletterContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -409,7 +437,11 @@ export type BlockContent =
   | DonationStoriesContent
   | DonationPartnersContent
   | DonationFAQContent
-  | DonationJoinMovementContent;
+  | DonationJoinMovementContent
+  | ThanksWelcomeContent
+  | ThanksReferralContent
+  | ThanksSpecialOfferContent
+  | ThanksNewsletterContent;
 
 export type BlockType = 
   | "heading" 
@@ -460,17 +492,11 @@ export type BlockType =
   | "donation_stories"
   | "donation_partners"
   | "donation_faq"
-  | "donation_join_movement";
-
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+  | "donation_join_movement"
+  | "thanks_welcome"
+  | "thanks_referral"
+  | "thanks_special_offer"
+  | "thanks_newsletter";
 
 export interface FeaturesProps {
   content?: FeaturesContent;
