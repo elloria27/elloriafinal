@@ -442,25 +442,35 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "donation_hero"
-  | "sustainability_hero"
-  | "sustainability_mission"
-  | "sustainability_materials"
-  | "sustainability_faq"
-  | "sustainability_cta"
-  | "donation_impact"
-  | "donation_form"
-  | "donation_stories"
-  | "donation_partners"
-  | "donation_faq"
-  | "donation_join_movement"
   | "business_hero"
   | "business_solutions"
   | "business_contact"
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
-  | "custom_solutions_cta";
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta"
+  | "donation_hero"
+  | "donation_impact"
+  | "donation_form"
+  | "donation_stories"
+  | "donation_partners"
+  | "donation_faq"
+  | "donation_join_movement";
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface FeaturesProps {
   content?: FeaturesContent;
@@ -489,16 +499,6 @@ export interface DeliveryMethod {
   base_price: number;
   estimated_days?: string;
   regions?: string[];
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -1634,6 +1634,22 @@ export type Database = {
       }
     }
     Enums: {
+      block_type:
+        | "hero"
+        | "elevating_essentials"
+        | "game_changer"
+        | "features"
+        | "store_brands"
+        | "sustainability"
+        | "product_carousel"
+        | "testimonials"
+        | "newsletter"
+        | "about_hero_section"
+        | "about_story"
+        | "about_mission"
+        | "about_sustainability"
+        | "about_team"
+        | "about_customer_impact"
       component_status: "draft" | "published" | "archived"
       content_block_type:
         | "heading"
@@ -1676,9 +1692,6 @@ export type Database = {
         | "donation_partners"
         | "donation_faq"
         | "donation_join_movement"
-        | "business_hero"
-        | "business_solutions"
-        | "business_contact"
       expense_category:
         | "inventory"
         | "marketing"
