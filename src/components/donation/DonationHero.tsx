@@ -1,6 +1,12 @@
-import { motion } from "framer-motion";
 
-export const DonationHero = () => {
+import { motion } from "framer-motion";
+import { DonationHeroContent } from "@/types/content-blocks";
+
+interface DonationHeroProps {
+  content: DonationHeroContent;
+}
+
+export const DonationHero = ({ content }: DonationHeroProps) => {
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-20">
       <div className="absolute inset-0 bg-gradient-to-br from-secondary/30 to-primary/20" />
@@ -21,12 +27,10 @@ export const DonationHero = () => {
           className="max-w-3xl mx-auto text-center"
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900">
-            Join Us in Supporting{" "}
-            <span className="text-primary">Women and Children in Need</span>
+            {content.title || "Join Us in Supporting Women and Children in Need"}
           </h1>
           <p className="text-xl md:text-2xl text-gray-800 mb-8">
-            Your contribution helps provide essential hygiene products and support to
-            those who need it most.
+            {content.description || "Your contribution helps provide essential hygiene products and support to those who need it most."}
           </p>
           <button
             onClick={() => {
@@ -35,7 +39,7 @@ export const DonationHero = () => {
             }}
             className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/90 transition-colors"
           >
-            Donate Now
+            {content.buttonText || "Donate Now"}
           </button>
         </motion.div>
       </div>
