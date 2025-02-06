@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -80,6 +81,19 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "contact_form", label: "Contact Form", description: "Get in touch form" },
         { type: "contact_faq", label: "Contact FAQ", description: "Common questions" },
         { type: "contact_business", label: "Business Contact", description: "Business inquiries section" },
+      ],
+    },
+    {
+      category: "Donation",
+      icon: "Heart",
+      items: [
+        { type: "donation_hero", label: "Donation Hero", description: "Donation page header" },
+        { type: "donation_impact", label: "Donation Impact", description: "Show donation impact" },
+        { type: "donation_form", label: "Donation Form", description: "Accept donations" },
+        { type: "donation_stories", label: "Donation Stories", description: "Success stories" },
+        { type: "donation_partners", label: "Donation Partners", description: "Partner organizations" },
+        { type: "donation_faq", label: "Donation FAQ", description: "Common questions" },
+        { type: "donation_join_movement", label: "Join Movement", description: "Call to action" },
       ],
     },
   ];
