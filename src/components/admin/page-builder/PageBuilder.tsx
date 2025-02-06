@@ -167,7 +167,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="space-y-4 min-h-[400px]"
+                  className="space-y-2 min-h-[200px]"
                 >
                   {unsavedBlocks.map((block, index) => (
                     <Draggable key={block.id} draggableId={block.id} index={index}>

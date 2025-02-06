@@ -145,20 +145,26 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
       return (
         <div className="space-y-4">
           <div>
-            <Label>Height (e.g., "32px" or "2rem")</Label>
+            <Label>Height</Label>
             <Input
-              value={block.content.height as string || "32px"}
-              onChange={(e) => handleChange("height", e.target.value)}
-              placeholder="32px"
+              type="number"
+              value={Number(block.content.height) || 32}
+              onChange={(e) => handleChange("height", `${e.target.value}px`)}
+              min={0}
+              max={500}
             />
+            <span className="text-sm text-gray-500 mt-1">Height in pixels</span>
           </div>
           <div>
-            <Label>Indentation (e.g., "16px" or "1rem")</Label>
+            <Label>Indentation</Label>
             <Input
-              value={block.content.indent as string || "0px"}
-              onChange={(e) => handleChange("indent", e.target.value)}
-              placeholder="0px"
+              type="number"
+              value={Number(block.content.indent?.replace('px', '')) || 0}
+              onChange={(e) => handleChange("indent", `${e.target.value}px`)}
+              min={0}
+              max={100}
             />
+            <span className="text-sm text-gray-500 mt-1">Left and right indentation in pixels</span>
           </div>
         </div>
       );

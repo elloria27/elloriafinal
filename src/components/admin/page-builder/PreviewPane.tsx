@@ -77,7 +77,7 @@ export const PreviewPane = ({
           if (isAdmin) {
             return (
               <div 
-                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
+                className="p-4 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
                 onClick={() => onSelectBlock(block)}
               >
                 <div className="font-medium text-lg mb-1">{block.type}</div>
@@ -141,10 +141,14 @@ export const PreviewPane = ({
               );
 
             case 'spacer':
-              const height = typeof block.content.height === 'string' ? block.content.height : '32px';
-              const indent = typeof block.content.indent === 'string' ? block.content.indent : '0px';
+              const height = block.content.height || '32px';
+              const indent = block.content.indent || '0px';
               return (
-                <div style={{ height, marginLeft: indent, marginRight: indent }} />
+                <div style={{ 
+                  height: typeof height === 'number' ? `${height}px` : height,
+                  marginLeft: typeof indent === 'number' ? `${indent}px` : indent,
+                  marginRight: typeof indent === 'number' ? `${indent}px` : indent
+                }} />
               );
 
             case 'contact_business':
@@ -262,7 +266,7 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="w-full min-h-[400px] relative">
+    <div className="w-full min-h-[200px] relative">
       {blocks.length > 0 ? (
         blocks.map((block) => renderBlock(block))
       ) : (
