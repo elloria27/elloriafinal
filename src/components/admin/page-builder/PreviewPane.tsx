@@ -148,15 +148,31 @@ export const PreviewPane = ({
 
                 default:
                   try {
-                    const { default: Component } = require(`@/components/${block.type.split('_').join('/')}`);
-                    return <Component content={block.content} />;
+                    // Dynamic import for custom components
+                    const path = `@/components/${block.type.split('_').join('/')}`;
+                    console.log('Attempting to load component from path:', path);
+                    
+                    // Use dynamic require for components
+                    try {
+                      const Component = require(path).default;
+                      if (!Component) {
+                        throw new Error(`Component not found at path: ${path}`);
+                      }
+                      return <Component content={block.content} />;
+                    } catch (importError) {
+                      console.error(`Error importing component from ${path}:`, importError);
+                      // For non-admin view, render nothing if component fails to load
+                      if (!isAdmin) return null;
+                      // For admin view, show error state
+                      return (
+                        <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
+                          Error loading component: {block.type}
+                        </div>
+                      );
+                    }
                   } catch (error) {
-                    console.error(`Error loading component ${block.type}:`, error);
-                    return (
-                      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
-                        Error loading component: {block.type}
-                      </div>
-                    );
+                    console.error(`Error in component rendering for ${block.type}:`, error);
+                    return null;
                   }
               }
             })()}
@@ -195,3 +211,4 @@ export const PreviewPane = ({
     </div>
   );
 };
+
