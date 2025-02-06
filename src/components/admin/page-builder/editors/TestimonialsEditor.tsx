@@ -2,19 +2,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, TestimonialsContent } from "@/types/content-blocks";
-import { Json } from "@/integrations/supabase/types";
+import { ContentBlock, TestimonialsContent, TestimonialItem } from "@/types/content-blocks";
+import { convertToTestimonialItems } from "@/utils/contentConverters";
 
 interface TestimonialsEditorProps {
   block: ContentBlock;
   onUpdate: (blockId: string, content: TestimonialsContent) => void;
-}
-
-interface TestimonialItem {
-  name: string;
-  rating: number;
-  text: string;
-  source: string;
 }
 
 export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps) => {
@@ -41,7 +34,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     const updatedTestimonials = [...testimonials, newTestimonial];
     onUpdate(block.id, {
       ...content,
-      testimonials: updatedTestimonials as unknown as Json
+      testimonials: updatedTestimonials
     });
   };
 
@@ -50,7 +43,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     testimonials.splice(index, 1);
     onUpdate(block.id, { 
       ...content, 
-      testimonials: testimonials as unknown as Json 
+      testimonials: testimonials
     });
   };
 
@@ -64,25 +57,12 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     testimonials[index] = updatedTestimonial;
     onUpdate(block.id, { 
       ...content, 
-      testimonials: testimonials as unknown as Json 
+      testimonials: testimonials
     });
   };
 
   const getTestimonials = (): TestimonialItem[] => {
-    if (!content.testimonials) return [];
-    if (Array.isArray(content.testimonials)) {
-      return content.testimonials.map(t => {
-        if (typeof t === 'string') {
-          try {
-            return JSON.parse(t);
-          } catch {
-            return null;
-          }
-        }
-        return t as TestimonialItem;
-      }).filter((t): t is TestimonialItem => t !== null);
-    }
-    return [];
+    return convertToTestimonialItems(content.testimonials);
   };
 
   return (

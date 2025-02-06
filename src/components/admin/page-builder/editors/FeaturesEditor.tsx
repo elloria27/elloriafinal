@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, FeaturesContent, FeatureItem } from "@/types/content-blocks";
-import { Json } from "@/integrations/supabase/types";
+import { convertToFeatureItems } from "@/utils/contentConverters";
 
 interface FeaturesEditorProps {
   block: ContentBlock;
@@ -33,7 +33,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     const updatedFeatures = [...features, newFeature];
     onUpdate(block.id, {
       ...content,
-      features: updatedFeatures as unknown as Json
+      features: updatedFeatures
     });
   };
 
@@ -42,7 +42,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     features.splice(index, 1);
     onUpdate(block.id, { 
       ...content, 
-      features: features as unknown as Json 
+      features: features
     });
   };
 
@@ -53,25 +53,12 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     features[index] = updatedFeature;
     onUpdate(block.id, { 
       ...content, 
-      features: features as unknown as Json 
+      features: features
     });
   };
 
   const getFeatures = (): FeatureItem[] => {
-    if (!content.features) return [];
-    if (Array.isArray(content.features)) {
-      return content.features.map(f => {
-        if (typeof f === 'string') {
-          try {
-            return JSON.parse(f);
-          } catch {
-            return null;
-          }
-        }
-        return f as FeatureItem;
-      }).filter((f): f is FeatureItem => f !== null);
-    }
-    return [];
+    return convertToFeatureItems(content.features);
   };
 
   return (
