@@ -68,24 +68,6 @@ export const BusinessComponentsEditor = ({ block, onUpdate }: BusinessComponents
                   handleUpdate({ solutions: newSolutions });
                 }}
               />
-              <Input
-                placeholder="Button Text"
-                value={solution.buttonText || ""}
-                onChange={(e) => {
-                  const newSolutions = [...(solutionsContent.solutions || [])];
-                  newSolutions[index] = { ...solution, buttonText: e.target.value };
-                  handleUpdate({ solutions: newSolutions });
-                }}
-              />
-              <Input
-                placeholder="Link"
-                value={solution.link || ""}
-                onChange={(e) => {
-                  const newSolutions = [...(solutionsContent.solutions || [])];
-                  newSolutions[index] = { ...solution, link: e.target.value };
-                  handleUpdate({ solutions: newSolutions });
-                }}
-              />
             </div>
           ))}
           <Button
@@ -93,7 +75,7 @@ export const BusinessComponentsEditor = ({ block, onUpdate }: BusinessComponents
             onClick={() => {
               const newSolutions = [
                 ...(solutionsContent.solutions || []),
-                { icon: "", title: "", description: "", buttonText: "", link: "" }
+                { icon: "", title: "", description: "" }
               ];
               handleUpdate({ solutions: newSolutions });
             }}
@@ -105,7 +87,7 @@ export const BusinessComponentsEditor = ({ block, onUpdate }: BusinessComponents
     );
   }
 
-  if (block.type === "business_contact") {
+  if (block.type === "business_contact_form") {
     const contactContent = content as BusinessContactFormContent;
     return (
       <div className="space-y-4">

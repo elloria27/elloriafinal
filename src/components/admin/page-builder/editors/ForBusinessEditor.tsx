@@ -181,7 +181,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
         </div>
       );
 
-    case "business_contact":
+    case "business_contact_form":
       const contactContent = block.content as BusinessContactFormContent;
       return (
         <div className="space-y-4">
