@@ -1637,6 +1637,11 @@ export type Database = {
         | "contact_business"
         | "donation_hero"
         | "spacer"
+        | "sustainability_hero"
+        | "sustainability_mission"
+        | "sustainability_materials"
+        | "sustainability_faq"
+        | "sustainability_cta"
       expense_category:
         | "inventory"
         | "marketing"

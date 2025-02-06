@@ -24,6 +24,13 @@ import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { cn } from "@/lib/utils";
 
+// Import new sustainability components
+import { SustainabilityHero } from "@/components/sustainability/SustainabilityHero";
+import { SustainabilityMission } from "@/components/sustainability/SustainabilityMission";
+import { SustainabilityMaterials } from "@/components/sustainability/SustainabilityMaterials";
+import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
+import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
+
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
@@ -246,6 +253,22 @@ export const PreviewPane = ({
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
 
+            // Add new sustainability component cases
+            case 'sustainability_hero':
+              return <SustainabilityHero content={block.content} />;
+            
+            case 'sustainability_mission':
+              return <SustainabilityMission content={block.content} />;
+            
+            case 'sustainability_materials':
+              return <SustainabilityMaterials content={block.content} />;
+            
+            case 'sustainability_faq':
+              return <SustainabilityFAQ content={block.content} />;
+            
+            case 'sustainability_cta':
+              return <SustainabilityCTA content={block.content} />;
+
             default:
               return (
                 <div className={`p-4 border border-dashed rounded-lg ${
@@ -263,7 +286,7 @@ export const PreviewPane = ({
       <div 
         key={block.id} 
         className={cn(
-          "relative w-full mb-4", // Added mb-4 for consistent spacing
+          "relative w-full mb-4",
           selectedBlockId === block.id && "ring-2 ring-primary ring-opacity-50"
         )}
       >
