@@ -82,6 +82,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "donation_join_movement",
   ];
 
+  // Thanks page components
+  const thanksComponents = [
+    "thanks_welcome",
+    "thanks_referral",
+    "thanks_special_offer",
+    "thanks_newsletter",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -130,6 +138,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return <DonationEditor block={block} onUpdate={onUpdate} />;
     }
 
+    if (thanksComponents.includes(block.type)) {
+      return <CommonEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (commonComponents.includes(block.type)) {
       return <CommonEditor block={block} onUpdate={onUpdate} />;
     }
@@ -149,3 +161,4 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
+
