@@ -77,8 +77,8 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[90vw] max-h-[90vh] w-full flex flex-col">
-        <DialogHeader>
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>Add Component</DialogTitle>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -91,13 +91,13 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        <ScrollArea className="flex-1 p-6 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredComponents.map((category) => (
               <div 
                 key={category.category}
                 className={cn(
-                  "space-y-2 p-4 rounded-lg border",
+                  "space-y-2 p-4 rounded-lg border bg-card",
                   selectedCategory === category.category && "ring-2 ring-primary"
                 )}
                 onClick={() => setSelectedCategory(category.category)}
@@ -110,7 +110,7 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
                     <Button
                       key={item.type}
                       variant="outline"
-                      className="w-full justify-start text-sm h-auto py-3 relative group"
+                      className="w-full justify-start text-sm min-h-[4.5rem] p-3 relative group"
                       onClick={() => handleSelect(item.type as BlockType)}
                     >
                       <div className="flex flex-col items-start gap-1">
