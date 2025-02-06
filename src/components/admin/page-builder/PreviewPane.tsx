@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
 import { Features } from "@/components/Features";
 import { GameChanger } from "@/components/GameChanger";
@@ -38,6 +38,31 @@ interface PreviewPaneProps {
   onDeleteBlock?: (blockId: string) => void;
   isAdmin?: boolean;
 }
+
+const PlaceholderComponent = ({ type, content }: { type: string; content: BlockContent }) => {
+  return (
+    <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+      <div className="flex items-center gap-2 text-gray-600">
+        <LayoutPanelLeft className="h-5 w-5" />
+        <span className="font-medium">{type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+      </div>
+      {content && (
+        <div className="mt-2 text-sm text-gray-500">
+          {Object.entries(content).map(([key, value]) => {
+            if (typeof value === 'string' && key !== 'type') {
+              return (
+                <div key={key} className="mt-1">
+                  <span className="font-medium">{key}:</span> {value.substring(0, 50)}{value.length > 50 ? '...' : ''}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const PreviewPane = ({ 
   blocks, 
@@ -81,6 +106,12 @@ export const PreviewPane = ({
         )}
 
         {(() => {
+          // If in admin mode, show placeholder components
+          if (isAdmin) {
+            return <PlaceholderComponent type={block.type} content={block.content} />;
+          }
+
+          // Otherwise render the actual components
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -170,13 +201,13 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content as any} />;
+              return <Sustainability content={block.content} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content as any} />;
+              return <Testimonials content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content as any} />;
+              return <AboutCustomerImpact content={block.content} />;
 
             case 'donation_hero':
               return <DonationHero content={block.content as DonationHeroContent} />;
