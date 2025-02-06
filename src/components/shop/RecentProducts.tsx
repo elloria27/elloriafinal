@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
+import { parseProduct } from "@/utils/supabase-helpers";
 
 export const RecentProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,8 +25,11 @@ export const RecentProducts = () => {
           .limit(3);
 
         if (error) throw error;
-        console.log('Fetched recent products:', data);
-        setProducts(data || []);
+        
+        // Parse the products using the helper function
+        const parsedProducts = data.map(parseProduct);
+        console.log('Fetched recent products:', parsedProducts);
+        setProducts(parsedProducts);
       } catch (error) {
         console.error('Error:', error);
         toast.error('Failed to load recent products');
