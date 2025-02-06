@@ -1,3 +1,4 @@
+
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -8,6 +9,7 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
+import { DonationEditor } from "./editors/DonationEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -69,6 +71,17 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "custom_solutions_cta",
   ];
 
+  // Donation page components
+  const donationComponents = [
+    "donation_hero",
+    "donation_impact",
+    "donation_form",
+    "donation_stories",
+    "donation_partners",
+    "donation_faq",
+    "donation_join_movement",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -111,6 +124,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (customSolutionsComponents.includes(block.type)) {
       return <CustomSolutionsEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (donationComponents.includes(block.type)) {
+      return <DonationEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {
