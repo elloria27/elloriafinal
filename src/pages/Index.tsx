@@ -15,7 +15,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { toast } from "sonner";
 import { 
   ContentBlock, 
-  BlockContent,
+  BaseBlockContent,
   HeroContent,
   FeaturesContent,
   GameChangerContent,
@@ -134,13 +134,13 @@ const Index = () => {
       case 'game_changer':
         return <GameChanger content={block.content as GameChangerContent} />;
       case 'store_brands':
-        return <StoreBrands content={block.content as StoreBrandsContent} />;
+        return <StoreBrands content={block.content as unknown as StoreBrandsContent} />;
       case 'sustainability':
         return <Sustainability content={block.content as SustainabilityContent} />;
       case 'product_carousel':
         return <ProductCarousel content={block.content as ProductCarouselContent} />;
       case 'competitor_comparison':
-        return <CompetitorComparison content={block.content as BlockContent} />;
+        return <CompetitorComparison content={block.content} />;
       case 'testimonials':
         return <Testimonials content={block.content as TestimonialsContent} />;
       case 'blog_preview':
