@@ -1,6 +1,7 @@
 import { BlogHero } from "@/components/blog/BlogHero";
 import { InstagramFeed } from "@/components/blog/InstagramFeed";
 import { BlogPosts } from "@/components/blog/BlogPosts";
+import { RecentPosts } from "@/components/blog/RecentPosts";
 import { motion } from "framer-motion";
 
 const Blog = () => {
@@ -12,6 +13,7 @@ const Blog = () => {
       className="min-h-screen"
     >
       <BlogHero />
+      <RecentPosts />
       <InstagramFeed />
       <BlogPosts />
     </motion.main>

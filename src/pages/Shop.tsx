@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
+import { RecentProducts } from "@/components/shop/RecentProducts";
 import { useState } from "react";
 import { initialProducts } from "@/data/initialProducts";
 
@@ -39,6 +40,7 @@ export default function Shop() {
     <div className="min-h-screen bg-white">
       <Header />
       <ShopHero />
+      <RecentProducts />
       
       <main className="container mx-auto px-4 py-12">
         <ShopFilters 
