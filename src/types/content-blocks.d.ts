@@ -1,63 +1,57 @@
-import { Json } from "@/integrations/supabase/types";
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 export interface BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: ReactNode;
-  buttonText?: string;
-  buttonUrl?: string;
 }
 
-export interface ContentBlock {
-  id: string;
-  type: string;
-  content: BaseBlockContent;
-  page_id: string;
-  order_index: number;
-}
-
-export interface CompetitorComparisonContent extends BaseBlockContent {
-  metrics?: Array<{
-    category: string;
-    elloria: number;
-    competitors: number;
-    icon: string;
-    description: string;
-  }>;
+export interface HeroContent extends BaseBlockContent {
+  title: string;
+  subtitle: string;
+  backgroundImage?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
 }
 
 export interface FeaturesProps {
-  features?: Array<{
+  features: {
     icon: string;
     title: string;
     description: string;
-  }>;
-  title?: string;
-  subtitle?: string;
-  description?: string;
+  }[];
+  title: string;
+  subtitle: string;
+  description?: ReactNode;
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
-  testimonials?: Array<{
-    quote: string;
-    author: string;
+  testimonials: {
+    name: string;
     role: string;
-    rating: number;
-  }>;
+    content: string;
+    image?: string;
+  }[];
+}
+
+export interface ProductCarouselContent extends BaseBlockContent {
+  title: string;
+  subtitle: string;
 }
 
 export interface AboutCustomerImpactContent extends BaseBlockContent {
-  stats: Array<{
+  stats: {
     value: string;
     label: string;
-  }>;
-  testimonials: Array<{
-    quote: string;
-    author: string;
+  }[];
+  testimonials: {
+    name: string;
     role: string;
-    rating: number;
-  }>;
+    content: string;
+    image?: string;
+  }[];
 }
 
 export interface AboutHeroContent extends BaseBlockContent {
@@ -69,43 +63,29 @@ export interface AboutHeroContent extends BaseBlockContent {
 export interface AboutStoryContent extends BaseBlockContent {
   videoUrl: string;
   videoThumbnail: string;
-  content?: string;
 }
 
 export interface AboutSustainabilityContent extends BaseBlockContent {
-  stats: Array<{
+  stats: {
     icon: string;
     value: string;
     label: string;
     description: string;
-  }>;
+  }[];
 }
 
 export interface AboutTeamContent extends BaseBlockContent {
-  members: Array<{
+  members: {
     name: string;
     role: string;
     image: string;
     quote: string;
-  }>;
+  }[];
 }
 
-export interface AboutMissionContent extends BaseBlockContent {
-  values?: Array<{
-    title: string;
-    description: string;
-    icon: string;
-  }>;
-}
-
-export interface AboutCtaContent extends BaseBlockContent {
-  primaryButtonText?: string;
-  secondaryButtonText?: string;
-}
-
-export interface ContactFormContent extends BaseBlockContent {
-  submitText?: string;
-  secondaryButtonText?: string;
+export interface ContactHeroContent extends BaseBlockContent {
+  title: string;
+  subtitle: string;
 }
 
 export interface ContactDetailsContent extends BaseBlockContent {
@@ -114,76 +94,38 @@ export interface ContactDetailsContent extends BaseBlockContent {
   email: string;
 }
 
+export interface ContactFAQContent extends BaseBlockContent {
+  faqs: {
+    question: string;
+    answer: string;
+  }[];
+}
+
 export interface ContactBusinessContent extends BaseBlockContent {
   email: string;
   buttonLink: string;
 }
 
-export interface ContactHeroContent extends BaseBlockContent {
+export interface BulkOrdersContent extends BaseBlockContent {
   title: string;
   subtitle: string;
-}
-
-export interface ContactFAQContent extends BaseBlockContent {
-  faqs: Array<{
-    question: string;
-    answer: string;
-  }>;
-}
-
-export interface HeroContent extends BaseBlockContent {
-  videoUrl?: string;
-  videoPoster?: string;
-  shopNowText?: string;
-  learnMoreText?: string;
-}
-
-export interface StoreBrandsContent extends BaseBlockContent {
-  features?: Array<{
-    name: string;
-    logo: string;
-    link: string;
-  }>;
-}
-
-export interface GameChangerContent extends BaseBlockContent {
-  features?: Array<{
+  features: {
     icon: string;
     title: string;
     description: string;
-    detail?: string;
-  }>;
+  }[];
 }
 
-export interface SustainabilityContent extends BaseBlockContent {
-  stats?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-    color: string;
-  }>;
-  timelineItems?: string[];
+export interface BulkOrdersProps {
+  content: BulkOrdersContent;
 }
 
-export interface ProductCarouselContent extends BaseBlockContent {
-  products?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-  }>;
-}
-
-export interface BlogPreviewContent extends BaseBlockContent {
-  posts?: Array<{
-    id: string;
-    title: string;
-    excerpt: string;
-    image: string;
-  }>;
-}
-
-export interface NewsletterContent extends BaseBlockContent {
-  buttonText?: string;
+export interface ContentBlock {
+  id: string;
+  type: string;
+  content: BaseBlockContent;
+  page_id: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
 }
