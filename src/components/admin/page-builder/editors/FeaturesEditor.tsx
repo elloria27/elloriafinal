@@ -30,16 +30,20 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
       description: "Feature description"
     };
 
+    const updatedFeatures = [...features, newFeature];
     onUpdate(block.id, {
       ...content,
-      features: [...features, newFeature] as Json
+      features: updatedFeatures as unknown as Json
     });
   };
 
   const handleFeatureRemove = (index: number) => {
     const features = getFeatures();
     features.splice(index, 1);
-    onUpdate(block.id, { ...content, features: features as Json });
+    onUpdate(block.id, { 
+      ...content, 
+      features: features as unknown as Json 
+    });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
@@ -47,7 +51,10 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     const feature = features[index];
     const updatedFeature = { ...feature, [field]: value };
     features[index] = updatedFeature;
-    onUpdate(block.id, { ...content, features: features as Json });
+    onUpdate(block.id, { 
+      ...content, 
+      features: features as unknown as Json 
+    });
   };
 
   const getFeatures = (): FeatureItem[] => {
@@ -61,7 +68,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
             return null;
           }
         }
-        return f;
+        return f as FeatureItem;
       }).filter((f): f is FeatureItem => f !== null);
     }
     return [];

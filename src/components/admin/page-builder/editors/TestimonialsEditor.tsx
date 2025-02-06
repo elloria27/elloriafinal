@@ -38,16 +38,20 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
       source: "Verified Purchase"
     };
 
+    const updatedTestimonials = [...testimonials, newTestimonial];
     onUpdate(block.id, {
       ...content,
-      testimonials: [...testimonials, newTestimonial] as Json
+      testimonials: updatedTestimonials as unknown as Json
     });
   };
 
   const handleTestimonialRemove = (index: number) => {
     const testimonials = getTestimonials();
     testimonials.splice(index, 1);
-    onUpdate(block.id, { ...content, testimonials: testimonials as Json });
+    onUpdate(block.id, { 
+      ...content, 
+      testimonials: testimonials as unknown as Json 
+    });
   };
 
   const handleTestimonialUpdate = (index: number, field: string, value: string) => {
@@ -58,7 +62,10 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
       [field]: field === 'rating' ? Number(value) : value 
     };
     testimonials[index] = updatedTestimonial;
-    onUpdate(block.id, { ...content, testimonials: testimonials as Json });
+    onUpdate(block.id, { 
+      ...content, 
+      testimonials: testimonials as unknown as Json 
+    });
   };
 
   const getTestimonials = (): TestimonialItem[] => {
@@ -72,7 +79,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
             return null;
           }
         }
-        return t;
+        return t as TestimonialItem;
       }).filter((t): t is TestimonialItem => t !== null);
     }
     return [];
