@@ -16,14 +16,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Database } from "@/integrations/supabase/types";
+
+type PageComponent = {
+  id: string;
+  type: string;
+  content: any;
+  order: number;
+  settings?: any;
+};
+
+type Page = Database['public']['Tables']['pages']['Row'];
+type PageComponentRow = Database['public']['Tables']['page_components']['Row'];
 
 export const PageManagement = () => {
-  const [pages, setPages] = useState<any[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingPage, setEditingPage] = useState<any>(null);
+  const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [builderDialogOpen, setBuilderDialogOpen] = useState(false);
-  const [pageComponents, setPageComponents] = useState<any[]>([]);
+  const [pageComponents, setPageComponents] = useState<PageComponent[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,12 +44,14 @@ export const PageManagement = () => {
 
   const fetchPages = async () => {
     try {
+      console.log('Fetching pages...');
       const { data, error } = await supabase
         .from('pages')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('Fetched pages:', data);
       setPages(data || []);
     } catch (error) {
       console.error('Error fetching pages:', error);
@@ -49,6 +63,7 @@ export const PageManagement = () => {
 
   const fetchPageComponents = async (pageId: string) => {
     try {
+      console.log('Fetching page components for page:', pageId);
       const { data, error } = await supabase
         .from('page_components')
         .select('*')
@@ -57,6 +72,7 @@ export const PageManagement = () => {
 
       if (error) throw error;
       
+      console.log('Fetched page components:', data);
       const components = data.map(component => ({
         id: component.id,
         type: component.type,
@@ -100,10 +116,13 @@ export const PageManagement = () => {
     }
   };
 
-  const handleUpdateComponents = async (components: any[]) => {
+  const handleUpdateComponents = async (components: PageComponent[]) => {
     if (!editingPage) return;
     
     try {
+      console.log('Updating components for page:', editingPage.id);
+      console.log('New components:', components);
+
       // Delete existing components
       await supabase
         .from('page_components')
@@ -154,7 +173,8 @@ export const PageManagement = () => {
     navigate(`/${slug}`);
   };
 
-  const handleOpenBuilder = async (page: any) => {
+  const handleOpenBuilder = async (page: Page) => {
+    console.log('Opening builder for page:', page);
     setEditingPage(page);
     await fetchPageComponents(page.id);
     setBuilderDialogOpen(true);
