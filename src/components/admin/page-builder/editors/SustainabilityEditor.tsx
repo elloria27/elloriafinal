@@ -4,7 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ContentBlock } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Image } from "lucide-react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
 
 interface SustainabilityEditorProps {
   block: ContentBlock;
@@ -80,6 +81,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
   const [content, setContent] = useState<any>(
     block.content || defaultContent[block.type as keyof typeof defaultContent]
   );
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
 
   useEffect(() => {
     setContent(block.content || defaultContent[block.type as keyof typeof defaultContent]);
@@ -174,12 +176,39 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
         />
       </div>
       <div>
-        <Label>Background Image URL</Label>
-        <Input
-          value={content.backgroundImage || ''}
-          onChange={(e) => handleChange('backgroundImage', e.target.value)}
-        />
+        <Label>Background Image</Label>
+        <div className="flex gap-2 items-center">
+          <Input
+            value={content.backgroundImage || ''}
+            onChange={(e) => handleChange('backgroundImage', e.target.value)}
+            readOnly
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setMediaLibraryOpen(true)}
+          >
+            <Image className="h-4 w-4" />
+          </Button>
+        </div>
+        {content.backgroundImage && (
+          <img
+            src={content.backgroundImage}
+            alt="Background preview"
+            className="mt-2 max-w-[200px] rounded-md"
+          />
+        )}
       </div>
+      <MediaLibraryModal
+        open={mediaLibraryOpen}
+        onClose={() => setMediaLibraryOpen(false)}
+        onSelect={(url) => {
+          handleChange('backgroundImage', url);
+          setMediaLibraryOpen(false);
+        }}
+        type="image"
+      />
     </div>
   );
 
