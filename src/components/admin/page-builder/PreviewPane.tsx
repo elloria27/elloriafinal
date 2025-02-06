@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,13 @@ import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
+import { DonationHero } from "@/components/donation/DonationHero";
+import { DonationImpact } from "@/components/donation/DonationImpact";
+import { DonationForm } from "@/components/donation/DonationForm";
+import { DonationStories } from "@/components/donation/DonationStories";
+import { DonationPartners } from "@/components/donation/DonationPartners";
+import { DonationFAQ } from "@/components/donation/DonationFAQ";
+import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -75,20 +81,6 @@ export const PreviewPane = ({
         )}
 
         {(() => {
-          // Check if it's a donation component and we're in admin mode
-          if (isAdmin && block.type.startsWith('donation_')) {
-            return (
-              <div className={`p-6 border-2 border-dashed rounded-lg ${
-                selectedBlockId === block.id ? 'border-primary bg-primary/5' : 'border-gray-300'
-              }`}>
-                <div className="text-center">
-                  <h3 className="text-lg font-medium capitalize">{block.type.replace('_', ' ')}</h3>
-                  <p className="text-sm text-gray-500 mt-1">This component will be rendered on the frontend</p>
-                </div>
-              </div>
-            );
-          }
-
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -250,4 +242,3 @@ export const PreviewPane = ({
     </div>
   );
 };
-
