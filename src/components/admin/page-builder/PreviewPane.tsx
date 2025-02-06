@@ -22,6 +22,7 @@ import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { cn } from "@/lib/utils";
+import { Json } from "@/integrations/supabase/types";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -30,6 +31,30 @@ interface PreviewPaneProps {
   onDeleteBlock?: (blockId: string) => void;
   isAdmin?: boolean;
 }
+
+// Type guard functions
+const isValidStat = (stat: any): stat is { icon: "Recycle" | "Leaf" | "TreePine"; value: string; label: string; description: string } => {
+  return (
+    typeof stat === 'object' &&
+    stat !== null &&
+    typeof stat.icon === 'string' &&
+    ["Recycle", "Leaf", "TreePine"].includes(stat.icon) &&
+    typeof stat.value === 'string' &&
+    typeof stat.label === 'string' &&
+    typeof stat.description === 'string'
+  );
+};
+
+const isValidTestimonial = (testimonial: any): testimonial is { text: string; name: string; source: string; rating: number } => {
+  return (
+    typeof testimonial === 'object' &&
+    testimonial !== null &&
+    typeof testimonial.text === 'string' &&
+    typeof testimonial.name === 'string' &&
+    typeof testimonial.source === 'string' &&
+    typeof testimonial.rating === 'number'
+  );
+};
 
 export const PreviewPane = ({ 
   blocks, 
@@ -152,10 +177,24 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content} />;
+              const stats = Array.isArray(block.content.stats) 
+                ? block.content.stats.filter(isValidStat)
+                : [];
+              
+              return <Sustainability content={{
+                ...block.content,
+                stats
+              }} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content} />;
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.filter(isValidTestimonial)
+                : [];
+              
+              return <Testimonials content={{
+                ...block.content,
+                testimonials
+              }} />;
 
             case 'blog_preview':
               return <BlogPreview content={block.content} />;
@@ -176,49 +215,13 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              const sustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.map(stat => {
-                    if (typeof stat === 'object' && stat !== null) {
-                      return {
-                        icon: String(stat.icon || ''),
-                        value: String(stat.value || ''),
-                        label: String(stat.label || ''),
-                        description: String(stat.description || '')
-                      };
-                    }
-                    return null;
-                  }).filter(Boolean)
-                : [];
-              
-              return <AboutSustainability content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                stats: sustainabilityStats
-              }} />;
+              return <AboutSustainability content={block.content} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => {
-                    if (typeof t === 'object' && t !== null) {
-                      return {
-                        quote: String(t.text || ''),
-                        author: String(t.name || ''),
-                        role: String(t.source || ''),
-                        rating: Number(t.rating || 5)
-                      };
-                    }
-                    return null;
-                  }).filter(Boolean)
-                : [];
-              
-              return <AboutCustomerImpact content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                testimonials
-              }} />;
+              return <AboutCustomerImpact content={block.content} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
