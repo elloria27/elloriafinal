@@ -273,13 +273,13 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-200px)] relative bg-white">
+    <div className="w-full min-h-screen relative bg-white">
       {blocks.length > 0 ? (
-        <div className="space-y-4"> {/* Maintain 1rem spacing between blocks */}
+        <div>
           {blocks.map((block) => renderBlock(block))}
         </div>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center min-h-[400px]">
+        <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-gray-500 text-center">
             <p className="text-lg font-medium">No content blocks yet.</p>
             <p className="mt-2">Click "Add Component" to get started.</p>
