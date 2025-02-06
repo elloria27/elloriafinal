@@ -1,7 +1,7 @@
 import { CartProvider } from "@/contexts/CartContext";
 import { PagesProvider } from "@/contexts/PagesContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import routes from "@/routes";
 

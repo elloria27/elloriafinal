@@ -1,9 +1,10 @@
-import { Json } from '@/integrations/supabase/types';
+import { Json } from "@/integrations/supabase/types";
 
 export interface BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: string;
+  features?: any[];
 }
 
 export interface ContentBlock {
@@ -16,72 +17,109 @@ export interface ContentBlock {
   updated_at: string;
 }
 
+export interface BlogPreviewContent extends BaseBlockContent {
+  buttonText?: string;
+}
+
+export interface CompetitorComparisonContent extends BaseBlockContent {
+  metrics?: Array<{
+    category: string;
+    elloria: number;
+    competitors: number;
+    icon: string;
+    description: string;
+  }>;
+}
+
+export interface FeaturesProps {
+  features?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
+export interface GameChangerContent extends BaseBlockContent {
+  features?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+    detail?: string;
+  }>;
+}
+
 export interface HeroContent extends BaseBlockContent {
   title: string;
   subtitle: string;
-  description: string;
-  image?: string;
-  cta_text?: string;
-  cta_link?: string;
+  backgroundImage?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+  videoUrl?: string;
+  videoPoster?: string;
+  shopNowText?: string;
+  learnMoreText?: string;
 }
 
-export interface FeaturesContent extends BaseBlockContent {
-  features: Array<{
+export interface ProductCarouselContent extends BaseBlockContent {
+  title: string;
+}
+
+export interface StoreBrandsContent extends BaseBlockContent {
+  features?: Array<{
     title: string;
     description: string;
-    icon?: string;
+    detail?: string;
   }>;
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
   testimonials: Array<{
     name: string;
-    role?: string;
-    content: string;
-    avatar?: string;
+    rating: number;
+    text: string;
+    source?: string;
   }>;
 }
 
-export interface NewsletterContent extends BaseBlockContent {
-  title: string;
-  description: string;
-  button_text?: string;
-}
-
-export interface StoreBrandsContent extends BaseBlockContent {
-  title: string;
-  brands: Array<{
-    name: string;
-    logo: string;
-  }>;
-}
-
-export interface GameChangerContent extends BaseBlockContent {
-  title: string;
-  description: string;
-  image?: string;
-}
+export interface NewsletterContent extends BaseBlockContent {}
 
 export interface SustainabilityContent extends BaseBlockContent {
-  title: string;
-  description: string;
   stats?: Array<{
-    value: string;
-    label: string;
+    icon: string;
+    title: string;
+    description: string;
+    color: string;
   }>;
+  timelineItems?: string[];
 }
 
-export interface CompetitorComparisonContent extends BaseBlockContent {
-  title: string;
-  description: string;
-  competitors: Array<{
-    name: string;
-    features: string[];
-  }>;
-}
+// About page content types
+export interface AboutHeroContent extends HeroContent {}
+export interface AboutStoryContent extends BaseBlockContent {}
+export interface AboutMissionContent extends BaseBlockContent {}
+export interface AboutSustainabilityContent extends SustainabilityContent {}
+export interface AboutTeamContent extends BaseBlockContent {}
+export interface AboutCustomerImpactContent extends BaseBlockContent {}
+export interface AboutCtaContent extends BaseBlockContent {}
 
-export interface BulkOrdersContent extends BaseBlockContent {
+// Contact page content types
+export interface ContactBusinessContent extends BaseBlockContent {}
+export interface ContactDetailsContent extends BaseBlockContent {}
+export interface ContactFAQContent extends BaseBlockContent {}
+export interface ContactFormContent extends BaseBlockContent {}
+export interface ContactHeroContent extends HeroContent {}
+
+export interface BulkOrdersContent {
   title: string;
   description: string;
-  features: string[];
+  features: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
 }
