@@ -45,8 +45,7 @@ export const convertToFeatureItem = (dbFeature: DatabaseFeature): FeatureItem =>
     icon: dbFeature.icon,
     title: dbFeature.title,
     description: dbFeature.description,
-    detail: dbFeature.detail,
-    color: dbFeature.color
+    detail: dbFeature.detail
   };
 };
 

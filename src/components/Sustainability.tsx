@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Droplets, Shield, Heart, Package, Leaf, Recycle, Shrink } from "lucide-react";
+import { Droplets, Shield, Heart, Package, Leaf, Recycle, Shrink, Factory } from "lucide-react";
 import { SustainabilityContent } from "@/types/content-blocks";
 import { convertToFeatureItems } from "@/utils/contentConverters";
 
@@ -46,7 +46,13 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ...(content || {}),
   };
 
-  const stats = finalContent.stats ? convertToFeatureItems(finalContent.stats) : defaultContent.stats;
+  const stats = Array.isArray(finalContent.stats) 
+    ? finalContent.stats 
+    : defaultContent.stats;
+  
+  const timelineItems = Array.isArray(finalContent.timelineItems) 
+    ? finalContent.timelineItems 
+    : defaultContent.timelineItems;
   
   console.log("Final content being used:", finalContent);
 
@@ -70,7 +76,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
 
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {(finalContent.stats || defaultContent.stats).map((stat, index) => (
+            {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -116,7 +122,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
           className="max-w-4xl mx-auto"
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-8">
-            {(finalContent.timelineItems || defaultContent.timelineItems).map((item, index) => (
+            {timelineItems.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -129,7 +135,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                   {index + 1}
                 </div>
                 <span className="text-gray-700 font-medium text-sm md:text-base">{item}</span>
-                {index < (finalContent.timelineItems || defaultContent.timelineItems).length - 1 && (
+                {index < timelineItems.length - 1 && (
                   <div className="hidden md:block w-12 h-0.5 bg-primary/20" />
                 )}
               </motion.div>
