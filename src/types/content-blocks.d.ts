@@ -305,12 +305,17 @@ export interface CustomSolutionsCtaContent extends BaseBlockContent {
   buttonLink?: string;
 }
 
+export interface SpacerBlockContent extends BaseBlockContent {
+  height?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
   | ImageBlockContent 
   | VideoBlockContent
   | ButtonBlockContent
+  | SpacerBlockContent
   | HeroContent
   | FeaturesContent
   | GameChangerContent
@@ -339,12 +344,13 @@ export type BlockType =
   | "text" 
   | "image" 
   | "video" 
-  | "button" 
-  | "hero" 
-  | "features" 
-  | "testimonials" 
-  | "newsletter" 
-  | "blog_preview" 
+  | "button"
+  | "spacer"
+  | "hero"
+  | "features"
+  | "testimonials"
+  | "newsletter"
+  | "blog_preview"
   | "store_brands"
   | "sustainability"
   | "product_carousel"

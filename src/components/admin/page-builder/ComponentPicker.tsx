@@ -29,6 +29,7 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "image", label: "Image", description: "Single image with caption" },
         { type: "video", label: "Video", description: "Embedded video player" },
         { type: "button", label: "Button", description: "Call to action button" },
+        { type: "spacer", label: "Spacer", description: "Add vertical spacing" },
       ],
     },
     {

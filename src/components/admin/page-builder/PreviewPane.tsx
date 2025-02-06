@@ -21,6 +21,7 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { BusinessContact } from "@/components/contact/BusinessContact";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -138,6 +139,14 @@ export const PreviewPane = ({
                   {String(block.content.text) || 'Button'}
                 </button>
               );
+
+            case 'spacer':
+              return (
+                <div style={{ height: block.content.height || '32px' }} />
+              );
+
+            case 'contact_business':
+              return <BusinessContact content={block.content} />;
 
             case 'hero':
               return <HomeHero content={block.content} />;
