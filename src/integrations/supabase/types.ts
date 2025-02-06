@@ -1642,6 +1642,12 @@ export type Database = {
         | "sustainability_materials"
         | "sustainability_faq"
         | "sustainability_cta"
+        | "donation_impact"
+        | "donation_form"
+        | "donation_stories"
+        | "donation_partners"
+        | "donation_faq"
+        | "donation_join_movement"
       expense_category:
         | "inventory"
         | "marketing"
