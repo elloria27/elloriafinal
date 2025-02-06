@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
@@ -190,42 +191,44 @@ export const PreviewPane = ({
               return <Testimonials content={testimonialsContent} />;
 
             case 'about_customer_impact':
-              const customerImpactContent = block.content;
+              const customerImpactContent = block.content as AboutCustomerImpactContent;
+              const typedStats = Array.isArray(customerImpactContent.stats) ? customerImpactContent.stats : [];
+              const typedTestimonials = Array.isArray(customerImpactContent.testimonials) ? customerImpactContent.testimonials : [];
+              
               return <AboutCustomerImpact content={{
                 title: String(customerImpactContent.title || ''),
                 description: String(customerImpactContent.description || ''),
-                stats: customerImpactContent.stats?.map(stat => ({
-                  value: String(stat.value || ''),
-                  label: String(stat.label || '')
-                })) || [],
-                testimonials: customerImpactContent.testimonials?.map(t => ({
-                  quote: String(t.quote || ''),
-                  author: String(t.author || ''),
-                  role: String(t.role || ''),
-                  rating: Number(t.rating || 5)
-                })) || []
+                stats: typedStats,
+                testimonials: typedTestimonials
               }} />;
 
             case 'donation_hero':
-              return <DonationHero content={block.content as DonationHeroContent} />;
+              const donationHeroContent = block.content as DonationHeroContent;
+              return <DonationHero content={donationHeroContent} />;
 
             case 'donation_impact':
-              return <DonationImpact content={block.content as DonationImpactContent} />;
+              const donationImpactContent = block.content as DonationImpactContent;
+              return <DonationImpact content={donationImpactContent} />;
 
             case 'donation_form':
-              return <DonationForm content={block.content as DonationFormContent} />;
+              const donationFormContent = block.content as DonationFormContent;
+              return <DonationForm content={donationFormContent} />;
 
             case 'donation_stories':
-              return <DonationStories content={block.content as DonationStoriesContent} />;
+              const donationStoriesContent = block.content as DonationStoriesContent;
+              return <DonationStories content={donationStoriesContent} />;
 
             case 'donation_partners':
-              return <DonationPartners content={block.content as DonationPartnersContent} />;
+              const donationPartnersContent = block.content as DonationPartnersContent;
+              return <DonationPartners content={donationPartnersContent} />;
 
             case 'donation_faq':
-              return <DonationFAQ content={block.content as DonationFAQContent} />;
+              const donationFAQContent = block.content as DonationFAQContent;
+              return <DonationFAQ content={donationFAQContent} />;
 
             case 'donation_join_movement':
-              return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
+              const donationJoinMovementContent = block.content as DonationJoinMovementContent;
+              return <DonationJoinMovement content={donationJoinMovementContent} />;
 
             default:
               return (
