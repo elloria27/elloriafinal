@@ -262,7 +262,6 @@ export const PreviewPane = ({
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
 
-            // Add donation components cases
             case 'donation_hero':
               return <DonationHero content={block.content} />;
             
