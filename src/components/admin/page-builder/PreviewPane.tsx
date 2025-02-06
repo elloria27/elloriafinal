@@ -22,7 +22,6 @@ import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { cn } from "@/lib/utils";
-import { Json } from "@/integrations/supabase/types";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -31,49 +30,6 @@ interface PreviewPaneProps {
   onDeleteBlock?: (blockId: string) => void;
   isAdmin?: boolean;
 }
-
-// Type guard functions
-const isValidStat = (stat: any): stat is { icon: "Recycle" | "Leaf" | "TreePine"; value: string; label: string; description: string } => {
-  return (
-    typeof stat === 'object' &&
-    stat !== null &&
-    typeof stat.icon === 'string' &&
-    ["Recycle", "Leaf", "TreePine"].includes(stat.icon) &&
-    typeof stat.value === 'string' &&
-    typeof stat.label === 'string' &&
-    typeof stat.description === 'string'
-  );
-};
-
-const isValidTestimonial = (testimonial: any): testimonial is { text: string; name: string; source: string; rating: number } => {
-  return (
-    typeof testimonial === 'object' &&
-    testimonial !== null &&
-    typeof testimonial.text === 'string' &&
-    typeof testimonial.name === 'string' &&
-    typeof testimonial.source === 'string' &&
-    typeof testimonial.rating === 'number'
-  );
-};
-
-const isValidAboutStat = (stat: any): stat is { value: string; label: string } => {
-  return (
-    typeof stat === 'object' &&
-    stat !== null &&
-    typeof stat.value === 'string' &&
-    typeof stat.label === 'string'
-  );
-};
-
-const isValidAboutTestimonial = (testimonial: any): testimonial is { quote: string; author: string; role?: string; rating: number } => {
-  return (
-    typeof testimonial === 'object' &&
-    testimonial !== null &&
-    typeof testimonial.quote === 'string' &&
-    typeof testimonial.author === 'string' &&
-    typeof testimonial.rating === 'number'
-  );
-};
 
 export const PreviewPane = ({ 
   blocks, 
@@ -117,6 +73,18 @@ export const PreviewPane = ({
         )}
 
         {(() => {
+          if (isAdmin) {
+            return (
+              <div 
+                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
+                onClick={() => onSelectBlock(block)}
+              >
+                <div className="font-medium text-lg mb-1">{block.type}</div>
+                <div className="text-sm text-gray-500">Click to edit content</div>
+              </div>
+            );
+          }
+
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -184,24 +152,10 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              const stats = Array.isArray(block.content.stats) 
-                ? block.content.stats.filter(isValidStat)
-                : [];
-              
-              return <Sustainability content={{
-                ...block.content,
-                stats
-              }} />;
+              return <Sustainability content={block.content} />;
 
             case 'testimonials':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.filter(isValidTestimonial)
-                : [];
-              
-              return <Testimonials content={{
-                ...block.content,
-                testimonials
-              }} />;
+              return <Testimonials content={block.content} />;
 
             case 'blog_preview':
               return <BlogPreview content={block.content} />;
@@ -222,40 +176,52 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              const aboutSustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.filter(isValidStat)
+              const sustainabilityStats = Array.isArray(block.content.stats) 
+                ? block.content.stats.map(stat => ({
+                    ...stat,
+                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
+                    value: String(stat.value || ''),
+                    label: String(stat.label || ''),
+                    description: String(stat.description || '')
+                  }))
                 : [];
               
               return <AboutSustainability content={{
-                ...block.content,
-                stats: aboutSustainabilityStats
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                stats: sustainabilityStats
               }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              const aboutStats = Array.isArray(block.content.stats)
-                ? block.content.stats.filter(isValidAboutStat)
-                : [];
-              
-              const aboutTestimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(item => {
-                    if (typeof item === 'object' && item !== null) {
-                      const testimonial = item as Record<string, Json>;
-                      if (isValidAboutTestimonial(testimonial)) {
-                        return testimonial;
-                      }
-                    }
-                    return null;
-                  }).filter((item): item is { quote: string; author: string; role?: string; rating: number } => item !== null)
+              const testimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.map(t => ({
+                    quote: String(t.text || ''),
+                    author: String(t.name || ''),
+                    role: String(t.source || ''),
+                    rating: Number(t.rating || 5)
+                  }))
                 : [];
               
               return <AboutCustomerImpact content={{
-                ...block.content,
-                stats: aboutStats,
-                testimonials: aboutTestimonials
+                title: String(block.content.title || ''),
+                description: String(block.content.description || ''),
+                testimonials
               }} />;
+
+            case 'contact_hero':
+              return <ContactHero content={block.content} />;
+
+            case 'contact_details':
+              return <ContactDetails content={block.content} />;
+
+            case 'contact_form':
+              return <ContactForm content={block.content} />;
+
+            case 'contact_faq':
+              return <ContactFAQ content={block.content} />;
 
             default:
               return (
