@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AboutHeroSection } from "@/components/about/AboutHeroSection";
@@ -77,59 +78,63 @@ export default function About() {
   const ctaContent = getBlockContent('about_cta') as AboutCtaContent;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       
-      <AboutHeroSection 
-        content={getBlockContent('about_hero_section') as AboutHeroContent}
-      />
+      <main className="flex-grow">
+        <AboutHeroSection 
+          content={getBlockContent('about_hero_section') as AboutHeroContent}
+        />
 
-      <AboutStory 
-        content={getBlockContent('about_story') as AboutStoryContent}
-      />
+        <AboutStory 
+          content={getBlockContent('about_story') as AboutStoryContent}
+        />
 
-      <AboutMission 
-        content={getBlockContent('about_mission') as AboutMissionContent}
-      />
+        <AboutMission 
+          content={getBlockContent('about_mission') as AboutMissionContent}
+        />
 
-      <AboutSustainability 
-        content={getBlockContent('about_sustainability') as AboutSustainabilityContent}
-      />
+        <AboutSustainability 
+          content={getBlockContent('about_sustainability') as AboutSustainabilityContent}
+        />
 
-      <AboutTeam 
-        content={getBlockContent('about_team') as AboutTeamContent}
-      />
+        <AboutTeam 
+          content={getBlockContent('about_team') as AboutTeamContent}
+        />
 
-      <AboutCustomerImpact 
-        content={getBlockContent('about_customer_impact') as AboutCustomerImpactContent}
-      />
+        <AboutCustomerImpact 
+          content={getBlockContent('about_customer_impact') as AboutCustomerImpactContent}
+        />
 
-      <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
-        <div className="container px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              {ctaContent?.title || "Join the Elloria Movement"}
-            </h2>
-            <p className="text-xl mb-8">
-              {ctaContent?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                to="/shop"
-                className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
-              >
-                {ctaContent?.primaryButtonText || "Shop Now"}
-              </Link>
-              <Link 
-                to="/sustainability"
-                className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
-              >
-                {ctaContent?.secondaryButtonText || "Learn More"}
-              </Link>
+        <section className="py-20 bg-gradient-to-r from-primary to-secondary text-white">
+          <div className="container px-4">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                {ctaContent?.title || "Join the Elloria Movement"}
+              </h2>
+              <p className="text-xl mb-8">
+                {ctaContent?.subtitle || "Experience the perfect blend of comfort, protection, and sustainability."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  to="/shop"
+                  className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-lg font-semibold"
+                >
+                  {ctaContent?.primaryButtonText || "Shop Now"}
+                </Link>
+                <Link 
+                  to="/sustainability"
+                  className="border-2 border-white text-white hover:bg-white/20 px-6 py-3 rounded-lg font-semibold"
+                >
+                  {ctaContent?.secondaryButtonText || "Learn More"}
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }
