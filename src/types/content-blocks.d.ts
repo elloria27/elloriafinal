@@ -309,6 +309,70 @@ export interface SpacerBlockContent extends BaseBlockContent {
   height?: string;
 }
 
+export interface DonationHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  backgroundImage?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
+export interface DonationImpactContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: Array<{
+    value: string;
+    label: string;
+    description?: string;
+  }>;
+}
+
+export interface DonationFormContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  suggestedAmounts?: number[];
+  buttonText?: string;
+}
+
+export interface DonationStoriesContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stories?: Array<{
+    name: string;
+    story: string;
+    image?: string;
+    amount?: string;
+  }>;
+}
+
+export interface DonationPartnersContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  partners?: Array<{
+    name: string;
+    logo: string;
+    description?: string;
+  }>;
+}
+
+export interface DonationFAQContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  faqs?: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+export interface DonationJoinMovementContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  backgroundImage?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -337,7 +401,14 @@ export type BlockContent =
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent;
+  | CustomSolutionsCtaContent
+  | DonationHeroContent
+  | DonationImpactContent
+  | DonationFormContent
+  | DonationStoriesContent
+  | DonationPartnersContent
+  | DonationFAQContent
+  | DonationJoinMovementContent;
 
 export type BlockType = 
   | "heading" 
@@ -382,7 +453,13 @@ export type BlockType =
   | "sustainability_materials"
   | "sustainability_faq"
   | "sustainability_cta"
-  | "donation_hero";
+  | "donation_hero"
+  | "donation_impact"
+  | "donation_form"
+  | "donation_stories"
+  | "donation_partners"
+  | "donation_faq"
+  | "donation_join_movement";
 
 export interface ContentBlock {
   id: string;
