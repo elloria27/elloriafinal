@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -38,14 +38,6 @@ interface PreviewPaneProps {
   onDeleteBlock?: (blockId: string) => void;
   isAdmin?: boolean;
 }
-
-interface DonationHeroProps { content: DonationHeroContent; }
-interface DonationImpactProps { content: DonationImpactContent; }
-interface DonationFormProps { content: DonationFormContent; }
-interface DonationStoriesProps { content: DonationStoriesContent; }
-interface DonationPartnersProps { content: DonationPartnersContent; }
-interface DonationFAQProps { content: DonationFAQContent; }
-interface DonationJoinMovementProps { content: DonationJoinMovementContent; }
 
 export const PreviewPane = ({ 
   blocks, 
@@ -89,18 +81,6 @@ export const PreviewPane = ({
         )}
 
         {(() => {
-          if (isAdmin) {
-            return (
-              <div 
-                className="p-4 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
-                onClick={() => onSelectBlock(block)}
-              >
-                <div className="font-medium text-lg mb-1">{block.type}</div>
-                <div className="text-sm text-gray-500">Click to edit content</div>
-              </div>
-            );
-          }
-
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -190,12 +170,10 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              const sustainabilityContent = block.content as SustainabilityContent;
-              return <Sustainability content={sustainabilityContent} />;
+              return <Sustainability content={block.content} />;
 
             case 'testimonials':
-              const testimonialsContent = block.content as TestimonialsContent;
-              return <Testimonials content={testimonialsContent} />;
+              return <Testimonials content={block.content} />;
 
             case 'about_customer_impact':
               const customerImpactContent = block.content as AboutCustomerImpactContent;
@@ -210,32 +188,25 @@ export const PreviewPane = ({
               }} />;
 
             case 'donation_hero':
-              const donationHeroContent = block.content as DonationHeroContent;
-              return <DonationHero content={donationHeroContent} />;
+              return <DonationHero content={block.content as DonationHeroContent} />;
 
             case 'donation_impact':
-              const donationImpactContent = block.content as DonationImpactContent;
-              return <DonationImpact content={donationImpactContent} />;
+              return <DonationImpact content={block.content as DonationImpactContent} />;
 
             case 'donation_form':
-              const donationFormContent = block.content as DonationFormContent;
-              return <DonationForm content={donationFormContent} />;
+              return <DonationForm content={block.content as DonationFormContent} />;
 
             case 'donation_stories':
-              const donationStoriesContent = block.content as DonationStoriesContent;
-              return <DonationStories content={donationStoriesContent} />;
+              return <DonationStories content={block.content as DonationStoriesContent} />;
 
             case 'donation_partners':
-              const donationPartnersContent = block.content as DonationPartnersContent;
-              return <DonationPartners content={donationPartnersContent} />;
+              return <DonationPartners content={block.content as DonationPartnersContent} />;
 
             case 'donation_faq':
-              const donationFAQContent = block.content as DonationFAQContent;
-              return <DonationFAQ content={donationFAQContent} />;
+              return <DonationFAQ content={block.content as DonationFAQContent} />;
 
             case 'donation_join_movement':
-              const donationJoinMovementContent = block.content as DonationJoinMovementContent;
-              return <DonationJoinMovement content={donationJoinMovementContent} />;
+              return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
 
             default:
               return (
