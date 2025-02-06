@@ -1,6 +1,12 @@
-import { motion } from "framer-motion";
 
-export const DonationStories = () => {
+import { motion } from "framer-motion";
+import { DonationStoriesContent } from "@/types/content-blocks";
+
+interface DonationStoriesProps {
+  content: DonationStoriesContent;
+}
+
+export const DonationStories = ({ content }: DonationStoriesProps) => {
   const stories = [
     {
       name: "Sarah Johnson",
@@ -25,9 +31,11 @@ export const DonationStories = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Stories of Impact</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            {content.title || "Stories of Impact"}
+          </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Real stories from women whose lives have been touched by your generosity.
+            {content.subtitle || "Real stories from women whose lives have been touched by your generosity."}
           </p>
         </motion.div>
 
