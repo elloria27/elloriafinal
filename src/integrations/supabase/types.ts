@@ -1679,6 +1679,10 @@ export type Database = {
         | "business_hero"
         | "business_solutions"
         | "business_contact"
+        | "thanks_welcome"
+        | "thanks_referral"
+        | "thanks_special_offer"
+        | "thanks_newsletter"
       expense_category:
         | "inventory"
         | "marketing"
