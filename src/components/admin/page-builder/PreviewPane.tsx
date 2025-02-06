@@ -1,6 +1,5 @@
-
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent, ThanksWelcomeContent, ThanksReferralContent, ThanksSpecialOfferContent, ThanksNewsletterContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -30,6 +29,10 @@ import { DonationStories } from "@/components/donation/DonationStories";
 import { DonationPartners } from "@/components/donation/DonationPartners";
 import { DonationFAQ } from "@/components/donation/DonationFAQ";
 import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
+import { ThanksWelcome } from "@/components/thanks/ThanksWelcome";
+import { ThanksReferral } from "@/components/thanks/ThanksReferral";
+import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
+import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -230,6 +233,18 @@ export const PreviewPane = ({
 
             case 'donation_join_movement':
               return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
+
+            case 'thanks_welcome':
+              return <ThanksWelcome content={block.content as ThanksWelcomeContent} />;
+
+            case 'thanks_referral':
+              return <ThanksReferral content={block.content as ThanksReferralContent} />;
+
+            case 'thanks_special_offer':
+              return <ThanksSpecialOffer content={block.content as ThanksSpecialOfferContent} />;
+
+            case 'thanks_newsletter':
+              return <ThanksNewsletter content={block.content as ThanksNewsletterContent} />;
 
             default:
               return (
