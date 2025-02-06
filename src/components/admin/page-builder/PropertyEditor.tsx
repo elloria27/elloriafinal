@@ -1,4 +1,3 @@
-
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -70,17 +69,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "custom_solutions_cta",
   ];
 
-  // Donation page components
-  const donationComponents = [
-    "donation_hero",
-    "donation_impact",
-    "donation_form",
-    "donation_stories",
-    "donation_partners",
-    "donation_faq",
-    "donation_join_movement"
-  ];
-
   // Common components
   const commonComponents = [
     "heading",
@@ -93,16 +81,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
-    // Skip editing for donation components as they are frontend-only
-    if (donationComponents.includes(block.type)) {
-      return (
-        <div className="p-4 text-center text-gray-500">
-          This donation component is not editable in the page builder.
-          Content is managed through the frontend only.
-        </div>
-      );
-    }
-
     if (block.type === "competitor_comparison") {
       return <CompetitorComparisonEditor block={block} onUpdate={onUpdate} />;
     }
