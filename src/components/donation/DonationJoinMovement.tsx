@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { DonationJoinMovementContent } from "@/types/content-blocks";

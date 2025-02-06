@@ -1,7 +1,12 @@
 import { motion } from "framer-motion";
 import { Heart, Users, Globe, Sparkles } from "lucide-react";
+import { DonationImpactContent } from "@/types/content-blocks";
 
-export const DonationImpact = () => {
+interface DonationImpactProps {
+  content: DonationImpactContent;
+}
+
+export const DonationImpact = ({ content }: DonationImpactProps) => {
   const impacts = [
     {
       icon: Heart,

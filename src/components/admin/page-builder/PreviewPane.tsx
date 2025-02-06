@@ -170,13 +170,13 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content} />;
+              return <Sustainability content={block.content as any} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content} />;
+              return <Testimonials content={block.content as any} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              return <AboutCustomerImpact content={block.content as any} />;
 
             case 'donation_hero':
               return <DonationHero content={block.content as DonationHeroContent} />;

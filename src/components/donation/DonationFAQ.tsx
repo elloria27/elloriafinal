@@ -5,9 +5,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
+import { DonationFAQContent } from "@/types/content-blocks";
 
-export const DonationFAQ = () => {
-  const faqs = [
+interface DonationFAQProps {
+  content: DonationFAQContent;
+}
+
+export const DonationFAQ = ({ content }: DonationFAQProps) => {
+  const faqs = content.faqs || [
     {
       question: "Where does my donation go?",
       answer: "Your donation directly supports our program to provide essential hygiene products to women and girls in need. We work with local partners to ensure efficient distribution."

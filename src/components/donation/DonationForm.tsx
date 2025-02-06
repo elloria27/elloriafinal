@@ -7,8 +7,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { DonationFormContent } from "@/types/content-blocks";
 
-export const DonationForm = () => {
+interface DonationFormProps {
+  content: DonationFormContent;
+}
+
+export const DonationForm = ({ content }: DonationFormProps) => {
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [donorName, setDonorName] = useState("");
@@ -81,11 +86,10 @@ export const DonationForm = () => {
         >
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Make a Difference Today
+              {content.title || "Make a Difference Today"}
             </h2>
             <p className="text-lg text-gray-600">
-              Your donation helps us provide essential care products to women and
-              girls in need. Choose an amount to contribute:
+              {content.subtitle || "Your donation helps us provide essential care products to women and girls in need. Choose an amount to contribute:"}
             </p>
           </div>
 
@@ -153,7 +157,7 @@ export const DonationForm = () => {
               className="w-full bg-primary hover:bg-primary/90"
               disabled={loading || (!amount && !customAmount)}
             >
-              {loading ? "Processing..." : "Donate Now"}
+              {loading ? "Processing..." : content.buttonText || "Donate Now"}
             </Button>
 
             <p className="text-sm text-gray-500 text-center mt-4">
