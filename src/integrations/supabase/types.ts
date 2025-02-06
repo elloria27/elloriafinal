@@ -265,6 +265,45 @@ export type Database = {
         }
         Relationships: []
       }
+      component_definitions: {
+        Row: {
+          category: string
+          created_at: string | null
+          default_props: Json | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["component_status"] | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          default_props?: Json | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["component_status"] | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          default_props?: Json | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["component_status"] | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string | null
@@ -1567,6 +1606,7 @@ export type Database = {
         | "about_sustainability"
         | "about_team"
         | "about_customer_impact"
+      component_status: "draft" | "published" | "archived"
       content_block_type:
         | "heading"
         | "text"
