@@ -176,16 +176,7 @@ export const PreviewPane = ({
               return <Testimonials content={block.content} />;
 
             case 'about_customer_impact':
-              const customerImpactContent = block.content as AboutCustomerImpactContent;
-              const typedStats = Array.isArray(customerImpactContent.stats) ? customerImpactContent.stats : [];
-              const typedTestimonials = Array.isArray(customerImpactContent.testimonials) ? customerImpactContent.testimonials : [];
-              
-              return <AboutCustomerImpact content={{
-                title: String(customerImpactContent.title || ''),
-                description: String(customerImpactContent.description || ''),
-                stats: typedStats,
-                testimonials: typedTestimonials
-              }} />;
+              return <AboutCustomerImpact content={block.content} />;
 
             case 'donation_hero':
               return <DonationHero content={block.content as DonationHeroContent} />;
