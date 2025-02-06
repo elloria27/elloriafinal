@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent } from "@/types/content-blocks";
+import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -13,7 +12,7 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent>) => {
+  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
     onUpdate(block.id, {
       ...block.content,
       ...updates,
@@ -21,7 +20,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
   };
 
   const handleSolutionChange = (index: number, field: string, value: string) => {
-    if (block.type !== "for_business_solutions") return;
+    if (block.type !== "business_solutions") return;
     
     const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
     solutions[index] = {
@@ -33,7 +32,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
   };
 
   const addSolution = () => {
-    if (block.type !== "for_business_solutions") return;
+    if (block.type !== "business_solutions") return;
     
     const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
     solutions.push({
@@ -46,7 +45,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
   };
 
   const removeSolution = (index: number) => {
-    if (block.type !== "for_business_solutions") return;
+    if (block.type !== "business_solutions") return;
     
     const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
     solutions.splice(index, 1);
@@ -55,7 +54,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
   };
 
   switch (block.type) {
-    case "for_business_hero":
+    case "business_hero":
       const heroContent = block.content as ForBusinessHeroContent;
       return (
         <div className="space-y-4">
@@ -102,7 +101,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
         </div>
       );
 
-    case "for_business_solutions":
+    case "business_solutions":
       const solutionsContent = block.content as BusinessSolutionsContent;
       return (
         <div className="space-y-6">
@@ -178,6 +177,53 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
               <Plus className="h-4 w-4 mr-2" />
               Add Solution
             </Button>
+          </div>
+        </div>
+      );
+
+    case "business_contact":
+      const contactContent = block.content as BusinessContactContent;
+      return (
+        <div className="space-y-4">
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={contactContent.title || ""}
+              onChange={(e) => handleContentChange({ title: e.target.value })}
+              placeholder="Enter section title"
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={contactContent.description || ""}
+              onChange={(e) => handleContentChange({ description: e.target.value })}
+              placeholder="Enter description"
+            />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input
+              value={contactContent.email || ""}
+              onChange={(e) => handleContentChange({ email: e.target.value })}
+              placeholder="Enter contact email"
+            />
+          </div>
+          <div>
+            <Label>Button Text</Label>
+            <Input
+              value={contactContent.buttonText || ""}
+              onChange={(e) => handleContentChange({ buttonText: e.target.value })}
+              placeholder="Enter button text"
+            />
+          </div>
+          <div>
+            <Label>Button Link</Label>
+            <Input
+              value={contactContent.buttonLink || ""}
+              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
+              placeholder="Enter button link"
+            />
           </div>
         </div>
       );

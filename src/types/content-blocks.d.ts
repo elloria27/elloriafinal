@@ -367,13 +367,6 @@ export interface DonationJoinMovementContent extends BaseBlockContent {
   icon?: string;
 }
 
-export interface ForBusinessCtaContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -398,6 +391,11 @@ export type BlockContent =
   | ContactBusinessContent
   | ForBusinessHeroContent
   | BusinessSolutionsContent
+  | BusinessContactContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent
   | AboutHeroContent
   | AboutStoryContent
   | AboutMissionContent
@@ -444,6 +442,9 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact"
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
@@ -459,9 +460,7 @@ export type BlockType =
   | "donation_stories"
   | "donation_partners"
   | "donation_faq"
-  | "donation_join_movement"
-  | "for_business_hero"
-  | "for_business_solutions";
+  | "donation_join_movement";
 
 export interface ContentBlock {
   id: string;

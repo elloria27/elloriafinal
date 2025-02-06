@@ -1,3 +1,4 @@
+
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -57,8 +58,9 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   // Business page components
   const businessComponents = [
-    "for_business_hero",
-    "for_business_solutions"
+    "business_hero",
+    "business_solutions",
+    "business_contact",
   ];
 
   // Custom Solutions page components

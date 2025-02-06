@@ -1,5 +1,6 @@
+
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent, ForBusinessHeroContent, BusinessSolutionsContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -185,6 +186,9 @@ export const PreviewPane = ({
               );
             }
 
+            case 'contact_business':
+              return <BusinessContact content={block.content} />;
+
             case 'hero':
               return <HomeHero content={block.content} />;
 
@@ -226,12 +230,6 @@ export const PreviewPane = ({
 
             case 'donation_join_movement':
               return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
-
-            case "for_business_hero":
-              return <BusinessContact content={block.content as ForBusinessHeroContent} />;
-
-            case "for_business_solutions":
-              return <BusinessContact content={block.content as BusinessSolutionsContent} />;
 
             default:
               return (

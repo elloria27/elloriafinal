@@ -96,42 +96,6 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "donation_join_movement", label: "Join Movement", description: "Call to action" },
       ],
     },
-    {
-      category: "Business",
-      icon: "Building",
-      items: [
-        { 
-          type: "for_business_hero", 
-          label: "Business Hero", 
-          description: "Main business section header" 
-        },
-        { 
-          type: "for_business_solutions", 
-          label: "Business Solutions", 
-          description: "Display business solutions" 
-        },
-        { 
-          type: "for_business_contact", 
-          label: "Business Contact", 
-          description: "Business contact information" 
-        },
-        { 
-          type: "for_business_cta", 
-          label: "Business CTA", 
-          description: "Call to action section" 
-        },
-        { 
-          type: "for_business_consultation", 
-          label: "Business Consultation", 
-          description: "Custom solutions consultation" 
-        },
-        { 
-          type: "for_business_bulk_orders", 
-          label: "Bulk Orders", 
-          description: "Bulk ordering section" 
-        },
-      ],
-    },
   ];
 
   const filteredComponents = components.map(category => ({
