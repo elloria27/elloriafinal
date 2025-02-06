@@ -29,9 +29,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
   };
 
   const handleTestimonialAdd = () => {
-    const testimonials = Array.isArray(content.testimonials) 
-      ? content.testimonials.map(t => typeof t === 'string' ? JSON.parse(t) : t)
-      : [];
+    const testimonials = getTestimonials();
 
     const newTestimonial: TestimonialItem = {
       name: "New Client",
@@ -47,17 +45,13 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
   };
 
   const handleTestimonialRemove = (index: number) => {
-    const testimonials = Array.isArray(content.testimonials) 
-      ? content.testimonials.map(t => typeof t === 'string' ? JSON.parse(t) : t)
-      : [];
+    const testimonials = getTestimonials();
     testimonials.splice(index, 1);
     onUpdate(block.id, { ...content, testimonials: testimonials as Json });
   };
 
   const handleTestimonialUpdate = (index: number, field: string, value: string) => {
-    const testimonials = Array.isArray(content.testimonials) 
-      ? content.testimonials.map(t => typeof t === 'string' ? JSON.parse(t) : t)
-      : [];
+    const testimonials = getTestimonials();
     const testimonial = testimonials[index];
     const updatedTestimonial = { 
       ...testimonial, 
@@ -68,8 +62,20 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
   };
 
   const getTestimonials = (): TestimonialItem[] => {
-    if (!Array.isArray(content.testimonials)) return [];
-    return content.testimonials.map(t => typeof t === 'string' ? JSON.parse(t) : t);
+    if (!content.testimonials) return [];
+    if (Array.isArray(content.testimonials)) {
+      return content.testimonials.map(t => {
+        if (typeof t === 'string') {
+          try {
+            return JSON.parse(t);
+          } catch {
+            return null;
+          }
+        }
+        return t;
+      }).filter((t): t is TestimonialItem => t !== null);
+    }
+    return [];
   };
 
   return (

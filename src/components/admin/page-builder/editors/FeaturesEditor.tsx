@@ -22,9 +22,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
   };
 
   const handleFeatureAdd = () => {
-    const features = Array.isArray(content.features) 
-      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
-      : [];
+    const features = getFeatures();
       
     const newFeature: FeatureItem = {
       icon: "Droplets",
@@ -39,17 +37,13 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
   };
 
   const handleFeatureRemove = (index: number) => {
-    const features = Array.isArray(content.features) 
-      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
-      : [];
+    const features = getFeatures();
     features.splice(index, 1);
     onUpdate(block.id, { ...content, features: features as Json });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const features = Array.isArray(content.features) 
-      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
-      : [];
+    const features = getFeatures();
     const feature = features[index];
     const updatedFeature = { ...feature, [field]: value };
     features[index] = updatedFeature;
@@ -57,8 +51,20 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
   };
 
   const getFeatures = (): FeatureItem[] => {
-    if (!Array.isArray(content.features)) return [];
-    return content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f);
+    if (!content.features) return [];
+    if (Array.isArray(content.features)) {
+      return content.features.map(f => {
+        if (typeof f === 'string') {
+          try {
+            return JSON.parse(f);
+          } catch {
+            return null;
+          }
+        }
+        return f;
+      }).filter((f): f is FeatureItem => f !== null);
+    }
+    return [];
   };
 
   return (
