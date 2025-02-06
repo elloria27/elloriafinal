@@ -1,145 +1,52 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContactHero } from "@/components/contact/ContactHero";
-import { ContactDetails } from "@/components/contact/ContactDetails";
-import { ContactForm } from "@/components/contact/ContactForm";
-import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { BusinessContact } from "@/components/contact/BusinessContact";
-import { ContentBlock } from "@/types/content-blocks";
-import { ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
+import { PageBuilder } from "@/components/page-builder/PageBuilder";
+import { PageComponent } from "@/types/page-builder";
 
-const Contact = () => {
-  const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
+export const Contact = () => {
+  const [components, setComponents] = useState<PageComponent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPageContent = async () => {
+    const fetchContent = async () => {
       try {
-        console.log('Fetching contact page content...');
-        
-        const { data: pageData, error: pageError } = await supabase
+        const { data: pageData } = await supabase
           .from('pages')
           .select('id')
           .eq('slug', 'contact')
           .single();
 
-        if (pageError) {
-          console.error('Error fetching page:', pageError);
-          return;
-        }
+        if (pageData) {
+          const { data: components } = await supabase
+            .from('page_components')
+            .select('*')
+            .eq('page_id', pageData.id)
+            .order('order');
 
-        if (!pageData?.id) {
-          console.error('Contact page not found');
-          return;
-        }
-
-        console.log('Found contact page ID:', pageData.id);
-
-        const { data: blocks, error: blocksError } = await supabase
-          .from('content_blocks')
-          .select('*')
-          .eq('page_id', pageData.id)
-          .order('order_index');
-
-        if (blocksError) {
-          console.error('Error fetching content blocks:', blocksError);
-          return;
-        }
-
-        if (blocks) {
-          console.log('Fetched content blocks:', blocks);
-          setPageContent(blocks.map(block => ({
-            ...block,
-            content: block.content as BaseBlockContent
-          })));
+          setComponents(components || []);
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching page content:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPageContent();
+    fetchContent();
   }, []);
-
-  const getBlockContent = (type: string) => {
-    const block = pageContent.find(block => block.type === type);
-    if (!block) {
-      // Return type-specific default content
-      switch (type) {
-        case 'contact_hero':
-          return { title: "Contact Us" } as ContactHeroContent;
-        case 'contact_details':
-          return {
-            address: "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada",
-            phone: "+1 (204) 930-2019",
-            email: "support@elloria.ca"
-          } as ContactDetailsContent;
-        case 'contact_faq':
-          return { faqs: [] } as ContactFAQContent;
-        case 'contact_business':
-          return {
-            email: "business@elloria.ca",
-            buttonLink: "/for-business"
-          } as ContactBusinessContent;
-        default:
-          return {};
-      }
-    }
-    
-    // Merge default values with block content based on type
-    switch (type) {
-      case 'contact_hero':
-        return {
-          title: "Contact Us",
-          ...block.content
-        } as ContactHeroContent;
-      case 'contact_details':
-        return {
-          address: "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada",
-          phone: "+1 (204) 930-2019",
-          email: "support@elloria.ca",
-          ...block.content
-        } as ContactDetailsContent;
-      case 'contact_faq':
-        return {
-          faqs: [],
-          ...block.content
-        } as ContactFAQContent;
-      case 'contact_business':
-        return {
-          email: "business@elloria.ca",
-          buttonLink: "/for-business",
-          ...block.content
-        } as ContactBusinessContent;
-      default:
-        return block.content;
-    }
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen pt-20"
-    >
-      <ContactHero content={getBlockContent('contact_hero') as ContactHeroContent} />
-      <ContactDetails content={getBlockContent('contact_details') as ContactDetailsContent} />
-      <ContactForm content={getBlockContent('contact_form') as ContactFormContent} />
-      <ContactFAQ content={getBlockContent('contact_faq') as ContactFAQContent} />
-      <BusinessContact content={getBlockContent('contact_business') as ContactBusinessContent} />
-    </motion.main>
+    <div className="container mx-auto px-4 py-8">
+      <PageBuilder components={components} />
+    </div>
   );
 };
 
