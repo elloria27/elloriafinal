@@ -33,7 +33,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     const updatedFeatures = [...features, newFeature];
     onUpdate(block.id, {
       ...content,
-      features: updatedFeatures
+      features: updatedFeatures as unknown as Json
     });
   };
 
@@ -42,7 +42,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     features.splice(index, 1);
     onUpdate(block.id, { 
       ...content, 
-      features: features
+      features: features as unknown as Json
     });
   };
 
@@ -53,7 +53,7 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
     features[index] = updatedFeature;
     onUpdate(block.id, { 
       ...content, 
-      features: features
+      features: features as unknown as Json
     });
   };
 

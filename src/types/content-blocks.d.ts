@@ -11,97 +11,24 @@ export interface FeatureItem {
   detail?: string;
 }
 
-export interface HeadingBlockContent extends BaseBlockContent {
-  text?: string;
-  size?: 'h1' | 'h2' | 'h3' | 'h4';
-}
-
-export interface TextBlockContent extends BaseBlockContent {
-  text?: string;
-}
-
-export interface ImageBlockContent extends BaseBlockContent {
-  url?: string;
-  alt?: string;
-}
-
-export interface VideoBlockContent extends BaseBlockContent {
-  url?: string;
-  title?: string;
-}
-
-export interface ButtonBlockContent extends BaseBlockContent {
-  text?: string;
-  url?: string;
-  variant?: 'default' | 'outline' | 'ghost';
-}
-
-export interface HeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  videoUrl?: string;
-  videoPoster?: string;
-  shopNowText?: string;
-  learnMoreText?: string;
+export interface TestimonialItem {
+  name: string;
+  rating: number;
+  text: string;
+  source: string;
 }
 
 export interface FeaturesContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: string;
-  features?: FeatureItem[];
-}
-
-export interface GameChangerContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  features?: FeatureItem[];
-}
-
-export interface StoreBrandsContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  brands?: {
-    name: string;
-    logo: string;
-    link: string;
-  }[];
-}
-
-export interface SustainabilityContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  backgroundImage?: string;
-  stats?: Array<{
-    icon: string;
-    value: string;
-    label: string;
-    description: string;
-  }>;
-  materials?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-  faqs?: Array<{
-    question: string;
-    answer: string;
-  }>;
-  buttonText?: string;
-  buttonLink?: string;
-  timelineItems?: string[];
+  features?: Json;
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
-  testimonials?: {
-    name: string;
-    rating: number;
-    text: string;
-    source: string;
-  }[];
+  testimonials?: Json;
 }
 
 export interface BlogPreviewContent extends BaseBlockContent {

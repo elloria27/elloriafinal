@@ -42,7 +42,8 @@ export const convertToFeatureItems = (data: Json | null): FeatureItem[] => {
     return data.map(item => {
       if (typeof item === 'string') {
         try {
-          return convertToFeatureItem(JSON.parse(item));
+          const parsed = JSON.parse(item);
+          return convertToFeatureItem(parsed as DatabaseFeature);
         } catch {
           return null;
         }
@@ -59,7 +60,8 @@ export const convertToTestimonialItems = (data: Json | null): TestimonialItem[] 
     return data.map(item => {
       if (typeof item === 'string') {
         try {
-          return convertToTestimonialItem(JSON.parse(item));
+          const parsed = JSON.parse(item);
+          return convertToTestimonialItem(parsed as DatabaseTestimonial);
         } catch {
           return null;
         }
