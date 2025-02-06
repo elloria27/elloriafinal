@@ -8,10 +8,10 @@ import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
 import { ContentBlock, BlockType, BlockContent } from "@/types/content-blocks";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type ContentBlockRow = Database["public"]["Tables"]["content_blocks"]["Row"];
 
@@ -92,18 +92,29 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       console.log("Saving blocks to database:", unsavedBlocks);
       
-      const { error } = await supabase.from('content_blocks')
-        .upsert(
-          unsavedBlocks.map(block => ({
-            id: block.id,
-            page_id: pageId,
-            type: block.type as ContentBlockRow["type"],
-            content: block.content as ContentBlockRow["content"],
-            order_index: block.order_index
-          }))
-        );
+      // First, delete all existing blocks for this page
+      const { error: deleteError } = await supabase
+        .from('content_blocks')
+        .delete()
+        .eq('page_id', pageId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      // Then insert the current blocks
+      if (unsavedBlocks.length > 0) {
+        const { error } = await supabase.from('content_blocks')
+          .upsert(
+            unsavedBlocks.map(block => ({
+              id: block.id,
+              page_id: pageId,
+              type: block.type as ContentBlockRow["type"],
+              content: block.content as ContentBlockRow["content"],
+              order_index: block.order_index
+            }))
+          );
+
+        if (error) throw error;
+      }
       
       setBlocks(unsavedBlocks);
       setHasUnsavedChanges(false);
@@ -121,10 +132,13 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     )}>
       <div className={isMobile ? "w-full" : "col-span-8"}>
         <div className="space-y-4">
-          <div className="flex justify-between items-center gap-2">
+          <div className={cn(
+            "flex gap-2",
+            isMobile ? "grid grid-cols-2" : "justify-between items-center"
+          )}>
             <Dialog open={isComponentPickerOpen} onOpenChange={setIsComponentPickerOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className={cn("w-full", !isMobile && "w-auto")}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Component
                 </Button>
@@ -140,6 +154,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
               variant="default" 
               onClick={handleSave}
               disabled={!hasUnsavedChanges}
+              className={cn("w-full", !isMobile && "w-auto")}
             >
               <Save className="h-4 w-4 mr-2" />
               Save Changes
