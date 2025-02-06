@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, SustainabilityContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -28,9 +28,8 @@ import { SustainabilityMission } from "@/components/sustainability/Sustainabilit
 import { SustainabilityMaterials } from "@/components/sustainability/SustainabilityMaterials";
 import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
-import { Json } from "@/integrations/supabase/types";
 
-const defaultContent = {
+const defaultContent: Record<string, SustainabilityContent> = {
   sustainability_hero: {
     title: "Caring for Women, Caring for the Planet",
     description: "Discover how Elloria is leading the way in sustainable feminine care",
@@ -75,7 +74,7 @@ const defaultContent = {
     buttonText: "Learn More",
     buttonLink: "/sustainability"
   }
-} as const;
+};
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -97,14 +96,14 @@ export const PreviewPane = ({
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
-    const getDefaultContent = (type: string): Json => {
-      return defaultContent[type as keyof typeof defaultContent] as unknown as Json || {};
+    const getDefaultContent = (type: string): SustainabilityContent => {
+      return defaultContent[type] || {} as SustainabilityContent;
     };
 
     const mergedContent = {
       ...getDefaultContent(block.type),
       ...block.content
-    } as Json;
+    } as SustainabilityContent;
 
     const blockContent = (
       <div className="group relative w-full">
