@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
@@ -106,10 +107,12 @@ export const PreviewPane = ({
         )}
 
         {(() => {
+          // If in admin mode, show placeholder components
           if (isAdmin) {
             return <PlaceholderComponent type={block.type} content={block.content} />;
           }
 
+          // Otherwise render the actual components
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -227,93 +230,6 @@ export const PreviewPane = ({
 
             case 'donation_join_movement':
               return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
-            case 'business_hero':
-              return (
-                <div className="bg-primary-50 py-12 px-4 sm:px-6 lg:px-8">
-                  <div className="max-w-7xl mx-auto text-center">
-                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-                      {block.content.title}
-                    </h1>
-                    <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                      {block.content.subtitle}
-                    </p>
-                    {block.content.buttonText && (
-                      <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-                        <Button>
-                          {block.content.buttonText}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-
-            case 'business_solutions':
-              return (
-                <div className="py-12 bg-white">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="lg:text-center">
-                      <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                        {block.content.title}
-                      </h2>
-                      <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-                        {block.content.description}
-                      </p>
-                    </div>
-
-                    <div className="mt-10">
-                      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                        {block.content.solutions?.map((solution, index) => (
-                          <div key={index} className="pt-6">
-                            <div className="flow-root bg-gray-50 rounded-lg px-6 pb-8">
-                              <div className="-mt-6">
-                                <div>
-                                  <span className="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg">
-                                    {/* Use Lucide icon dynamically */}
-                                    {solution.icon}
-                                  </span>
-                                </div>
-                                <h3 className="mt-8 text-lg font-medium tracking-tight text-gray-900">
-                                  {solution.title}
-                                </h3>
-                                <p className="mt-5 text-base text-gray-500">
-                                  {solution.description}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-
-            case 'business_contact':
-              return (
-                <div className="bg-white py-12 px-4 sm:px-6 lg:px-8">
-                  <div className="max-w-7xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                      {block.content.title}
-                    </h2>
-                    <p className="mt-4 text-lg text-gray-500">
-                      {block.content.description}
-                    </p>
-                    {block.content.email && (
-                      <p className="mt-2 text-lg font-medium text-primary">
-                        {block.content.email}
-                      </p>
-                    )}
-                    {block.content.buttonText && (
-                      <div className="mt-8">
-                        <Button>
-                          {block.content.buttonText}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
 
             default:
               return (

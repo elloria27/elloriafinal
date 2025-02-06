@@ -367,16 +367,6 @@ export interface DonationJoinMovementContent extends BaseBlockContent {
   icon?: string;
 }
 
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -471,6 +461,16 @@ export type BlockType =
   | "donation_partners"
   | "donation_faq"
   | "donation_join_movement";
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface FeaturesProps {
   content?: FeaturesContent;
