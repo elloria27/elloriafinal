@@ -166,7 +166,7 @@ export interface ProductCarouselContent extends BaseBlockContent {
 export interface ContentBlock {
   id: string;
   type: string;
-  content: BaseBlockContent;
+  content: Json;
   page_id: string;
   order_index: number;
   created_at: string;
@@ -185,6 +185,8 @@ export interface FeaturesProps {
 }
 
 export interface BulkOrdersContent extends BaseBlockContent {
+  title: string;
+  description: string;
   features: {
     icon: string;
     title: string;
