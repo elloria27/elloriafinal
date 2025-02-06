@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
@@ -39,6 +38,14 @@ interface PreviewPaneProps {
   onDeleteBlock?: (blockId: string) => void;
   isAdmin?: boolean;
 }
+
+interface DonationHeroProps { content: DonationHeroContent; }
+interface DonationImpactProps { content: DonationImpactContent; }
+interface DonationFormProps { content: DonationFormContent; }
+interface DonationStoriesProps { content: DonationStoriesContent; }
+interface DonationPartnersProps { content: DonationPartnersContent; }
+interface DonationFAQProps { content: DonationFAQContent; }
+interface DonationJoinMovementProps { content: DonationJoinMovementContent; }
 
 export const PreviewPane = ({ 
   blocks, 
