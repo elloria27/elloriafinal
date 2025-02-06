@@ -1,6 +1,7 @@
 import { FeaturesProps } from "@/types/content-blocks";
 import { motion } from "framer-motion";
 import { Droplets, Shield, Heart, Package, Leaf, Recycle, Shrink } from "lucide-react";
+import { convertToFeatureItems } from "@/utils/contentConverters";
 
 const iconMap: { [key: string]: any } = {
   Droplets,
@@ -46,8 +47,8 @@ export const Features = ({ content }: FeaturesProps) => {
     }
   ];
 
-  // Use content.features if available, otherwise use defaultFeatures
-  const features = content?.features || defaultFeatures;
+  // Convert features from Json to FeatureItem[]
+  const features = content?.features ? convertToFeatureItems(content.features) : defaultFeatures;
 
   return (
     <section className="py-32 bg-gradient-to-b from-white via-accent-purple/5 to-white">

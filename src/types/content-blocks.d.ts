@@ -18,11 +18,65 @@ export interface TestimonialItem {
   source: string;
 }
 
+export interface HeadingBlockContent extends BaseBlockContent {
+  text?: string;
+  size?: 'h1' | 'h2' | 'h3' | 'h4';
+}
+
+export interface TextBlockContent extends BaseBlockContent {
+  text?: string;
+}
+
+export interface ImageBlockContent extends BaseBlockContent {
+  url?: string;
+  alt?: string;
+}
+
+export interface VideoBlockContent extends BaseBlockContent {
+  url?: string;
+  title?: string;
+}
+
+export interface ButtonBlockContent extends BaseBlockContent {
+  text?: string;
+  url?: string;
+  variant?: 'default' | 'outline' | 'ghost';
+}
+
+export interface HeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  videoUrl?: string;
+  videoPoster?: string;
+  shopNowText?: string;
+  learnMoreText?: string;
+}
+
 export interface FeaturesContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   description?: string;
   features?: Json;
+}
+
+export interface GameChangerContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  features?: Json;
+}
+
+export interface StoreBrandsContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  features?: Json;
+}
+
+export interface SustainabilityContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  stats?: Json;
+  timelineItems?: string[];
 }
 
 export interface TestimonialsContent extends BaseBlockContent {
