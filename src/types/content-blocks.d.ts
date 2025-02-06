@@ -456,7 +456,11 @@ export type BlockType =
   | "donation_join_movement"
   | "business_hero"
   | "business_solutions"
-  | "business_contact";
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta";
 
 export interface FeaturesProps {
   content?: FeaturesContent;
