@@ -27,7 +27,15 @@ export const Index = () => {
 
         if (error) throw error;
 
-        setBlocks(data || []);
+        // Transform the data to match ContentBlock type
+        const transformedData: ContentBlock[] = (data || []).map(block => ({
+          id: block.id,
+          type: block.type,
+          content: block.content as any, // We'll need to properly type this based on the block type
+          order_index: block.order_index
+        }));
+
+        setBlocks(transformedData);
       } catch (err) {
         console.error('Error fetching content:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -44,20 +52,20 @@ export const Index = () => {
 
     switch (block.type) {
       case 'hero':
-        return <Hero content={block.content} />;
+        return <Hero content={block.content as any} />;
       case 'features':
         return <Features 
-          features={block.content.features}
-          title={block.content.title}
-          subtitle={block.content.subtitle}
-          description={block.content.description}
+          features={block.content.features || []}
+          title={block.content.title || ''}
+          subtitle={block.content.subtitle || ''}
+          description={block.content.description || ''}
         />;
       case 'competitor-comparison':
         return <CompetitorComparison content={block.content} />;
       case 'product-carousel':
-        return <ProductCarousel content={block.content} />;
+        return <ProductCarousel content={block.content as any} />;
       case 'testimonials':
-        return <Testimonials content={block.content} />;
+        return <Testimonials content={{ ...block.content, testimonials: block.content.testimonials || [] }} />;
       case 'newsletter':
         return <Newsletter content={block.content} />;
       case 'store-brands':
