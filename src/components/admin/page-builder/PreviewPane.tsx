@@ -142,8 +142,9 @@ export const PreviewPane = ({
 
             case 'spacer':
               const height = typeof block.content.height === 'string' ? block.content.height : '32px';
+              const indent = typeof block.content.indent === 'string' ? block.content.indent : '0px';
               return (
-                <div style={{ height }} />
+                <div style={{ height, marginLeft: indent, marginRight: indent }} />
               );
 
             case 'contact_business':
@@ -261,11 +262,11 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-[400px] relative">
       {blocks.length > 0 ? (
         blocks.map((block) => renderBlock(block))
       ) : (
-        <div className="text-center text-gray-500 py-8">
+        <div className="absolute inset-0 flex items-center justify-center text-center text-gray-500">
           No content blocks yet. Click "Add Component" to get started.
         </div>
       )}

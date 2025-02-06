@@ -152,6 +152,14 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
               placeholder="32px"
             />
           </div>
+          <div>
+            <Label>Indentation (e.g., "16px" or "1rem")</Label>
+            <Input
+              value={block.content.indent as string || "0px"}
+              onChange={(e) => handleChange("indent", e.target.value)}
+              placeholder="0px"
+            />
+          </div>
         </div>
       );
 
