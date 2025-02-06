@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent, ForBusinessCtaContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -242,6 +242,9 @@ export const PreviewPane = ({
 
             case "for_business_contact":
               return <BusinessContact content={block.content as BusinessContactContent} />;
+
+            case "for_business_cta":
+              return <BusinessContact content={block.content as ForBusinessCtaContent} />;
 
             case "for_business_consultation":
               return <CustomSolutionsDialog open={false} onOpenChange={() => {}} />;

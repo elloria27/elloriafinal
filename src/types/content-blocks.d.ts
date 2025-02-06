@@ -367,6 +367,13 @@ export interface DonationJoinMovementContent extends BaseBlockContent {
   icon?: string;
 }
 
+export interface ForBusinessCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -392,10 +399,7 @@ export type BlockContent =
   | ForBusinessHeroContent
   | BusinessSolutionsContent
   | BusinessContactContent
-  | CustomSolutionsHeroContent
-  | CustomSolutionsServicesContent
-  | CustomSolutionsProcessContent
-  | CustomSolutionsCtaContent
+  | ForBusinessCtaContent
   | AboutHeroContent
   | AboutStoryContent
   | AboutMissionContent
