@@ -48,27 +48,73 @@ export const Testimonials = ({ content }: TestimonialsProps) => {
   
   let testimonials: Testimonial[] = defaultTestimonials;
   
-  if (content?.testimonials) {
-    testimonials = content.testimonials.map((item): Testimonial => {
-      if (typeof item === 'object' && item !== null) {
-        const itemObj = item as Record<string, Json>;
-        const source = String(itemObj.source || '');
-        const validSource = sourceOptions.includes(source) ? source : sourceOptions[0];
-        
+  if (content) {
+    if (Array.isArray(content.testimonials)) {
+      testimonials = content.testimonials.map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
+          const source = String(itemObj.source || '');
+          // Validate source is from allowed options
+          const validSource = sourceOptions.includes(source) ? source : sourceOptions[0];
+          
+          return {
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Math.min(Math.max(Number(itemObj.rating || 5), 1), 5), // Ensure rating is between 1-5
+            text: String(itemObj.text || itemObj.content || ''),
+            source: validSource
+          };
+        }
         return {
-          name: String(itemObj.name || itemObj.author || ''),
-          rating: Math.min(Math.max(Number(itemObj.rating || 5), 1), 5),
-          text: String(itemObj.text || itemObj.content || ''),
-          source: validSource
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: sourceOptions[0]
         };
-      }
-      return {
-        name: '',
-        rating: 5,
-        text: typeof item === 'string' ? item : '',
-        source: sourceOptions[0]
-      };
-    });
+      });
+    } else if (Array.isArray(content.items)) {
+      testimonials = content.items.map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
+          const source = String(itemObj.source || '');
+          const validSource = sourceOptions.includes(source) ? source : sourceOptions[0];
+          
+          return {
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Math.min(Math.max(Number(itemObj.rating || 5), 1), 5),
+            text: String(itemObj.text || itemObj.content || ''),
+            source: validSource
+          };
+        }
+        return {
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: sourceOptions[0]
+        };
+      });
+    } else if (typeof content.testimonials === 'object' && content.testimonials !== null) {
+      const testimonialsObj = content.testimonials as Record<string, Json>;
+      testimonials = Object.values(testimonialsObj).map((item): Testimonial => {
+        if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, Json>;
+          const source = String(itemObj.source || '');
+          const validSource = sourceOptions.includes(source) ? source : sourceOptions[0];
+          
+          return {
+            name: String(itemObj.name || itemObj.author || ''),
+            rating: Math.min(Math.max(Number(itemObj.rating || 5), 1), 5),
+            text: String(itemObj.text || itemObj.content || ''),
+            source: validSource
+          };
+        }
+        return {
+          name: '',
+          rating: 5,
+          text: typeof item === 'string' ? item : '',
+          source: sourceOptions[0]
+        };
+      });
+    }
   }
   
   console.log('Processed testimonials:', testimonials);
