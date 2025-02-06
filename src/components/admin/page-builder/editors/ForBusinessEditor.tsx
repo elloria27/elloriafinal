@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
+import { ContentBlock, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactFormContent } from "@/types/content-blocks";
 
 interface ForBusinessEditorProps {
   block: ContentBlock;
@@ -12,7 +12,7 @@ interface ForBusinessEditorProps {
 }
 
 export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) => {
-  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactContent>) => {
+  const handleContentChange = (updates: Partial<ForBusinessHeroContent | BusinessSolutionsContent | BusinessContactFormContent>) => {
     onUpdate(block.id, {
       ...block.content,
       ...updates,
@@ -182,7 +182,7 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       );
 
     case "business_contact":
-      const contactContent = block.content as BusinessContactContent;
+      const contactContent = block.content as BusinessContactFormContent;
       return (
         <div className="space-y-4">
           <div>
@@ -202,27 +202,11 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
             />
           </div>
           <div>
-            <Label>Email</Label>
-            <Input
-              value={contactContent.email || ""}
-              onChange={(e) => handleContentChange({ email: e.target.value })}
-              placeholder="Enter contact email"
-            />
-          </div>
-          <div>
             <Label>Button Text</Label>
             <Input
               value={contactContent.buttonText || ""}
               onChange={(e) => handleContentChange({ buttonText: e.target.value })}
               placeholder="Enter button text"
-            />
-          </div>
-          <div>
-            <Label>Button Link</Label>
-            <Input
-              value={contactContent.buttonLink || ""}
-              onChange={(e) => handleContentChange({ buttonLink: e.target.value })}
-              placeholder="Enter button link"
             />
           </div>
         </div>

@@ -118,7 +118,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
       return <CommonEditor block={block} onUpdate={onUpdate} />;
     }
 
-    if (block.type === "business_solutions" || block.type === "business_contact_form") {
+    if (block.type === "business_solutions" || block.type === "business_contact") {
       return <BusinessComponentsEditor block={block} onUpdate={onUpdate} />;
     }
 
