@@ -488,3 +488,13 @@ export interface DeliveryMethod {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content: BlockContent;
+  order_index: number;
+  page_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
