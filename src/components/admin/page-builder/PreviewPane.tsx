@@ -31,6 +31,53 @@ import { SustainabilityMaterials } from "@/components/sustainability/Sustainabil
 import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
 
+const defaultContent = {
+  sustainability_hero: {
+    title: "Caring for Women, Caring for the Planet",
+    description: "Discover how Elloria is leading the way in sustainable feminine care",
+    backgroundImage: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png"
+  },
+  sustainability_mission: {
+    title: "Our Sustainability Mission",
+    description: "At Elloria, we believe that premium feminine care shouldn't come at the cost of our planet.",
+    stats: [
+      {
+        icon: "Leaf",
+        value: "72%",
+        label: "Recyclable Materials",
+        description: "Our products are made with eco-friendly materials"
+      }
+    ]
+  },
+  sustainability_materials: {
+    title: "Sustainable Materials",
+    description: "Our products are crafted with carefully selected materials that minimize environmental impact.",
+    materials: [
+      {
+        icon: "TreePine",
+        title: "Eco-Friendly Materials",
+        description: "Sustainable and comfortable materials"
+      }
+    ]
+  },
+  sustainability_faq: {
+    title: "Frequently Asked Questions",
+    description: "Get answers to common questions about our sustainable practices and products.",
+    faqs: [
+      {
+        question: "Are Elloria products sustainable?",
+        answer: "Yes, our products are made with eco-friendly materials and sustainable practices."
+      }
+    ]
+  },
+  sustainability_cta: {
+    title: "Join Our Sustainable Journey",
+    description: "Subscribe to our newsletter for updates on our latest sustainability initiatives.",
+    buttonText: "Learn More",
+    buttonLink: "/sustainability"
+  }
+};
+
 interface PreviewPaneProps {
   blocks: ContentBlock[];
   onSelectBlock: (block: ContentBlock) => void;
@@ -51,6 +98,10 @@ export const PreviewPane = ({
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
+    const getDefaultContent = (type: string) => {
+      return defaultContent[type as keyof typeof defaultContent] || {};
+    };
+
     const blockContent = (
       <div className="group relative w-full">
         {isAdmin && (
@@ -93,181 +144,26 @@ export const PreviewPane = ({
             );
           }
 
+          const mergedContent = {
+            ...getDefaultContent(block.type),
+            ...block.content
+          };
+
           switch (block.type) {
-            case 'heading':
-              const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
-              return (
-                <HeadingTag className="text-4xl font-bold mb-4">
-                  {String(block.content.text || 'Heading')}
-                </HeadingTag>
-              );
-
-            case 'text':
-              return (
-                <p className="text-gray-600 mb-4 whitespace-pre-wrap">
-                  {String(block.content.text || 'Text block')}
-                </p>
-              );
-
-            case 'image':
-              return (
-                <div className="mb-4">
-                  <img
-                    src={String(block.content.url) || '/placeholder.svg'}
-                    alt={String(block.content.alt) || ''}
-                    className="max-w-full h-auto rounded-lg shadow-md"
-                  />
-                </div>
-              );
-
-            case 'video':
-              return (
-                <div className="mb-4 aspect-video">
-                  <iframe
-                    src={String(block.content.url)}
-                    title={String(block.content.title) || 'Video'}
-                    className="w-full h-full rounded-lg shadow-md"
-                    allowFullScreen
-                  />
-                </div>
-              );
-
-            case 'button':
-              return (
-                <button
-                  className={`px-4 py-2 rounded mb-4 ${
-                    block.content.variant === 'outline'
-                      ? 'border border-primary text-primary'
-                      : block.content.variant === 'ghost'
-                      ? 'text-primary hover:bg-primary/10'
-                      : 'bg-primary text-white'
-                  }`}
-                >
-                  {String(block.content.text) || 'Button'}
-                </button>
-              );
-
-            case 'spacer': {
-              const height = block.content.height;
-              const indent = block.content.indent;
-              
-              const getPixelValue = (value: unknown): string => {
-                if (typeof value === 'number') return `${value}px`;
-                if (typeof value === 'string') return value.includes('px') ? value : `${value}px`;
-                return '32px'; // Default value
-              };
-
-              return (
-                <div style={{ 
-                  height: getPixelValue(height),
-                  marginLeft: getPixelValue(indent),
-                  marginRight: getPixelValue(indent)
-                }} />
-              );
-            }
-
-            case 'contact_business':
-              return <BusinessContact content={block.content} />;
-
-            case 'hero':
-              return <HomeHero content={block.content} />;
-
-            case 'features':
-              return <Features content={block.content} />;
-
-            case 'game_changer':
-              return <GameChanger content={block.content} />;
-
-            case 'store_brands':
-              return <StoreBrands content={block.content} />;
-
-            case 'sustainability':
-              return <Sustainability content={block.content} />;
-
-            case 'testimonials':
-              return <Testimonials content={block.content} />;
-
-            case 'blog_preview':
-              return <BlogPreview content={block.content} />;
-
-            case 'product_carousel':
-              return <ProductCarousel content={block.content} />;
-
-            case 'competitor_comparison':
-              return <CompetitorComparison content={block.content} />;
-
-            case 'about_hero_section':
-              return <AboutHeroSection content={block.content} />;
-
-            case 'about_story':
-              return <AboutStory content={block.content} />;
-
-            case 'about_mission':
-              return <AboutMission content={block.content} />;
-
-            case 'about_sustainability':
-              const sustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.map(stat => ({
-                    ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
-                    value: String(stat.value || ''),
-                    label: String(stat.label || ''),
-                    description: String(stat.description || '')
-                  }))
-                : [];
-              
-              return <AboutSustainability content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                stats: sustainabilityStats
-              }} />;
-
-            case 'about_team':
-              return <AboutTeam content={block.content} />;
-
-            case 'about_customer_impact':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => ({
-                    quote: String(t.text || ''),
-                    author: String(t.name || ''),
-                    role: String(t.source || ''),
-                    rating: Number(t.rating || 5)
-                  }))
-                : [];
-              
-              return <AboutCustomerImpact content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                testimonials
-              }} />;
-
-            case 'contact_hero':
-              return <ContactHero content={block.content} />;
-
-            case 'contact_details':
-              return <ContactDetails content={block.content} />;
-
-            case 'contact_form':
-              return <ContactForm content={block.content} />;
-
-            case 'contact_faq':
-              return <ContactFAQ content={block.content} />;
-
-            // Add new sustainability component cases
             case 'sustainability_hero':
-              return <SustainabilityHero content={block.content} />;
+              return <SustainabilityHero content={mergedContent} />;
             
             case 'sustainability_mission':
-              return <SustainabilityMission content={block.content} />;
+              return <SustainabilityMission content={mergedContent} />;
             
             case 'sustainability_materials':
-              return <SustainabilityMaterials content={block.content} />;
+              return <SustainabilityMaterials content={mergedContent} />;
             
             case 'sustainability_faq':
-              return <SustainabilityFAQ content={block.content} />;
+              return <SustainabilityFAQ content={mergedContent} />;
             
             case 'sustainability_cta':
-              return <SustainabilityCTA content={block.content} />;
+              return <SustainabilityCTA content={mergedContent} />;
 
             default:
               return (
