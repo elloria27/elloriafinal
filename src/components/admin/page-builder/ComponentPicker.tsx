@@ -17,6 +17,8 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  console.log("ComponentPicker rendered with open:", open);
+
   const components = [
     {
       category: "Basic",
@@ -68,13 +70,14 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
   })).filter(category => category.items.length > 0);
 
   const handleSelect = (type: BlockType) => {
+    console.log("Selected component type:", type);
     onSelect(type);
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-[90vw] max-h-[90vh] w-full flex flex-col">
         <DialogHeader>
           <DialogTitle>Add Component</DialogTitle>
           <div className="relative">
@@ -88,14 +91,14 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+        <ScrollArea className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
             {filteredComponents.map((category) => (
               <div 
                 key={category.category}
                 className={cn(
-                  "space-y-2",
-                  selectedCategory === category.category && "ring-2 ring-primary rounded-lg p-2"
+                  "space-y-2 p-4 rounded-lg border",
+                  selectedCategory === category.category && "ring-2 ring-primary"
                 )}
                 onClick={() => setSelectedCategory(category.category)}
               >
@@ -107,10 +110,10 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
                     <Button
                       key={item.type}
                       variant="outline"
-                      className="w-full justify-start text-sm py-6 relative group"
+                      className="w-full justify-start text-sm h-auto py-3 relative group"
                       onClick={() => handleSelect(item.type as BlockType)}
                     >
-                      <div>
+                      <div className="flex flex-col items-start gap-1">
                         <div className="font-medium">{item.label}</div>
                         <div className="text-xs text-muted-foreground">{item.description}</div>
                       </div>

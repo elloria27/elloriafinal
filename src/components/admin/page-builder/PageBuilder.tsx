@@ -23,6 +23,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const [selectedBlock, setSelectedBlock] = useState<ContentBlock | null>(null);
   const [isComponentPickerOpen, setIsComponentPickerOpen] = useState(false);
 
+  console.log("PageBuilder rendered with blocks:", blocks);
+
   const handleDragEnd = useCallback(async (result: any) => {
     if (!result.destination) return;
 
@@ -39,7 +41,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     setBlocks(updatedBlocks);
 
     try {
-      // Update the order in the database
+      console.log("Updating block order in database");
       const { error } = await supabase.from('content_blocks')
         .upsert(
           updatedBlocks.map(block => ({
@@ -61,6 +63,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleAddBlock = async (blockType: BlockType) => {
     try {
+      console.log("Adding new block of type:", blockType);
       const newBlock = {
         type: blockType as ContentBlockRow["type"],
         content: {} as ContentBlockRow["content"],
@@ -76,7 +79,6 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      // Ensure proper typing of the returned data
       const typedBlock: ContentBlock = {
         id: data.id,
         type: data.type as BlockType,
@@ -99,6 +101,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
     try {
+      console.log("Updating block content:", { blockId, content });
       const { error } = await supabase
         .from('content_blocks')
         .update({ content: content as ContentBlockRow["content"] })
@@ -109,6 +112,12 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
       setBlocks(blocks.map(block => 
         block.id === blockId ? { ...block, content } : block
       ));
+      
+      // Update the selected block as well to reflect changes immediately
+      if (selectedBlock?.id === blockId) {
+        setSelectedBlock(prev => prev ? { ...prev, content } : null);
+      }
+      
       toast.success("Block updated successfully");
     } catch (error) {
       console.error('Error updating block:', error);
@@ -118,6 +127,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleDeleteBlock = async (blockId: string) => {
     try {
+      console.log("Deleting block:", blockId);
       const { error } = await supabase
         .from('content_blocks')
         .delete()
