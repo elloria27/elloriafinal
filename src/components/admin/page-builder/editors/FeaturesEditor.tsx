@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, FeaturesContent, FeatureItem } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 import { convertToFeatureItems } from "@/utils/contentConverters";
 
 interface FeaturesEditorProps {

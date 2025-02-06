@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { ContentBlock, TestimonialsContent, TestimonialItem } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 import { convertToTestimonialItems } from "@/utils/contentConverters";
 
 interface TestimonialsEditorProps {
@@ -34,7 +35,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     const updatedTestimonials = [...testimonials, newTestimonial];
     onUpdate(block.id, {
       ...content,
-      testimonials: updatedTestimonials
+      testimonials: updatedTestimonials as unknown as Json
     });
   };
 
@@ -43,7 +44,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     testimonials.splice(index, 1);
     onUpdate(block.id, { 
       ...content, 
-      testimonials: testimonials
+      testimonials: testimonials as unknown as Json
     });
   };
 
@@ -57,7 +58,7 @@ export const TestimonialsEditor = ({ block, onUpdate }: TestimonialsEditorProps)
     testimonials[index] = updatedTestimonial;
     onUpdate(block.id, { 
       ...content, 
-      testimonials: testimonials
+      testimonials: testimonials as unknown as Json
     });
   };
 

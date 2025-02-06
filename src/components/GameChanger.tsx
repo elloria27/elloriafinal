@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Droplets, Leaf, Heart } from "lucide-react";
 import { GameChangerContent } from "@/types/content-blocks";
+import { convertToFeatureItems } from "@/utils/contentConverters";
 
 interface GameChangerProps {
   content?: GameChangerContent;
@@ -28,7 +29,7 @@ export const GameChanger = ({ content }: GameChangerProps) => {
     }
   ];
 
-  const features = content?.features || defaultFeatures;
+  const features = content?.features ? convertToFeatureItems(content.features) : defaultFeatures;
   
   const getIcon = (iconName: string) => {
     switch (iconName) {
