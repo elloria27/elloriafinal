@@ -4,9 +4,17 @@ import { componentRegistry } from './registry';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const PageBuilder = ({ components: initialComponents, onUpdate, isEditing = false }: PageBuilderProps) => {
   const [components, setComponents] = useState<PageComponent[]>(initialComponents);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const handleAddComponent = (type: string) => {
     const registryItem = componentRegistry.find(item => item.type === type);
@@ -26,6 +34,8 @@ export const PageBuilder = ({ components: initialComponents, onUpdate, isEditing
     const updatedComponents = [...components, newComponent];
     setComponents(updatedComponents);
     onUpdate?.(updatedComponents);
+    setIsPickerOpen(false);
+    toast.success('Component added successfully');
   };
 
   const handleUpdateComponent = (id: string, content: any) => {
@@ -52,7 +62,7 @@ export const PageBuilder = ({ components: initialComponents, onUpdate, isEditing
         return (
           <div key={component.id} className="relative group">
             {isEditing && (
-              <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 space-x-2">
                 <Button
                   variant="destructive"
                   size="sm"
@@ -73,12 +83,39 @@ export const PageBuilder = ({ components: initialComponents, onUpdate, isEditing
       })}
 
       {isEditing && (
-        <div className="flex justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
-          <Button onClick={() => handleAddComponent('text')} variant="outline">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Component
-          </Button>
-        </div>
+        <Dialog open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+          <DialogTrigger asChild>
+            <div className="flex justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+              <Button variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Component
+              </Button>
+            </div>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Choose a Component</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 p-4">
+              {componentRegistry.map((item) => (
+                <Button
+                  key={item.type}
+                  variant="outline"
+                  className="h-auto p-4 flex flex-col items-center space-y-2"
+                  onClick={() => handleAddComponent(item.type)}
+                >
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    {item.icon}
+                  </div>
+                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-xs text-gray-500 text-center">
+                    {item.description}
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageBuilder } from "@/components/page-builder/PageBuilder";
 import { PageComponent } from "@/types/page-builder";
+import { ContactHero } from "@/components/contact/ContactHero";
+import { ContactForm } from "@/components/contact/ContactForm";
+import { ContactDetails } from "@/components/contact/ContactDetails";
+import { ContactFAQ } from "@/components/contact/ContactFAQ";
+import { ContactBusinessContent } from "@/types/content-blocks";
 
 export const Contact = () => {
   const [components, setComponents] = useState<PageComponent[]>([]);
@@ -17,13 +22,22 @@ export const Contact = () => {
           .single();
 
         if (pageData) {
-          const { data: components } = await supabase
+          const { data: componentsData } = await supabase
             .from('page_components')
             .select('*')
             .eq('page_id', pageData.id)
             .order('order');
 
-          setComponents(components || []);
+          if (componentsData) {
+            const typedComponents: PageComponent[] = componentsData.map((component: any) => ({
+              id: component.id,
+              type: component.type,
+              content: component.content,
+              order: component.order_index,
+              settings: component.settings || {}
+            }));
+            setComponents(typedComponents);
+          }
         }
       } catch (error) {
         console.error('Error fetching page content:', error);

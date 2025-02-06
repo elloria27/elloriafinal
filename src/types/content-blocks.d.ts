@@ -173,4 +173,25 @@ export interface ContentBlock {
   updated_at: string;
 }
 
-export interface FeaturesProps extends FeaturesContent {}
+export interface FeaturesProps {
+  features?: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+  title?: string;
+  subtitle?: string;
+  description?: ReactNode;
+}
+
+export interface BulkOrdersContent extends BaseBlockContent {
+  features: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+}
+
+export interface BulkOrdersProps {
+  content: BulkOrdersContent;
+}
