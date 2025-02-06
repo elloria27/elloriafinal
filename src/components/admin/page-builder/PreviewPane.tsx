@@ -24,12 +24,21 @@ import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { cn } from "@/lib/utils";
 
-// Import new sustainability components
+// Import sustainability components
 import { SustainabilityHero } from "@/components/sustainability/SustainabilityHero";
 import { SustainabilityMission } from "@/components/sustainability/SustainabilityMission";
 import { SustainabilityMaterials } from "@/components/sustainability/SustainabilityMaterials";
 import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
+
+// Import donation components
+import { DonationHero } from "@/components/donation/DonationHero";
+import { DonationImpact } from "@/components/donation/DonationImpact";
+import { DonationForm } from "@/components/donation/DonationForm";
+import { DonationStories } from "@/components/donation/DonationStories";
+import { DonationPartners } from "@/components/donation/DonationPartners";
+import { DonationFAQ } from "@/components/donation/DonationFAQ";
+import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -253,21 +262,27 @@ export const PreviewPane = ({
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
 
-            // Add new sustainability component cases
-            case 'sustainability_hero':
-              return <SustainabilityHero content={block.content} />;
+            // Add donation components cases
+            case 'donation_hero':
+              return <DonationHero content={block.content} />;
             
-            case 'sustainability_mission':
-              return <SustainabilityMission content={block.content} />;
+            case 'donation_impact':
+              return <DonationImpact content={block.content} />;
             
-            case 'sustainability_materials':
-              return <SustainabilityMaterials content={block.content} />;
+            case 'donation_form':
+              return <DonationForm content={block.content} />;
             
-            case 'sustainability_faq':
-              return <SustainabilityFAQ content={block.content} />;
+            case 'donation_stories':
+              return <DonationStories content={block.content} />;
             
-            case 'sustainability_cta':
-              return <SustainabilityCTA content={block.content} />;
+            case 'donation_partners':
+              return <DonationPartners content={block.content} />;
+            
+            case 'donation_faq':
+              return <DonationFAQ content={block.content} />;
+            
+            case 'donation_join_movement':
+              return <DonationJoinMovement content={block.content} />;
 
             default:
               return (
