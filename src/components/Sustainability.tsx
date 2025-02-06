@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Leaf, Recycle, Percent, Package, Factory } from "lucide-react";
+import { Droplets, Shield, Heart, Package, Leaf, Recycle, Shrink } from "lucide-react";
 import { SustainabilityContent } from "@/types/content-blocks";
 import { convertToFeatureItems } from "@/utils/contentConverters";
 
@@ -46,7 +46,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ...(content || {}),
   };
 
-  const stats = finalContent.stats ? convertToFeatureItems(finalContent.stats as any) : defaultContent.stats;
+  const stats = finalContent.stats ? convertToFeatureItems(finalContent.stats) : defaultContent.stats;
   
   console.log("Final content being used:", finalContent);
 

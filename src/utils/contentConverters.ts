@@ -7,6 +7,7 @@ export interface DatabaseFeature {
   title: string;
   description: string;
   detail?: string;
+  color?: string;
 }
 
 export interface DatabaseTestimonial {
@@ -17,19 +18,25 @@ export interface DatabaseTestimonial {
 }
 
 // Type guards
-const isFeatureItem = (item: any): item is DatabaseFeature => {
-  return typeof item === 'object' && 
-         typeof item.icon === 'string' && 
-         typeof item.title === 'string' && 
-         typeof item.description === 'string';
+const isFeatureItem = (item: unknown): item is DatabaseFeature => {
+  if (!item || typeof item !== 'object') return false;
+  const feature = item as any;
+  return (
+    typeof feature.icon === 'string' && 
+    typeof feature.title === 'string' && 
+    typeof feature.description === 'string'
+  );
 };
 
-const isTestimonialItem = (item: any): item is DatabaseTestimonial => {
-  return typeof item === 'object' && 
-         typeof item.name === 'string' && 
-         typeof item.text === 'string' && 
-         typeof item.source === 'string' && 
-         typeof item.rating === 'number';
+const isTestimonialItem = (item: unknown): item is DatabaseTestimonial => {
+  if (!item || typeof item !== 'object') return false;
+  const testimonial = item as any;
+  return (
+    typeof testimonial.name === 'string' && 
+    typeof testimonial.text === 'string' && 
+    typeof testimonial.source === 'string' && 
+    typeof testimonial.rating === 'number'
+  );
 };
 
 // Converters
@@ -38,7 +45,8 @@ export const convertToFeatureItem = (dbFeature: DatabaseFeature): FeatureItem =>
     icon: dbFeature.icon,
     title: dbFeature.title,
     description: dbFeature.description,
-    detail: dbFeature.detail
+    detail: dbFeature.detail,
+    color: dbFeature.color
   };
 };
 
@@ -51,11 +59,12 @@ export const convertToTestimonialItem = (dbTestimonial: DatabaseTestimonial): Te
   };
 };
 
-// Array converters
+// Array converters with better type safety
 export const convertToFeatureItems = (data: Json | null): FeatureItem[] => {
-  if (!data) return [];
-  if (Array.isArray(data)) {
-    return data.map(item => {
+  if (!data || !Array.isArray(data)) return [];
+  
+  return data
+    .map(item => {
       if (typeof item === 'string') {
         try {
           const parsed = JSON.parse(item);
@@ -65,15 +74,15 @@ export const convertToFeatureItems = (data: Json | null): FeatureItem[] => {
         }
       }
       return isFeatureItem(item) ? convertToFeatureItem(item) : null;
-    }).filter((item): item is FeatureItem => item !== null);
-  }
-  return [];
+    })
+    .filter((item): item is FeatureItem => item !== null);
 };
 
 export const convertToTestimonialItems = (data: Json | null): TestimonialItem[] => {
-  if (!data) return [];
-  if (Array.isArray(data)) {
-    return data.map(item => {
+  if (!data || !Array.isArray(data)) return [];
+  
+  return data
+    .map(item => {
       if (typeof item === 'string') {
         try {
           const parsed = JSON.parse(item);
@@ -83,7 +92,6 @@ export const convertToTestimonialItems = (data: Json | null): TestimonialItem[] 
         }
       }
       return isTestimonialItem(item) ? convertToTestimonialItem(item) : null;
-    }).filter((item): item is TestimonialItem => item !== null);
-  }
-  return [];
+    })
+    .filter((item): item is TestimonialItem => item !== null);
 };

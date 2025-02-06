@@ -177,13 +177,17 @@ export const PreviewPane = ({
 
             case 'about_sustainability':
               const sustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.map(stat => ({
-                    ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
-                    value: String(stat.value || ''),
-                    label: String(stat.label || ''),
-                    description: String(stat.description || '')
-                  }))
+                ? block.content.stats.map(stat => {
+                    if (typeof stat === 'object' && stat !== null) {
+                      return {
+                        icon: String(stat.icon || ''),
+                        value: String(stat.value || ''),
+                        label: String(stat.label || ''),
+                        description: String(stat.description || '')
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean)
                 : [];
               
               return <AboutSustainability content={{
@@ -197,12 +201,17 @@ export const PreviewPane = ({
 
             case 'about_customer_impact':
               const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => ({
-                    quote: String(t.text || ''),
-                    author: String(t.name || ''),
-                    role: String(t.source || ''),
-                    rating: Number(t.rating || 5)
-                  }))
+                ? block.content.testimonials.map(t => {
+                    if (typeof t === 'object' && t !== null) {
+                      return {
+                        quote: String(t.text || ''),
+                        author: String(t.name || ''),
+                        role: String(t.source || ''),
+                        rating: Number(t.rating || 5)
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean)
                 : [];
               
               return <AboutCustomerImpact content={{
