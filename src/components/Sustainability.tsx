@@ -9,7 +9,7 @@ interface SustainabilityProps {
 export const Sustainability = ({ content }: SustainabilityProps) => {
   console.log("Sustainability content received:", content);
   
-  const defaultContent = {
+  const defaultContent: SustainabilityContent = {
     title: "Our Commitment to Sustainability",
     description: "We're dedicated to reducing our environmental impact while delivering premium products through innovative, sustainable practices.",
     stats: [
@@ -40,9 +40,9 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     ]
   };
 
-  const finalContent = {
+  const finalContent: SustainabilityContent = {
     ...defaultContent,
-    ...(content || {}),
+    ...(content || {})
   };
   
   console.log("Final content being used:", finalContent);
