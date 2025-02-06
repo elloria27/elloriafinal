@@ -148,8 +148,12 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label>Height</Label>
             <Input
               type="number"
-              value={Number(block.content.height) || 32}
-              onChange={(e) => handleChange("height", `${e.target.value}px`)}
+              value={typeof block.content.height === 'number' 
+                ? block.content.height 
+                : typeof block.content.height === 'string'
+                ? parseInt(block.content.height) || 32
+                : 32}
+              onChange={(e) => handleChange("height", parseInt(e.target.value))}
               min={0}
               max={500}
             />
@@ -159,8 +163,12 @@ export const CommonEditor = ({ block, onUpdate }: CommonEditorProps) => {
             <Label>Indentation</Label>
             <Input
               type="number"
-              value={Number(block.content.indent?.replace('px', '')) || 0}
-              onChange={(e) => handleChange("indent", `${e.target.value}px`)}
+              value={typeof block.content.indent === 'number'
+                ? block.content.indent
+                : typeof block.content.indent === 'string'
+                ? parseInt(block.content.indent) || 0
+                : 0}
+              onChange={(e) => handleChange("indent", parseInt(e.target.value))}
               min={0}
               max={100}
             />

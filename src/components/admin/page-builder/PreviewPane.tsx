@@ -140,16 +140,24 @@ export const PreviewPane = ({
                 </button>
               );
 
-            case 'spacer':
-              const height = block.content.height || '32px';
-              const indent = block.content.indent || '0px';
+            case 'spacer': {
+              const height = block.content.height;
+              const indent = block.content.indent;
+              
+              const getPixelValue = (value: unknown): string => {
+                if (typeof value === 'number') return `${value}px`;
+                if (typeof value === 'string') return value.includes('px') ? value : `${value}px`;
+                return '32px'; // Default value
+              };
+
               return (
                 <div style={{ 
-                  height: typeof height === 'number' ? `${height}px` : height,
-                  marginLeft: typeof indent === 'number' ? `${indent}px` : indent,
-                  marginRight: typeof indent === 'number' ? `${indent}px` : indent
+                  height: getPixelValue(height),
+                  marginLeft: getPixelValue(indent),
+                  marginRight: getPixelValue(indent)
                 }} />
               );
+            }
 
             case 'contact_business':
               return <BusinessContact content={block.content} />;
