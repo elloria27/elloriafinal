@@ -13,8 +13,6 @@ import { GameChanger } from "@/components/GameChanger";
 import { SEOHead } from "@/components/SEOHead";
 import { useSEO } from "@/hooks/useSEO";
 import { toast } from "sonner";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { 
   ContentBlock, 
   BlockContent,
@@ -164,7 +162,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <SEOHead
         title={seoData?.meta_title || undefined}
         description={seoData?.meta_description || undefined}
@@ -174,16 +172,14 @@ const Index = () => {
         ogDescription={seoData?.og_description || undefined}
         ogImage={seoData?.og_image || undefined}
       />
-      <Header />
-      <main className="flex-grow">
+      <main className="flex-grow pt-20">
         {blocks.map((block) => (
           <div key={block.id}>
             {renderBlock(block)}
           </div>
         ))}
       </main>
-      <Footer />
-    </div>
+    </>
   );
 };
 

@@ -5,14 +5,11 @@ import { DonationStories } from "@/components/donation/DonationStories";
 import { DonationPartners } from "@/components/donation/DonationPartners";
 import { DonationFAQ } from "@/components/donation/DonationFAQ";
 import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 
 const Donation = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      <main className="flex-grow">
+    <div className="min-h-screen bg-white">
+      <main>
         <DonationHero />
         <DonationImpact />
         <DonationForm />
@@ -21,7 +18,6 @@ const Donation = () => {
         <DonationFAQ />
         <DonationJoinMovement />
       </main>
-      <Footer />
     </div>
   );
 };

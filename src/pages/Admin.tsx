@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { PageManagement } from "@/components/admin/PageManagement";
 import { FileManagement } from "@/components/admin/FileManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { MediaLibrary } from "@/components/admin/media/MediaLibrary";
@@ -28,6 +29,7 @@ const Admin = () => {
   const [searchParams] = useSearchParams();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
   const isMobile = useIsMobile();
   
   const currentTab = searchParams.get("tab") || "dashboard";
@@ -47,6 +49,19 @@ const Admin = () => {
           console.log('No active session, redirecting to login');
           navigate("/login?redirectTo=/admin");
           return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          console.log('Profile data:', profileData);
+          setProfile(profileData);
         }
 
         const { data: roleData, error: roleError } = await supabase
@@ -103,6 +118,8 @@ const Admin = () => {
         return <OrderManagement />;
       case "users":
         return <UserManagement />;
+      case "pages":
+        return <PageManagement />;
       case "blog":
         return <BlogManagement />;
       case "files":
@@ -141,12 +158,12 @@ const Admin = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-80">
-              <AdminSidebar />
+              <AdminSidebar profile={profile} onClose={() => {}} />
             </SheetContent>
           </Sheet>
         ) : (
           <div className="w-64 flex-shrink-0">
-            <AdminSidebar />
+            <AdminSidebar profile={profile} />
           </div>
         )}
         

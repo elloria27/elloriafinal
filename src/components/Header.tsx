@@ -10,7 +10,7 @@ import { useLocation } from "react-router-dom";
 export const Header = () => {
   const location = useLocation();
   
-  // Only hide header on admin routes
+  // Hide header on admin routes
   if (location.pathname.startsWith('/admin')) {
     return null;
   }

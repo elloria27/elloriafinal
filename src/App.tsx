@@ -1,7 +1,7 @@
 import { CartProvider } from "@/contexts/CartContext";
 import { PagesProvider } from "@/contexts/PagesContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { Outlet } from "react-router-dom";
+import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
     <CartProvider>
       <PagesProvider>
         <ScrollToTop />
-        <Outlet />
+        <Routes />
         <Toaster position="top-right" expand={false} richColors />
       </PagesProvider>
     </CartProvider>
