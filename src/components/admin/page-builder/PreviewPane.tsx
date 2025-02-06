@@ -21,8 +21,6 @@ import { ContactHero } from "@/components/contact/ContactHero";
 import { ContactDetails } from "@/components/contact/ContactDetails";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
-import { BusinessSolutionsBlock } from "@/components/business/BusinessSolutionsBlock";
-import { BusinessContactFormBlock } from "@/components/business/BusinessContactFormBlock";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -224,12 +222,6 @@ export const PreviewPane = ({
 
             case 'contact_faq':
               return <ContactFAQ content={block.content} />;
-
-            case 'business_solutions':
-              return <BusinessSolutionsBlock content={block.content} />;
-
-            case 'business_contact_form':
-              return <BusinessContactFormBlock content={block.content} />;
 
             default:
               return (

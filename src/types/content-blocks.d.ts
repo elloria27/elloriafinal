@@ -262,15 +262,15 @@ export interface BusinessSolutionsContent extends BaseBlockContent {
     icon: string;
     title: string;
     description: string;
-    buttonText?: string;
-    link?: string;
   }>;
 }
 
-export interface BusinessContactFormContent extends BaseBlockContent {
+export interface BusinessContactContent extends BaseBlockContent {
   title?: string;
   description?: string;
+  email?: string;
   buttonText?: string;
+  buttonLink?: string;
 }
 
 export interface CustomSolutionsHeroContent extends BaseBlockContent {
@@ -328,7 +328,7 @@ export type BlockContent =
   | ContactBusinessContent
   | ForBusinessHeroContent
   | BusinessSolutionsContent
-  | BusinessContactFormContent
+  | BusinessContactContent
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
@@ -365,8 +365,8 @@ export type BlockType =
   | "contact_faq"
   | "contact_business"
   | "business_hero"
-  | "business_solutions" 
-  | "business_contact_form"  // Added this line
+  | "business_solutions"
+  | "business_contact"
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"

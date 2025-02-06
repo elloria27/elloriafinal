@@ -8,7 +8,6 @@ import { ForBusinessEditor } from "./editors/ForBusinessEditor";
 import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
-import { BusinessComponentsEditor } from "./editors/BusinessComponentsEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -116,10 +115,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (commonComponents.includes(block.type)) {
       return <CommonEditor block={block} onUpdate={onUpdate} />;
-    }
-
-    if (block.type === "business_solutions" || block.type === "business_contact_form") {
-      return <BusinessComponentsEditor block={block} onUpdate={onUpdate} />;
     }
 
     console.warn(`No editor available for block type: ${block.type}`);

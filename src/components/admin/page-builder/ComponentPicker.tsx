@@ -36,10 +36,32 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
-      category: "Business",
+      category: "About Page",
       items: [
-        { type: "business_solutions", label: "Business Solutions" },
-        { type: "business_contact_form", label: "Business Contact Form" },
+        { type: "about_hero_section", label: "About Hero" },
+        { type: "about_story", label: "About Story" },
+        { type: "about_mission", label: "About Mission" },
+        { type: "about_sustainability", label: "About Sustainability" },
+        { type: "about_team", label: "About Team" },
+        { type: "about_customer_impact", label: "About Customer Impact" },
+      ],
+    },
+    {
+      category: "Products",
+      items: [
+        { type: "product_carousel", label: "Product Carousel" },
+        { type: "product_gallery", label: "Product Gallery" },
+        { type: "competitor_comparison", label: "Competitor Comparison" },
+      ],
+    },
+    {
+      category: "Sustainability",
+      items: [
+        { type: "sustainability_hero", label: "Sustainability Hero" },
+        { type: "sustainability_mission", label: "Sustainability Mission" },
+        { type: "sustainability_materials", label: "Sustainability Materials" },
+        { type: "sustainability_faq", label: "Sustainability FAQ" },
+        { type: "sustainability_cta", label: "Sustainability CTA" },
       ],
     },
   ];
