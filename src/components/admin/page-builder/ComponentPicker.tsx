@@ -59,6 +59,17 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "about_customer_impact", label: "About Customer Impact", description: "Success stories" },
       ],
     },
+    {
+      category: "Contact",
+      icon: "Contact",
+      items: [
+        { type: "contact_hero", label: "Contact Hero", description: "Contact page header" },
+        { type: "contact_details", label: "Contact Details", description: "Address and contact info" },
+        { type: "contact_form", label: "Contact Form", description: "Get in touch form" },
+        { type: "contact_faq", label: "Contact FAQ", description: "Common questions" },
+        { type: "contact_business", label: "Business Contact", description: "Business inquiries section" },
+      ],
+    },
   ];
 
   const filteredComponents = components.map(category => ({
