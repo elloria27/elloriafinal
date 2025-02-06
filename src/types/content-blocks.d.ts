@@ -460,7 +460,13 @@ export type BlockType =
   | "donation_stories"
   | "donation_partners"
   | "donation_faq"
-  | "donation_join_movement";
+  | "donation_join_movement"
+  | "for_business_hero"
+  | "for_business_solutions"
+  | "for_business_contact"
+  | "for_business_cta"
+  | "for_business_consultation"
+  | "for_business_bulk_orders";
 
 export interface ContentBlock {
   id: string;

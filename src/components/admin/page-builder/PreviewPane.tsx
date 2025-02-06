@@ -1,6 +1,5 @@
-
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent, ForBusinessHeroContent, BusinessSolutionsContent, BusinessContactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -31,6 +30,10 @@ import { DonationPartners } from "@/components/donation/DonationPartners";
 import { DonationFAQ } from "@/components/donation/DonationFAQ";
 import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
 import { cn } from "@/lib/utils";
+import { BusinessContactDialog } from "@/components/business/BusinessContactDialog";
+import { CustomSolutionsDialog } from "@/components/business/CustomSolutionsDialog";
+import { BulkConsultationDialog } from "@/components/business/BulkConsultationDialog";
+import { BusinessContactForm } from "@/components/business/BusinessContactForm";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -230,6 +233,21 @@ export const PreviewPane = ({
 
             case 'donation_join_movement':
               return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
+
+            case "for_business_hero":
+              return <BusinessContact content={block.content as ForBusinessHeroContent} />;
+
+            case "for_business_solutions":
+              return <BusinessContact content={block.content as BusinessSolutionsContent} />;
+
+            case "for_business_contact":
+              return <BusinessContact content={block.content as BusinessContactContent} />;
+
+            case "for_business_consultation":
+              return <CustomSolutionsDialog open={false} onOpenChange={() => {}} />;
+
+            case "for_business_bulk_orders":
+              return <BulkConsultationDialog open={false} onOpenChange={() => {}} />;
 
             default:
               return (

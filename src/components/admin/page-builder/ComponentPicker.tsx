@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -94,6 +93,27 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "donation_partners", label: "Donation Partners", description: "Partner organizations" },
         { type: "donation_faq", label: "Donation FAQ", description: "Common questions" },
         { type: "donation_join_movement", label: "Join Movement", description: "Call to action" },
+      ],
+    },
+    {
+      category: "Business",
+      icon: "Building",
+      items: [
+        { 
+          type: "business_hero", 
+          label: "Business Hero", 
+          description: "Main business section header" 
+        },
+        { 
+          type: "business_solutions", 
+          label: "Business Solutions", 
+          description: "Display business solutions" 
+        },
+        { 
+          type: "business_contact", 
+          label: "Business Contact", 
+          description: "Business contact information" 
+        },
       ],
     },
   ];
