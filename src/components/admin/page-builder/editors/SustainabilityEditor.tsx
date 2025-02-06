@@ -162,21 +162,21 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       <div>
         <Label>Title</Label>
         <Input
-          value={content.title || defaultContent.sustainability_hero.title}
+          value={content.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
       <div>
         <Label>Description</Label>
         <Textarea
-          value={content.description || defaultContent.sustainability_hero.description}
+          value={content.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
         />
       </div>
       <div>
         <Label>Background Image URL</Label>
         <Input
-          value={content.backgroundImage || defaultContent.sustainability_hero.backgroundImage}
+          value={content.backgroundImage || ''}
           onChange={(e) => handleChange('backgroundImage', e.target.value)}
         />
       </div>
@@ -188,14 +188,14 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       <div>
         <Label>Title</Label>
         <Input
-          value={content.title || defaultContent.sustainability_mission.title}
+          value={content.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
       <div>
         <Label>Description</Label>
         <Textarea
-          value={content.description || defaultContent.sustainability_mission.description}
+          value={content.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
         />
       </div>
@@ -207,7 +207,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
             Add Stat
           </Button>
         </Label>
-        {(Array.isArray(content.stats) ? content.stats : defaultContent.sustainability_mission.stats).map((stat: SustainabilityStat, index: number) => (
+        {(Array.isArray(content.stats) ? content.stats : []).map((stat: SustainabilityStat, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <div className="flex justify-end">
               <Button
@@ -250,14 +250,14 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       <div>
         <Label>Title</Label>
         <Input
-          value={content.title || defaultContent.sustainability_materials.title}
+          value={content.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
       <div>
         <Label>Description</Label>
         <Textarea
-          value={content.description || defaultContent.sustainability_materials.description}
+          value={content.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
         />
       </div>
@@ -269,7 +269,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
             Add Material
           </Button>
         </Label>
-        {(Array.isArray(content.materials) ? content.materials : defaultContent.sustainability_materials.materials).map((material: SustainabilityMaterial, index: number) => (
+        {(Array.isArray(content.materials) ? content.materials : []).map((material: SustainabilityMaterial, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <div className="flex justify-end">
               <Button
@@ -307,14 +307,14 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       <div>
         <Label>Title</Label>
         <Input
-          value={content.title || defaultContent.sustainability_faq.title}
+          value={content.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
       <div>
         <Label>Description</Label>
         <Textarea
-          value={content.description || defaultContent.sustainability_faq.description}
+          value={content.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
         />
       </div>
@@ -326,7 +326,7 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
             Add FAQ
           </Button>
         </Label>
-        {(Array.isArray(content.faqs) ? content.faqs : defaultContent.sustainability_faq.faqs).map((faq: FAQ, index: number) => (
+        {(Array.isArray(content.faqs) ? content.faqs : []).map((faq: FAQ, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
             <div className="flex justify-end">
               <Button
@@ -359,28 +359,28 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
       <div>
         <Label>Title</Label>
         <Input
-          value={content.title || defaultContent.sustainability_cta.title}
+          value={content.title || ''}
           onChange={(e) => handleChange('title', e.target.value)}
         />
       </div>
       <div>
         <Label>Description</Label>
         <Textarea
-          value={content.description || defaultContent.sustainability_cta.description}
+          value={content.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
         />
       </div>
       <div>
         <Label>Button Text</Label>
         <Input
-          value={content.buttonText || defaultContent.sustainability_cta.buttonText}
+          value={content.buttonText || ''}
           onChange={(e) => handleChange('buttonText', e.target.value)}
         />
       </div>
       <div>
         <Label>Button Link</Label>
         <Input
-          value={content.buttonLink || defaultContent.sustainability_cta.buttonLink}
+          value={content.buttonLink || ''}
           onChange={(e) => handleChange('buttonLink', e.target.value)}
         />
       </div>
