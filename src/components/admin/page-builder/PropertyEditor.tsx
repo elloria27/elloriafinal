@@ -10,6 +10,7 @@ import { CustomSolutionsEditor } from "./editors/CustomSolutionsEditor";
 import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
 import { DonationEditor } from "./editors/DonationEditor";
+import { ThanksPageEditor } from "./editors/ThanksPageEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -139,7 +140,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     }
 
     if (thanksComponents.includes(block.type)) {
-      return <CommonEditor block={block} onUpdate={onUpdate} />;
+      return <ThanksPageEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {
@@ -161,4 +162,3 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
-
