@@ -22,31 +22,43 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
   };
 
   const handleFeatureAdd = () => {
-    const features = Array.isArray(content.features) ? content.features : [];
-    const newFeature = {
+    const features = Array.isArray(content.features) 
+      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
+      : [];
+      
+    const newFeature: FeatureItem = {
       icon: "Droplets",
       title: "New Feature",
       description: "Feature description"
-    } as Json;
+    };
 
     onUpdate(block.id, {
       ...content,
-      features: [...features, newFeature]
+      features: [...features, newFeature] as Json
     });
   };
 
   const handleFeatureRemove = (index: number) => {
-    const features = Array.isArray(content.features) ? [...content.features] : [];
+    const features = Array.isArray(content.features) 
+      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
+      : [];
     features.splice(index, 1);
-    onUpdate(block.id, { ...content, features });
+    onUpdate(block.id, { ...content, features: features as Json });
   };
 
   const handleFeatureUpdate = (index: number, field: string, value: string) => {
-    const features = Array.isArray(content.features) ? [...content.features] : [];
-    const feature = features[index] as { [key: string]: Json };
-    const updatedFeature = { ...feature, [field]: value } as Json;
+    const features = Array.isArray(content.features) 
+      ? content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f)
+      : [];
+    const feature = features[index];
+    const updatedFeature = { ...feature, [field]: value };
     features[index] = updatedFeature;
-    onUpdate(block.id, { ...content, features });
+    onUpdate(block.id, { ...content, features: features as Json });
+  };
+
+  const getFeatures = (): FeatureItem[] => {
+    if (!Array.isArray(content.features)) return [];
+    return content.features.map(f => typeof f === 'string' ? JSON.parse(f) : f);
   };
 
   return (
@@ -87,45 +99,42 @@ export const FeaturesEditor = ({ block, onUpdate }: FeaturesEditorProps) => {
           </Button>
         </div>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-          {Array.isArray(content.features) && content.features.map((feature, index) => {
-            const typedFeature = feature as unknown as FeatureItem;
-            return (
-              <div key={index} className="p-4 border rounded-lg space-y-3 bg-white">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Feature {index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFeatureRemove(index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-                <div>
-                  <Label>Icon</Label>
-                  <Input
-                    value={String(typedFeature.icon || "")}
-                    onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
-                    placeholder="Droplets, Leaf, or Heart"
-                  />
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={String(typedFeature.title || "")}
-                    onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Input
-                    value={String(typedFeature.description || "")}
-                    onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
-                  />
-                </div>
+          {getFeatures().map((feature, index) => (
+            <div key={index} className="p-4 border rounded-lg space-y-3 bg-white">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Feature {index + 1}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleFeatureRemove(index)}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
               </div>
-            );
-          })}
+              <div>
+                <Label>Icon</Label>
+                <Input
+                  value={String(feature.icon || "")}
+                  onChange={(e) => handleFeatureUpdate(index, "icon", e.target.value)}
+                  placeholder="Droplets, Leaf, or Heart"
+                />
+              </div>
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={String(feature.title || "")}
+                  onChange={(e) => handleFeatureUpdate(index, "title", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input
+                  value={String(feature.description || "")}
+                  onChange={(e) => handleFeatureUpdate(index, "description", e.target.value)}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
