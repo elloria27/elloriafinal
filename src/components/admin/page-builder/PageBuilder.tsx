@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 type ContentBlockRow = Database["public"]["Tables"]["content_blocks"]["Row"];
 
@@ -48,10 +49,10 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
   const handleAddBlock = async (blockType: BlockType) => {
     console.log("Adding new block of type:", blockType);
-    const newBlock = {
+    const newBlock: ContentBlock = {
       id: crypto.randomUUID(),
-      type: blockType as ContentBlockRow["type"],
-      content: {} as ContentBlockRow["content"],
+      type: blockType,
+      content: {} as BlockContent,
       order_index: unsavedBlocks.length,
       page_id: pageId,
       created_at: new Date().toISOString(),
