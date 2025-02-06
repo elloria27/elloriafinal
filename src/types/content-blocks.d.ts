@@ -442,35 +442,21 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "business_hero"
-  | "business_solutions"
-  | "business_contact"
-  | "custom_solutions_hero"
-  | "custom_solutions_services"
-  | "custom_solutions_process"
-  | "custom_solutions_cta"
+  | "donation_hero"
   | "sustainability_hero"
   | "sustainability_mission"
   | "sustainability_materials"
   | "sustainability_faq"
   | "sustainability_cta"
-  | "donation_hero"
   | "donation_impact"
   | "donation_form"
   | "donation_stories"
   | "donation_partners"
   | "donation_faq"
-  | "donation_join_movement";
-
-export interface ContentBlock {
-  id: string;
-  type: BlockType;
-  content: BlockContent;
-  order_index: number;
-  page_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+  | "donation_join_movement"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact";
 
 export interface FeaturesProps {
   content?: FeaturesContent;

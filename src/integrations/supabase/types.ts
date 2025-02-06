@@ -347,7 +347,7 @@ export type Database = {
           id: string
           order_index: number
           page_id: string | null
-          type: Database["public"]["Enums"]["block_type"]
+          type: Database["public"]["Enums"]["content_block_type"]
           updated_at: string | null
         }
         Insert: {
@@ -356,7 +356,7 @@ export type Database = {
           id?: string
           order_index: number
           page_id?: string | null
-          type: Database["public"]["Enums"]["block_type"]
+          type: Database["public"]["Enums"]["content_block_type"]
           updated_at?: string | null
         }
         Update: {
@@ -365,7 +365,7 @@ export type Database = {
           id?: string
           order_index?: number
           page_id?: string | null
-          type?: Database["public"]["Enums"]["block_type"]
+          type?: Database["public"]["Enums"]["content_block_type"]
           updated_at?: string | null
         }
         Relationships: [
@@ -1725,12 +1725,9 @@ export type Database = {
         | "donation_partners"
         | "donation_faq"
         | "donation_join_movement"
-        | "for_business_hero"
-        | "for_business_solutions"
-        | "for_business_contact"
-        | "for_business_cta"
-        | "for_business_consultation"
-        | "for_business_bulk_orders"
+        | "business_hero"
+        | "business_solutions"
+        | "business_contact"
       expense_category:
         | "inventory"
         | "marketing"
