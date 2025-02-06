@@ -58,9 +58,12 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
   // Business page components
   const businessComponents = [
-    "business_hero",
-    "business_solutions",
-    "business_contact",
+    "for_business_hero",
+    "for_business_solutions",
+    "for_business_contact",
+    "for_business_cta",
+    "for_business_consultation",
+    "for_business_bulk_orders"
   ];
 
   // Custom Solutions page components
@@ -149,3 +152,4 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     </div>
   );
 };
+
