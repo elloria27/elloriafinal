@@ -1692,6 +1692,12 @@ export type Database = {
         | "donation_partners"
         | "donation_faq"
         | "donation_join_movement"
+        | "for_business_hero"
+        | "for_business_solutions"
+        | "for_business_contact"
+        | "for_business_cta"
+        | "for_business_consultation"
+        | "for_business_bulk_orders"
       expense_category:
         | "inventory"
         | "marketing"
