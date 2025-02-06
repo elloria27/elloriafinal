@@ -6,8 +6,9 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Pencil, Trash2, Eye } from "lucide-react";
+import { Pencil, Trash2, Eye, LayoutTemplate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PageBuilder } from "@/components/page-builder/PageBuilder";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,8 @@ export const PageManagement = () => {
   const [loading, setLoading] = useState(true);
   const [editingPage, setEditingPage] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [builderDialogOpen, setBuilderDialogOpen] = useState(false);
+  const [pageComponents, setPageComponents] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +44,31 @@ export const PageManagement = () => {
       toast.error("Failed to fetch pages");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPageComponents = async (pageId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('page_components')
+        .select('*')
+        .eq('page_id', pageId)
+        .order('order_index');
+
+      if (error) throw error;
+      
+      const components = data.map(component => ({
+        id: component.id,
+        type: component.type,
+        content: component.content,
+        order: component.order_index,
+        settings: component.settings || {}
+      }));
+      
+      setPageComponents(components);
+    } catch (error) {
+      console.error('Error fetching page components:', error);
+      toast.error("Failed to fetch page components");
     }
   };
 
@@ -72,6 +100,37 @@ export const PageManagement = () => {
     }
   };
 
+  const handleUpdateComponents = async (components: any[]) => {
+    if (!editingPage) return;
+    
+    try {
+      // Delete existing components
+      await supabase
+        .from('page_components')
+        .delete()
+        .eq('page_id', editingPage.id);
+
+      // Insert new components
+      const { error } = await supabase
+        .from('page_components')
+        .insert(
+          components.map((component, index) => ({
+            page_id: editingPage.id,
+            type: component.type,
+            content: component.content,
+            order_index: index,
+            settings: component.settings
+          }))
+        );
+
+      if (error) throw error;
+      toast.success("Page components updated successfully");
+    } catch (error) {
+      console.error('Error updating page components:', error);
+      toast.error("Failed to update page components");
+    }
+  };
+
   const handleDeletePage = async (pageId: string) => {
     if (!window.confirm('Are you sure you want to delete this page?')) return;
 
@@ -93,6 +152,12 @@ export const PageManagement = () => {
 
   const handleViewPage = (slug: string) => {
     navigate(`/${slug}`);
+  };
+
+  const handleOpenBuilder = async (page: any) => {
+    setEditingPage(page);
+    await fetchPageComponents(page.id);
+    setBuilderDialogOpen(true);
   };
 
   if (loading) {
@@ -217,6 +282,13 @@ export const PageManagement = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={() => handleOpenBuilder(page)}
+                  >
+                    <LayoutTemplate className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDeletePage(page.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -227,6 +299,21 @@ export const PageManagement = () => {
           </Card>
         ))}
       </div>
+
+      <Dialog open={builderDialogOpen} onOpenChange={setBuilderDialogOpen}>
+        <DialogContent className="max-w-6xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Edit Page Content - {editingPage?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto">
+            <PageBuilder
+              components={pageComponents}
+              onUpdate={handleUpdateComponents}
+              isEditing={true}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
