@@ -200,9 +200,25 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
         />
       </div>
       <div>
-        <Label>Stats</Label>
+        <Label className="flex items-center justify-between">
+          <span>Stats</span>
+          <Button onClick={addStat} size="sm" variant="outline" className="h-8">
+            <Plus className="w-4 h-4 mr-1" />
+            Add Stat
+          </Button>
+        </Label>
         {(Array.isArray(content.stats) ? content.stats : []).map((stat: SustainabilityStat, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <div className="flex justify-end">
+              <Button
+                onClick={() => removeStat(index)}
+                size="sm"
+                variant="ghost"
+                className="h-8 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
             <Input
               placeholder="Icon"
               value={stat.icon}
@@ -246,9 +262,25 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
         />
       </div>
       <div>
-        <Label>Materials</Label>
+        <Label className="flex items-center justify-between">
+          <span>Materials</span>
+          <Button onClick={addMaterial} size="sm" variant="outline" className="h-8">
+            <Plus className="w-4 h-4 mr-1" />
+            Add Material
+          </Button>
+        </Label>
         {(Array.isArray(content.materials) ? content.materials : []).map((material: SustainabilityMaterial, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <div className="flex justify-end">
+              <Button
+                onClick={() => removeMaterial(index)}
+                size="sm"
+                variant="ghost"
+                className="h-8 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
             <Input
               placeholder="Icon"
               value={material.icon}
@@ -287,9 +319,25 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
         />
       </div>
       <div>
-        <Label>FAQs</Label>
+        <Label className="flex items-center justify-between">
+          <span>FAQs</span>
+          <Button onClick={addFAQ} size="sm" variant="outline" className="h-8">
+            <Plus className="w-4 h-4 mr-1" />
+            Add FAQ
+          </Button>
+        </Label>
         {(Array.isArray(content.faqs) ? content.faqs : []).map((faq: FAQ, index: number) => (
           <div key={index} className="mt-4 p-4 border rounded-lg space-y-2">
+            <div className="flex justify-end">
+              <Button
+                onClick={() => removeFAQ(index)}
+                size="sm"
+                variant="ghost"
+                className="h-8 text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
             <Input
               placeholder="Question"
               value={faq.question}
