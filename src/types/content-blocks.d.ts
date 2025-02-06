@@ -366,7 +366,7 @@ export type BlockType =
   | "contact_business"
   | "business_hero"
   | "business_solutions" 
-  | "business_contact"
+  | "business_contact_form"  // Added this line
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
