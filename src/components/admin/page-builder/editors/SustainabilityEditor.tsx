@@ -34,7 +34,9 @@ const defaultContent = {
   sustainability_hero: {
     title: "Caring for Women, Caring for the Planet",
     description: "Discover how Elloria is leading the way in sustainable feminine care",
-    backgroundImage: "/lovable-uploads/033d3c83-3a91-4fee-a121-d5e700b8768d.png"
+    backgroundImage: "",
+    buttonText: "Shop Now",
+    buttonLink: "/shop"
   },
   sustainability_mission: {
     title: "Our Sustainability Mission",
@@ -199,6 +201,20 @@ export const SustainabilityEditor = ({ block, onUpdate }: SustainabilityEditorPr
             className="mt-2 max-w-[200px] rounded-md"
           />
         )}
+      </div>
+      <div>
+        <Label>Button Text</Label>
+        <Input
+          value={content.buttonText || ''}
+          onChange={(e) => handleChange('buttonText', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Button Link</Label>
+        <Input
+          value={content.buttonLink || ''}
+          onChange={(e) => handleChange('buttonLink', e.target.value)}
+        />
       </div>
       <MediaLibraryModal
         open={mediaLibraryOpen}

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { SustainabilityContent } from "@/types/content-blocks";
+import { Button } from "@/components/ui/button";
 
 interface SustainabilityHeroProps {
   content: SustainabilityContent;
@@ -7,8 +8,21 @@ interface SustainabilityHeroProps {
 
 export const SustainabilityHero = ({ content }: SustainabilityHeroProps) => {
   return (
-    <section className="relative py-20 bg-gradient-to-b from-green-50 to-white">
-      <div className="container px-4">
+    <section className="relative min-h-[600px] flex items-center">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
+        {content.backgroundImage && (
+          <img 
+            src={content.backgroundImage} 
+            alt="Background" 
+            className="w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-green-500/10 backdrop-blur-sm" />
+      </div>
+
+      {/* Content */}
+      <div className="container px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -21,6 +35,15 @@ export const SustainabilityHero = ({ content }: SustainabilityHeroProps) => {
           <p className="text-lg md:text-xl text-gray-600 mb-8">
             {content.description}
           </p>
+          {content.buttonText && (
+            <Button 
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white"
+              onClick={() => window.location.href = content.buttonLink || '/shop'}
+            >
+              {content.buttonText}
+            </Button>
+          )}
         </motion.div>
       </div>
     </section>
