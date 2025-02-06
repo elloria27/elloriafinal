@@ -5,8 +5,10 @@ interface AboutTeamProps {
   content?: AboutTeamContent;
 }
 
-export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
-  const defaultTeam = [
+const defaultContent: AboutTeamContent = {
+  title: "Meet Our Team",
+  subtitle: "The passionate people behind our mission",
+  members: [
     {
       name: "Sarah Johnson",
       role: "Founder & CEO",
@@ -25,9 +27,11 @@ export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
       image: "/lovable-uploads/92b56d83-b4f6-4892-b905-916e19f87e4a.png",
       quote: "Creating products that care for both women and our planet."
     }
-  ];
+  ]
+};
 
-  const team = content?.members || defaultTeam;
+export const AboutTeam = ({ content = defaultContent }: AboutTeamProps) => {
+  const team = content.members || defaultContent.members;
 
   return (
     <section className="py-20 bg-white">
@@ -38,8 +42,8 @@ export const AboutTeam = ({ content = {} }: AboutTeamProps) => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">{content?.title || "Meet Our Team"}</h2>
-          <p className="text-xl text-gray-600">{content?.subtitle || "The passionate people behind our mission"}</p>
+          <h2 className="text-4xl font-bold mb-4">{content.title || defaultContent.title}</h2>
+          <p className="text-xl text-gray-600">{content.subtitle || defaultContent.subtitle}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">

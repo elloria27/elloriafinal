@@ -10,13 +10,21 @@ interface AboutStoryProps {
   content?: AboutStoryContent;
 }
 
-export const AboutStory = ({ content = {} }: AboutStoryProps) => {
+const defaultContent: AboutStoryContent = {
+  title: "Our Story",
+  subtitle: "A Journey of Innovation",
+  videoUrl: "",
+  videoThumbnail: "",
+  description: "Founded with a vision to revolutionize feminine care through sustainable innovation..."
+};
+
+export const AboutStory = ({ content = defaultContent }: AboutStoryProps) => {
   const {
-    title = "Our Story",
-    subtitle = "A Journey of Innovation",
-    content: storyContent = "Founded with a vision to revolutionize feminine care through sustainable innovation...",
-    videoUrl = "",
-    videoThumbnail = ""
+    title,
+    subtitle,
+    videoUrl,
+    videoThumbnail,
+    description
   } = content;
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -46,7 +54,7 @@ export const AboutStory = ({ content = {} }: AboutStoryProps) => {
           >
             <h2 className="text-4xl font-bold leading-tight">{title}</h2>
             <p className="text-xl text-gray-600">{subtitle}</p>
-            <p className="text-lg text-gray-500">{storyContent}</p>
+            <p className="text-lg text-gray-500">{description}</p>
           </motion.div>
 
           <motion.div

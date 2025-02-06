@@ -149,6 +149,10 @@ export interface HeroContent extends BaseBlockContent {
   title: string;
   subtitle: string;
   backgroundImage?: string;
+  primaryButtonText?: string;
+  primaryButtonLink?: string;
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
   shopNowText?: string;
   learnMoreText?: string;
   videoUrl?: string;

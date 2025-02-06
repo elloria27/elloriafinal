@@ -6,8 +6,8 @@ interface AboutCustomerImpactProps {
   content?: AboutCustomerImpactContent;
 }
 
-export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) => {
-  const defaultStats = [
+const defaultContent: AboutCustomerImpactContent = {
+  stats: [
     {
       value: "1M+",
       label: "Happy Customers"
@@ -20,9 +20,8 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
       value: "96%",
       label: "Would Recommend"
     }
-  ];
-
-  const defaultTestimonials = [
+  ],
+  testimonials: [
     {
       quote: "Elloria's products have completely changed my perspective on sustainable feminine care.",
       author: "Sarah M.",
@@ -41,23 +40,11 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
       role: "Environmental Advocate",
       rating: 5
     }
-  ];
+  ]
+};
 
-  const stats = content?.stats || defaultStats;
-  const testimonials = content?.testimonials || defaultTestimonials;
-
-  const getIconComponent = (index: number) => {
-    switch (index) {
-      case 0:
-        return <Users className="w-8 h-8 text-primary" />;
-      case 1:
-        return <Star className="w-8 h-8 text-primary" />;
-      case 2:
-        return <Heart className="w-8 h-8 text-primary" />;
-      default:
-        return <Users className="w-8 h-8 text-primary" />;
-    }
-  };
+export const AboutCustomerImpact = ({ content = defaultContent }: AboutCustomerImpactProps) => {
+  const { stats, testimonials } = content;
 
   return (
     <section className="py-20 bg-white">
@@ -68,9 +55,9 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">{content?.title || "Making a Difference"}</h2>
+          <h2 className="text-4xl font-bold mb-4">Customer Impact</h2>
           <p className="text-xl text-gray-600">
-            {content?.description || "Our customers are at the heart of everything we do. Here's what they have to say about their experience with Elloria."}
+            Our customers are at the heart of everything we do. Here's what they have to say about their experience with Elloria.
           </p>
         </motion.div>
 
@@ -85,7 +72,7 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="text-center"
             >
               <div className="flex justify-center mb-4">
-                {getIconComponent(index)}
+                {index === 0 ? <Users className="w-8 h-8 text-primary" /> : index === 1 ? <Star className="w-8 h-8 text-primary" /> : <Heart className="w-8 h-8 text-primary" />}
               </div>
               <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
               <p className="text-gray-600">{stat.label}</p>
@@ -104,11 +91,11 @@ export const AboutCustomerImpact = ({ content = {} }: AboutCustomerImpactProps) 
               className="bg-white p-6 rounded-lg shadow-lg"
             >
               <div className="flex mb-4">
-                {[...Array(testimonial.rating || 5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-primary" fill="#0094F4" />
+                {[...Array(testimonial.rating)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-700 mb-4 italic">"{testimonial.quote}"</p>
+              <p className="text-gray-600 mb-4">"{testimonial.quote}"</p>
               <div>
                 <p className="font-semibold">{testimonial.author}</p>
                 <p className="text-gray-500 text-sm">{testimonial.role}</p>

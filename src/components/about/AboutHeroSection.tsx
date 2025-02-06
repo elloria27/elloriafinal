@@ -5,11 +5,17 @@ interface AboutHeroSectionProps {
   content?: AboutHeroContent;
 }
 
-export const AboutHeroSection = ({ content = {} }: AboutHeroSectionProps) => {
+const defaultContent: AboutHeroContent = {
+  title: "Our Story",
+  subtitle: "Founded with a vision to revolutionize feminine care through sustainable innovation, Elloria began its journey to create products that care for both women and our planet.",
+  backgroundImage: "/lovable-uploads/7a6b700f-4122-4c0b-ae5b-519bbf08e94a.png"
+};
+
+export const AboutHeroSection = ({ content = defaultContent }: AboutHeroSectionProps) => {
   const {
-    title = "Our Story",
-    subtitle = "Founded with a vision to revolutionize feminine care through sustainable innovation, Elloria began its journey to create products that care for both women and our planet.",
-    backgroundImage = "/lovable-uploads/7a6b700f-4122-4c0b-ae5b-519bbf08e94a.png"
+    title,
+    subtitle,
+    backgroundImage
   } = content;
 
   return (

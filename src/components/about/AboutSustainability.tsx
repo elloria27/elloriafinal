@@ -6,32 +6,38 @@ interface AboutSustainabilityProps {
   content?: AboutSustainabilityContent;
 }
 
-export const AboutSustainability = ({ content = {} }: AboutSustainabilityProps) => {
+const defaultContent: AboutSustainabilityContent = {
+  title: "Our Commitment to Sustainability",
+  description: "We believe in creating products that care for both you and our planet.",
+  stats: [
+    {
+      icon: "Leaf",
+      value: "72%",
+      label: "Recyclable Materials",
+      description: "Our products are made with eco-friendly, biodegradable materials"
+    },
+    {
+      icon: "Recycle",
+      value: "85%",
+      label: "Packaging Reduction",
+      description: "Minimized packaging waste through innovative design"
+    },
+    {
+      icon: "TreePine",
+      value: "50K+",
+      label: "Trees Planted",
+      description: "Contributing to global reforestation efforts"
+    }
+  ]
+};
+
+export const AboutSustainability = ({ content = defaultContent }: AboutSustainabilityProps) => {
   console.log("AboutSustainability content received:", content);
   
   const {
-    title = "Our Commitment to Sustainability",
-    description = "We believe in creating products that care for both you and our planet. Our sustainable practices are at the core of everything we do.",
-    stats = [
-      {
-        icon: "Leaf",
-        value: "72%",
-        label: "Recyclable Materials",
-        description: "Our products are made with eco-friendly, biodegradable materials"
-      },
-      {
-        icon: "Recycle",
-        value: "85%",
-        label: "Packaging Reduction",
-        description: "Minimized packaging waste through innovative design"
-      },
-      {
-        icon: "TreePine",
-        value: "50K+",
-        label: "Trees Planted",
-        description: "Contributing to global reforestation efforts"
-      }
-    ]
+    title,
+    description,
+    stats
   } = content;
 
   const getIcon = (iconName: string) => {
