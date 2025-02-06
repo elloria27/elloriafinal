@@ -42,8 +42,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           updatedBlocks.map(block => ({
             id: block.id,
             page_id: pageId,
-            type: block.type as BlockType,
-            content: block.content as any,
+            type: block.type,
+            content: block.content,
             order_index: block.order_index
           }))
         );
@@ -73,14 +73,19 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      const typedData = {
-        ...data,
+      // Ensure proper typing of the returned data
+      const typedBlock: ContentBlock = {
+        id: data.id,
+        type: data.type as BlockType,
         content: data.content as BlockContent,
-        type: data.type as BlockType
-      } as ContentBlock;
+        order_index: data.order_index,
+        page_id: data.page_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
 
-      setBlocks([...blocks, typedData]);
-      setSelectedBlock(typedData);
+      setBlocks([...blocks, typedBlock]);
+      setSelectedBlock(typedBlock);
       setIsComponentPickerOpen(false);
       toast.success("Block added successfully");
     } catch (error) {
