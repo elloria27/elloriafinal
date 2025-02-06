@@ -141,8 +141,9 @@ export const PreviewPane = ({
               );
 
             case 'spacer':
+              const height = typeof block.content.height === 'string' ? block.content.height : '32px';
               return (
-                <div style={{ height: block.content.height || '32px' }} />
+                <div style={{ height }} />
               );
 
             case 'contact_business':
