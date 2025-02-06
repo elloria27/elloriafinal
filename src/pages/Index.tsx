@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -13,6 +14,10 @@ import { GameChanger } from "@/components/GameChanger";
 import { SEOHead } from "@/components/SEOHead";
 import { useSEO } from "@/hooks/useSEO";
 import { toast } from "sonner";
+import { ThanksWelcome } from "@/components/thanks/ThanksWelcome";
+import { ThanksReferral } from "@/components/thanks/ThanksReferral";
+import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
+import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
 import { 
   ContentBlock, 
   BlockContent,
@@ -24,7 +29,11 @@ import {
   ProductCarouselContent,
   TestimonialsContent,
   BlogPreviewContent,
-  NewsletterContent
+  NewsletterContent,
+  ThanksWelcomeContent,
+  ThanksReferralContent,
+  ThanksSpecialOfferContent,
+  ThanksNewsletterContent
 } from "@/types/content-blocks";
 
 const Index = () => {
@@ -147,6 +156,14 @@ const Index = () => {
         return <BlogPreview content={block.content as BlogPreviewContent} />;
       case 'newsletter':
         return <Newsletter content={block.content as NewsletterContent} />;
+      case 'thanks_welcome':
+        return <ThanksWelcome content={block.content as ThanksWelcomeContent} />;
+      case 'thanks_referral':
+        return <ThanksReferral content={block.content as ThanksReferralContent} />;
+      case 'thanks_special_offer':
+        return <ThanksSpecialOffer content={block.content as ThanksSpecialOfferContent} />;
+      case 'thanks_newsletter':
+        return <ThanksNewsletter content={block.content as ThanksNewsletterContent} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
