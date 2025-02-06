@@ -273,7 +273,7 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="w-full min-h-screen relative bg-white">
+    <div className="w-full min-h-0 relative bg-white">
       {blocks.length > 0 ? (
         <div>
           {blocks.map((block) => renderBlock(block))}
