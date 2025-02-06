@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -182,97 +182,50 @@ export const PreviewPane = ({
               return <StoreBrands content={block.content} />;
 
             case 'sustainability':
-              return <Sustainability content={block.content} />;
+              const sustainabilityContent = block.content as SustainabilityContent;
+              return <Sustainability content={sustainabilityContent} />;
 
             case 'testimonials':
-              return <Testimonials content={block.content} />;
-
-            case 'blog_preview':
-              return <BlogPreview content={block.content} />;
-
-            case 'product_carousel':
-              return <ProductCarousel content={block.content} />;
-
-            case 'competitor_comparison':
-              return <CompetitorComparison content={block.content} />;
-
-            case 'about_hero_section':
-              return <AboutHeroSection content={block.content} />;
-
-            case 'about_story':
-              return <AboutStory content={block.content} />;
-
-            case 'about_mission':
-              return <AboutMission content={block.content} />;
-
-            case 'about_sustainability':
-              const sustainabilityStats = Array.isArray(block.content.stats) 
-                ? block.content.stats.map(stat => ({
-                    ...stat,
-                    icon: stat.icon as "Leaf" | "Recycle" | "TreePine",
-                    value: String(stat.value || ''),
-                    label: String(stat.label || ''),
-                    description: String(stat.description || '')
-                  }))
-                : [];
-              
-              return <AboutSustainability content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                stats: sustainabilityStats
-              }} />;
-
-            case 'about_team':
-              return <AboutTeam content={block.content} />;
+              const testimonialsContent = block.content as TestimonialsContent;
+              return <Testimonials content={testimonialsContent} />;
 
             case 'about_customer_impact':
-              const testimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.map(t => ({
-                    quote: String(t.text || ''),
-                    author: String(t.name || ''),
-                    role: String(t.source || ''),
-                    rating: Number(t.rating || 5)
-                  }))
-                : [];
-              
+              const customerImpactContent = block.content;
               return <AboutCustomerImpact content={{
-                title: String(block.content.title || ''),
-                description: String(block.content.description || ''),
-                testimonials
+                title: String(customerImpactContent.title || ''),
+                description: String(customerImpactContent.description || ''),
+                stats: customerImpactContent.stats?.map(stat => ({
+                  value: String(stat.value || ''),
+                  label: String(stat.label || '')
+                })) || [],
+                testimonials: customerImpactContent.testimonials?.map(t => ({
+                  quote: String(t.quote || ''),
+                  author: String(t.author || ''),
+                  role: String(t.role || ''),
+                  rating: Number(t.rating || 5)
+                })) || []
               }} />;
 
-            case 'contact_hero':
-              return <ContactHero content={block.content} />;
-
-            case 'contact_details':
-              return <ContactDetails content={block.content} />;
-
-            case 'contact_form':
-              return <ContactForm content={block.content} />;
-
-            case 'contact_faq':
-              return <ContactFAQ content={block.content} />;
-
             case 'donation_hero':
-              return <DonationHero content={block.content} />;
+              return <DonationHero content={block.content as DonationHeroContent} />;
 
             case 'donation_impact':
-              return <DonationImpact content={block.content} />;
+              return <DonationImpact content={block.content as DonationImpactContent} />;
 
             case 'donation_form':
-              return <DonationForm content={block.content} />;
+              return <DonationForm content={block.content as DonationFormContent} />;
 
             case 'donation_stories':
-              return <DonationStories content={block.content} />;
+              return <DonationStories content={block.content as DonationStoriesContent} />;
 
             case 'donation_partners':
-              return <DonationPartners content={block.content} />;
+              return <DonationPartners content={block.content as DonationPartnersContent} />;
 
             case 'donation_faq':
-              return <DonationFAQ content={block.content} />;
+              return <DonationFAQ content={block.content as DonationFAQContent} />;
 
             case 'donation_join_movement':
-              return <DonationJoinMovement content={block.content} />;
+              return <DonationJoinMovement content={block.content as DonationJoinMovementContent} />;
 
             default:
               return (
