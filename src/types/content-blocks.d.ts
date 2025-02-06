@@ -17,6 +17,30 @@ export interface ContentBlock {
   order_index: number;
 }
 
+export interface CompetitorComparisonContent extends BaseBlockContent {
+  competitors?: Array<{
+    name: string;
+    features: string[];
+  }>;
+}
+
+export interface FeaturesProps extends BaseBlockContent {
+  features?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface TestimonialsContent extends BaseBlockContent {
+  testimonials?: Array<{
+    quote: string;
+    author: string;
+    role: string;
+    rating: number;
+  }>;
+}
+
 export interface AboutCustomerImpactContent extends BaseBlockContent {
   stats: Array<{
     value: string;
@@ -28,6 +52,12 @@ export interface AboutCustomerImpactContent extends BaseBlockContent {
     role: string;
     rating: number;
   }>;
+}
+
+export interface AboutHeroContent extends BaseBlockContent {
+  title: string;
+  subtitle: string;
+  backgroundImage: string;
 }
 
 export interface AboutStoryContent extends BaseBlockContent {
@@ -53,9 +83,15 @@ export interface AboutTeamContent extends BaseBlockContent {
   }>;
 }
 
-export interface ContactBusinessContent extends BaseBlockContent {
-  email: string;
-  buttonLink: string;
+export interface AboutCtaContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  primaryButtonText?: string;
+  secondaryButtonText?: string;
+}
+
+export interface ContactFormContent extends BaseBlockContent {
+  submitText?: string;
 }
 
 export interface ContactDetailsContent extends BaseBlockContent {
@@ -64,16 +100,9 @@ export interface ContactDetailsContent extends BaseBlockContent {
   email: string;
 }
 
-export interface ContactFormContent extends BaseBlockContent {
-  secondaryButtonText?: string;
-}
-
-export interface StoreBrandsContent extends BaseBlockContent {
-  features?: Array<{
-    name: string;
-    logo: string;
-    link: string;
-  }>;
+export interface ContactBusinessContent extends BaseBlockContent {
+  email: string;
+  buttonLink: string;
 }
 
 export interface HeroContent extends BaseBlockContent {
@@ -83,11 +112,11 @@ export interface HeroContent extends BaseBlockContent {
   learnMoreText?: string;
 }
 
-export interface FeaturesContent extends BaseBlockContent {
+export interface StoreBrandsContent extends BaseBlockContent {
   features?: Array<{
-    icon: string;
-    title: string;
-    description: string;
+    name: string;
+    logo: string;
+    link: string;
   }>;
 }
 
@@ -120,15 +149,6 @@ export interface ProductCarouselContent extends BaseBlockContent {
   }>;
 }
 
-export interface TestimonialsContent extends BaseBlockContent {
-  testimonials?: Array<{
-    quote: string;
-    author: string;
-    role: string;
-    rating: number;
-  }>;
-}
-
 export interface BlogPreviewContent extends BaseBlockContent {
   posts?: Array<{
     id: string;
@@ -140,33 +160,4 @@ export interface BlogPreviewContent extends BaseBlockContent {
 
 export interface NewsletterContent extends BaseBlockContent {
   buttonText?: string;
-}
-
-export interface AboutHeroContent extends BaseBlockContent {
-  image?: string;
-}
-
-export interface AboutMissionContent extends BaseBlockContent {
-  values?: Array<{
-    title: string;
-    description: string;
-    icon: string;
-  }>;
-}
-
-export interface AboutCtaContent extends BaseBlockContent {
-  buttonText?: string;
-  buttonUrl?: string;
-}
-
-export interface ContactHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-}
-
-export interface ContactFAQContent extends BaseBlockContent {
-  faqs?: Array<{
-    question: string;
-    answer: string;
-  }>;
 }

@@ -17,7 +17,7 @@ import {
   ContentBlock, 
   BaseBlockContent,
   HeroContent,
-  FeaturesContent,
+  FeaturesProps,
   GameChangerContent,
   StoreBrandsContent,
   SustainabilityContent,
@@ -93,7 +93,7 @@ const Index = () => {
         // Transform the blocks data to match ContentBlock type
         const transformedBlocks = blocksData?.map(block => ({
           ...block,
-          content: block.content as BlockContent
+          content: block.content as BaseBlockContent
         })) || [];
 
         setBlocks(transformedBlocks);
@@ -130,7 +130,7 @@ const Index = () => {
       case 'hero':
         return <HomeHero content={block.content as HeroContent} />;
       case 'features':
-        return <Features content={block.content as FeaturesContent} />;
+        return <Features content={block.content as FeaturesProps} />;
       case 'game_changer':
         return <GameChanger content={block.content as GameChangerContent} />;
       case 'store_brands':
