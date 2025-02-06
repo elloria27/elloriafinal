@@ -15,21 +15,21 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
     stats: [
       {
         icon: "Recycle",
-        title: "55% Recyclable",
-        description: "Materials used in our products",
-        color: "bg-accent-green"
+        value: "55%",
+        label: "Recyclable Materials",
+        description: "Materials used in our products"
       },
       {
         icon: "Package",
-        title: "85% Reduction",
-        description: "In packaging waste through innovative design",
-        color: "bg-accent-purple"
+        value: "85%",
+        label: "Packaging Reduction",
+        description: "In packaging waste through innovative design"
       },
       {
         icon: "Factory",
-        title: "Eco-Production",
-        description: "Sustainable sourcing and manufacturing",
-        color: "bg-accent-peach"
+        value: "100%",
+        label: "Eco-Production",
+        description: "Sustainable sourcing and manufacturing"
       }
     ],
     timelineItems: [
@@ -75,7 +75,7 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-                className={`${stat.color}/10 p-6 md:p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm`}
+                className="bg-white/80 p-6 md:p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
               >
                 <motion.div 
                   className="text-primary mb-4 md:mb-6"
@@ -98,7 +98,8 @@ export const Sustainability = ({ content }: SustainabilityProps) => {
                     }
                   })()}
                 </motion.div>
-                <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3">{stat.title}</h3>
+                <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3">{stat.value}</h3>
+                <h4 className="text-lg font-semibold mb-2">{stat.label}</h4>
                 <p className="text-gray-600 text-sm md:text-base">{stat.description}</p>
               </motion.div>
             ))}
