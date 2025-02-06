@@ -259,50 +259,17 @@ export interface BusinessSolutionsContent extends BaseBlockContent {
   title?: string;
   description?: string;
   solutions?: Array<{
-    icon: string;
     title: string;
     description: string;
+    buttonText?: string;
+    link?: string;
   }>;
 }
 
-export interface BusinessContactContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-  email?: string;
-  buttonText?: string;
-  buttonLink?: string;
-}
-
-export interface CustomSolutionsHeroContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  description?: string;
-}
-
-export interface CustomSolutionsServicesContent extends BaseBlockContent {
-  title?: string;
-  subtitle?: string;
-  services?: Array<{
-    icon: string;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface CustomSolutionsProcessContent extends BaseBlockContent {
-  title?: string;
-  steps?: Array<{
-    number: number;
-    title: string;
-    description: string;
-  }>;
-}
-
-export interface CustomSolutionsCtaContent extends BaseBlockContent {
+export interface BusinessContactFormContent extends BaseBlockContent {
   title?: string;
   description?: string;
   buttonText?: string;
-  buttonLink?: string;
 }
 
 export type BlockContent = 
@@ -328,7 +295,7 @@ export type BlockContent =
   | ContactBusinessContent
   | ForBusinessHeroContent
   | BusinessSolutionsContent
-  | BusinessContactContent
+  | BusinessContactFormContent
   | CustomSolutionsHeroContent
   | CustomSolutionsServicesContent
   | CustomSolutionsProcessContent
@@ -364,9 +331,8 @@ export type BlockType =
   | "contact_form"
   | "contact_faq"
   | "contact_business"
-  | "business_hero"
   | "business_solutions"
-  | "business_contact"
+  | "business_contact_form"
   | "custom_solutions_hero"
   | "custom_solutions_services"
   | "custom_solutions_process"
