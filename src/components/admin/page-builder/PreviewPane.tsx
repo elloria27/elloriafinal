@@ -23,13 +23,12 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { cn } from "@/lib/utils";
-
-// Import new sustainability components
 import { SustainabilityHero } from "@/components/sustainability/SustainabilityHero";
 import { SustainabilityMission } from "@/components/sustainability/SustainabilityMission";
 import { SustainabilityMaterials } from "@/components/sustainability/SustainabilityMaterials";
 import { SustainabilityFAQ } from "@/components/sustainability/SustainabilityFAQ";
 import { SustainabilityCTA } from "@/components/sustainability/SustainabilityCTA";
+import { Json } from "@/integrations/supabase/types";
 
 const defaultContent = {
   sustainability_hero: {
@@ -76,7 +75,7 @@ const defaultContent = {
     buttonText: "Learn More",
     buttonLink: "/sustainability"
   }
-};
+} as const;
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -98,9 +97,14 @@ export const PreviewPane = ({
   const renderBlock = (block: ContentBlock) => {
     console.log('Rendering block:', block);
     
-    const getDefaultContent = (type: string) => {
-      return defaultContent[type as keyof typeof defaultContent] || {};
+    const getDefaultContent = (type: string): Json => {
+      return defaultContent[type as keyof typeof defaultContent] as unknown as Json || {};
     };
+
+    const mergedContent = {
+      ...getDefaultContent(block.type),
+      ...block.content
+    } as Json;
 
     const blockContent = (
       <div className="group relative w-full">
@@ -143,11 +147,6 @@ export const PreviewPane = ({
               </div>
             );
           }
-
-          const mergedContent = {
-            ...getDefaultContent(block.type),
-            ...block.content
-          };
 
           switch (block.type) {
             case 'sustainability_hero':
