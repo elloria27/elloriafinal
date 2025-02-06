@@ -263,9 +263,8 @@ export const PreviewPane = ({
       <div 
         key={block.id} 
         className={cn(
-          "relative w-full",
-          selectedBlockId === block.id && "ring-2 ring-primary ring-opacity-50",
-          !isAdmin && "mb-0"
+          "relative w-full mb-4", // Added mb-4 for consistent spacing
+          selectedBlockId === block.id && "ring-2 ring-primary ring-opacity-50"
         )}
       >
         {blockContent}
@@ -274,14 +273,16 @@ export const PreviewPane = ({
   };
 
   return (
-    <div className="w-full min-h-[200px] relative">
+    <div className="w-full min-h-[calc(100vh-200px)] relative bg-white">
       {blocks.length > 0 ? (
-        blocks.map((block) => renderBlock(block))
+        <div className="space-y-4"> {/* Maintain 1rem spacing between blocks */}
+          {blocks.map((block) => renderBlock(block))}
+        </div>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center min-h-[400px]">
           <div className="text-gray-500 text-center">
-            <p>No content blocks yet.</p>
-            <p>Click "Add Component" to get started.</p>
+            <p className="text-lg font-medium">No content blocks yet.</p>
+            <p className="mt-2">Click "Add Component" to get started.</p>
           </div>
         </div>
       )}
