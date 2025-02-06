@@ -9,6 +9,9 @@ import { PreviewPane } from "./PreviewPane";
 import { ContentBlock, BlockType, BlockContent } from "@/types/content-blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type ContentBlockRow = Database["public"]["Tables"]["content_blocks"]["Row"];
 
 interface PageBuilderProps {
   pageId: string;
@@ -42,8 +45,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           updatedBlocks.map(block => ({
             id: block.id,
             page_id: pageId,
-            type: block.type,
-            content: block.content,
+            type: block.type as ContentBlockRow["type"],
+            content: block.content as ContentBlockRow["content"],
             order_index: block.order_index
           }))
         );
@@ -59,8 +62,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
   const handleAddBlock = async (blockType: BlockType) => {
     try {
       const newBlock = {
-        type: blockType,
-        content: {} as BlockContent,
+        type: blockType as ContentBlockRow["type"],
+        content: {} as ContentBlockRow["content"],
         order_index: blocks.length,
         page_id: pageId
       };
@@ -98,7 +101,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     try {
       const { error } = await supabase
         .from('content_blocks')
-        .update({ content })
+        .update({ content: content as ContentBlockRow["content"] })
         .eq('id', blockId);
 
       if (error) throw error;
