@@ -79,7 +79,7 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "donation_stories",
     "donation_partners",
     "donation_faq",
-    "donation_join_movement"
+    "donation_join_movement",
   ];
 
   // Common components
@@ -100,10 +100,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (block.type === "product_carousel") {
       return <ProductCarouselEditor block={block} onUpdate={onUpdate} />;
-    }
-
-    if (donationComponents.includes(block.type)) {
-      return <DonationEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (sustainabilityComponents.includes(block.type)) {
@@ -128,6 +124,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (customSolutionsComponents.includes(block.type)) {
       return <CustomSolutionsEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (donationComponents.includes(block.type)) {
+      return <DonationEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {
