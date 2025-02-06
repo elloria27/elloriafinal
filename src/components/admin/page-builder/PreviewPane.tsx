@@ -56,6 +56,25 @@ const isValidTestimonial = (testimonial: any): testimonial is { text: string; na
   );
 };
 
+const isValidAboutStat = (stat: any): stat is { value: string; label: string } => {
+  return (
+    typeof stat === 'object' &&
+    stat !== null &&
+    typeof stat.value === 'string' &&
+    typeof stat.label === 'string'
+  );
+};
+
+const isValidAboutTestimonial = (testimonial: any): stat is { quote: string; author: string; role?: string; rating: number } => {
+  return (
+    typeof testimonial === 'object' &&
+    testimonial !== null &&
+    typeof testimonial.quote === 'string' &&
+    typeof testimonial.author === 'string' &&
+    typeof testimonial.rating === 'number'
+  );
+};
+
 export const PreviewPane = ({ 
   blocks, 
   onSelectBlock, 
@@ -98,18 +117,6 @@ export const PreviewPane = ({
         )}
 
         {(() => {
-          if (isAdmin) {
-            return (
-              <div 
-                className="p-8 border border-dashed rounded-lg border-gray-300 bg-gray-50/50"
-                onClick={() => onSelectBlock(block)}
-              >
-                <div className="font-medium text-lg mb-1">{block.type}</div>
-                <div className="text-sm text-gray-500">Click to edit content</div>
-              </div>
-            );
-          }
-
           switch (block.type) {
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
@@ -215,13 +222,32 @@ export const PreviewPane = ({
               return <AboutMission content={block.content} />;
 
             case 'about_sustainability':
-              return <AboutSustainability content={block.content} />;
+              const aboutSustainabilityStats = Array.isArray(block.content.stats) 
+                ? block.content.stats.filter(isValidStat)
+                : [];
+              
+              return <AboutSustainability content={{
+                ...block.content,
+                stats: aboutSustainabilityStats
+              }} />;
 
             case 'about_team':
               return <AboutTeam content={block.content} />;
 
             case 'about_customer_impact':
-              return <AboutCustomerImpact content={block.content} />;
+              const aboutStats = Array.isArray(block.content.stats)
+                ? block.content.stats.filter(isValidAboutStat)
+                : [];
+              
+              const aboutTestimonials = Array.isArray(block.content.testimonials)
+                ? block.content.testimonials.filter(isValidAboutTestimonial)
+                : [];
+              
+              return <AboutCustomerImpact content={{
+                ...block.content,
+                stats: aboutStats,
+                testimonials: aboutTestimonials
+              }} />;
 
             case 'contact_hero':
               return <ContactHero content={block.content} />;
