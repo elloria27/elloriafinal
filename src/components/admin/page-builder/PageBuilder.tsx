@@ -6,7 +6,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ComponentPicker } from "./ComponentPicker";
 import { PropertyEditor } from "./PropertyEditor";
 import { PreviewPane } from "./PreviewPane";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockType, BlockContent } from "@/types/content-blocks";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -42,8 +42,8 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           updatedBlocks.map(block => ({
             id: block.id,
             page_id: pageId,
-            type: block.type,
-            content: block.content,
+            type: block.type as BlockType,
+            content: block.content as any,
             order_index: block.order_index
           }))
         );
@@ -56,11 +56,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   }, [blocks, pageId]);
 
-  const handleAddBlock = async (blockType: string) => {
+  const handleAddBlock = async (blockType: BlockType) => {
     try {
       const newBlock = {
         type: blockType,
-        content: {},
+        content: {} as BlockContent,
         order_index: blocks.length,
         page_id: pageId
       };
@@ -73,8 +73,14 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
 
       if (error) throw error;
 
-      setBlocks([...blocks, data]);
-      setSelectedBlock(data);
+      const typedData = {
+        ...data,
+        content: data.content as BlockContent,
+        type: data.type as BlockType
+      } as ContentBlock;
+
+      setBlocks([...blocks, typedData]);
+      setSelectedBlock(typedData);
       setIsComponentPickerOpen(false);
       toast.success("Block added successfully");
     } catch (error) {
@@ -83,7 +89,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
     }
   };
 
-  const handleUpdateBlock = async (blockId: string, content: any) => {
+  const handleUpdateBlock = async (blockId: string, content: BlockContent) => {
     try {
       const { error } = await supabase
         .from('content_blocks')
@@ -133,7 +139,11 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                 Add Component
               </Button>
             </DialogTrigger>
-            <ComponentPicker onSelect={handleAddBlock} />
+            <ComponentPicker 
+              onSelect={handleAddBlock} 
+              open={isComponentPickerOpen} 
+              onClose={() => setIsComponentPickerOpen(false)}
+            />
           </Dialog>
 
           <DragDropContext onDragEnd={handleDragEnd}>
