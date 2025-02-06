@@ -196,6 +196,47 @@ export const ContactPageEditor = ({ block, onUpdate }: ContactPageEditorProps) =
         </div>
       );
 
+    case "contact_business":
+      return (
+        <div className="space-y-4">
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={content.title as string || ""}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={content.description as string || ""}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input
+              value={content.email as string || ""}
+              onChange={(e) => handleChange("email", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Button Text</Label>
+            <Input
+              value={content.buttonText as string || ""}
+              onChange={(e) => handleChange("buttonText", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Button Link</Label>
+            <Input
+              value={content.buttonLink as string || ""}
+              onChange={(e) => handleChange("buttonLink", e.target.value)}
+            />
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
