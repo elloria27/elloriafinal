@@ -17,7 +17,6 @@ const Contact = () => {
       try {
         console.log('Fetching contact page content...');
         
-        // First, get the page ID for contact page
         const { data: pageData, error: pageError } = await supabase
           .from('pages')
           .select('id')
@@ -36,7 +35,6 @@ const Contact = () => {
 
         console.log('Found contact page ID:', pageData.id);
 
-        // Then fetch content blocks for this page
         const { data: blocks, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
@@ -50,17 +48,7 @@ const Contact = () => {
 
         if (blocks) {
           console.log('Fetched content blocks:', blocks);
-          const typedBlocks = blocks.map(block => ({
-            id: block.id,
-            type: block.type,
-            content: block.content,
-            order_index: block.order_index,
-            page_id: block.page_id,
-            created_at: block.created_at,
-            updated_at: block.updated_at
-          })) as ContentBlock[];
-          
-          setPageContent(typedBlocks);
+          setPageContent(blocks as ContentBlock[]);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -73,7 +61,37 @@ const Contact = () => {
   }, []);
 
   const getBlockContent = (type: string) => {
-    return pageContent.find(block => block.type === type)?.content || {};
+    const block = pageContent.find(block => block.type === type);
+    if (!block) return {};
+    
+    // Add default required properties based on content type
+    switch (type) {
+      case 'contact_hero':
+        return {
+          title: "Contact Us",
+          ...block.content
+        };
+      case 'contact_details':
+        return {
+          address: "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada",
+          phone: "+1 (204) 930-2019",
+          email: "support@elloria.ca",
+          ...block.content
+        };
+      case 'contact_faq':
+        return {
+          faqs: [],
+          ...block.content
+        };
+      case 'contact_business':
+        return {
+          email: "business@elloria.ca",
+          buttonLink: "/for-business",
+          ...block.content
+        };
+      default:
+        return block.content;
+    }
   };
 
   if (loading) {
