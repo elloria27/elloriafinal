@@ -7,6 +7,7 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { ContentBlock } from "@/types/content-blocks";
+import { ContactHeroContent, ContactDetailsContent, ContactFormContent, ContactFAQContent, ContactBusinessContent } from "@/types/content-blocks";
 
 const Contact = () => {
   const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
@@ -48,7 +49,10 @@ const Contact = () => {
 
         if (blocks) {
           console.log('Fetched content blocks:', blocks);
-          setPageContent(blocks as ContentBlock[]);
+          setPageContent(blocks.map(block => ({
+            ...block,
+            content: block.content as BaseBlockContent
+          })));
         }
       } catch (error) {
         console.error('Error:', error);
@@ -62,33 +66,54 @@ const Contact = () => {
 
   const getBlockContent = (type: string) => {
     const block = pageContent.find(block => block.type === type);
-    if (!block) return {};
+    if (!block) {
+      // Return type-specific default content
+      switch (type) {
+        case 'contact_hero':
+          return { title: "Contact Us" } as ContactHeroContent;
+        case 'contact_details':
+          return {
+            address: "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada",
+            phone: "+1 (204) 930-2019",
+            email: "support@elloria.ca"
+          } as ContactDetailsContent;
+        case 'contact_faq':
+          return { faqs: [] } as ContactFAQContent;
+        case 'contact_business':
+          return {
+            email: "business@elloria.ca",
+            buttonLink: "/for-business"
+          } as ContactBusinessContent;
+        default:
+          return {};
+      }
+    }
     
-    // Add default required properties based on content type
+    // Merge default values with block content based on type
     switch (type) {
       case 'contact_hero':
         return {
           title: "Contact Us",
           ...block.content
-        };
+        } as ContactHeroContent;
       case 'contact_details':
         return {
           address: "229 Dowling Ave W, Winnipeg, MB R2C 2K4, Canada",
           phone: "+1 (204) 930-2019",
           email: "support@elloria.ca",
           ...block.content
-        };
+        } as ContactDetailsContent;
       case 'contact_faq':
         return {
           faqs: [],
           ...block.content
-        };
+        } as ContactFAQContent;
       case 'contact_business':
         return {
           email: "business@elloria.ca",
           buttonLink: "/for-business",
           ...block.content
-        };
+        } as ContactBusinessContent;
       default:
         return block.content;
     }
@@ -109,11 +134,11 @@ const Contact = () => {
       transition={{ duration: 0.6 }}
       className="min-h-screen pt-20"
     >
-      <ContactHero content={getBlockContent('contact_hero')} />
-      <ContactDetails content={getBlockContent('contact_details')} />
-      <ContactForm content={getBlockContent('contact_form')} />
-      <ContactFAQ content={getBlockContent('contact_faq')} />
-      <BusinessContact content={getBlockContent('contact_business')} />
+      <ContactHero content={getBlockContent('contact_hero') as ContactHeroContent} />
+      <ContactDetails content={getBlockContent('contact_details') as ContactDetailsContent} />
+      <ContactForm content={getBlockContent('contact_form') as ContactFormContent} />
+      <ContactFAQ content={getBlockContent('contact_faq') as ContactFAQContent} />
+      <BusinessContact content={getBlockContent('contact_business') as ContactBusinessContent} />
     </motion.main>
   );
 };

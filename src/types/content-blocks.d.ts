@@ -56,9 +56,9 @@ export interface SustainabilityContent extends BaseBlockContent {
 export interface TestimonialsContent extends BaseBlockContent {
   testimonials: {
     name: string;
-    role: string;
-    content: string;
-    image?: string;
+    rating: number;
+    text: string;
+    source: string;
   }[];
 }
 
@@ -161,26 +161,6 @@ export interface HeroContent extends BaseBlockContent {
 
 export interface ProductCarouselContent extends BaseBlockContent {
   title: string;
-}
-
-export interface FeaturesContent extends BaseBlockContent {
-  features: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
-export interface BulkOrdersContent extends BaseBlockContent {
-  features: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-}
-
-export interface BulkOrdersProps {
-  content: BulkOrdersContent;
 }
 
 export interface ContentBlock {
