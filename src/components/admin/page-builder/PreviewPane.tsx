@@ -30,10 +30,6 @@ import { DonationPartners } from "@/components/donation/DonationPartners";
 import { DonationFAQ } from "@/components/donation/DonationFAQ";
 import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
 import { cn } from "@/lib/utils";
-import { BusinessContactDialog } from "@/components/business/BusinessContactDialog";
-import { CustomSolutionsDialog } from "@/components/business/CustomSolutionsDialog";
-import { BulkConsultationDialog } from "@/components/business/BulkConsultationDialog";
-import { BusinessContactForm } from "@/components/business/BusinessContactForm";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -188,9 +184,6 @@ export const PreviewPane = ({
                 }} />
               );
             }
-
-            case 'contact_business':
-              return <BusinessContact content={block.content} />;
 
             case 'hero':
               return <HomeHero content={block.content} />;
