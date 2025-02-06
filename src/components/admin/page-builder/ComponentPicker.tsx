@@ -61,6 +61,17 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
       ],
     },
     {
+      category: "Sustainability",
+      icon: "Leaf",
+      items: [
+        { type: "sustainability_hero", label: "Sustainability Hero", description: "Main sustainability header" },
+        { type: "sustainability_mission", label: "Sustainability Mission", description: "Our eco-friendly mission" },
+        { type: "sustainability_materials", label: "Sustainable Materials", description: "Eco-friendly materials" },
+        { type: "sustainability_faq", label: "Sustainability FAQ", description: "Common questions" },
+        { type: "sustainability_cta", label: "Sustainability CTA", description: "Call to action" },
+      ],
+    },
+    {
       category: "Contact",
       icon: "Contact",
       items: [
