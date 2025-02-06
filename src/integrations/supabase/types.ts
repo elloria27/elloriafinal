@@ -1636,6 +1636,7 @@ export type Database = {
         | "contact_faq"
         | "contact_business"
         | "donation_hero"
+        | "spacer"
       expense_category:
         | "inventory"
         | "marketing"

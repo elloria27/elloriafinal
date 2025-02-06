@@ -162,7 +162,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           </div>
 
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="blocks">
+            <Droppable droppableId="blocks" type="BLOCK">
               {(provided) => (
                 <div
                   {...provided.droppableProps}
