@@ -65,7 +65,7 @@ const isValidAboutStat = (stat: any): stat is { value: string; label: string } =
   );
 };
 
-const isValidAboutTestimonial = (testimonial: any): stat is { quote: string; author: string; role?: string; rating: number } => {
+const isValidAboutTestimonial = (testimonial: any): testimonial is { quote: string; author: string; role?: string; rating: number } => {
   return (
     typeof testimonial === 'object' &&
     testimonial !== null &&
@@ -240,7 +240,15 @@ export const PreviewPane = ({
                 : [];
               
               const aboutTestimonials = Array.isArray(block.content.testimonials)
-                ? block.content.testimonials.filter(isValidAboutTestimonial)
+                ? block.content.testimonials.map(item => {
+                    if (typeof item === 'object' && item !== null) {
+                      const testimonial = item as Record<string, Json>;
+                      if (isValidAboutTestimonial(testimonial)) {
+                        return testimonial;
+                      }
+                    }
+                    return null;
+                  }).filter((item): item is { quote: string; author: string; role?: string; rating: number } => item !== null)
                 : [];
               
               return <AboutCustomerImpact content={{
@@ -248,18 +256,6 @@ export const PreviewPane = ({
                 stats: aboutStats,
                 testimonials: aboutTestimonials
               }} />;
-
-            case 'contact_hero':
-              return <ContactHero content={block.content} />;
-
-            case 'contact_details':
-              return <ContactDetails content={block.content} />;
-
-            case 'contact_form':
-              return <ContactForm content={block.content} />;
-
-            case 'contact_faq':
-              return <ContactFAQ content={block.content} />;
 
             default:
               return (
