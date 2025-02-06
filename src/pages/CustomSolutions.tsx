@@ -9,17 +9,21 @@ import {
   ArrowRight
 } from "lucide-react";
 import { CustomSolutionsDialog } from "@/components/business/CustomSolutionsDialog";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 const CustomSolutions = () => {
   const [showDialog, setShowDialog] = useState(false);
 
   return (
-    <motion.main 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen pt-16"
-    >
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <motion.main 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="flex-grow pt-16"
+      >
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 md:py-16">
         <h1 className="text-4xl md:text-5xl font-light text-center mb-8">
@@ -133,12 +137,13 @@ const CustomSolutions = () => {
           </Button>
         </div>
       </section>
-
+      </motion.main>
+      <Footer />
       <CustomSolutionsDialog 
         open={showDialog}
         onOpenChange={setShowDialog}
       />
-    </motion.main>
+    </div>
   );
 };
 

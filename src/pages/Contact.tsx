@@ -7,6 +7,8 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { ContactFAQ } from "@/components/contact/ContactFAQ";
 import { BusinessContact } from "@/components/contact/BusinessContact";
 import { ContentBlock } from "@/types/content-blocks";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 const Contact = () => {
   const [pageContent, setPageContent] = useState<ContentBlock[]>([]);
@@ -85,18 +87,22 @@ const Contact = () => {
   }
 
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen pt-20"
-    >
-      <ContactHero content={getBlockContent('contact_hero')} />
-      <ContactDetails content={getBlockContent('contact_details')} />
-      <ContactForm content={getBlockContent('contact_form')} />
-      <ContactFAQ content={getBlockContent('contact_faq')} />
-      <BusinessContact content={getBlockContent('contact_business')} />
-    </motion.main>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="flex-grow pt-20"
+      >
+        <ContactHero content={getBlockContent('contact_hero')} />
+        <ContactDetails content={getBlockContent('contact_details')} />
+        <ContactForm content={getBlockContent('contact_form')} />
+        <ContactFAQ content={getBlockContent('contact_faq')} />
+        <BusinessContact content={getBlockContent('contact_business')} />
+      </motion.main>
+      <Footer />
+    </div>
   );
 };
 

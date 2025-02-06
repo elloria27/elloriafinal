@@ -4,17 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Leaf, Recycle, Users } from "lucide-react";
 import { SustainabilityRegistrationDialog } from "@/components/sustainability/SustainabilityRegistrationDialog";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 const SustainabilityProgram = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
-    <div className="min-h-screen pt-20">
-      <SustainabilityRegistrationDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen} 
-      />
-
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <motion.main 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="flex-grow pt-20"
+      >
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
         <div className="container mx-auto px-4">
@@ -130,6 +134,12 @@ const SustainabilityProgram = () => {
           </div>
         </div>
       </section>
+      </motion.main>
+      <Footer />
+      <SustainabilityRegistrationDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+      />
     </div>
   );
 };

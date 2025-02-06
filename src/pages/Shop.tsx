@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ShopFilters } from "@/components/shop/ShopFilters";
@@ -36,11 +37,11 @@ export default function Shop() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col">
       <Header />
       <ShopHero />
       
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-grow">
         <ShopFilters 
           sortBy={sortBy}
           filterBy={filterBy}
@@ -49,6 +50,7 @@ export default function Shop() {
         />
         <ProductGrid initialProducts={sortedProducts} />
       </main>
+      <Footer />
     </div>
   );
 }
