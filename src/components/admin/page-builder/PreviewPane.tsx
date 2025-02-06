@@ -4,6 +4,7 @@ import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { lazy, Suspense } from "react";
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -148,31 +149,28 @@ export const PreviewPane = ({
 
                 default:
                   try {
-                    // Dynamic import for custom components
-                    const path = `@/components/${block.type.split('_').join('/')}`;
-                    console.log('Attempting to load component from path:', path);
-                    
-                    // Use dynamic require for components
-                    try {
-                      const Component = require(path).default;
-                      if (!Component) {
-                        throw new Error(`Component not found at path: ${path}`);
-                      }
-                      return <Component content={block.content} />;
-                    } catch (importError) {
-                      console.error(`Error importing component from ${path}:`, importError);
-                      // For non-admin view, render nothing if component fails to load
-                      if (!isAdmin) return null;
-                      // For admin view, show error state
-                      return (
-                        <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
-                          Error loading component: {block.type}
+                    // For custom components, we'll render a loading state while the import is happening
+                    return (
+                      <Suspense fallback={
+                        <div className="p-4 border border-gray-200 rounded-lg animate-pulse bg-gray-50">
+                          Loading {block.type}...
                         </div>
-                      );
-                    }
+                      }>
+                        <DynamicComponentLoader
+                          blockType={block.type}
+                          content={block.content}
+                          isAdmin={isAdmin}
+                        />
+                      </Suspense>
+                    );
                   } catch (error) {
                     console.error(`Error in component rendering for ${block.type}:`, error);
-                    return null;
+                    if (!isAdmin) return null;
+                    return (
+                      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
+                        Error loading component: {block.type}
+                      </div>
+                    );
                   }
               }
             })()}
@@ -210,5 +208,46 @@ export const PreviewPane = ({
       )}
     </div>
   );
+};
+
+// Helper component to handle dynamic imports
+const DynamicComponentLoader = ({ 
+  blockType, 
+  content, 
+  isAdmin 
+}: { 
+  blockType: string; 
+  content: BlockContent; 
+  isAdmin: boolean; 
+}) => {
+  const componentPath = `../../${blockType.split('_').join('/')}`;
+  
+  try {
+    // Using dynamic import
+    const Component = lazy(() => 
+      import(/* @vite-ignore */ componentPath)
+        .then(module => ({ default: module.default }))
+        .catch(error => {
+          console.error(`Failed to load component ${blockType}:`, error);
+          return {
+            default: () => (
+              <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
+                Component not found: {blockType}
+              </div>
+            )
+          };
+        })
+    );
+
+    return <Component content={content} />;
+  } catch (error) {
+    console.error(`Error loading component ${blockType}:`, error);
+    if (!isAdmin) return null;
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
+        Error loading component: {blockType}
+      </div>
+    );
+  }
 };
 
