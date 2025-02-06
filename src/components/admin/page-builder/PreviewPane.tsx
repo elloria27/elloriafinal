@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent, SustainabilityContent, TestimonialsContent, AboutCustomerImpactContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, LayoutPanelLeft } from "lucide-react";
 import { HomeHero } from "@/components/home/HomeHero";
