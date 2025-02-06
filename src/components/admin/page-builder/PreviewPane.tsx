@@ -146,10 +146,18 @@ export const PreviewPane = ({
                   );
                 }
 
-                // Import all component types but only render them in non-admin view
                 default:
-                  const { default: Component } = require(`@/components/${block.type.split('_').join('/')}`);
-                  return <Component content={block.content} />;
+                  try {
+                    const { default: Component } = require(`@/components/${block.type.split('_').join('/')}`);
+                    return <Component content={block.content} />;
+                  } catch (error) {
+                    console.error(`Error loading component ${block.type}:`, error);
+                    return (
+                      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg">
+                        Error loading component: {block.type}
+                      </div>
+                    );
+                  }
               }
             })()}
           </>
