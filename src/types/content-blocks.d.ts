@@ -375,7 +375,8 @@ export type BlockType =
   | "sustainability_mission"
   | "sustainability_materials"
   | "sustainability_faq"
-  | "sustainability_cta";
+  | "sustainability_cta"
+  | "donation_hero";
 
 export interface ContentBlock {
   id: string;
