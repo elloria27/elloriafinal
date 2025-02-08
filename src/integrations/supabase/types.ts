@@ -1700,6 +1700,10 @@ export type Database = {
         | "custom_solutions_services"
         | "custom_solutions_process"
         | "custom_solutions_cta"
+        | "sustainability_program_hero"
+        | "sustainability_program_benefits"
+        | "sustainability_program_process"
+        | "sustainability_program_cta"
       expense_category:
         | "inventory"
         | "marketing"
