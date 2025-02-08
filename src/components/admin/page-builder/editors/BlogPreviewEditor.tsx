@@ -14,12 +14,12 @@ export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) =
   const [localContent, setLocalContent] = useState<BlogPreviewContent>(content);
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
-    const newContent = {
-      title: updates.title !== undefined ? String(updates.title) : localContent.title ?? '',
-      subtitle: updates.subtitle !== undefined ? String(updates.subtitle) : localContent.subtitle ?? '',
-      buttonText: updates.buttonText !== undefined ? String(updates.buttonText) : localContent.buttonText ?? '',
-      articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles ?? [],
-    } satisfies BlogPreviewContent;
+    const newContent: BlogPreviewContent = {
+      title: typeof updates.title !== 'undefined' ? String(updates.title) : localContent.title ?? '',
+      subtitle: typeof updates.subtitle !== 'undefined' ? String(updates.subtitle) : localContent.subtitle ?? '',
+      buttonText: typeof updates.buttonText !== 'undefined' ? String(updates.buttonText) : localContent.buttonText ?? '',
+      articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles ?? []
+    };
     
     setLocalContent(newContent);
     onUpdate(block.id, newContent);
