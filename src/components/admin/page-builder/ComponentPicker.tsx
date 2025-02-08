@@ -120,6 +120,37 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
           description: "Email subscription form" 
         }
       ]
+    },
+    {
+      category: "Business",
+      icon: "Building2",
+      items: [
+        { 
+          type: "bulk_hero", 
+          label: "Bulk Orders Hero", 
+          description: "Main section for bulk ordering" 
+        },
+        { 
+          type: "bulk_benefits", 
+          label: "Bulk Benefits", 
+          description: "Grid of bulk order benefits" 
+        },
+        { 
+          type: "bulk_process", 
+          label: "Bulk Process", 
+          description: "Steps for bulk ordering process" 
+        },
+        { 
+          type: "bulk_cta", 
+          label: "Bulk CTA", 
+          description: "Call to action for bulk orders" 
+        },
+        { 
+          type: "bulk_consultation", 
+          label: "Bulk Consultation", 
+          description: "Consultation request form" 
+        }
+      ]
     }
   ];
 

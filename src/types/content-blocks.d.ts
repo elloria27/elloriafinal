@@ -396,6 +396,40 @@ export interface ThanksNewsletterContent extends BaseBlockContent {
   buttonText?: string;
 }
 
+export interface BulkHeroContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+}
+
+export interface BulkBenefitsContent extends BaseBlockContent {
+  title?: string;
+  features?: Array<{
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface BulkProcessContent extends BaseBlockContent {
+  title?: string;
+  features?: Array<{
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface BulkCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
+export interface BulkConsultationContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -442,7 +476,12 @@ export type BlockContent =
   | ThanksWelcomeContent
   | ThanksReferralContent
   | ThanksSpecialOfferContent
-  | ThanksNewsletterContent;
+  | ThanksNewsletterContent
+  | BulkHeroContent
+  | BulkBenefitsContent
+  | BulkProcessContent
+  | BulkCtaContent
+  | BulkConsultationContent;
 
 export type BlockType = 
   | "heading" 
@@ -497,7 +536,12 @@ export type BlockType =
   | "thanks_welcome"
   | "thanks_referral"
   | "thanks_special_offer"
-  | "thanks_newsletter";
+  | "thanks_newsletter"
+  | "bulk_hero"
+  | "bulk_benefits"
+  | "bulk_process"
+  | "bulk_cta"
+  | "bulk_consultation";
 
 export interface ContentBlock {
   id: string;
