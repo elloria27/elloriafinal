@@ -1,12 +1,184 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowRight, Leaf, Recycle, Users } from "lucide-react";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { toast } from "sonner";
 import { SustainabilityRegistrationDialog } from "@/components/sustainability/SustainabilityRegistrationDialog";
 
 const SustainabilityProgram = () => {
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchPageContent = async () => {
+      try {
+        console.log('Fetching sustainability program content...');
+        
+        // Get the page ID for the sustainability-program slug
+        const { data: pageData, error: pageError } = await supabase
+          .from('pages')
+          .select('id')
+          .eq('slug', 'sustainability-program')
+          .maybeSingle();
+
+        if (pageError) {
+          console.error('Error fetching page:', pageError);
+          toast.error("Error loading page content");
+          return;
+        }
+
+        if (!pageData) {
+          console.log('No page found with slug: sustainability-program');
+          setBlocks([]);
+          return;
+        }
+
+        console.log('Page ID:', pageData.id);
+
+        // Fetch the content blocks for this page
+        const { data: blocksData, error: blocksError } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', pageData.id)
+          .order('order_index');
+
+        if (blocksError) {
+          console.error('Error fetching content blocks:', blocksError);
+          toast.error("Error loading page content");
+          return;
+        }
+
+        console.log('Content blocks:', blocksData);
+
+        // Transform the blocks data to match ContentBlock type
+        const transformedBlocks = blocksData?.map(block => ({
+          ...block,
+          content: block.content as BlockContent
+        })) || [];
+
+        setBlocks(transformedBlocks);
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error("Error loading page content");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPageContent();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'content_blocks' },
+        () => {
+          console.log('Content blocks updated, refreshing...');
+          fetchPageContent();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const renderBlock = (block: ContentBlock) => {
+    switch (block.type) {
+      case "sustainability_program_hero":
+        return (
+          <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
+            <div className="container mx-auto px-4">
+              <div className="text-center max-w-3xl mx-auto">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                  {block.content.title}
+                </h1>
+                <p className="text-lg text-gray-600 mb-8">
+                  {block.content.description}
+                </p>
+                <button 
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg inline-flex items-center space-x-2"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  {block.content.buttonText}
+                </button>
+              </div>
+            </div>
+          </section>
+        );
+      case "sustainability_program_benefits":
+        return (
+          <section className="py-16 md:py-24">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12">{block.content.title}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {block.content.benefits?.map((benefit, index) => (
+                  <div key={index} className="p-6 border rounded-lg shadow-sm">
+                    <div className="h-12 w-12 text-primary mb-4">
+                      {/* You can add icon rendering here based on benefit.icon */}
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
+                    <p className="text-gray-600">{benefit.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      case "sustainability_program_process":
+        return (
+          <section className="bg-gray-50 py-16 md:py-24">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12">{block.content.title}</h2>
+              <div className="max-w-3xl mx-auto space-y-8">
+                {block.content.steps?.map((step, index) => (
+                  <div key={index} className="flex items-start gap-4">
+                    <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                      {step.number}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                      <p className="text-gray-600">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      case "sustainability_program_cta":
+        return (
+          <section className="py-16 md:py-24">
+            <div className="container mx-auto px-4">
+              <div className="bg-primary text-white rounded-2xl p-8 md:p-12 text-center max-w-4xl mx-auto">
+                <h2 className="text-3xl font-bold mb-6">{block.content.title}</h2>
+                <p className="text-lg mb-8 opacity-90">{block.content.description}</p>
+                <button 
+                  className="bg-white text-primary hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  {block.content.buttonText}
+                </button>
+              </div>
+            </div>
+          </section>
+        );
+      default:
+        console.warn(`Unknown block type: ${block.type}`);
+        return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-20">
@@ -14,122 +186,11 @@ const SustainabilityProgram = () => {
         open={isDialogOpen} 
         onOpenChange={setIsDialogOpen} 
       />
-
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center max-w-3xl mx-auto"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Join Our Sustainability Program
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Be part of the solution. Our sustainability program helps businesses reduce their environmental impact while creating positive social change.
-            </p>
-            <Button 
-              className="bg-primary hover:bg-primary/90"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              Get Started <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </motion.div>
+      {blocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
         </div>
-      </section>
-
-      {/* Benefits Grid */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Program Benefits</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="p-6">
-              <Leaf className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Environmental Impact</h3>
-              <p className="text-gray-600">
-                Reduce your carbon footprint and contribute to a healthier planet through sustainable practices.
-              </p>
-            </Card>
-            <Card className="p-6">
-              <Users className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Community Engagement</h3>
-              <p className="text-gray-600">
-                Connect with like-minded businesses and share sustainable practices within our network.
-              </p>
-            </Card>
-            <Card className="p-6">
-              <Recycle className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-3">Resource Optimization</h3>
-              <p className="text-gray-600">
-                Access tools and strategies to optimize resource usage and reduce waste in your operations.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="bg-gray-50 py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-          <div className="max-w-3xl mx-auto space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                1
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Assessment</h3>
-                <p className="text-gray-600">
-                  We begin with a comprehensive assessment of your current environmental impact and sustainability practices.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                2
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Planning</h3>
-                <p className="text-gray-600">
-                  Together, we develop a customized sustainability plan that aligns with your business goals and values.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
-                3
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Implementation</h3>
-                <p className="text-gray-600">
-                  We provide the tools, resources, and support needed to implement sustainable practices effectively.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="bg-primary text-white rounded-2xl p-8 md:p-12 text-center max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">Ready to Make a Difference?</h2>
-            <p className="text-lg mb-8 opacity-90">
-              Join our sustainability program today and be part of the movement towards a more sustainable future.
-            </p>
-            <Button 
-              variant="secondary" 
-              size="lg"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              Join the Program
-            </Button>
-          </div>
-        </div>
-      </section>
+      ))}
     </div>
   );
 };
