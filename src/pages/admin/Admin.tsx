@@ -35,6 +35,52 @@ const Admin = () => {
   const isMobile = useIsMobile();
   
   const currentTab = searchParams.get("tab") || "dashboard";
+  console.log("Admin component - Current tab:", currentTab); // Debug log
+
+  // Function to render content based on current tab
+  const renderContent = () => {
+    console.log("renderContent called - tab:", currentTab); // Debug log
+    switch (currentTab) {
+      case "dashboard":
+        return <Dashboard />;
+      case "products":
+        return <ProductManagement />;
+      case "orders":
+        return <OrderManagement />;
+      case "users":
+        return <UserManagement />;
+      case "pages":
+        return <PageManagement />;
+      case "blog":
+        return <BlogManagement />;
+      case "files":
+        return <FileManagement />;
+      case "media":
+        return <MediaLibrary />;
+      case "settings":
+        return <SiteSettings />;
+      case "promo-codes":
+        return <PromoCodeManagement />;
+      case "payment-methods":
+        return <PaymentMethodManagement />;
+      case "delivery-methods":
+        return <DeliveryMethodManagement />;
+      case "donations":
+        return <DonationManagement />;
+      case "inventory":
+        return <InventoryManagement />;
+      case "personal-reminders":
+        return <PersonalReminders />;
+      case "tasks":
+        console.log("Rendering TaskManager component"); // Debug log
+        return <TaskManager />;
+      case "company-expenses":
+        return <ExpenseManagement />;
+      default:
+        console.log("No matching tab found, falling back to dashboard"); // Debug log
+        return <Dashboard />;
+    }
+  };
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -109,49 +155,6 @@ const Admin = () => {
   if (!isAdmin) {
     return null;
   }
-
-  const renderContent = () => {
-    console.log("Current tab:", currentTab); // Debug log
-    switch (currentTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "products":
-        return <ProductManagement />;
-      case "orders":
-        return <OrderManagement />;
-      case "users":
-        return <UserManagement />;
-      case "pages":
-        return <PageManagement />;
-      case "blog":
-        return <BlogManagement />;
-      case "files":
-        return <FileManagement />;
-      case "media":
-        return <MediaLibrary />;
-      case "settings":
-        return <SiteSettings />;
-      case "promo-codes":
-        return <PromoCodeManagement />;
-      case "payment-methods":
-        return <PaymentMethodManagement />;
-      case "delivery-methods":
-        return <DeliveryMethodManagement />;
-      case "donations":
-        return <DonationManagement />;
-      case "inventory":
-        return <InventoryManagement />;
-      case "personal-reminders":
-        return <PersonalReminders />;
-      case "tasks":
-        return <TaskManager />;
-      case "company-expenses":
-        return <ExpenseManagement />;
-      default:
-        console.log("Falling back to dashboard"); // Debug log
-        return <Dashboard />;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
