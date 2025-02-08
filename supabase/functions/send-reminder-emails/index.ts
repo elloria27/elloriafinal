@@ -25,12 +25,12 @@ const handler = async (_req: Request): Promise<Response> => {
 
     console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime}`);
 
-    // Fetch reminders due now with admin profiles
+    // Fetch reminders due now with profiles
     const { data: reminders, error: reminderError } = await supabase
       .from('hrm_personal_reminders')
       .select(`
         *,
-        profiles (
+        admin:admin_id (
           email,
           full_name
         )
@@ -46,8 +46,8 @@ const handler = async (_req: Request): Promise<Response> => {
 
     // Send emails for each reminder
     const emailPromises = reminders?.map(async (reminder) => {
-      const adminEmail = reminder.profiles?.email;
-      const adminName = reminder.profiles?.full_name || 'Admin';
+      const adminEmail = reminder.admin?.email;
+      const adminName = reminder.admin?.full_name || 'Admin';
 
       if (!adminEmail) {
         console.log(`No email found for reminder ${reminder.id}`);
