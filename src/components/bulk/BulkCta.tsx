@@ -1,12 +1,18 @@
 
 import { BulkCtaContent } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
+import { BulkConsultationDialog } from "@/components/business/BulkConsultationDialog";
+import { useState } from "react";
 
 interface BulkCtaProps {
   content: BulkCtaContent;
 }
 
 export const BulkCta = ({ content }: BulkCtaProps) => {
+  const [showConsultationDialog, setShowConsultationDialog] = useState(false);
+
+  if (!content) return null;
+
   return (
     <section className="py-16 bg-primary text-white">
       <div className="container mx-auto px-4 text-center">
@@ -16,11 +22,16 @@ export const BulkCta = ({ content }: BulkCtaProps) => {
           variant="secondary"
           size="lg"
           className="bg-white text-primary hover:bg-gray-100"
+          onClick={() => setShowConsultationDialog(true)}
         >
           {content.buttonText}
         </Button>
       </div>
+
+      <BulkConsultationDialog 
+        open={showConsultationDialog} 
+        onOpenChange={setShowConsultationDialog}
+      />
     </section>
   );
 };
-
