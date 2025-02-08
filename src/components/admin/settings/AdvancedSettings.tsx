@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -130,16 +131,16 @@ export const AdvancedSettings = () => {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Database Management</h3>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={handleDatabaseExport}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto text-sm"
             >
               <Download className="h-4 w-4" />
               Export Database
             </Button>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Input
                 type="file"
                 accept=".json"
@@ -150,9 +151,9 @@ export const AdvancedSettings = () => {
               <Button
                 variant="outline"
                 asChild
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full"
               >
-                <label htmlFor="database-import" className="cursor-pointer">
+                <label htmlFor="database-import" className="cursor-pointer text-sm">
                   <Upload className="h-4 w-4" />
                   Import Database
                 </label>
@@ -163,7 +164,7 @@ export const AdvancedSettings = () => {
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Site Icon (Favicon)</h3>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Input
               type="file"
               accept=".ico,.png,.jpg,.jpeg"
@@ -175,7 +176,7 @@ export const AdvancedSettings = () => {
             <Button
               variant="outline"
               asChild
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto text-sm"
               disabled={uploading}
             >
               <label htmlFor="favicon-upload" className="cursor-pointer">
@@ -189,3 +190,4 @@ export const AdvancedSettings = () => {
     </Card>
   );
 };
+

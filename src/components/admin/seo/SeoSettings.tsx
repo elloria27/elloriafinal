@@ -211,12 +211,12 @@ export const SeoSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-end gap-4 mb-4">
-            <Button onClick={generateRobotsTxt} className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <Button onClick={generateRobotsTxt} className="flex items-center gap-2 w-full sm:w-auto text-sm">
               <Bot className="h-4 w-4" />
               Generate robots.txt
             </Button>
-            <Button onClick={generateSitemapXml} className="flex items-center gap-2">
+            <Button onClick={generateSitemapXml} className="flex items-center gap-2 w-full sm:w-auto text-sm">
               <FileDown className="h-4 w-4" />
               Generate sitemap.xml
             </Button>
