@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Plus, Save } from "lucide-react";
@@ -162,7 +163,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
           </div>
 
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="blocks" type="BLOCK">
+            <Droppable droppableId="blocks">
               {(provided) => (
                 <div
                   {...provided.droppableProps}
@@ -176,6 +177,7 @@ export const PageBuilder = ({ pageId, initialBlocks }: PageBuilderProps) => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
+                          className="relative"
                         >
                           <PreviewPane
                             blocks={[block]}
