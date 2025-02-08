@@ -20,17 +20,18 @@ const handler = async (_req: Request): Promise<Response> => {
   try {
     console.log("Starting reminder email check...");
 
-    // Get current date and time in Winnipeg timezone
-    const now = new Date();
-    console.log("UTC time:", now.toISOString());
+    // Get current UTC time and convert to Winnipeg timezone
+    const utcNow = new Date();
+    console.log("Current UTC time:", utcNow.toISOString());
     
-    const winnipegTime = toZonedTime(now, timeZone);
-    console.log("Winnipeg time:", winnipegTime.toString());
+    const winnipegTime = toZonedTime(utcNow, timeZone);
+    console.log("Current Winnipeg time:", winnipegTime.toString());
     
-    const currentDate = formatInTimeZone(winnipegTime, timeZone, 'yyyy-MM-dd');
-    const currentTime = formatInTimeZone(winnipegTime, timeZone, 'HH:mm');
+    // Format date and time in Winnipeg timezone
+    const currentDate = formatInTimeZone(utcNow, timeZone, 'yyyy-MM-dd');
+    const currentTime = formatInTimeZone(utcNow, timeZone, 'HH:mm');
 
-    console.log(`Looking for reminders with date: ${currentDate} and time: ${currentTime} (${timeZone})`);
+    console.log(`Checking reminders for date: ${currentDate} and time: ${currentTime} (${timeZone})`);
 
     // Fetch reminders due now with profiles
     const { data: reminders, error: reminderError } = await supabase
