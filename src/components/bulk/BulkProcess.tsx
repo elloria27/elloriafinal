@@ -1,12 +1,12 @@
 
 import { motion } from "framer-motion";
 import { BulkProcessContent } from "@/types/content-blocks";
-import { ClipboardList, MessageSquare, TruckDelivery } from "lucide-react";
+import { ClipboardList, MessageSquare, Truck } from "lucide-react";
 
 const iconMap = {
   ClipboardList,
   MessageSquare,
-  TruckDelivery,
+  Truck,
 };
 
 interface BulkProcessProps {
