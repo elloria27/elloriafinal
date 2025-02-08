@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock, BlockContent, SustainabilityProgramHeroContent, SustainabilityProgramBenefitsContent, SustainabilityProgramProcessContent, SustainabilityProgramCtaContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 import { SustainabilityRegistrationDialog } from "@/components/sustainability/SustainabilityRegistrationDialog";
 
@@ -88,37 +88,41 @@ const SustainabilityProgram = () => {
 
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
-      case "sustainability_program_hero":
+      case "sustainability_program_hero": {
+        const content = block.content as SustainabilityProgramHeroContent;
         return (
           <section className="bg-gradient-to-b from-green-50 to-white py-16 md:py-24">
             <div className="container mx-auto px-4">
               <div className="text-center max-w-3xl mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                  {block.content.title}
+                  {content.title || ''}
                 </h1>
                 <p className="text-lg text-gray-600 mb-8">
-                  {block.content.description}
+                  {content.description || ''}
                 </p>
                 <button 
                   className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg inline-flex items-center space-x-2"
                   onClick={() => setIsDialogOpen(true)}
                 >
-                  {block.content.buttonText}
+                  {content.buttonText || 'Join Now'}
                 </button>
               </div>
             </div>
           </section>
         );
-      case "sustainability_program_benefits":
+      }
+      case "sustainability_program_benefits": {
+        const content = block.content as SustainabilityProgramBenefitsContent;
+        const benefits = Array.isArray(content.benefits) ? content.benefits : [];
         return (
           <section className="py-16 md:py-24">
             <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-12">{block.content.title}</h2>
+              <h2 className="text-3xl font-bold text-center mb-12">{content.title || ''}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {block.content.benefits?.map((benefit, index) => (
+                {benefits.map((benefit, index) => (
                   <div key={index} className="p-6 border rounded-lg shadow-sm">
                     <div className="h-12 w-12 text-primary mb-4">
-                      {/* You can add icon rendering here based on benefit.icon */}
+                      {/* Icon can be added here based on benefit.icon */}
                     </div>
                     <h3 className="text-xl font-semibold mb-3">{benefit.title}</h3>
                     <p className="text-gray-600">{benefit.description}</p>
@@ -128,13 +132,16 @@ const SustainabilityProgram = () => {
             </div>
           </section>
         );
-      case "sustainability_program_process":
+      }
+      case "sustainability_program_process": {
+        const content = block.content as SustainabilityProgramProcessContent;
+        const steps = Array.isArray(content.steps) ? content.steps : [];
         return (
           <section className="bg-gray-50 py-16 md:py-24">
             <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-12">{block.content.title}</h2>
+              <h2 className="text-3xl font-bold text-center mb-12">{content.title || ''}</h2>
               <div className="max-w-3xl mx-auto space-y-8">
-                {block.content.steps?.map((step, index) => (
+                {steps.map((step, index) => (
                   <div key={index} className="flex items-start gap-4">
                     <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
                       {step.number}
@@ -149,23 +156,26 @@ const SustainabilityProgram = () => {
             </div>
           </section>
         );
-      case "sustainability_program_cta":
+      }
+      case "sustainability_program_cta": {
+        const content = block.content as SustainabilityProgramCtaContent;
         return (
           <section className="py-16 md:py-24">
             <div className="container mx-auto px-4">
               <div className="bg-primary text-white rounded-2xl p-8 md:p-12 text-center max-w-4xl mx-auto">
-                <h2 className="text-3xl font-bold mb-6">{block.content.title}</h2>
-                <p className="text-lg mb-8 opacity-90">{block.content.description}</p>
+                <h2 className="text-3xl font-bold mb-6">{content.title || ''}</h2>
+                <p className="text-lg mb-8 opacity-90">{content.description || ''}</p>
                 <button 
                   className="bg-white text-primary hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold"
                   onClick={() => setIsDialogOpen(true)}
                 >
-                  {block.content.buttonText}
+                  {content.buttonText || 'Join Now'}
                 </button>
               </div>
             </div>
           </section>
         );
+      }
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
