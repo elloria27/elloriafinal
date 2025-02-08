@@ -1,5 +1,7 @@
 
 import { ThanksNewsletterContent } from "@/types/content-blocks";
+import { motion } from "framer-motion";
+import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -16,7 +18,10 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
 
     setIsSubscribing(true);
     try {
@@ -26,22 +31,28 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
 
       if (error) throw error;
 
-      toast.success("Thank you for subscribing!");
+      toast.success("Thank you for subscribing! Check your email for exclusive offers.");
       setEmail("");
     } catch (error) {
       console.error("Error subscribing:", error);
-      toast.error("Failed to subscribe. Please try again.");
+      toast.error("Subscription error. Please try again.");
     } finally {
       setIsSubscribing(false);
     }
   };
 
   return (
-    <div className="bg-gray-50 py-12 md:py-16">
-      <div className="max-w-4xl mx-auto px-4 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">{content.title || "Join Our Newsletter"}</h2>
-        <p className="text-lg text-gray-600 mb-8">{content.description || "Subscribe to get special offers and updates."}</p>
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6 }}
+      className="max-w-md mx-auto text-center px-4 py-12"
+    >
+      <h2 className="text-xl md:text-2xl font-bold mb-4">
+        {content.title || "Get Early Access to Our Best Offers!"}
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-2">
           <Input
             type="email"
             placeholder="Enter your email"
@@ -52,13 +63,16 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
           <Button 
             type="submit" 
             disabled={isSubscribing}
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 w-full md:w-auto"
           >
-            {content.buttonText || "Subscribe"}
+            {isSubscribing ? (
+              <Mail className="h-4 w-4 animate-spin" />
+            ) : (
+              content.buttonText || "Subscribe"
+            )}
           </Button>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </motion.section>
   );
 };
-
