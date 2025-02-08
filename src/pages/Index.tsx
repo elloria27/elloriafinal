@@ -18,6 +18,10 @@ import { ThanksWelcome } from "@/components/thanks/ThanksWelcome";
 import { ThanksReferral } from "@/components/thanks/ThanksReferral";
 import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
 import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
+import { BulkHero } from "@/components/bulk/BulkHero";
+import { BulkBenefits } from "@/components/bulk/BulkBenefits";
+import { BulkProcess } from "@/components/bulk/BulkProcess";
+import { BulkCta } from "@/components/bulk/BulkCta";
 import { 
   ContentBlock, 
   BlockContent,
@@ -33,7 +37,11 @@ import {
   ThanksWelcomeContent,
   ThanksReferralContent,
   ThanksSpecialOfferContent,
-  ThanksNewsletterContent
+  ThanksNewsletterContent,
+  BulkHeroContent,
+  BulkBenefitsContent,
+  BulkProcessContent,
+  BulkCtaContent
 } from "@/types/content-blocks";
 
 const Index = () => {
@@ -136,34 +144,42 @@ const Index = () => {
 
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
-      case 'hero':
+      case "hero":
         return <HomeHero content={block.content as HeroContent} />;
-      case 'features':
+      case "features":
         return <Features content={block.content as FeaturesContent} />;
-      case 'game_changer':
+      case "game_changer":
         return <GameChanger content={block.content as GameChangerContent} />;
-      case 'store_brands':
+      case "store_brands":
         return <StoreBrands content={block.content as StoreBrandsContent} />;
-      case 'sustainability':
+      case "sustainability":
         return <Sustainability content={block.content as SustainabilityContent} />;
-      case 'product_carousel':
+      case "product_carousel":
         return <ProductCarousel content={block.content as ProductCarouselContent} />;
-      case 'competitor_comparison':
+      case "competitor_comparison":
         return <CompetitorComparison content={block.content as BlockContent} />;
-      case 'testimonials':
+      case "testimonials":
         return <Testimonials content={block.content as TestimonialsContent} />;
-      case 'blog_preview':
+      case "blog_preview":
         return <BlogPreview content={block.content as BlogPreviewContent} />;
-      case 'newsletter':
+      case "newsletter":
         return <Newsletter content={block.content as NewsletterContent} />;
-      case 'thanks_welcome':
+      case "thanks_welcome":
         return <ThanksWelcome content={block.content as ThanksWelcomeContent} />;
-      case 'thanks_referral':
+      case "thanks_referral":
         return <ThanksReferral content={block.content as ThanksReferralContent} />;
-      case 'thanks_special_offer':
+      case "thanks_special_offer":
         return <ThanksSpecialOffer content={block.content as ThanksSpecialOfferContent} />;
-      case 'thanks_newsletter':
+      case "thanks_newsletter":
         return <ThanksNewsletter content={block.content as ThanksNewsletterContent} />;
+      case "bulk_hero":
+        return <BulkHero content={block.content as BulkHeroContent} />;
+      case "bulk_benefits":
+        return <BulkBenefits content={block.content as BulkBenefitsContent} />;
+      case "bulk_process":
+        return <BulkProcess content={block.content as BulkProcessContent} />;
+      case "bulk_cta":
+        return <BulkCta content={block.content as BulkCtaContent} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
