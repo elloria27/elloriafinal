@@ -1696,6 +1696,10 @@ export type Database = {
         | "bulk_process"
         | "bulk_cta"
         | "bulk_consultation"
+        | "custom_solutions_hero"
+        | "custom_solutions_services"
+        | "custom_solutions_process"
+        | "custom_solutions_cta"
       expense_category:
         | "inventory"
         | "marketing"
