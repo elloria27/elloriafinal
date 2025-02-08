@@ -17,13 +17,14 @@ import { DonationManagement } from "@/components/admin/DonationManagement";
 import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
 import TaskManagement from "@/components/admin/tasks/TaskManagement";
-import Dashboard from "./Dashboard";
-import SiteSettings from "./SiteSettings";
+import Dashboard from "@/pages/admin/Dashboard";
+import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -143,6 +144,8 @@ const Admin = () => {
         return <PersonalReminders />;
       case "tasks":
         return <TaskManagement />;
+      case "company-expenses":
+        return <ExpenseManagement />;
       default:
         return <Dashboard />;
     }
