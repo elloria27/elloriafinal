@@ -371,6 +371,7 @@ export interface ThanksWelcomeContent extends BaseBlockContent {
   title?: string;
   subtitle?: string;
   promoCode?: string;
+  promoButtonText?: string;
 }
 
 export interface ThanksReferralContent extends BaseBlockContent {

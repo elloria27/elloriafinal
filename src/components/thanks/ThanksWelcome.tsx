@@ -60,7 +60,7 @@ export const ThanksWelcome = ({ content }: ThanksWelcomeProps) => {
                 onClick={() => setShowPromoCode(true)}
                 className="bg-primary hover:bg-primary/90 text-white px-6 md:px-8 py-6 text-lg rounded-full shadow-lg w-full md:w-auto"
               >
-                Get Promo Code <Gift className="ml-2 h-5 w-5" />
+                {content.promoButtonText || "Get Promo Code"} <Gift className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
           ) : content.promoCode && (

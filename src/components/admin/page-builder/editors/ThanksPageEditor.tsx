@@ -43,6 +43,14 @@ export const ThanksPageEditor = ({ block, onUpdate }: ThanksPageEditorProps) => 
               placeholder="Optional promo code"
             />
           </div>
+          <div>
+            <Label>Promo Button Text</Label>
+            <Input
+              value={block.content.promoButtonText as string || ""}
+              onChange={(e) => handleChange("promoButtonText", e.target.value)}
+              placeholder="Get Promo Code"
+            />
+          </div>
         </div>
       );
 
@@ -144,4 +152,3 @@ export const ThanksPageEditor = ({ block, onUpdate }: ThanksPageEditorProps) => 
       );
   }
 };
-
