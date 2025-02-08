@@ -87,11 +87,7 @@ const handler = async (_req: Request): Promise<Response> => {
             <ul>
               <li><strong>Title:</strong> ${reminder.title}</li>
               <li><strong>Date:</strong> ${reminder.reminder_date}</li>
-              <li><strong>Time:</strong> ${formatInTimeZone(
-                new Date(`2000-01-01T${reminder.reminder_time}`),
-                timeZone,
-                'h:mm a'
-              )}</li>
+              <li><strong>Time:</strong> ${reminder.reminder_time}</li>
               ${reminder.description ? `<li><strong>Details:</strong> ${reminder.description}</li>` : ''}
             </ul>
             <p>Best Regards,<br>Your HRM System</p>
