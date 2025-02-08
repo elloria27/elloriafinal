@@ -30,7 +30,7 @@ const handler = async (_req: Request): Promise<Response> => {
       .from('hrm_personal_reminders')
       .select(`
         *,
-        profiles!hrm_personal_reminders_admin_id_fkey (
+        profiles!inner (
           email,
           full_name
         )
