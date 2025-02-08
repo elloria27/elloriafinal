@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -25,8 +24,7 @@ import {
   DollarSign,
   Gift,
   Boxes,
-  Bell,
-  ListTodo
+  Bell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -94,12 +92,6 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=personal-reminders",
         icon: Bell,
         description: "Manage your personal reminders"
-      },
-      {
-        title: "Task Manager",
-        href: "/admin?tab=tasks",
-        icon: ListTodo,
-        description: "Manage and assign tasks"
       }
     ]
   }

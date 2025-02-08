@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,15 +15,13 @@ import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethod
 import { DonationManagement } from "@/components/admin/DonationManagement";
 import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
-import { TaskManager } from "@/components/admin/tasks/TaskManager";
-import Dashboard from "@/pages/admin/Dashboard";
-import SiteSettings from "@/pages/admin/SiteSettings";
+import Dashboard from "./Dashboard";
+import SiteSettings from "./SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -35,52 +32,6 @@ const Admin = () => {
   const isMobile = useIsMobile();
   
   const currentTab = searchParams.get("tab") || "dashboard";
-  console.log("Admin component - Current tab:", currentTab); // Debug log
-
-  // Function to render content based on current tab
-  const renderContent = () => {
-    console.log("renderContent called - tab:", currentTab); // Debug log
-    switch (currentTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "products":
-        return <ProductManagement />;
-      case "orders":
-        return <OrderManagement />;
-      case "users":
-        return <UserManagement />;
-      case "pages":
-        return <PageManagement />;
-      case "blog":
-        return <BlogManagement />;
-      case "files":
-        return <FileManagement />;
-      case "media":
-        return <MediaLibrary />;
-      case "settings":
-        return <SiteSettings />;
-      case "promo-codes":
-        return <PromoCodeManagement />;
-      case "payment-methods":
-        return <PaymentMethodManagement />;
-      case "delivery-methods":
-        return <DeliveryMethodManagement />;
-      case "donations":
-        return <DonationManagement />;
-      case "inventory":
-        return <InventoryManagement />;
-      case "personal-reminders":
-        return <PersonalReminders />;
-      case "tasks":
-        console.log("Rendering TaskManager component"); // Debug log
-        return <TaskManager />;
-      case "company-expenses":
-        return <ExpenseManagement />;
-      default:
-        console.log("No matching tab found, falling back to dashboard"); // Debug log
-        return <Dashboard />;
-    }
-  };
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -155,6 +106,43 @@ const Admin = () => {
   if (!isAdmin) {
     return null;
   }
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case "dashboard":
+        return <Dashboard />;
+      case "products":
+        return <ProductManagement />;
+      case "orders":
+        return <OrderManagement />;
+      case "users":
+        return <UserManagement />;
+      case "pages":
+        return <PageManagement />;
+      case "blog":
+        return <BlogManagement />;
+      case "files":
+        return <FileManagement />;
+      case "media":
+        return <MediaLibrary />;
+      case "settings":
+        return <SiteSettings />;
+      case "promo-codes":
+        return <PromoCodeManagement />;
+      case "payment-methods":
+        return <PaymentMethodManagement />;
+      case "delivery-methods":
+        return <DeliveryMethodManagement />;
+      case "donations":
+        return <DonationManagement />;
+      case "inventory":
+        return <InventoryManagement />;
+      case "personal-reminders":
+        return <PersonalReminders />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -648,60 +648,6 @@ export type Database = {
           },
         ]
       }
-      hrm_tasks: {
-        Row: {
-          assigned_to: string
-          created_at: string | null
-          created_by: string
-          description: string | null
-          due_date: string
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          status: Database["public"]["Enums"]["task_status"]
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          assigned_to: string
-          created_at?: string | null
-          created_by: string
-          description?: string | null
-          due_date: string
-          id?: string
-          priority?: Database["public"]["Enums"]["task_priority"]
-          status?: Database["public"]["Enums"]["task_status"]
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          assigned_to?: string
-          created_at?: string | null
-          created_by?: string
-          description?: string | null
-          due_date?: string
-          id?: string
-          priority?: Database["public"]["Enums"]["task_priority"]
-          status?: Database["public"]["Enums"]["task_status"]
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_tasks_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hrm_tasks_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       inventory: {
         Row: {
           created_at: string | null
@@ -1771,8 +1717,6 @@ export type Database = {
         | "sustainability_faq"
         | "sustainability_cta"
       symptom_severity: "light" | "medium" | "severe"
-      task_priority: "low" | "medium" | "high" | "urgent"
-      task_status: "new" | "in_progress" | "completed" | "on_hold" | "canceled"
       user_role: "admin" | "client"
     }
     CompositeTypes: {
