@@ -57,6 +57,34 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
     handleContentChange({ features });
   };
 
+  const handleSolutionChange = (index: number, field: string, value: string) => {
+    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
+    solutions[index] = {
+      ...solutions[index],
+      [field]: value,
+    };
+    
+    handleContentChange({ solutions });
+  };
+
+  const addSolution = () => {
+    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
+    solutions.push({
+      icon: "Package",
+      title: "New Solution",
+      description: "Description of the solution",
+    });
+    
+    handleContentChange({ solutions });
+  };
+
+  const removeSolution = (index: number) => {
+    const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
+    solutions.splice(index, 1);
+    
+    handleContentChange({ solutions });
+  };
+
   switch (block.type) {
     case "business_hero":
       const heroContent = block.content as ForBusinessHeroContent;
