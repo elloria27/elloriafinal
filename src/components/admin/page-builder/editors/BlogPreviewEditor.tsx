@@ -11,10 +11,10 @@ interface BlogPreviewEditorProps {
 
 export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) => {
   const content = block.content as BlogPreviewContent;
-  const [localContent, setLocalContent] = useState(content);
+  const [localContent, setLocalContent] = useState<BlogPreviewContent>(content);
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
-    const newContent = { ...localContent, ...updates };
+    const newContent = { ...localContent, ...updates } as BlogPreviewContent;
     setLocalContent(newContent);
     onUpdate(block.id, newContent);
   };
@@ -42,7 +42,7 @@ export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) =
       <div>
         <label className="text-sm font-medium">Button Text</label>
         <Input
-          value={localContent.buttonText || ""}
+          value={typeof localContent.buttonText === 'string' ? localContent.buttonText : ""}
           onChange={(e) => handleUpdate({ buttonText: e.target.value })}
           placeholder="Enter button text"
         />
