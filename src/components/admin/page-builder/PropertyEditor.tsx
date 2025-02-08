@@ -12,6 +12,7 @@ import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor
 import { DonationEditor } from "./editors/DonationEditor";
 import { ThanksPageEditor } from "./editors/ThanksPageEditor";
 import { BulkEditor } from "./editors/BulkEditor";
+import { SustainabilityProgramEditor } from "./editors/SustainabilityProgramEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -100,6 +101,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "bulk_cta",
   ];
 
+  // Sustainability Program components
+  const sustainabilityProgramComponents = [
+    "sustainability_program_hero",
+    "sustainability_program_benefits",
+    "sustainability_program_process",
+    "sustainability_program_cta",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -122,6 +131,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (sustainabilityComponents.includes(block.type)) {
       return <SustainabilityEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (sustainabilityProgramComponents.includes(block.type)) {
+      return <SustainabilityProgramEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (homeComponents.includes(block.type)) {
