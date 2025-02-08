@@ -14,7 +14,16 @@ export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) =
   const [localContent, setLocalContent] = useState<BlogPreviewContent>(content);
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
-    const newContent = { ...localContent, ...updates };
+    // Ensure we only update with string values, not booleans
+    const validUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
+      // Only include string values or undefined
+      if (typeof value === 'string' || value === undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Partial<BlogPreviewContent>);
+
+    const newContent = { ...localContent, ...validUpdates };
     setLocalContent(newContent);
     onUpdate(block.id, newContent);
   };
