@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -169,18 +168,18 @@ export default function SiteSettings() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-4xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Site Settings</h1>
+    <div className="container max-w-5xl mx-auto px-4 py-6 md:py-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <h1 className="text-4xl font-bold tracking-tight">Site Settings</h1>
         <Button 
           onClick={handleSave} 
           disabled={saving}
           size="lg"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6"
+          className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 rounded-xl"
         >
           {saving ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Saving...
             </>
           ) : (
@@ -189,33 +188,48 @@ export default function SiteSettings() {
         </Button>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1 rounded-lg">
-          <TabsTrigger value="general" className="flex-1">General</TabsTrigger>
-          <TabsTrigger value="seo" className="flex-1">SEO</TabsTrigger>
-          <TabsTrigger value="advanced" className="flex-1">Advanced</TabsTrigger>
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="w-full justify-start mb-6 bg-gray-100/80 p-1.5 rounded-xl">
+          <TabsTrigger 
+            value="general" 
+            className="flex-1 py-3 text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger 
+            value="seo" 
+            className="flex-1 py-3 text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            SEO
+          </TabsTrigger>
+          <TabsTrigger 
+            value="advanced" 
+            className="flex-1 py-3 text-base font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm"
+          >
+            Advanced
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">General Settings</CardTitle>
-              <CardDescription className="text-gray-500">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="px-6 pt-6 pb-4">
+              <CardTitle className="text-2xl font-semibold">General Settings</CardTitle>
+              <CardDescription className="text-gray-500 text-base">
                 Basic settings for your website
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
+            <CardContent className="px-6 space-y-6">
+              <div className="space-y-3">
                 <Label htmlFor="site_title" className="text-base font-medium">Site Title</Label>
                 <Input
                   id="site_title"
                   value={settings.site_title}
                   onChange={(e) => setSettings({ ...settings, site_title: e.target.value })}
-                  className="h-12"
+                  className="h-12 text-base"
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="homepage" className="text-base font-medium">Homepage</Label>
                 <Select 
                   value={settings.homepage_slug} 
@@ -234,7 +248,7 @@ export default function SiteSettings() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="default_language" className="text-base font-medium">Default Language</Label>
                 <Select 
                   value={settings.default_language}
@@ -252,7 +266,7 @@ export default function SiteSettings() {
               </div>
 
               <div className="flex items-center justify-between pt-4">
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   <Label htmlFor="enable_registration" className="text-base font-medium">Enable User Registration</Label>
                   <p className="text-sm text-gray-500">Allow new users to register on your site</p>
                 </div>
@@ -272,37 +286,7 @@ export default function SiteSettings() {
         </TabsContent>
 
         <TabsContent value="advanced">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Advanced Settings</CardTitle>
-              <CardDescription className="text-gray-500">
-                Manage database and site appearance settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Database Management</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-12" onClick={() => {}}>
-                    <Download className="mr-2 h-5 w-5" />
-                    Export Database
-                  </Button>
-                  <Button variant="outline" className="h-12" onClick={() => {}}>
-                    <Upload className="mr-2 h-5 w-5" />
-                    Import Database
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Site Icon (Favicon)</h3>
-                <Button variant="outline" className="w-full h-12" onClick={() => {}}>
-                  <Image className="mr-2 h-5 w-5" />
-                  Upload Favicon
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <AdvancedSettings />
         </TabsContent>
       </Tabs>
     </div>
