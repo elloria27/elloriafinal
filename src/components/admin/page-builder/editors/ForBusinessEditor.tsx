@@ -35,7 +35,6 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       ...features[index],
       [field]: value,
     };
-    
     handleContentChange({ features });
   };
 
@@ -46,14 +45,12 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       title: "New Feature",
       description: "Description of the feature",
     });
-    
     handleContentChange({ features });
   };
 
   const removeFeature = (index: number) => {
     const features = [...((block.content as any).features || [])];
     features.splice(index, 1);
-    
     handleContentChange({ features });
   };
 
@@ -63,7 +60,6 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       ...solutions[index],
       [field]: value,
     };
-    
     handleContentChange({ solutions });
   };
 
@@ -74,14 +70,12 @@ export const ForBusinessEditor = ({ block, onUpdate }: ForBusinessEditorProps) =
       title: "New Solution",
       description: "Description of the solution",
     });
-    
     handleContentChange({ solutions });
   };
 
   const removeSolution = (index: number) => {
     const solutions = [...((block.content as BusinessSolutionsContent).solutions || [])];
     solutions.splice(index, 1);
-    
     handleContentChange({ solutions });
   };
 
