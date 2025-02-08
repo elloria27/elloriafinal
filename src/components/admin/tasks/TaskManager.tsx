@@ -37,7 +37,7 @@ export const TaskManager = () => {
 
   const handleUpdateTask = async (
     taskId: string,
-    updates: { status?: string; priority?: string }
+    updates: { status?: "new" | "in_progress" | "completed" | "on_hold" | "canceled"; priority?: "low" | "medium" | "high" | "urgent" }
   ) => {
     try {
       const { error } = await supabase
