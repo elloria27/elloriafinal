@@ -13,6 +13,10 @@ import { DonationEditor } from "./editors/DonationEditor";
 import { ThanksPageEditor } from "./editors/ThanksPageEditor";
 import { BulkEditor } from "./editors/BulkEditor";
 import { SustainabilityProgramEditor } from "./editors/SustainabilityProgramEditor";
+import { SustainabilityBlockEditor } from "./editors/SustainabilityBlockEditor";
+import { TestimonialsEditor } from "./editors/TestimonialsEditor";
+import { BlogPreviewEditor } from "./editors/BlogPreviewEditor";
+import { NewsletterEditor } from "./editors/NewsletterEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -27,7 +31,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "hero",
     "game_changer",
     "store_brands",
-    "sustainability",
     "features",
   ];
 
@@ -116,11 +119,25 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "image",
     "video",
     "button",
-    "testimonials",
-    "blog_preview",
   ];
 
   const getEditor = () => {
+    if (block.type === "sustainability") {
+      return <SustainabilityBlockEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (block.type === "testimonials") {
+      return <TestimonialsEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (block.type === "blog_preview") {
+      return <BlogPreviewEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (block.type === "newsletter") {
+      return <NewsletterEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (block.type === "competitor_comparison") {
       return <CompetitorComparisonEditor block={block} onUpdate={onUpdate} />;
     }
