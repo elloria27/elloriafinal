@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { ContentBlock, BulkHeroContent, BulkBenefitsContent, BulkProcessContent, BulkCtaContent, FeatureItem } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface BulkEditorProps {
   block: ContentBlock;
@@ -28,7 +29,9 @@ export const BulkEditor = ({ block, onUpdate }: BulkEditorProps) => {
       [field]: value,
     } as FeatureItem;
     
-    handleContentChange({ features });
+    handleContentChange({ 
+      features: features as unknown as Json[]
+    });
   };
 
   const addFeature = () => {
@@ -41,7 +44,9 @@ export const BulkEditor = ({ block, onUpdate }: BulkEditorProps) => {
       description: "Description of the feature",
     });
     
-    handleContentChange({ features });
+    handleContentChange({ 
+      features: features as unknown as Json[]
+    });
   };
 
   const removeFeature = (index: number) => {
@@ -50,7 +55,9 @@ export const BulkEditor = ({ block, onUpdate }: BulkEditorProps) => {
     const features = [...((block.content as BulkBenefitsContent | BulkProcessContent).features || [])];
     features.splice(index, 1);
     
-    handleContentChange({ features });
+    handleContentChange({ 
+      features: features as unknown as Json[]
+    });
   };
 
   switch (block.type) {
