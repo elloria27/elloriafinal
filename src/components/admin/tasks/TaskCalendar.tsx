@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Task } from "@/types/tasks";
 
 export const TaskCalendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -16,8 +17,8 @@ export const TaskCalendar = () => {
         .from("hrm_tasks")
         .select(`
           *,
-          assigned_to:profiles!assigned_to(full_name),
-          created_by:profiles!created_by(full_name)
+          assigned_to:profiles!assigned_to(id, full_name),
+          created_by:profiles!created_by(id, full_name)
         `)
         .order("due_date", { ascending: true });
 
@@ -26,7 +27,7 @@ export const TaskCalendar = () => {
         throw error;
       }
 
-      return data;
+      return data as Task[];
     },
   });
 
@@ -38,7 +39,7 @@ export const TaskCalendar = () => {
     }
     acc[date].push(task);
     return acc;
-  }, {} as Record<string, typeof tasks>);
+  }, {} as Record<string, Task[]>);
 
   const selectedDayTasks = selectedDate
     ? tasksByDate?.[selectedDate.toISOString().split('T')[0]] || []
