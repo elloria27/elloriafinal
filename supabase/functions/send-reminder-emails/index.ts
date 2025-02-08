@@ -18,10 +18,10 @@ const handler = async (_req: Request): Promise<Response> => {
   try {
     console.log("Starting reminder email check...");
 
-    // Get current date and time
+    // Get current date and time in UTC
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0];
-    const currentTime = now.toISOString().split('T')[1].substring(0, 5); // Gets HH:mm format
+    const currentTime = now.toTimeString().split(' ')[0].substring(0, 5); // Gets HH:mm format in UTC
 
     console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime}`);
 
@@ -42,7 +42,7 @@ const handler = async (_req: Request): Promise<Response> => {
 
     if (reminderError) throw reminderError;
 
-    console.log(`Found ${reminders?.length || 0} reminders for current time`);
+    console.log(`Found ${reminders?.length || 0} reminders for current time:`, reminders);
 
     // Send emails for each reminder
     const emailPromises = reminders?.map(async (reminder) => {
