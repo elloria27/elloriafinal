@@ -573,7 +573,8 @@ export type BlockType =
   | "sustainability_program_hero"
   | "sustainability_program_benefits"
   | "sustainability_program_process"
-  | "sustainability_program_cta";
+  | "sustainability_program_cta"
+  | "not_found";
 
 export interface ContentBlock {
   id: string;
