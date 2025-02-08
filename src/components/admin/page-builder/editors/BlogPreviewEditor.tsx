@@ -11,16 +11,10 @@ interface BlogPreviewEditorProps {
 
 export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) => {
   const content = block.content as BlogPreviewContent;
-  const [localContent, setLocalContent] = useState<BlogPreviewContent>(content);
+  const [localContent, setLocalContent] = useState(content);
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
-    const newContent: BlogPreviewContent = {
-      title: updates.title !== undefined ? updates.title.toString() : localContent.title ?? '',
-      subtitle: updates.subtitle !== undefined ? updates.subtitle.toString() : localContent.subtitle ?? '',
-      buttonText: updates.buttonText !== undefined ? updates.buttonText.toString() : localContent.buttonText ?? '',
-      articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles ?? []
-    };
-    
+    const newContent = { ...localContent, ...updates };
     setLocalContent(newContent);
     onUpdate(block.id, newContent);
   };

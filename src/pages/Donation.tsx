@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { ContentBlock } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const Donation = () => {
@@ -12,7 +12,7 @@ const Donation = () => {
   useEffect(() => {
     const fetchBlocks = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: blocks, error } = await supabase
           .from('content_blocks')
           .select('*')
           .eq('page_id', '9abd64e4-326a-416e-b0d7-edfdd0ecc7fc')
@@ -22,13 +22,7 @@ const Donation = () => {
           throw error;
         }
 
-        // Transform the data to ensure it matches ContentBlock type
-        const typedBlocks: ContentBlock[] = data.map(block => ({
-          ...block,
-          content: block.content as BlockContent
-        }));
-
-        setBlocks(typedBlocks);
+        setBlocks(blocks);
       } catch (error) {
         console.error('Error fetching content blocks:', error);
         toast.error("Error loading page content");
@@ -73,11 +67,7 @@ const Donation = () => {
   return (
     <div className="min-h-screen bg-white">
       <main>
-        <PreviewPane 
-          blocks={blocks} 
-          isAdmin={false} 
-          onSelectBlock={() => {}} // Empty function since we're not in admin mode
-        />
+        <PreviewPane blocks={blocks} isAdmin={false} />
       </main>
     </div>
   );
