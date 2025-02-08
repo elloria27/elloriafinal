@@ -1691,6 +1691,11 @@ export type Database = {
         | "thanks_referral"
         | "thanks_special_offer"
         | "thanks_newsletter"
+        | "bulk_hero"
+        | "bulk_benefits"
+        | "bulk_process"
+        | "bulk_cta"
+        | "bulk_consultation"
       expense_category:
         | "inventory"
         | "marketing"
