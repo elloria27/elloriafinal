@@ -404,18 +404,12 @@ export interface BulkHeroContent extends BaseBlockContent {
 
 export interface BulkBenefitsContent extends BaseBlockContent {
   title?: string;
-  features?: Array<{
-    title: string;
-    description: string;
-  }>;
+  features?: FeatureItem[];  // Changed to use FeatureItem type
 }
 
 export interface BulkProcessContent extends BaseBlockContent {
   title?: string;
-  features?: Array<{
-    title: string;
-    description: string;
-  }>;
+  features?: FeatureItem[];  // Changed to use FeatureItem type
 }
 
 export interface BulkCtaContent extends BaseBlockContent {
