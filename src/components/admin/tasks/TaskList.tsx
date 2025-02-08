@@ -33,13 +33,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+type TaskPriority = "low" | "medium" | "high" | "urgent";
+type TaskStatus = "new" | "in_progress" | "completed" | "on_hold" | "canceled";
+
 interface Task {
   id: string;
   title: string;
   description: string;
   assigned_to: { full_name: string };
-  priority: "low" | "medium" | "high" | "urgent";
-  status: "new" | "in_progress" | "completed" | "on_hold" | "canceled";
+  priority: TaskPriority;
+  status: TaskStatus;
   due_date: string;
 }
 
@@ -49,8 +52,8 @@ interface TaskListProps {
   onUpdateTask: (
     taskId: string,
     updates: {
-      status?: "new" | "in_progress" | "completed" | "on_hold" | "canceled";
-      priority?: "low" | "medium" | "high" | "urgent";
+      status?: TaskStatus;
+      priority?: TaskPriority;
     }
   ) => void;
   onDeleteTask: (taskId: string) => void;
@@ -73,8 +76,8 @@ const statusColors = {
 
 export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: TaskListProps) => {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "">("");
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "">("");
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   const filteredTasks = tasks.filter((task) => {
@@ -103,7 +106,7 @@ export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: 
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-sm"
         />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(value: TaskStatus | "") => setStatusFilter(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -116,7 +119,7 @@ export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: 
             <SelectItem value="canceled">Canceled</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+        <Select value={priorityFilter} onValueChange={(value: TaskPriority | "") => setPriorityFilter(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by priority" />
           </SelectTrigger>
@@ -149,7 +152,7 @@ export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: 
               <TableCell>
                 <Select
                   defaultValue={task.priority}
-                  onValueChange={(value) =>
+                  onValueChange={(value: TaskPriority) =>
                     onUpdateTask(task.id, { priority: value })
                   }
                 >
@@ -171,7 +174,7 @@ export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: 
               <TableCell>
                 <Select
                   defaultValue={task.status}
-                  onValueChange={(value) =>
+                  onValueChange={(value: TaskStatus) =>
                     onUpdateTask(task.id, { status: value })
                   }
                 >
