@@ -15,7 +15,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { TaskPriority, TaskStatus } from "@/types/tasks";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -27,8 +26,8 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [status, setStatus] = useState<TaskStatus>("new");
+  const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState("new");
 
   const { data: admins, isLoading: loadingAdmins } = useQuery({
     queryKey: ["admins"],
@@ -71,7 +70,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
       setDescription("");
       setAssignedTo("");
       setDueDate("");
-      setPriority("medium");
+      setPriority("");
       setStatus("new");
     } catch (error) {
       toast.error("Failed to create task");
@@ -135,7 +134,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
 
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <Select value={priority} onValueChange={(value) => setPriority(value as TaskPriority)} required>
+            <Select value={priority} onValueChange={setPriority} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>

@@ -42,4 +42,3 @@ export const TaskManager = () => {
     </div>
   );
 };
-
