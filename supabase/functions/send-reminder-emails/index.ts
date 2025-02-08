@@ -2,10 +2,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "npm:resend@2.0.0";
+import { toZonedTime, formatInTimeZone } from 'npm:date-fns-tz@3.0.0';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const timeZone = 'America/Winnipeg';
 
 const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
@@ -18,12 +20,13 @@ const handler = async (_req: Request): Promise<Response> => {
   try {
     console.log("Starting reminder email check...");
 
-    // Get current date and time in UTC
+    // Get current date and time in Winnipeg timezone
     const now = new Date();
-    const currentDate = now.toISOString().split('T')[0];
-    const currentTime = now.toTimeString().split(' ')[0].substring(0, 5); // Gets HH:mm format in UTC
+    const winnipegTime = toZonedTime(now, timeZone);
+    const currentDate = formatInTimeZone(winnipegTime, timeZone, 'yyyy-MM-dd');
+    const currentTime = formatInTimeZone(winnipegTime, timeZone, 'HH:mm');
 
-    console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime}`);
+    console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime} (${timeZone})`);
 
     // Fetch reminders due now with profiles
     const { data: reminders, error: reminderError } = await supabase
@@ -68,7 +71,11 @@ const handler = async (_req: Request): Promise<Response> => {
             <ul>
               <li><strong>Title:</strong> ${reminder.title}</li>
               <li><strong>Date:</strong> ${reminder.reminder_date}</li>
-              <li><strong>Time:</strong> ${reminder.reminder_time}</li>
+              <li><strong>Time:</strong> ${formatInTimeZone(
+                new Date(`2000-01-01T${reminder.reminder_time}`),
+                timeZone,
+                'h:mm a'
+              )}</li>
               ${reminder.description ? `<li><strong>Details:</strong> ${reminder.description}</li>` : ''}
             </ul>
             <p>Best Regards,<br>Your HRM System</p>
