@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,6 @@ export default function DynamicPage() {
           .from('pages')
           .select('*')
           .eq('slug', slug)
-          .eq('is_published', true)
           .single();
 
         if (pageError || !page) {
@@ -64,6 +64,28 @@ export default function DynamicPage() {
     };
 
     fetchPage();
+
+    // Set up real-time subscription for content updates
+    const subscription = supabase
+      .channel('content_blocks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'content_blocks'
+        },
+        () => {
+          // Refetch the page content when changes occur
+          fetchPage();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [slug, navigate]);
 
   if (isLoading) {
