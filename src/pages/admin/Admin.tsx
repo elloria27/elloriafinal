@@ -16,7 +16,6 @@ import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethod
 import { DonationManagement } from "@/components/admin/DonationManagement";
 import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
-import TaskManagement from "@/components/admin/tasks/TaskManagement";
 import Dashboard from "@/pages/admin/Dashboard";
 import SiteSettings from "@/pages/admin/SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
@@ -142,8 +141,6 @@ const Admin = () => {
         return <InventoryManagement />;
       case "personal-reminders":
         return <PersonalReminders />;
-      case "tasks":
-        return <TaskManagement />;
       case "company-expenses":
         return <ExpenseManagement />;
       default:
