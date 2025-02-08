@@ -13,6 +13,14 @@ const iconMap: Record<string, any> = {
 };
 
 export const BulkBenefits = ({ content }: BulkBenefitsProps) => {
+  if (!content) {
+    return (
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+        bulk_benefits component
+      </div>
+    );
+  }
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -20,7 +28,7 @@ export const BulkBenefits = ({ content }: BulkBenefitsProps) => {
           {content?.title || 'Why Choose Bulk Orders?'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {(content?.features as FeatureItem[] || []).map((feature, index) => {
+          {(content?.features || []).map((feature, index) => {
             const IconComponent = feature.icon ? iconMap[feature.icon] : Package;
             return (
               <div 

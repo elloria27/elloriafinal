@@ -7,6 +7,14 @@ interface BulkHeroProps {
 }
 
 export const BulkHero = ({ content }: BulkHeroProps) => {
+  if (!content) {
+    return (
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+        bulk_hero component
+      </div>
+    );
+  }
+
   return (
     <section className="bg-gradient-to-b from-accent-purple/30 to-white">
       <div className="container mx-auto px-4 py-16 md:py-24">

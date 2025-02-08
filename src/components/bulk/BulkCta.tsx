@@ -7,6 +7,14 @@ interface BulkCtaProps {
 }
 
 export const BulkCta = ({ content }: BulkCtaProps) => {
+  if (!content) {
+    return (
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+        bulk_cta component
+      </div>
+    );
+  }
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">

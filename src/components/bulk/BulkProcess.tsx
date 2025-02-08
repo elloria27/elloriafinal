@@ -13,6 +13,14 @@ const iconMap: Record<string, any> = {
 };
 
 export const BulkProcess = ({ content }: BulkProcessProps) => {
+  if (!content) {
+    return (
+      <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+        bulk_process component
+      </div>
+    );
+  }
+
   return (
     <section className="py-16 bg-accent-green/30">
       <div className="container mx-auto px-4">
@@ -20,7 +28,7 @@ export const BulkProcess = ({ content }: BulkProcessProps) => {
           {content?.title || 'How It Works'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {(content?.features as FeatureItem[] || []).map((step, index) => {
+          {(content?.features || []).map((step, index) => {
             const IconComponent = step.icon ? iconMap[step.icon] : ClipboardList;
             return (
               <div key={index} className="text-center">
