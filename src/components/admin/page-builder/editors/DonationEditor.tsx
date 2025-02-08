@@ -1,4 +1,4 @@
-import { BlockContent, ContentBlock, DonationFAQContent } from "@/types/content-blocks";
+import { BlockContent, ContentBlock, DonationFAQContent, DonationImpactContent } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ interface DonationEditorProps {
 }
 
 export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
-  const content = block.content as DonationFAQContent;
+  const content = block.content as DonationFAQContent & DonationImpactContent;
   const [localContent, setLocalContent] = useState(content);
 
   const handleChange = (field: string, value: string) => {
@@ -33,9 +33,28 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
     onUpdate(block.id, newContent);
   };
 
+  const handleImpactChange = (index: number, field: 'icon' | 'title' | 'description', value: string) => {
+    const newImpacts = [...(localContent.impacts || [])];
+    newImpacts[index] = {
+      ...newImpacts[index],
+      [field]: value,
+    };
+    
+    const newContent = { ...localContent, impacts: newImpacts };
+    setLocalContent(newContent);
+    onUpdate(block.id, newContent);
+  };
+
   const addFAQ = () => {
     const newFaqs = [...(localContent.faqs || []), { question: '', answer: '' }];
     const newContent = { ...localContent, faqs: newFaqs };
+    setLocalContent(newContent);
+    onUpdate(block.id, newContent);
+  };
+
+  const addImpact = () => {
+    const newImpacts = [...(localContent.impacts || []), { icon: '', title: '', description: '' }];
+    const newContent = { ...localContent, impacts: newImpacts };
     setLocalContent(newContent);
     onUpdate(block.id, newContent);
   };
@@ -48,41 +67,16 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
     onUpdate(block.id, newContent);
   };
 
+  const removeImpact = (index: number) => {
+    const newImpacts = [...(localContent.impacts || [])];
+    newImpacts.splice(index, 1);
+    const newContent = { ...localContent, impacts: newImpacts };
+    setLocalContent(newContent);
+    onUpdate(block.id, newContent);
+  };
+
   const renderFields = () => {
     switch (block.type) {
-      case "donation_hero":
-        return (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={localContent.title as string || ""}
-                onChange={(e) => handleChange("title", e.target.value)}
-                placeholder="Enter hero title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="subtitle">Subtitle</Label>
-              <Textarea
-                id="subtitle"
-                value={localContent.subtitle as string || ""}
-                onChange={(e) => handleChange("subtitle", e.target.value)}
-                placeholder="Enter hero subtitle"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="buttonText">Button Text</Label>
-              <Input
-                id="buttonText"
-                value={localContent.buttonText as string || ""}
-                onChange={(e) => handleChange("buttonText", e.target.value)}
-                placeholder="Enter button text"
-              />
-            </div>
-          </>
-        );
-
       case "donation_impact":
         return (
           <>
@@ -90,7 +84,7 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
-                value={localContent.title as string || ""}
+                value={localContent.title || ""}
                 onChange={(e) => handleChange("title", e.target.value)}
                 placeholder="Enter impact section title"
               />
@@ -99,10 +93,61 @@ export const DonationEditor = ({ block, onUpdate }: DonationEditorProps) => {
               <Label htmlFor="subtitle">Subtitle</Label>
               <Textarea
                 id="subtitle"
-                value={localContent.subtitle as string || ""}
+                value={localContent.subtitle || ""}
                 onChange={(e) => handleChange("subtitle", e.target.value)}
                 placeholder="Enter impact section subtitle"
               />
+            </div>
+            <div className="space-y-4 mt-6">
+              <div className="flex items-center justify-between">
+                <Label>Impact Items</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addImpact}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Impact
+                </Button>
+              </div>
+              {(localContent.impacts || []).map((impact, index) => (
+                <div key={index} className="space-y-3 p-4 border rounded-lg relative">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-2"
+                    onClick={() => removeImpact(index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                  <div className="space-y-2">
+                    <Label>Icon</Label>
+                    <Input
+                      value={impact.icon || ""}
+                      onChange={(e) => handleImpactChange(index, 'icon', e.target.value)}
+                      placeholder="Enter icon name (e.g., Heart, Users, Globe)"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={impact.title || ""}
+                      onChange={(e) => handleImpactChange(index, 'title', e.target.value)}
+                      placeholder="Enter impact title"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={impact.description || ""}
+                      onChange={(e) => handleImpactChange(index, 'description', e.target.value)}
+                      placeholder="Enter impact description"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         );
