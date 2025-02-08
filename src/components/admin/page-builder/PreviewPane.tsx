@@ -33,6 +33,7 @@ import { ThanksWelcome } from "@/components/thanks/ThanksWelcome";
 import { ThanksReferral } from "@/components/thanks/ThanksReferral";
 import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
 import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
+import NotFound from "@/pages/NotFound";
 import { cn } from "@/lib/utils";
 
 interface PreviewPaneProps {
@@ -117,6 +118,9 @@ export const PreviewPane = ({
 
           // Otherwise render the actual components
           switch (block.type) {
+            case 'not_found':
+              return <NotFound />;
+
             case 'heading':
               const HeadingTag = (block.content.size || 'h2') as keyof JSX.IntrinsicElements;
               return (
