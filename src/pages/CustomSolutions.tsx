@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { CustomSolutionsDialog } from "@/components/business/CustomSolutionsDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, CustomSolutionsHeroContent, CustomSolutionsServicesContent, CustomSolutionsProcessContent, CustomSolutionsCtaContent } from "@/types/content-blocks";
 import { toast } from "sonner";
 
 const iconMap: Record<string, any> = {
@@ -37,7 +37,7 @@ const CustomSolutions = () => {
 
         if (pageError) throw pageError;
 
-        const { data: blocks, error: blocksError } = await supabase
+        const { data: blocksData, error: blocksError } = await supabase
           .from('content_blocks')
           .select('*')
           .eq('page_id', pageData.id)
@@ -45,7 +45,7 @@ const CustomSolutions = () => {
 
         if (blocksError) throw blocksError;
 
-        setBlocks(blocks);
+        setBlocks(blocksData as ContentBlock[]);
       } catch (error) {
         console.error('Error fetching content blocks:', error);
         toast.error("Failed to load page content");
@@ -57,14 +57,15 @@ const CustomSolutions = () => {
     fetchContentBlocks();
   }, []);
 
-  const getBlockContent = (type: string) => {
-    return blocks.find(block => block.type === type)?.content || null;
+  const getBlockContent = <T extends CustomSolutionsHeroContent | CustomSolutionsServicesContent | CustomSolutionsProcessContent | CustomSolutionsCtaContent>(type: string): T | null => {
+    const block = blocks.find(block => block.type === type);
+    return block ? block.content as T : null;
   };
 
-  const heroContent = getBlockContent('custom_solutions_hero');
-  const servicesContent = getBlockContent('custom_solutions_services');
-  const processContent = getBlockContent('custom_solutions_process');
-  const ctaContent = getBlockContent('custom_solutions_cta');
+  const heroContent = getBlockContent<CustomSolutionsHeroContent>('custom_solutions_hero');
+  const servicesContent = getBlockContent<CustomSolutionsServicesContent>('custom_solutions_services');
+  const processContent = getBlockContent<CustomSolutionsProcessContent>('custom_solutions_process');
+  const ctaContent = getBlockContent<CustomSolutionsCtaContent>('custom_solutions_cta');
 
   if (loading) {
     return <div className="min-h-screen pt-16 flex items-center justify-center">Loading...</div>;
@@ -91,7 +92,7 @@ const CustomSolutions = () => {
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {servicesContent?.services?.map((service: any, index: number) => {
+            {servicesContent?.services?.map((service, index) => {
               const Icon = iconMap[service.icon] || Package;
               return (
                 <div key={index} className="bg-white p-6 rounded-lg shadow-sm">
@@ -112,7 +113,7 @@ const CustomSolutions = () => {
         </h2>
         <div className="max-w-4xl mx-auto">
           <div className="space-y-8">
-            {processContent?.steps?.map((step: any, index: number) => (
+            {processContent?.steps?.map((step, index) => (
               <div key={index} className="flex items-start gap-4">
                 <div className="bg-primary/10 rounded-full p-3">
                   <span className="text-primary font-semibold">{step.number}</span>
