@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -181,4 +180,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
