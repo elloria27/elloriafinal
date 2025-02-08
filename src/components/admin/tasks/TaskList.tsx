@@ -22,6 +22,33 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  assigned_to: { full_name: string };
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "new" | "in_progress" | "completed" | "on_hold" | "canceled";
+  due_date: string;
+}
+
+interface TaskListProps {
+  tasks?: Task[];
+  isLoading: boolean;
+  onUpdateTask: (taskId: string, updates: { status?: string; priority?: string }) => void;
+  onDeleteTask: (taskId: string) => void;
+}
 
 const priorityColors = {
   low: "bg-green-100 text-green-800",
@@ -38,33 +65,13 @@ const statusColors = {
   canceled: "bg-gray-100 text-gray-800",
 };
 
-export const TaskList = () => {
+export const TaskList = ({ tasks = [], isLoading, onUpdateTask, onDeleteTask }: TaskListProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("hrm_tasks")
-        .select(`
-          *,
-          assigned_to:profiles!assigned_to(full_name),
-          created_by:profiles!created_by(full_name)
-        `)
-        .order("due_date", { ascending: true });
-
-      if (error) {
-        toast.error("Failed to fetch tasks");
-        throw error;
-      }
-
-      return data;
-    },
-  });
-
-  const filteredTasks = tasks?.filter((task) => {
+  const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       search === "" ||
       task.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -129,21 +136,56 @@ export const TaskList = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTasks?.map((task) => (
+          {filteredTasks.map((task) => (
             <TableRow key={task.id}>
               <TableCell>{task.title}</TableCell>
               <TableCell>{task.assigned_to.full_name}</TableCell>
               <TableCell>
-                <Badge className={priorityColors[task.priority]}>
-                  {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                </Badge>
+                <Select
+                  defaultValue={task.priority}
+                  onValueChange={(value) =>
+                    onUpdateTask(task.id, { priority: value })
+                  }
+                >
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue>
+                      <Badge className={priorityColors[task.priority]}>
+                        {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                      </Badge>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
-                <Badge className={statusColors[task.status]}>
-                  {task.status.split("_").map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(" ")}
-                </Badge>
+                <Select
+                  defaultValue={task.status}
+                  onValueChange={(value) =>
+                    onUpdateTask(task.id, { status: value })
+                  }
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue>
+                      <Badge className={statusColors[task.status]}>
+                        {task.status.split("_").map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(" ")}
+                      </Badge>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="on_hold">On Hold</SelectItem>
+                    <SelectItem value="canceled">Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 {new Date(task.due_date).toLocaleDateString()}
@@ -153,7 +195,11 @@ export const TaskList = () => {
                   <Button variant="ghost" size="icon">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTaskToDelete(task.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -162,6 +208,30 @@ export const TaskList = () => {
           ))}
         </TableBody>
       </Table>
+
+      <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (taskToDelete) {
+                  onDeleteTask(taskToDelete);
+                  setTaskToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

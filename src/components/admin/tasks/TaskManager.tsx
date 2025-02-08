@@ -6,9 +6,71 @@ import { TaskCalendar } from "./TaskCalendar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CreateTaskDialog } from "./CreateTaskDialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const TaskManager = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: tasks, isLoading } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hrm_tasks")
+        .select(`
+          *,
+          assigned_to:profiles!assigned_to(full_name),
+          created_by:profiles!created_by(full_name)
+        `)
+        .order("due_date", { ascending: true });
+
+      if (error) {
+        toast.error("Failed to fetch tasks");
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
+  const handleUpdateTask = async (
+    taskId: string,
+    updates: { status?: string; priority?: string }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("hrm_tasks")
+        .update(updates)
+        .eq("id", taskId);
+
+      if (error) throw error;
+
+      toast.success("Task updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Failed to update task");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from("hrm_tasks")
+        .delete()
+        .eq("id", taskId);
+
+      if (error) throw error;
+
+      toast.success("Task deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast.error("Failed to delete task");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -27,17 +89,22 @@ export const TaskManager = () => {
         </TabsList>
 
         <TabsContent value="list">
-          <TaskList />
+          <TaskList
+            tasks={tasks}
+            isLoading={isLoading}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+          />
         </TabsContent>
 
         <TabsContent value="calendar">
-          <TaskCalendar />
+          <TaskCalendar tasks={tasks} onUpdateTask={handleUpdateTask} />
         </TabsContent>
       </Tabs>
 
-      <CreateTaskDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen} 
+      <CreateTaskDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
       />
     </div>
   );
