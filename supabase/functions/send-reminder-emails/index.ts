@@ -76,6 +76,9 @@ const handler = async (_req: Request): Promise<Response> => {
       try {
         console.log(`Sending reminder email to ${adminEmail} for reminder: ${reminder.title}`);
         
+        // Create a date object from the reminder date and time for proper timezone formatting
+        const reminderDateTime = new Date(`${reminder.reminder_date}T${reminder.reminder_time}`);
+        
         const emailResponse = await resend.emails.send({
           from: "Elloria HRM <notifications@elloria.ca>",
           to: [adminEmail],
@@ -87,11 +90,7 @@ const handler = async (_req: Request): Promise<Response> => {
             <ul>
               <li><strong>Title:</strong> ${reminder.title}</li>
               <li><strong>Date:</strong> ${reminder.reminder_date}</li>
-              <li><strong>Time:</strong> ${formatInTimeZone(
-                new Date(`2000-01-01T${reminder.reminder_time}`),
-                timeZone,
-                'h:mm a'
-              )}</li>
+              <li><strong>Time:</strong> ${formatInTimeZone(reminderDateTime, timeZone, 'h:mm a')}</li>
               ${reminder.description ? `<li><strong>Details:</strong> ${reminder.description}</li>` : ''}
             </ul>
             <p>Best Regards,<br>Your HRM System</p>
@@ -130,3 +129,4 @@ const handler = async (_req: Request): Promise<Response> => {
 };
 
 serve(handler);
+
