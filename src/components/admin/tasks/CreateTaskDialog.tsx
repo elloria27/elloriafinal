@@ -50,15 +50,20 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
     e.preventDefault();
 
     try {
-      const { error } = await supabase.from("hrm_tasks").insert({
-        title,
-        description,
-        assigned_to: assignedTo,
-        due_date: new Date(dueDate).toISOString(),
-        priority,
-        status,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { error } = await supabase
+        .from("hrm_tasks")
+        .insert([{
+          title,
+          description,
+          assigned_to: assignedTo,
+          due_date: new Date(dueDate).toISOString(),
+          priority: priority as "low" | "medium" | "high" | "urgent",
+          status: status as "new" | "in_progress" | "completed" | "on_hold" | "canceled",
+          created_by: user.id
+        }]);
 
       if (error) throw error;
 
