@@ -1,66 +1,73 @@
 
-import { DonationHero } from "@/components/donation/DonationHero";
-import { DonationImpact } from "@/components/donation/DonationImpact";
-import { DonationForm } from "@/components/donation/DonationForm";
-import { DonationStories } from "@/components/donation/DonationStories";
-import { DonationPartners } from "@/components/donation/DonationPartners";
-import { DonationFAQ } from "@/components/donation/DonationFAQ";
-import { DonationJoinMovement } from "@/components/donation/DonationJoinMovement";
-import { DonationHeroContent, DonationImpactContent, DonationFormContent, DonationStoriesContent, DonationPartnersContent, DonationFAQContent, DonationJoinMovementContent } from "@/types/content-blocks";
-
-const defaultHeroContent: DonationHeroContent = {
-  title: "Make a Difference Today",
-  description: "Your support helps us create positive change",
-  buttonText: "Donate Now"
-};
-
-const defaultImpactContent: DonationImpactContent = {
-  title: "Your Impact",
-  description: "See how your donation makes a difference",
-  impacts: []
-};
-
-const defaultFormContent: DonationFormContent = {
-  title: "Donation Form",
-  subtitle: "Choose your donation amount",
-  buttonText: "Submit Donation"
-};
-
-const defaultStoriesContent: DonationStoriesContent = {
-  title: "Impact Stories",
-  subtitle: "Real stories of change",
-  stories: []
-};
-
-const defaultPartnersContent: DonationPartnersContent = {
-  title: "Our Partners",
-  subtitle: "Working together for change",
-  partners: []
-};
-
-const defaultFAQContent: DonationFAQContent = {
-  title: "Frequently Asked Questions",
-  subtitle: "Get answers to common questions",
-  faqs: []
-};
-
-const defaultJoinMovementContent: DonationJoinMovementContent = {
-  title: "Join Our Movement",
-  description: "Be part of something bigger",
-  buttonText: "Join Now"
-};
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
+import { ContentBlock } from "@/types/content-blocks";
+import { toast } from "sonner";
 
 const Donation = () => {
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBlocks = async () => {
+      try {
+        const { data: blocks, error } = await supabase
+          .from('content_blocks')
+          .select('*')
+          .eq('page_id', '9abd64e4-326a-416e-b0d7-edfdd0ecc7fc')
+          .order('order_index');
+
+        if (error) {
+          throw error;
+        }
+
+        setBlocks(blocks);
+      } catch (error) {
+        console.error('Error fetching content blocks:', error);
+        toast.error("Error loading page content");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Initial fetch
+    fetchBlocks();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('content_blocks_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'content_blocks',
+          filter: `page_id=eq.9abd64e4-326a-416e-b0d7-edfdd0ecc7fc`
+        },
+        () => {
+          fetchBlocks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <main>
-        <DonationHero content={defaultHeroContent} />
-        <DonationImpact content={defaultImpactContent} />
-        <DonationForm content={defaultFormContent} />
-        <DonationStories content={defaultStoriesContent} />
-        <DonationPartners content={defaultPartnersContent} />
-        <DonationFAQ content={defaultFAQContent} />
-        <DonationJoinMovement content={defaultJoinMovementContent} />
+        <PreviewPane blocks={blocks} isAdmin={false} />
       </main>
     </div>
   );
