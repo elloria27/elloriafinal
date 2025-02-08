@@ -10,6 +10,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type TaskStatus = "new" | "in_progress" | "completed" | "on_hold" | "canceled";
+type TaskPriority = "low" | "medium" | "high" | "urgent";
+
 export const TaskManager = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -37,7 +40,7 @@ export const TaskManager = () => {
 
   const handleUpdateTask = async (
     taskId: string,
-    updates: { status?: "new" | "in_progress" | "completed" | "on_hold" | "canceled"; priority?: "low" | "medium" | "high" | "urgent" }
+    updates: { status?: TaskStatus; priority?: TaskPriority }
   ) => {
     try {
       const { error } = await supabase

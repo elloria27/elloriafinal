@@ -46,7 +46,13 @@ interface Task {
 interface TaskListProps {
   tasks?: Task[];
   isLoading: boolean;
-  onUpdateTask: (taskId: string, updates: { status?: string; priority?: string }) => void;
+  onUpdateTask: (
+    taskId: string,
+    updates: {
+      status?: "new" | "in_progress" | "completed" | "on_hold" | "canceled";
+      priority?: "low" | "medium" | "high" | "urgent";
+    }
+  ) => void;
   onDeleteTask: (taskId: string) => void;
 }
 
