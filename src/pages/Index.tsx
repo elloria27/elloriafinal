@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -48,7 +49,6 @@ import {
 } from "@/types/content-blocks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
 import { ArrowRight, Leaf, Recycle, Users } from "lucide-react";
 import { SustainabilityRegistrationDialog } from "@/components/sustainability/SustainabilityRegistrationDialog";
 
