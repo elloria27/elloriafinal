@@ -11,6 +11,7 @@ import { ProductCarouselEditor } from "./editors/ProductCarouselEditor";
 import { CompetitorComparisonEditor } from "./editors/CompetitorComparisonEditor";
 import { DonationEditor } from "./editors/DonationEditor";
 import { ThanksPageEditor } from "./editors/ThanksPageEditor";
+import { BulkEditor } from "./editors/BulkEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -91,6 +92,14 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "thanks_newsletter",
   ];
 
+  // Bulk order components
+  const bulkComponents = [
+    "bulk_hero",
+    "bulk_benefits",
+    "bulk_process",
+    "bulk_cta",
+  ];
+
   // Common components
   const commonComponents = [
     "heading",
@@ -141,6 +150,10 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
 
     if (thanksComponents.includes(block.type)) {
       return <ThanksPageEditor block={block} onUpdate={onUpdate} />;
+    }
+
+    if (bulkComponents.includes(block.type)) {
+      return <BulkEditor block={block} onUpdate={onUpdate} />;
     }
 
     if (commonComponents.includes(block.type)) {
