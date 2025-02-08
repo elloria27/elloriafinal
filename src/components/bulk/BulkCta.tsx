@@ -9,9 +9,13 @@ interface BulkCtaProps {
 }
 
 export const BulkCta = ({ content }: BulkCtaProps) => {
+  console.log("BulkCta rendering with content:", content);
   const [showConsultationDialog, setShowConsultationDialog] = useState(false);
 
-  if (!content) return null;
+  if (!content?.title || !content?.description) {
+    console.log("BulkCta: Missing required content");
+    return null;
+  }
 
   return (
     <section className="py-16 bg-primary text-white">
@@ -24,7 +28,7 @@ export const BulkCta = ({ content }: BulkCtaProps) => {
           className="bg-white text-primary hover:bg-gray-100"
           onClick={() => setShowConsultationDialog(true)}
         >
-          {content.buttonText}
+          {content.buttonText || "Get Started"}
         </Button>
       </div>
 
