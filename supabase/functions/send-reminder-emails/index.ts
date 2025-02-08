@@ -22,11 +22,15 @@ const handler = async (_req: Request): Promise<Response> => {
 
     // Get current date and time in Winnipeg timezone
     const now = new Date();
+    console.log("UTC time:", now.toISOString());
+    
     const winnipegTime = toZonedTime(now, timeZone);
+    console.log("Winnipeg time:", winnipegTime.toString());
+    
     const currentDate = formatInTimeZone(winnipegTime, timeZone, 'yyyy-MM-dd');
     const currentTime = formatInTimeZone(winnipegTime, timeZone, 'HH:mm');
 
-    console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime} (${timeZone})`);
+    console.log(`Looking for reminders with date: ${currentDate} and time: ${currentTime} (${timeZone})`);
 
     // Fetch reminders due now with profiles
     const { data: reminders, error: reminderError } = await supabase
@@ -43,9 +47,20 @@ const handler = async (_req: Request): Promise<Response> => {
       .eq('status', true)
       .eq('email_notify', true);
 
-    if (reminderError) throw reminderError;
+    if (reminderError) {
+      console.error("Error fetching reminders:", reminderError);
+      throw reminderError;
+    }
 
-    console.log(`Found ${reminders?.length || 0} reminders for current time:`, reminders);
+    console.log(`Found ${reminders?.length || 0} reminders:`, reminders);
+
+    // Debug: Log the SQL query conditions
+    console.log("Query conditions:", {
+      reminder_date: currentDate,
+      reminder_time: currentTime,
+      status: true,
+      email_notify: true
+    });
 
     // Send emails for each reminder
     const emailPromises = reminders?.map(async (reminder) => {
