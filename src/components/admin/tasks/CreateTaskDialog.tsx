@@ -26,8 +26,8 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
   const [description, setDescription] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("new");
+  const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("low");
+  const [status, setStatus] = useState<"new" | "in_progress" | "completed" | "on_hold" | "canceled">("new");
 
   const { data: admins, isLoading: loadingAdmins } = useQuery({
     queryKey: ["admins"],
@@ -60,8 +60,8 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
           description,
           assigned_to: assignedTo,
           due_date: new Date(dueDate).toISOString(),
-          priority: priority as "low" | "medium" | "high" | "urgent",
-          status: status as "new" | "in_progress" | "completed" | "on_hold" | "canceled",
+          priority,
+          status,
           created_by: user.id
         }]);
 
@@ -75,7 +75,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
       setDescription("");
       setAssignedTo("");
       setDueDate("");
-      setPriority("");
+      setPriority("low");
       setStatus("new");
     } catch (error) {
       toast.error("Failed to create task");
@@ -139,7 +139,7 @@ export const CreateTaskDialog = ({ open, onOpenChange }: CreateTaskDialogProps) 
 
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <Select value={priority} onValueChange={setPriority} required>
+            <Select value={priority} onValueChange={(value: "low" | "medium" | "high" | "urgent") => setPriority(value)} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
