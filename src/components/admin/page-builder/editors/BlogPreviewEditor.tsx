@@ -15,9 +15,9 @@ export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) =
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
     const newContent: BlogPreviewContent = {
-      title: typeof updates.title !== 'undefined' ? String(updates.title) : localContent.title ?? '',
-      subtitle: typeof updates.subtitle !== 'undefined' ? String(updates.subtitle) : localContent.subtitle ?? '',
-      buttonText: typeof updates.buttonText !== 'undefined' ? String(updates.buttonText) : localContent.buttonText ?? '',
+      title: updates.title !== undefined ? updates.title.toString() : localContent.title ?? '',
+      subtitle: updates.subtitle !== undefined ? updates.subtitle.toString() : localContent.subtitle ?? '',
+      buttonText: updates.buttonText !== undefined ? updates.buttonText.toString() : localContent.buttonText ?? '',
       articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles ?? []
     };
     
