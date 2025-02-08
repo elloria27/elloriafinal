@@ -11,7 +11,7 @@ interface BlogPreviewEditorProps {
 
 export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) => {
   const content = block.content as BlogPreviewContent;
-  const [localContent, setLocalContent] = useState(content);
+  const [localContent, setLocalContent] = useState<BlogPreviewContent>(content);
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
     const newContent = { ...localContent, ...updates };
