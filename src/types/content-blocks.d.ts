@@ -424,6 +424,36 @@ export interface BulkConsultationContent extends BaseBlockContent {
   buttonText?: string;
 }
 
+export interface SustainabilityProgramHeroContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
+export interface SustainabilityProgramBenefitsContent extends BaseBlockContent {
+  title?: string;
+  benefits?: Array<{
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface SustainabilityProgramProcessContent extends BaseBlockContent {
+  title?: string;
+  steps?: Array<{
+    number: number;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface SustainabilityProgramCtaContent extends BaseBlockContent {
+  title?: string;
+  description?: string;
+  buttonText?: string;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -475,7 +505,11 @@ export type BlockContent =
   | BulkBenefitsContent
   | BulkProcessContent
   | BulkCtaContent
-  | BulkConsultationContent;
+  | BulkConsultationContent
+  | SustainabilityProgramHeroContent
+  | SustainabilityProgramBenefitsContent
+  | SustainabilityProgramProcessContent
+  | SustainabilityProgramCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -535,7 +569,11 @@ export type BlockType =
   | "bulk_benefits"
   | "bulk_process"
   | "bulk_cta"
-  | "bulk_consultation";
+  | "bulk_consultation"
+  | "sustainability_program_hero"
+  | "sustainability_program_benefits"
+  | "sustainability_program_process"
+  | "sustainability_program_cta";
 
 export interface ContentBlock {
   id: string;
