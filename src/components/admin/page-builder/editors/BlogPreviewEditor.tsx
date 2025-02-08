@@ -15,12 +15,12 @@ export const BlogPreviewEditor = ({ block, onUpdate }: BlogPreviewEditorProps) =
 
   const handleUpdate = (updates: Partial<BlogPreviewContent>) => {
     // Create a new content object with only the valid properties
-    const newContent = {
+    const newContent: BlogPreviewContent = {
       ...localContent,
-      title: typeof updates.title === 'string' ? updates.title : localContent.title,
-      subtitle: typeof updates.subtitle === 'string' ? updates.subtitle : localContent.subtitle,
-      buttonText: typeof updates.buttonText === 'string' ? updates.buttonText : localContent.buttonText,
-      articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles,
+      title: typeof updates.title === 'string' ? updates.title : localContent.title ?? '',
+      subtitle: typeof updates.subtitle === 'string' ? updates.subtitle : localContent.subtitle ?? '',
+      buttonText: typeof updates.buttonText === 'string' ? updates.buttonText : localContent.buttonText ?? '',
+      articles: Array.isArray(updates.articles) ? updates.articles : localContent.articles ?? [],
     };
     
     setLocalContent(newContent);
