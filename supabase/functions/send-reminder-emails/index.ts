@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "npm:resend@2.0.0";
@@ -17,12 +18,14 @@ const handler = async (_req: Request): Promise<Response> => {
   try {
     console.log("Starting reminder email check...");
 
-    // Get tomorrow's date
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    // Get current date and time
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toISOString().split('T')[1].substring(0, 5); // Gets HH:mm format
 
-    // Fetch reminders due tomorrow with admin profiles
+    console.log(`Checking for reminders at date: ${currentDate} and time: ${currentTime}`);
+
+    // Fetch reminders due now with admin profiles
     const { data: reminders, error: reminderError } = await supabase
       .from('hrm_personal_reminders')
       .select(`
@@ -32,13 +35,14 @@ const handler = async (_req: Request): Promise<Response> => {
           full_name
         )
       `)
-      .eq('reminder_date', tomorrowStr)
+      .eq('reminder_date', currentDate)
+      .eq('reminder_time', currentTime)
       .eq('status', true)
       .eq('email_notify', true);
 
     if (reminderError) throw reminderError;
 
-    console.log(`Found ${reminders?.length || 0} reminders for tomorrow`);
+    console.log(`Found ${reminders?.length || 0} reminders for current time`);
 
     // Send emails for each reminder
     const emailPromises = reminders?.map(async (reminder) => {
