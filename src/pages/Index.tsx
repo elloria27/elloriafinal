@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -17,9 +18,6 @@ import { ThanksWelcome } from "@/components/thanks/ThanksWelcome";
 import { ThanksReferral } from "@/components/thanks/ThanksReferral";
 import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
 import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
-import { BulkBenefits } from "@/components/bulk/BulkBenefits";
-import { BulkProcess } from "@/components/bulk/BulkProcess";
-import { BulkCta } from "@/components/bulk/BulkCta";
 import { 
   ContentBlock, 
   BlockContent,
@@ -35,10 +33,7 @@ import {
   ThanksWelcomeContent,
   ThanksReferralContent,
   ThanksSpecialOfferContent,
-  ThanksNewsletterContent,
-  BulkBenefitsContent,
-  BulkProcessContent,
-  BulkCtaContent
+  ThanksNewsletterContent
 } from "@/types/content-blocks";
 
 const Index = () => {
@@ -169,12 +164,6 @@ const Index = () => {
         return <ThanksSpecialOffer content={block.content as ThanksSpecialOfferContent} />;
       case 'thanks_newsletter':
         return <ThanksNewsletter content={block.content as ThanksNewsletterContent} />;
-      case 'bulk_benefits':
-        return <BulkBenefits content={block.content as BulkBenefitsContent} />;
-      case 'bulk_process':
-        return <BulkProcess content={block.content as BulkProcessContent} />;
-      case 'bulk_cta':
-        return <BulkCta content={block.content as BulkCtaContent} />;
       default:
         console.warn(`Unknown block type: ${block.type}`);
         return null;
