@@ -26,6 +26,15 @@ interface InvoiceDetailsProps {
   invoiceId: string;
 }
 
+interface InvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  tax_percentage: number;
+}
+
 interface InvoiceDetails {
   id: string;
   invoice_number: string;
@@ -35,18 +44,12 @@ interface InvoiceDetails {
     phone: string;
     tax_id: string;
   };
-  status: string;
+  status: "pending" | "paid" | "overdue" | "cancelled";
   due_date: string;
   created_at: string;
   total_amount: number;
   notes: string;
-  items: Array<{
-    id: string;
-    description: string;
-    quantity: number;
-    unit_price: number;
-    total_amount: number;
-  }>;
+  items: InvoiceLineItem[];
 }
 
 const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
@@ -69,7 +72,33 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           .single();
 
         if (error) throw error;
-        setInvoice(data);
+
+        // Transform the data to match our interface
+        const transformedData: InvoiceDetails = {
+          id: data.id,
+          invoice_number: data.invoice_number,
+          customer: {
+            name: data.customer.name,
+            email: data.customer.email,
+            phone: data.customer.phone || '',
+            tax_id: data.customer.tax_id || '',
+          },
+          status: data.status as "pending" | "paid" | "overdue" | "cancelled",
+          due_date: data.due_date,
+          created_at: data.created_at,
+          total_amount: data.total_amount,
+          notes: data.notes || '',
+          items: data.items.map((item: any) => ({
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            tax_percentage: item.tax_percentage,
+          })),
+        };
+
+        setInvoice(transformedData);
       } catch (error) {
         console.error("Error fetching invoice details:", error);
         toast.error("Failed to load invoice details");
@@ -81,7 +110,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     fetchInvoiceDetails();
   }, [invoiceId]);
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = async (newStatus: "pending" | "paid" | "overdue" | "cancelled") => {
     try {
       const { error } = await supabase
         .from("hrm_invoices")
@@ -90,7 +119,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
 
       if (error) throw error;
 
-      setInvoice((prev) => prev ? { ...prev, status: newStatus } : null);
+      setInvoice(prev => prev ? { ...prev, status: newStatus } : null);
       toast.success(`Invoice marked as ${newStatus}`);
     } catch (error) {
       console.error("Error updating invoice status:", error);
@@ -176,12 +205,13 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <dt className="text-sm text-muted-foreground">Status</dt>
                 <dd>
                   <Badge
-                    variant={
+                    variant="outline"
+                    className={
                       invoice.status === "paid"
-                        ? "success"
+                        ? "bg-green-100 text-green-800"
                         : invoice.status === "overdue"
-                        ? "destructive"
-                        : "warning"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
                     }
                   >
                     {invoice.status.charAt(0).toUpperCase() +
@@ -220,6 +250,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <TableHead>Description</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Tax %</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -234,8 +265,9 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                       currency: "CAD",
                     })}
                   </TableCell>
+                  <TableCell className="text-right">{item.tax_percentage}%</TableCell>
                   <TableCell className="text-right">
-                    {item.total_amount.toLocaleString("en-CA", {
+                    {item.total_price.toLocaleString("en-CA", {
                       style: "currency",
                       currency: "CAD",
                     })}

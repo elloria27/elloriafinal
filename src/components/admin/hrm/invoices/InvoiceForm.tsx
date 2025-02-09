@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -24,7 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon, Plus, Trash } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,9 +57,27 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
-  const { fields, append, remove } = form.useFieldArray({
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
     name: "items",
   });
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const { data, error } = await supabase
+        .from("hrm_customers")
+        .select("id, name, email");
+
+      if (error) {
+        toast.error("Failed to load customers");
+        return;
+      }
+
+      setCustomers(data || []);
+    };
+
+    fetchCustomers();
+  }, []);
 
   const calculateTotal = (items: InvoiceFormData["items"]) => {
     return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
@@ -68,16 +86,37 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const onSubmit = async (data: InvoiceFormData) => {
     try {
       setLoading(true);
-      const { error: insertError } = await supabase.from("hrm_invoices").insert({
+      const invoiceData = {
         customer_id: data.customerId,
-        due_date: data.dueDate,
+        due_date: format(data.dueDate, "yyyy-MM-dd"),
         status: "pending",
         notes: data.notes,
         total_amount: calculateTotal(data.items),
         created_by: (await supabase.auth.getUser()).data.user?.id,
-      });
+      };
+
+      const { data: invoice, error: insertError } = await supabase
+        .from("hrm_invoices")
+        .insert(invoiceData)
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Insert invoice items
+      const lineItems = data.items.map(item => ({
+        invoice_id: invoice.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        total_price: item.quantity * item.unitPrice,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("hrm_invoice_items")
+        .insert(lineItems);
+
+      if (itemsError) throw itemsError;
 
       toast.success("Invoice created successfully");
       form.reset();
