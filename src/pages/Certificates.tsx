@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Award, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { CertificatesContent } from "@/types/content-blocks";
 
 interface Certificate {
-  id: string;
   name: string;
   issuing_authority: string;
   certificate_number: string;
   issue_date: string;
-  expiry_date: string;
+  expiry_date?: string;
   category: string;
   image_url?: string;
   qr_code_url?: string;
@@ -29,14 +29,27 @@ export default function Certificates() {
 
   const fetchCertificates = async () => {
     try {
-      const { data, error } = await supabase
-        .from('certificates')
-        .select('*')
-        .order('category');
+      // First get the certificates page ID
+      const { data: pageData, error: pageError } = await supabase
+        .from('pages')
+        .select('id')
+        .eq('slug', 'certificates')
+        .single();
 
-      if (error) throw error;
+      if (pageError) throw pageError;
 
-      setCertificates(data || []);
+      // Then get the content block for certificates
+      const { data: blockData, error: blockError } = await supabase
+        .from('content_blocks')
+        .select('content')
+        .eq('page_id', pageData.id)
+        .eq('type', 'certificates')
+        .single();
+
+      if (blockError) throw blockError;
+
+      const content = blockData.content as CertificatesContent;
+      setCertificates(content.certificates || []);
     } catch (error) {
       console.error('Error fetching certificates:', error);
       toast.error("Failed to load certificates");
@@ -59,9 +72,9 @@ export default function Certificates() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certificates.map((certificate) => (
+        {certificates.map((certificate, index) => (
           <Card 
-            key={certificate.id}
+            key={index}
             className="cursor-pointer transition-all hover:shadow-lg"
             onClick={() => setSelectedCertificate(certificate)}
           >
