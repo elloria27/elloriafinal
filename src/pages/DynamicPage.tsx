@@ -23,10 +23,16 @@ export default function DynamicPage() {
         .from('pages')
         .select('*')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
-      if (pageError || !page) {
+      if (pageError) {
         console.error('Error fetching page:', pageError);
+        toast.error("Error loading page");
+        return;
+      }
+
+      if (!page) {
+        console.log('Page not found');
         navigate('/404');
         return;
       }
@@ -65,6 +71,14 @@ export default function DynamicPage() {
     }
   };
 
+  // Handle real-time updates
+  const handleRealtimeUpdate = (payload: any) => {
+    console.log('Received real-time update:', payload);
+    
+    // Refresh content immediately when any change occurs
+    fetchPageContent();
+  };
+
   // Set up real-time subscription
   useEffect(() => {
     if (!pageId) return;
@@ -72,7 +86,7 @@ export default function DynamicPage() {
     console.log('Setting up real-time subscription for page:', pageId);
 
     const channel = supabase
-      .channel('content_blocks_changes')
+      .channel('schema-db-changes')
       .on(
         'postgres_changes',
         {
@@ -81,25 +95,29 @@ export default function DynamicPage() {
           table: 'content_blocks',
           filter: `page_id=eq.${pageId}`,
         },
-        (payload) => {
-          console.log('Received real-time update:', payload);
-          // Refresh the content when changes occur
-          fetchPageContent();
-        }
+        handleRealtimeUpdate
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to content changes');
+        }
+      });
 
-    // Clean up subscription on unmount
+    // Clean up subscription on unmount or when pageId changes
     return () => {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [pageId]);
 
-  // Initial fetch
+  // Initial fetch when page loads or slug changes
   useEffect(() => {
+    if (!slug) return;
+    setIsLoading(true);
     fetchPageContent();
-  }, [slug, navigate]);
+  }, [slug]);
 
   if (isLoading) {
     return (
