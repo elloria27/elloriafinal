@@ -648,6 +648,189 @@ export type Database = {
           },
         ]
       }
+      hrm_task_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          id: string
+          task_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          task_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          task_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_task_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_task_comments: {
+        Row: {
+          comment: string
+          created_at: string | null
+          created_by: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_task_comments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_task_history: {
+        Row: {
+          action: string
+          changed_by: string
+          created_at: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          task_id: string
+        }
+        Insert: {
+          action: string
+          changed_by: string
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_task_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_task_history_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_tasks: {
+        Row: {
+          assigned_to: string
+          category: Database["public"]["Enums"]["task_category"]
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to: string
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string
+          category?: Database["public"]["Enums"]["task_category"]
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           created_at: string | null
@@ -1731,6 +1914,9 @@ export type Database = {
         | "sustainability_faq"
         | "sustainability_cta"
       symptom_severity: "light" | "medium" | "severe"
+      task_category: "hr" | "finance" | "operations" | "other"
+      task_priority: "low" | "medium" | "high"
+      task_status: "todo" | "in_progress" | "completed" | "on_hold"
       user_role: "admin" | "client"
     }
     CompositeTypes: {

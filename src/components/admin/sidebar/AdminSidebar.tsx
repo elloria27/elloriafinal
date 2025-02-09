@@ -24,7 +24,8 @@ import {
   DollarSign,
   Gift,
   Boxes,
-  Bell
+  Bell,
+  CheckSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -92,6 +93,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=personal-reminders",
         icon: Bell,
         description: "Manage your personal reminders"
+      },
+      {
+        title: "Task Manager",
+        href: "/admin?tab=task-manager",
+        icon: CheckSquare,
+        description: "Manage and assign tasks"
       }
     ]
   }
