@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -255,6 +256,7 @@ const TaskList = () => {
       if (tasksData) {
         const formattedTasks: Task[] = tasksData.map(task => ({
           ...task,
+          profiles: task.profiles || { full_name: null },
           labels: task.hrm_task_label_assignments?.map(la => ({
             id: la.hrm_task_labels.id,
             name: la.hrm_task_labels.name,
