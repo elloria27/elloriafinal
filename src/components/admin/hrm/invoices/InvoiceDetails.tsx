@@ -127,76 +127,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDownload = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: { invoiceId }
-      });
-
-      if (error) throw error;
-
-      // Convert base64 to blob
-      const pdfContent = data.pdf.split(',')[1];
-      const blob = new Blob([Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0))], { type: 'application/pdf' });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `invoice-${invoice?.invoice_number}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success("Invoice downloaded successfully");
-    } catch (error) {
-      console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
-    }
-  };
-
-  const handlePrint = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: { invoiceId }
-      });
-
-      if (error) throw error;
-
-      // Convert base64 to blob and create URL
-      const pdfContent = data.pdf.split(',')[1];
-      const blob = new Blob([Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0))], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      
-      // Open print dialog
-      const printWindow = window.open(url);
-      if (printWindow) {
-        printWindow.onload = function() {
-          printWindow.print();
-        };
-      }
-    } catch (error) {
-      console.error("Error preparing invoice for print:", error);
-      toast.error("Failed to prepare invoice for printing");
-    }
-  };
-
-  const handleSendEmail = async () => {
-    try {
-      const { error } = await supabase.functions.invoke('send-invoice-email', {
-        body: { invoiceId }
-      });
-
-      if (error) throw error;
-
-      toast.success("Invoice sent successfully");
-    } catch (error) {
-      console.error("Error sending invoice:", error);
-      toast.error("Failed to send invoice");
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -219,15 +149,15 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrint}>
+          <Button variant="outline" size="sm">
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
+          <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>
-          <Button variant="outline" size="sm" onClick={handleSendEmail}>
+          <Button variant="outline" size="sm">
             <Mail className="h-4 w-4 mr-2" />
             Email
           </Button>
