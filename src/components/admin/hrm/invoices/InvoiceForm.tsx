@@ -38,8 +38,26 @@ interface InvoiceFormData {
     description: string;
     quantity: number;
     unitPrice: number;
+    taxPercentage: number;
   }[];
   notes?: string;
+}
+
+interface InvoiceSettings {
+  company_info: {
+    name: string;
+    address: string;
+    tax_id: string;
+  };
+  default_due_days: number;
+  late_fee_percentage: number;
+  payment_instructions: string;
+  footer_text: string;
+}
+
+interface InvoiceFormProps {
+  invoiceId?: string;
+  onSuccess?: () => void;
 }
 
 const generateInvoiceNumber = () => {
@@ -47,13 +65,14 @@ const generateInvoiceNumber = () => {
   return `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
 };
 
-const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<InvoiceSettings | null>(null);
 
   const form = useForm<InvoiceFormData>({
     defaultValues: {
-      items: [{ description: "", quantity: 1, unitPrice: 0 }],
+      items: [{ description: "", quantity: 1, unitPrice: 0, taxPercentage: 0 }],
     },
   });
 
@@ -76,44 +95,145 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       setCustomers(data || []);
     };
 
-    fetchCustomers();
-  }, []);
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from("hrm_invoice_settings")
+        .select("*")
+        .maybeSingle();
 
-  const calculateTotal = (items: InvoiceFormData["items"]) => {
-    return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+      if (error) {
+        toast.error("Failed to load invoice settings");
+        return;
+      }
+
+      if (data) {
+        setSettings(data);
+      }
+    };
+
+    const fetchInvoiceData = async () => {
+      if (!invoiceId) return;
+
+      const { data, error } = await supabase
+        .from("hrm_invoices")
+        .select(`
+          *,
+          items:hrm_invoice_items(*)
+        `)
+        .eq("id", invoiceId)
+        .single();
+
+      if (error) {
+        toast.error("Failed to load invoice");
+        return;
+      }
+
+      if (data) {
+        form.reset({
+          customerId: data.customer_id,
+          dueDate: new Date(data.due_date),
+          notes: data.notes,
+          items: data.items.map((item: any) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            taxPercentage: item.tax_percentage || 0,
+          })),
+        });
+      }
+    };
+
+    fetchCustomers();
+    fetchSettings();
+    fetchInvoiceData();
+  }, [invoiceId, form]);
+
+  const calculateLineTotal = (quantity: number, unitPrice: number, taxPercentage: number) => {
+    const subtotal = quantity * unitPrice;
+    const taxAmount = subtotal * (taxPercentage / 100);
+    return {
+      subtotal,
+      taxAmount,
+      total: subtotal + taxAmount,
+    };
+  };
+
+  const calculateTotals = (items: InvoiceFormData["items"]) => {
+    return items.reduce(
+      (acc, item) => {
+        const { subtotal, taxAmount, total } = calculateLineTotal(
+          item.quantity,
+          item.unitPrice,
+          item.taxPercentage
+        );
+        return {
+          subtotal: acc.subtotal + subtotal,
+          taxAmount: acc.taxAmount + taxAmount,
+          total: acc.total + total,
+        };
+      },
+      { subtotal: 0, taxAmount: 0, total: 0 }
+    );
   };
 
   const onSubmit = async (data: InvoiceFormData) => {
     try {
       setLoading(true);
+      const totals = calculateTotals(data.items);
+
       const invoiceData = {
         customer_id: data.customerId,
         due_date: format(data.dueDate, "yyyy-MM-dd"),
         status: "pending" as const,
         notes: data.notes,
-        total_amount: calculateTotal(data.items),
+        total_amount: totals.total,
         created_by: (await supabase.auth.getUser()).data.user?.id,
         invoice_number: generateInvoiceNumber(),
         currency: "CAD",
-        subtotal_amount: calculateTotal(data.items),
-        tax_amount: 0
+        subtotal_amount: totals.subtotal,
+        tax_amount: totals.taxAmount,
+        payment_instructions: settings?.payment_instructions,
+        footer_text: settings?.footer_text,
       };
 
-      const { data: invoice, error: insertError } = await supabase
-        .from("hrm_invoices")
-        .insert(invoiceData)
-        .select()
-        .single();
+      let result;
+      if (invoiceId) {
+        // Update existing invoice
+        result = await supabase
+          .from("hrm_invoices")
+          .update(invoiceData)
+          .eq("id", invoiceId)
+          .select()
+          .single();
+      } else {
+        // Create new invoice
+        result = await supabase
+          .from("hrm_invoices")
+          .insert(invoiceData)
+          .select()
+          .single();
+      }
 
-      if (insertError) throw insertError;
+      if (result.error) throw result.error;
+
+      const invoice = result.data;
+
+      // Handle line items
+      if (invoiceId) {
+        // Delete existing items
+        await supabase
+          .from("hrm_invoice_items")
+          .delete()
+          .eq("invoice_id", invoiceId);
+      }
 
       const lineItems = data.items.map(item => ({
         invoice_id: invoice.id,
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unitPrice,
-        total_price: item.quantity * item.unitPrice,
-        tax_percentage: 0
+        tax_percentage: item.taxPercentage,
+        total_price: calculateLineTotal(item.quantity, item.unitPrice, item.taxPercentage).total,
       }));
 
       const { error: itemsError } = await supabase
@@ -122,12 +242,42 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       if (itemsError) throw itemsError;
 
-      toast.success("Invoice created successfully");
+      toast.success(invoiceId ? "Invoice updated successfully" : "Invoice created successfully");
       form.reset();
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Error creating invoice:", error);
-      toast.error("Failed to create invoice");
+      console.error("Error creating/updating invoice:", error);
+      toast.error("Failed to save invoice");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!invoiceId) return;
+
+    try {
+      setLoading(true);
+      
+      // Delete line items first
+      await supabase
+        .from("hrm_invoice_items")
+        .delete()
+        .eq("invoice_id", invoiceId);
+
+      // Then delete the invoice
+      const { error } = await supabase
+        .from("hrm_invoices")
+        .delete()
+        .eq("id", invoiceId);
+
+      if (error) throw error;
+
+      toast.success("Invoice deleted successfully");
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error("Failed to delete invoice");
     } finally {
       setLoading(false);
     }
@@ -189,7 +339,7 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               variant="outline"
               size="sm"
               onClick={() =>
-                append({ description: "", quantity: 1, unitPrice: 0 })
+                append({ description: "", quantity: 1, unitPrice: 0, taxPercentage: 0 })
               }
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -249,6 +399,27 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name={`items.${index}.taxPercentage`}
+                render={({ field }) => (
+                  <FormItem className="w-24">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        placeholder="Tax %"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <Button
                 type="button"
                 variant="ghost"
@@ -276,9 +447,22 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           )}
         />
 
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Invoice"}
-        </Button>
+        <div className="flex gap-4">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : (invoiceId ? "Update Invoice" : "Create Invoice")}
+          </Button>
+          
+          {invoiceId && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              Delete Invoice
+            </Button>
+          )}
+        </div>
       </form>
     </Form>
   );

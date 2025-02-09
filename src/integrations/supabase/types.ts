@@ -1093,6 +1093,7 @@ export type Database = {
           tax_details: Json | null
           template_version: string | null
           total_amount: number
+          total_amount_with_tax: number | null
           updated_at: string | null
         }
         Insert: {
@@ -1120,6 +1121,7 @@ export type Database = {
           tax_details?: Json | null
           template_version?: string | null
           total_amount?: number
+          total_amount_with_tax?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -1147,6 +1149,7 @@ export type Database = {
           tax_details?: Json | null
           template_version?: string | null
           total_amount?: number
+          total_amount_with_tax?: number | null
           updated_at?: string | null
         }
         Relationships: [

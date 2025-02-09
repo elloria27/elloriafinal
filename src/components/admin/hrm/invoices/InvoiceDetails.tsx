@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +53,8 @@ interface InvoiceDetails {
   items: InvoiceLineItem[];
   last_sent_at?: string;
   last_sent_to?: string;
+  subtotal_amount: number;
+  tax_amount: number;
 }
 
 const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
@@ -63,6 +64,15 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
+
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('en-CA', {
+      style: 'currency',
+      currency: 'CAD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
 
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
@@ -105,6 +115,8 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           })),
           last_sent_at: data.last_sent_at,
           last_sent_to: data.last_sent_to,
+          subtotal_amount: data.subtotal_amount,
+          tax_amount: data.tax_amount,
         };
 
         setInvoice(transformedData);
@@ -390,29 +402,45 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Unit Price</TableHead>
                   <TableHead className="text-right">Tax %</TableHead>
+                  <TableHead className="text-right">Tax Amount</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoice.items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell className="text-right">
-                      {item.unit_price.toLocaleString("en-CA", {
-                        style: "currency",
-                        currency: "CAD",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right">{item.tax_percentage}%</TableCell>
-                    <TableCell className="text-right">
-                      {item.total_price.toLocaleString("en-CA", {
-                        style: "currency",
-                        currency: "CAD",
-                      })}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {invoice.items.map((item) => {
+                  const subtotal = item.quantity * item.unit_price;
+                  const taxAmount = subtotal * (item.tax_percentage / 100);
+                  const total = subtotal + taxAmount;
+
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
+                      <TableCell className="text-right">{item.tax_percentage}%</TableCell>
+                      <TableCell className="text-right">{formatCurrency(taxAmount)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(total)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow className="font-medium">
+                  <TableCell colSpan={4}>Subtotal</TableCell>
+                  <TableCell colSpan={2} className="text-right">
+                    {formatCurrency(invoice.subtotal_amount)}
+                  </TableCell>
+                </TableRow>
+                <TableRow className="font-medium">
+                  <TableCell colSpan={4}>Tax Total</TableCell>
+                  <TableCell colSpan={2} className="text-right">
+                    {formatCurrency(invoice.tax_amount)}
+                  </TableCell>
+                </TableRow>
+                <TableRow className="font-medium">
+                  <TableCell colSpan={4}>Total</TableCell>
+                  <TableCell colSpan={2} className="text-right">
+                    {formatCurrency(invoice.total_amount)}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </CardContent>
