@@ -28,8 +28,18 @@ const InvoiceManagement = () => {
               <h3 className="text-lg font-medium">All Invoices</h3>
             </CardHeader>
             <CardContent>
-              {/* Invoice table will be implemented here */}
-              <p className="text-muted-foreground">No invoices found.</p>
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  The invoice management system is currently under development. Soon, you'll be able to:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                  <li>View and manage all invoices in one place</li>
+                  <li>Track payment status and history</li>
+                  <li>Generate and download invoice PDFs</li>
+                  <li>Send automatic payment reminders</li>
+                  <li>Access detailed invoice analytics</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -40,7 +50,7 @@ const InvoiceManagement = () => {
               <h3 className="text-lg font-medium">Pending Invoices</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">No pending invoices found.</p>
+              <p className="text-muted-foreground">Pending invoices functionality coming soon.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -51,7 +61,7 @@ const InvoiceManagement = () => {
               <h3 className="text-lg font-medium">Paid Invoices</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">No paid invoices found.</p>
+              <p className="text-muted-foreground">Paid invoices functionality coming soon.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -62,7 +72,7 @@ const InvoiceManagement = () => {
               <h3 className="text-lg font-medium">Overdue Invoices</h3>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">No overdue invoices found.</p>
+              <p className="text-muted-foreground">Overdue invoices functionality coming soon.</p>
             </CardContent>
           </Card>
         </TabsContent>
