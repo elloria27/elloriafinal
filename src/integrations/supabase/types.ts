@@ -767,11 +767,15 @@ export type Database = {
           employee_id: string | null
           id: string
           invoice_number: string
+          last_sent_at: string | null
+          last_sent_to: string | null
           notes: string | null
+          pdf_url: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount: number
           tax_amount: number
           tax_details: Json | null
+          template_version: string | null
           total_amount: number
           updated_at: string | null
         }
@@ -784,11 +788,15 @@ export type Database = {
           employee_id?: string | null
           id?: string
           invoice_number: string
+          last_sent_at?: string | null
+          last_sent_to?: string | null
           notes?: string | null
+          pdf_url?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount?: number
           tax_amount?: number
           tax_details?: Json | null
+          template_version?: string | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -801,11 +809,15 @@ export type Database = {
           employee_id?: string | null
           id?: string
           invoice_number?: string
+          last_sent_at?: string | null
+          last_sent_to?: string | null
           notes?: string | null
+          pdf_url?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount?: number
           tax_amount?: number
           tax_details?: Json | null
+          template_version?: string | null
           total_amount?: number
           updated_at?: string | null
         }
