@@ -141,7 +141,7 @@ const Admin = () => {
         return <InventoryManagement />;
       case "personal-reminders":
         return <PersonalReminders />;
-      case "invoice-management":
+      case "invoice":
         return <InvoiceManagement />;
       default:
         return <Dashboard />;

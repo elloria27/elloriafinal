@@ -60,7 +60,7 @@ const sidebarItems: SidebarItem[] = [
     icon: ShoppingCart,
     items: [
       { title: "Order Management", href: "/admin?tab=orders", icon: ShoppingCart },
-      { title: "Invoices", href: "/admin?tab=invoice-management", icon: ReceiptText },
+      { title: "Invoices", href: "/admin?tab=invoice", icon: ReceiptText },
       { title: "Product Management", href: "/admin?tab=products", icon: Package },
       { title: "Inventory Management", href: "/admin?tab=inventory", icon: Boxes },
       { title: "Company Expenses", href: "/admin?tab=company-expenses", icon: DollarSign },
