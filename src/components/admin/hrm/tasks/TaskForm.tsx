@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -67,10 +67,13 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
   const [checklists, setChecklists] = useState(initialData?.checklists || []);
   const [subtasks, setSubtasks] = useState(initialData?.subtasks || []);
 
+  // Initialize form with default values
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ...initialData,
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      assigned_to: initialData?.assigned_to || "",
       start_date: initialData?.start_date ? new Date(initialData.start_date) : undefined,
       due_date: initialData?.due_date ? new Date(initialData.due_date) : undefined,
       completion_date: initialData?.completion_date ? new Date(initialData.completion_date) : undefined,
@@ -81,6 +84,81 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       actual_hours: initialData?.actual_hours || undefined,
     },
   });
+
+  // Fetch admin users on component mount
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      const { data, error } = await supabase
+        .rpc('get_admin_users')
+        .order('full_name');
+
+      if (!error && data) {
+        setAdmins(data);
+      }
+    };
+
+    fetchAdmins();
+  }, []);
+
+  // Fetch task data if editing
+  useEffect(() => {
+    const fetchTaskData = async () => {
+      if (!initialData?.id) return;
+
+      // Fetch labels
+      const { data: labelAssignments } = await supabase
+        .from('hrm_task_label_assignments')
+        .select('label_id, hrm_task_labels!inner(*)')
+        .eq('task_id', initialData.id);
+
+      if (labelAssignments) {
+        const fetchedLabels = labelAssignments.map(la => ({
+          id: la.hrm_task_labels.id,
+          name: la.hrm_task_labels.name,
+          color: la.hrm_task_labels.color,
+        }));
+        setLabels(fetchedLabels);
+      }
+
+      // Fetch subtasks
+      const { data: subtasks } = await supabase
+        .from('hrm_subtasks')
+        .select('*')
+        .eq('task_id', initialData.id)
+        .order('order_index');
+
+      if (subtasks) {
+        setSubtasks(subtasks);
+      }
+
+      // Fetch checklists and their items
+      const { data: checklists } = await supabase
+        .from('hrm_task_checklists')
+        .select(`
+          id,
+          title,
+          order_index,
+          hrm_checklist_items (
+            id,
+            content,
+            completed,
+            order_index
+          )
+        `)
+        .eq('task_id', initialData.id)
+        .order('order_index');
+
+      if (checklists) {
+        const formattedChecklists = checklists.map(checklist => ({
+          ...checklist,
+          items: checklist.hrm_checklist_items.sort((a, b) => a.order_index - b.order_index)
+        }));
+        setChecklists(formattedChecklists);
+      }
+    };
+
+    fetchTaskData();
+  }, [initialData?.id]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -125,14 +203,12 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 
       // Update label assignments
       if (initialData) {
-        // Delete existing label assignments
         await supabase
           .from("hrm_task_label_assignments")
           .delete()
           .eq('task_id', taskId);
       }
 
-      // Insert new label assignments
       if (labels.length > 0) {
         const labelAssignments = labels.map(label => ({
           task_id: taskId,
@@ -147,7 +223,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 
       // Update subtasks
       if (initialData) {
-        // Delete existing subtasks
         await supabase
           .from("hrm_subtasks")
           .delete()
@@ -185,7 +260,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
               .delete()
               .eq('checklist_id', checklist.id);
           }
-
+          
           // Then delete checklists
           await supabase
             .from("hrm_task_checklists")
@@ -227,7 +302,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       }
 
       toast.success(initialData ? "Task updated successfully" : "Task created successfully");
-      form.reset();
+      if (!initialData) {
+        form.reset();
+      }
       onSuccess?.();
     } catch (error: any) {
       toast.error(error.message);
@@ -235,21 +312,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       setLoading(false);
     }
   };
-
-  // Fetch admin users on component mount
-  useState(() => {
-    const fetchAdmins = async () => {
-      const { data, error } = await supabase
-        .rpc('get_admin_users')
-        .order('full_name');
-
-      if (!error && data) {
-        setAdmins(data);
-      }
-    };
-
-    fetchAdmins();
-  });
 
   return (
     <Form {...form}>
@@ -384,9 +446,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -426,9 +485,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date("1900-01-01")
-                      }
                       initialFocus
                     />
                   </PopoverContent>
