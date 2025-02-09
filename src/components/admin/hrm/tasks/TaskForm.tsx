@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +13,9 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import TaskLabels from "./TaskLabels";
+import TaskChecklist from "./TaskChecklist";
+import TaskSubtasks from "./TaskSubtasks";
 
 type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
 
@@ -26,16 +28,42 @@ const formSchema = z.object({
   priority: z.enum(["low", "medium", "high"]),
   category: z.enum(["hr", "finance", "operations", "other"]),
   status: z.enum(["todo", "in_progress", "completed", "on_hold"]).default("todo"),
+  estimated_hours: z.number().min(0).optional(),
+  actual_hours: z.number().min(0).optional(),
+  start_date: z.date().optional(),
 });
 
 interface TaskFormProps {
   onSuccess?: () => void;
-  initialData?: z.infer<typeof formSchema> & { id: string };
+  initialData?: z.infer<typeof formSchema> & { 
+    id: string;
+    labels?: Array<{ id: string; name: string; color: string }>;
+    checklists?: Array<{
+      id: string;
+      title: string;
+      items: Array<{
+        id: string;
+        content: string;
+        completed: boolean;
+        order_index: number;
+      }>;
+      order_index: number;
+    }>;
+    subtasks?: Array<{
+      id: string;
+      title: string;
+      completed: boolean;
+      order_index: number;
+    }>;
+  };
 }
 
 const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
   const [admins, setAdmins] = useState<Array<{ id: string; full_name: string }>>([]);
   const [loading, setLoading] = useState(false);
+  const [labels, setLabels] = useState(initialData?.labels || []);
+  const [checklists, setChecklists] = useState(initialData?.checklists || []);
+  const [subtasks, setSubtasks] = useState(initialData?.subtasks || []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,7 +89,10 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         completion_date: values.completion_date?.toISOString() || null,
         priority: values.priority,
         category: values.category,
-        status: values.status as TaskStatus
+        status: values.status as TaskStatus,
+        estimated_hours: values.estimated_hours,
+        actual_hours: values.actual_hours,
+        start_date: values.start_date?.toISOString() || null,
       };
 
       if (initialData) {
@@ -72,9 +103,11 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         if (error) throw error;
         toast.success("Task updated successfully");
       } else {
-        const { error } = await supabase
+        const { data: newTask, error } = await supabase
           .from("hrm_tasks")
-          .insert(taskData);
+          .insert(taskData)
+          .select()
+          .single();
         if (error) throw error;
         toast.success("Task created successfully");
       }
@@ -134,6 +167,141 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           )}
         />
 
+        <div className="space-y-4">
+          <h3 className="font-medium">Labels</h3>
+          <TaskLabels
+            taskId={initialData?.id || ""}
+            selectedLabels={labels}
+            onLabelsChange={setLabels}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="font-medium">Subtasks</h3>
+          <TaskSubtasks
+            taskId={initialData?.id || ""}
+            subtasks={subtasks}
+            onSubtasksChange={setSubtasks}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="font-medium">Checklists</h3>
+          <TaskChecklist
+            taskId={initialData?.id || ""}
+            checklists={checklists}
+            onChecklistsChange={setChecklists}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="estimated_hours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Estimated Hours</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.5"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="actual_hours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Actual Hours</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.5"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="start_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="due_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Due Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="assigned_to"
@@ -182,72 +350,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="due_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Due Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                      >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="completion_date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Completion Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                      >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
