@@ -3,9 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { format } from "date-fns";
-import { Award, ExternalLink, AlertTriangle } from "lucide-react";
+import { Award, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 interface Certificate {
@@ -47,17 +45,6 @@ export default function Certificates() {
     }
   };
 
-  const isExpiringSoon = (expiryDate: string) => {
-    const expiry = new Date(expiryDate);
-    const today = new Date();
-    const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return daysUntilExpiry <= 90 && daysUntilExpiry > 0;
-  };
-
-  const isExpired = (expiryDate: string) => {
-    return new Date(expiryDate) < new Date();
-  };
-
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading certificates...</div>;
   }
@@ -75,9 +62,7 @@ export default function Certificates() {
         {certificates.map((certificate) => (
           <Card 
             key={certificate.id}
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              isExpired(certificate.expiry_date) ? 'opacity-75' : ''
-            }`}
+            className="cursor-pointer transition-all hover:shadow-lg"
             onClick={() => setSelectedCertificate(certificate)}
           >
             <CardHeader>
@@ -89,6 +74,14 @@ export default function Certificates() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {certificate.image_url && (
+                <img
+                  src={certificate.image_url}
+                  alt={certificate.name}
+                  className="w-full h-auto rounded-lg mb-4"
+                  loading="lazy"
+                />
+              )}
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium">Issuing Authority</p>
@@ -102,26 +95,6 @@ export default function Certificates() {
                   <p className="text-sm font-medium">Category</p>
                   <p className="text-sm text-muted-foreground">{certificate.category}</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-medium">Valid Until</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(certificate.expiry_date), 'MMM dd, yyyy')}
-                    </p>
-                  </div>
-                  {isExpired(certificate.expiry_date) && (
-                    <Alert variant="destructive" className="p-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>Expired</AlertDescription>
-                    </Alert>
-                  )}
-                  {isExpiringSoon(certificate.expiry_date) && !isExpired(certificate.expiry_date) && (
-                    <Alert variant="warning" className="p-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>Expiring Soon</AlertDescription>
-                    </Alert>
-                  )}
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -129,7 +102,7 @@ export default function Certificates() {
       </div>
 
       <Dialog open={!!selectedCertificate} onOpenChange={() => setSelectedCertificate(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           {selectedCertificate && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">{selectedCertificate.name}</h2>
@@ -149,18 +122,6 @@ export default function Certificates() {
                 <div>
                   <p className="font-medium">Certificate Number</p>
                   <p className="text-muted-foreground">{selectedCertificate.certificate_number}</p>
-                </div>
-                <div>
-                  <p className="font-medium">Issue Date</p>
-                  <p className="text-muted-foreground">
-                    {format(new Date(selectedCertificate.issue_date), 'MMM dd, yyyy')}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium">Expiry Date</p>
-                  <p className="text-muted-foreground">
-                    {format(new Date(selectedCertificate.expiry_date), 'MMM dd, yyyy')}
-                  </p>
                 </div>
               </div>
               {selectedCertificate.qr_code_url && (
