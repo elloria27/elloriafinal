@@ -24,6 +24,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { InvoiceSettings } from "@/types/hrm";
 
 interface Customer {
   id: string;
@@ -41,18 +42,6 @@ interface InvoiceFormData {
     taxPercentage: number;
   }[];
   notes?: string;
-}
-
-interface InvoiceSettings {
-  company_info: {
-    name: string;
-    address: string;
-    tax_id: string;
-  };
-  default_due_days: number;
-  late_fee_percentage: number;
-  payment_instructions: string;
-  footer_text: string;
 }
 
 interface InvoiceFormProps {
@@ -107,7 +96,14 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
       }
 
       if (data) {
-        setSettings(data);
+        const companyInfo = typeof data.company_info === 'string' 
+          ? JSON.parse(data.company_info)
+          : data.company_info;
+
+        setSettings({
+          ...data,
+          company_info: companyInfo
+        });
       }
     };
 
@@ -186,14 +182,15 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
         due_date: format(data.dueDate, "yyyy-MM-dd"),
         status: "pending" as const,
         notes: data.notes,
-        total_amount: totals.total,
+        total_amount: Number(totals.total.toFixed(2)),
         created_by: (await supabase.auth.getUser()).data.user?.id,
-        invoice_number: generateInvoiceNumber(),
+        invoice_number: invoiceId ? undefined : generateInvoiceNumber(),
         currency: "CAD",
-        subtotal_amount: totals.subtotal,
-        tax_amount: totals.taxAmount,
+        subtotal_amount: Number(totals.subtotal.toFixed(2)),
+        tax_amount: Number(totals.taxAmount.toFixed(2)),
         payment_instructions: settings?.payment_instructions,
         footer_text: settings?.footer_text,
+        company_info: settings?.company_info,
       };
 
       let result;
@@ -231,9 +228,9 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
         invoice_id: invoice.id,
         description: item.description,
         quantity: item.quantity,
-        unit_price: item.unitPrice,
-        tax_percentage: item.taxPercentage,
-        total_price: calculateLineTotal(item.quantity, item.unitPrice, item.taxPercentage).total,
+        unit_price: Number(item.unitPrice.toFixed(2)),
+        tax_percentage: Number(item.taxPercentage.toFixed(2)),
+        total_price: Number(calculateLineTotal(item.quantity, item.unitPrice, item.taxPercentage).total.toFixed(2)),
       }));
 
       const { error: itemsError } = await supabase
@@ -372,7 +369,8 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                         {...field}
                         type="number"
                         min="1"
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        step="1"
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -391,7 +389,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                         type="number"
                         step="0.01"
                         min="0"
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -411,7 +409,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                         step="0.1"
                         min="0"
                         max="100"
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                         placeholder="Tax %"
                       />
                     </FormControl>
