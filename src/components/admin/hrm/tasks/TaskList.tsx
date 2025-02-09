@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -40,7 +41,7 @@ interface Task {
   actual_hours?: number;
   profiles?: {
     full_name: string | null;
-  };
+  } | null;
   labels?: Array<{ id: string; name: string; color: string }>;
   subtasks?: Array<{
     id: string;
@@ -51,13 +52,13 @@ interface Task {
   checklists?: Array<{
     id: string;
     title: string;
+    order_index: number;
     items: Array<{
       id: string;
       content: string;
       completed: boolean;
       order_index: number;
     }>;
-    order_index: number;
   }>;
 }
 
@@ -374,7 +375,12 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={selectedTask}
+              initialData={{
+                ...selectedTask,
+                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : null,
+                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : null,
+                start_date: selectedTask.start_date ? new Date(selectedTask.start_date) : null,
+              }}
               onSuccess={handleEditSuccess}
             />
           )}
