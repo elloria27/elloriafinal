@@ -258,7 +258,9 @@ const TaskList = () => {
           checklists: (task.hrm_task_checklists || []).map(checklist => ({
             ...checklist,
             items: checklist.hrm_checklist_items || []
-          }))
+          })),
+          // Ensure profiles is properly typed
+          profiles: task.profiles || null
         }));
         setTasks(formattedTasks);
       }
