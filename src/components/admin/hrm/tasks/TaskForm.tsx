@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,10 +68,16 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      priority: "medium",
-      category: "other",
-      status: "todo",
+    defaultValues: {
+      ...initialData,
+      start_date: initialData?.start_date ? new Date(initialData.start_date) : undefined,
+      due_date: initialData?.due_date ? new Date(initialData.due_date) : undefined,
+      completion_date: initialData?.completion_date ? new Date(initialData.completion_date) : undefined,
+      priority: initialData?.priority || "medium",
+      category: initialData?.category || "other",
+      status: initialData?.status || "todo",
+      estimated_hours: initialData?.estimated_hours || undefined,
+      actual_hours: initialData?.actual_hours || undefined,
     },
   });
 
@@ -90,8 +97,8 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         priority: values.priority,
         category: values.category,
         status: values.status as TaskStatus,
-        estimated_hours: values.estimated_hours,
-        actual_hours: values.actual_hours,
+        estimated_hours: values.estimated_hours || null,
+        actual_hours: values.actual_hours || null,
         start_date: values.start_date?.toISOString() || null,
       };
 
@@ -207,7 +214,8 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                     min="0" 
                     step="0.5"
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    value={field.value || ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -227,7 +235,8 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                     min="0" 
                     step="0.5"
                     {...field}
-                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                    onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    value={field.value || ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -241,7 +250,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             control={form.control}
             name="start_date"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Start Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -273,7 +282,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             control={form.control}
             name="due_date"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Due Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>

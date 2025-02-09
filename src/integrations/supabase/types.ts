@@ -947,6 +947,7 @@ export type Database = {
       }
       hrm_tasks: {
         Row: {
+          actual_hours: number | null
           assigned_to: string
           category: Database["public"]["Enums"]["task_category"]
           completion_date: string | null
@@ -954,13 +955,16 @@ export type Database = {
           created_by: string
           description: string | null
           due_date: string | null
+          estimated_hours: number | null
           id: string
           priority: Database["public"]["Enums"]["task_priority"]
+          start_date: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string | null
         }
         Insert: {
+          actual_hours?: number | null
           assigned_to: string
           category?: Database["public"]["Enums"]["task_category"]
           completion_date?: string | null
@@ -968,13 +972,16 @@ export type Database = {
           created_by: string
           description?: string | null
           due_date?: string | null
+          estimated_hours?: number | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string | null
         }
         Update: {
+          actual_hours?: number | null
           assigned_to?: string
           category?: Database["public"]["Enums"]["task_category"]
           completion_date?: string | null
@@ -982,8 +989,10 @@ export type Database = {
           created_by?: string
           description?: string | null
           due_date?: string | null
+          estimated_hours?: number | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string | null
