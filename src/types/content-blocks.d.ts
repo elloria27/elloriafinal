@@ -454,6 +454,19 @@ export interface SustainabilityProgramCtaContent extends BaseBlockContent {
   buttonText?: string;
 }
 
+export interface CertificatesContent extends BaseBlockContent {
+  certificates?: Array<{
+    name: string;
+    issuing_authority: string;
+    certificate_number: string;
+    issue_date: string;
+    expiry_date?: string;
+    category: string;
+    image_url?: string;
+    qr_code_url?: string;
+  }>;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -461,6 +474,7 @@ export type BlockContent =
   | VideoBlockContent
   | ButtonBlockContent
   | SpacerBlockContent
+  | CertificatesContent
   | HeroContent
   | FeaturesContent
   | GameChangerContent
@@ -518,6 +532,7 @@ export type BlockType =
   | "video" 
   | "button"
   | "spacer"
+  | "certificates"
   | "hero"
   | "features"
   | "testimonials"

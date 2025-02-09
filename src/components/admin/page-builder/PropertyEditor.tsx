@@ -1,4 +1,3 @@
-
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -17,6 +16,7 @@ import { SustainabilityBlockEditor } from "./editors/SustainabilityBlockEditor";
 import { TestimonialsEditor } from "./editors/TestimonialsEditor";
 import { BlogPreviewEditor } from "./editors/BlogPreviewEditor";
 import { NewsletterEditor } from "./editors/NewsletterEditor";
+import { CertificatesEditor } from "./editors/CertificatesEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -25,6 +25,16 @@ interface PropertyEditorProps {
 
 export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   console.log("Rendering PropertyEditor for block type:", block.type);
+
+  // Add certificates to common components
+  const commonComponents = [
+    "heading",
+    "text",
+    "image",
+    "video",
+    "button",
+    "certificates",
+  ];
 
   // Home page components
   const homeComponents = [
@@ -112,16 +122,11 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
     "sustainability_program_cta",
   ];
 
-  // Common components
-  const commonComponents = [
-    "heading",
-    "text",
-    "image",
-    "video",
-    "button",
-  ];
-
   const getEditor = () => {
+    if (block.type === "certificates") {
+      return <CertificatesEditor block={block} onUpdate={onUpdate} />;
+    }
+
     if (block.type === "sustainability") {
       return <SustainabilityBlockEditor block={block} onUpdate={onUpdate} />;
     }
