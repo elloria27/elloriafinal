@@ -148,6 +148,7 @@ const Admin = () => {
       case "task-manager":
         return <TaskManager />;
       case "invoice-management":
+        console.log("Rendering InvoiceManagement component");
         return <InvoiceManagement />;
       default:
         return <Dashboard />;
