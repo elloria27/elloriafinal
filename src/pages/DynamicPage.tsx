@@ -6,11 +6,18 @@ import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
 import { toast } from "sonner";
 
-export default function DynamicPage() {
-  const { slug } = useParams();
+interface DynamicPageProps {
+  slug?: string;
+}
+
+export default function DynamicPage({ slug: propSlug }: DynamicPageProps) {
+  const { slug: paramSlug } = useParams();
   const navigate = useNavigate();
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Use the prop slug if provided, otherwise use the URL parameter
+  const slug = propSlug || paramSlug;
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -63,29 +70,31 @@ export default function DynamicPage() {
       }
     };
 
-    fetchPage();
+    if (slug) {
+      fetchPage();
 
-    // Set up real-time subscription for content updates
-    const subscription = supabase
-      .channel('content_blocks_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'content_blocks'
-        },
-        () => {
-          // Refetch the page content when changes occur
-          fetchPage();
-        }
-      )
-      .subscribe();
+      // Set up real-time subscription for content updates
+      const subscription = supabase
+        .channel('content_blocks_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'content_blocks'
+          },
+          () => {
+            // Refetch the page content when changes occur
+            fetchPage();
+          }
+        )
+        .subscribe();
 
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, [slug, navigate]);
 
   if (isLoading) {
