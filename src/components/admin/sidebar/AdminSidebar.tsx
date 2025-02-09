@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,7 @@ import {
   Boxes,
   Bell,
   CheckSquare,
-  ReceiptText
+  Receipt
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -60,7 +59,6 @@ const sidebarItems: SidebarItem[] = [
     icon: ShoppingCart,
     items: [
       { title: "Order Management", href: "/admin?tab=orders", icon: ShoppingCart },
-      { title: "Invoices", href: "/admin?tab=invoice", icon: ReceiptText },
       { title: "Product Management", href: "/admin?tab=products", icon: Package },
       { title: "Inventory Management", href: "/admin?tab=inventory", icon: Boxes },
       { title: "Company Expenses", href: "/admin?tab=company-expenses", icon: DollarSign },
@@ -102,6 +100,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=task-manager",
         icon: CheckSquare,
         description: "Manage and assign tasks"
+      },
+      {
+        title: "Invoices",
+        href: "/admin?tab=invoices",
+        icon: Receipt,
+        description: "Manage invoices and billing"
       }
     ]
   }
