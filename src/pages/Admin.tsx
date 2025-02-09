@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
+import InvoiceManagement from "@/components/admin/hrm/invoices/InvoiceManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -145,6 +147,8 @@ const Admin = () => {
         return <ExpenseManagement />;
       case "task-manager":
         return <TaskManager />;
+      case "invoices":
+        return <InvoiceManagement />;
       default:
         return <Dashboard />;
     }
