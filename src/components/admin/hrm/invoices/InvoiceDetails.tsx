@@ -227,10 +227,10 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (invoiceId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: { invoiceId: invoice?.id }
+        body: { invoiceId }
       });
 
       if (error) throw error;
