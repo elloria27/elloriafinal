@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, BlockContent } from "@/types/content-blocks";
+import { Json } from "@/integrations/supabase/types";
 
 export default function Certificates() {
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
@@ -30,7 +31,13 @@ export default function Certificates() {
 
           if (blocksError) throw blocksError;
           
-          setBlocks(contentBlocks || []);
+          // Transform the data to ensure content is properly typed
+          const typedBlocks: ContentBlock[] = contentBlocks?.map(block => ({
+            ...block,
+            content: block.content as unknown as BlockContent
+          })) || [];
+          
+          setBlocks(typedBlocks);
         }
       } catch (error) {
         console.error('Error fetching page content:', error);
