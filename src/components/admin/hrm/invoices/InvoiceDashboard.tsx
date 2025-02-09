@@ -75,10 +75,12 @@ const InvoiceDashboard = () => {
             } else if (invoice.status === "pending") {
               acc.pendingAmount += invoice.total_amount;
               acc.pendingCount++;
-            } else if (
-              invoice.status === "overdue" || 
-              (invoice.status === "pending" && new Date(invoice.due_date) < currentDate)
-            ) {
+              // Check if pending invoice is overdue
+              if (new Date(invoice.due_date) < currentDate) {
+                acc.overdueAmount += invoice.total_amount;
+                acc.overdueCount++;
+              }
+            } else if (invoice.status === "overdue") {
               acc.overdueAmount += invoice.total_amount;
               acc.overdueCount++;
             }
