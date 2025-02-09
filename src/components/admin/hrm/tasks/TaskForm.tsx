@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,14 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import TaskLabels from "./TaskLabels";
 import TaskChecklist from "./TaskChecklist";
 import TaskSubtasks from "./TaskSubtasks";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
 
 type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
 
@@ -67,7 +63,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
   const [checklists, setChecklists] = useState(initialData?.checklists || []);
   const [subtasks, setSubtasks] = useState(initialData?.subtasks || []);
 
-  // Initialize form with default values
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,7 +80,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
     },
   });
 
-  // Fetch admin users on component mount
   useEffect(() => {
     const fetchAdmins = async () => {
       const { data, error } = await supabase
@@ -100,13 +94,11 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
     fetchAdmins();
   }, []);
 
-  // Fetch task data if editing
   useEffect(() => {
     const fetchTaskData = async () => {
       if (!initialData?.id) return;
 
       try {
-        // Fetch labels
         const { data: labelAssignments, error: labelError } = await supabase
           .from('hrm_task_label_assignments')
           .select('label_id, hrm_task_labels!inner(*)')
@@ -123,7 +115,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           setLabels(fetchedLabels);
         }
 
-        // Fetch subtasks
         const { data: subtasks, error: subtasksError } = await supabase
           .from('hrm_subtasks')
           .select('*')
@@ -136,7 +127,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           setSubtasks(subtasks);
         }
 
-        // Fetch checklists and their items
         const { data: checklists, error: checklistsError } = await supabase
           .from('hrm_task_checklists')
           .select(`
@@ -194,7 +184,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       let taskId: string;
 
       if (initialData) {
-        // Update existing task
         const { error: updateError } = await supabase
           .from("hrm_tasks")
           .update(taskData)
@@ -203,7 +192,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         if (updateError) throw updateError;
         taskId = initialData.id;
 
-        // Delete existing relationships
         const { error: labelDeleteError } = await supabase
           .from("hrm_task_label_assignments")
           .delete()
@@ -216,7 +204,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           .eq('task_id', taskId);
         if (subtaskDeleteError) throw subtaskDeleteError;
 
-        // Delete checklist items first
         const { data: existingChecklists } = await supabase
           .from("hrm_task_checklists")
           .select('id')
@@ -239,7 +226,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         if (checklistDeleteError) throw checklistDeleteError;
 
       } else {
-        // Create new task
         const { data: newTask, error: createError } = await supabase
           .from("hrm_tasks")
           .insert(taskData)
@@ -251,7 +237,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         taskId = newTask.id;
       }
 
-      // Insert new relationships
       if (labels.length > 0) {
         const labelAssignments = labels.map(label => ({
           task_id: taskId,
@@ -279,7 +264,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         if (subtasksError) throw subtasksError;
       }
 
-      // Insert new checklists and their items
       for (const [index, checklist] of checklists.entries()) {
         const { data: newChecklist, error: checklistError } = await supabase
           .from("hrm_task_checklists")
@@ -333,42 +317,19 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>{label}</FormLabel>
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full pl-3 text-left font-normal",
-                    !field.value && "text-muted-foreground"
-                  )}
-                >
-                  {field.value ? (
-                    format(new Date(field.value), "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={field.value ? new Date(field.value) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    field.onChange(date);
-                    form.setValue(name, date);
-                  }
-                }}
-                disabled={(date) =>
-                  date < new Date("1900-01-01")
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <FormControl>
+            <DatePicker
+              selected={field.value ? new Date(field.value) : null}
+              onChange={(date) => {
+                field.onChange(date);
+                form.setValue(name, date as Date);
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              dateFormat="MMMM d, yyyy"
+              isClearable
+              placeholderText="Select a date"
+            />
+          </FormControl>
           <FormMessage />
         </FormItem>
       )}
@@ -600,4 +561,3 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 };
 
 export default TaskForm;
-
