@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,8 @@ import {
   Gift,
   Boxes,
   Bell,
-  CheckSquare
+  CheckSquare,
+  Receipt
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -99,6 +101,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=task-manager",
         icon: CheckSquare,
         description: "Manage and assign tasks"
+      },
+      {
+        title: "Invoice Management",
+        href: "/admin?tab=invoice-management",
+        icon: Receipt,
+        description: "Manage invoices and billing"
       }
     ]
   }
