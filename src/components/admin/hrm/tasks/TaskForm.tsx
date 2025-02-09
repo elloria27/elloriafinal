@@ -105,55 +105,65 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
     const fetchTaskData = async () => {
       if (!initialData?.id) return;
 
-      // Fetch labels
-      const { data: labelAssignments } = await supabase
-        .from('hrm_task_label_assignments')
-        .select('label_id, hrm_task_labels!inner(*)')
-        .eq('task_id', initialData.id);
+      try {
+        // Fetch labels
+        const { data: labelAssignments, error: labelError } = await supabase
+          .from('hrm_task_label_assignments')
+          .select('label_id, hrm_task_labels!inner(*)')
+          .eq('task_id', initialData.id);
 
-      if (labelAssignments) {
-        const fetchedLabels = labelAssignments.map(la => ({
-          id: la.hrm_task_labels.id,
-          name: la.hrm_task_labels.name,
-          color: la.hrm_task_labels.color,
-        }));
-        setLabels(fetchedLabels);
-      }
+        if (labelError) throw labelError;
 
-      // Fetch subtasks
-      const { data: subtasks } = await supabase
-        .from('hrm_subtasks')
-        .select('*')
-        .eq('task_id', initialData.id)
-        .order('order_index');
+        if (labelAssignments) {
+          const fetchedLabels = labelAssignments.map(la => ({
+            id: la.hrm_task_labels.id,
+            name: la.hrm_task_labels.name,
+            color: la.hrm_task_labels.color,
+          }));
+          setLabels(fetchedLabels);
+        }
 
-      if (subtasks) {
-        setSubtasks(subtasks);
-      }
+        // Fetch subtasks
+        const { data: subtasks, error: subtasksError } = await supabase
+          .from('hrm_subtasks')
+          .select('*')
+          .eq('task_id', initialData.id)
+          .order('order_index');
 
-      // Fetch checklists and their items
-      const { data: checklists } = await supabase
-        .from('hrm_task_checklists')
-        .select(`
-          id,
-          title,
-          order_index,
-          hrm_checklist_items (
+        if (subtasksError) throw subtasksError;
+
+        if (subtasks) {
+          setSubtasks(subtasks);
+        }
+
+        // Fetch checklists and their items
+        const { data: checklists, error: checklistsError } = await supabase
+          .from('hrm_task_checklists')
+          .select(`
             id,
-            content,
-            completed,
-            order_index
-          )
-        `)
-        .eq('task_id', initialData.id)
-        .order('order_index');
+            title,
+            order_index,
+            hrm_checklist_items (
+              id,
+              content,
+              completed,
+              order_index
+            )
+          `)
+          .eq('task_id', initialData.id)
+          .order('order_index');
 
-      if (checklists) {
-        const formattedChecklists = checklists.map(checklist => ({
-          ...checklist,
-          items: checklist.hrm_checklist_items.sort((a, b) => a.order_index - b.order_index)
-        }));
-        setChecklists(formattedChecklists);
+        if (checklistsError) throw checklistsError;
+
+        if (checklists) {
+          const formattedChecklists = checklists.map(checklist => ({
+            ...checklist,
+            items: checklist.hrm_checklist_items.sort((a, b) => a.order_index - b.order_index)
+          }));
+          setChecklists(formattedChecklists);
+        }
+      } catch (error: any) {
+        toast.error(`Error loading task data: ${error.message}`);
       }
     };
 
@@ -184,31 +194,64 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       let taskId: string;
 
       if (initialData) {
-        const { error } = await supabase
+        // Update existing task
+        const { error: updateError } = await supabase
           .from("hrm_tasks")
           .update(taskData)
           .eq('id', initialData.id);
-        if (error) throw error;
+        
+        if (updateError) throw updateError;
         taskId = initialData.id;
+
+        // Delete existing relationships
+        const { error: labelDeleteError } = await supabase
+          .from("hrm_task_label_assignments")
+          .delete()
+          .eq('task_id', taskId);
+        if (labelDeleteError) throw labelDeleteError;
+
+        const { error: subtaskDeleteError } = await supabase
+          .from("hrm_subtasks")
+          .delete()
+          .eq('task_id', taskId);
+        if (subtaskDeleteError) throw subtaskDeleteError;
+
+        // Delete checklist items first
+        const { data: existingChecklists } = await supabase
+          .from("hrm_task_checklists")
+          .select('id')
+          .eq('task_id', taskId);
+
+        if (existingChecklists) {
+          for (const checklist of existingChecklists) {
+            const { error: itemsDeleteError } = await supabase
+              .from("hrm_checklist_items")
+              .delete()
+              .eq('checklist_id', checklist.id);
+            if (itemsDeleteError) throw itemsDeleteError;
+          }
+        }
+
+        const { error: checklistDeleteError } = await supabase
+          .from("hrm_task_checklists")
+          .delete()
+          .eq('task_id', taskId);
+        if (checklistDeleteError) throw checklistDeleteError;
+
       } else {
-        const { data: newTask, error } = await supabase
+        // Create new task
+        const { data: newTask, error: createError } = await supabase
           .from("hrm_tasks")
           .insert(taskData)
           .select()
           .single();
-        if (error) throw error;
+        
+        if (createError) throw createError;
         if (!newTask) throw new Error("Failed to create task");
         taskId = newTask.id;
       }
 
-      // Update label assignments
-      if (initialData) {
-        await supabase
-          .from("hrm_task_label_assignments")
-          .delete()
-          .eq('task_id', taskId);
-      }
-
+      // Insert new relationships
       if (labels.length > 0) {
         const labelAssignments = labels.map(label => ({
           task_id: taskId,
@@ -219,14 +262,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           .from("hrm_task_label_assignments")
           .insert(labelAssignments);
         if (labelError) throw labelError;
-      }
-
-      // Update subtasks
-      if (initialData) {
-        await supabase
-          .from("hrm_subtasks")
-          .delete()
-          .eq('task_id', taskId);
       }
 
       if (subtasks.length > 0) {
@@ -242,31 +277,6 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           .from("hrm_subtasks")
           .insert(subtasksData);
         if (subtasksError) throw subtasksError;
-      }
-
-      // Update checklists and their items
-      if (initialData) {
-        // Get existing checklists
-        const { data: existingChecklists } = await supabase
-          .from("hrm_task_checklists")
-          .select('id')
-          .eq('task_id', taskId);
-
-        if (existingChecklists) {
-          // Delete checklist items first
-          for (const checklist of existingChecklists) {
-            await supabase
-              .from("hrm_checklist_items")
-              .delete()
-              .eq('checklist_id', checklist.id);
-          }
-          
-          // Then delete checklists
-          await supabase
-            .from("hrm_task_checklists")
-            .delete()
-            .eq('task_id', taskId);
-        }
       }
 
       // Insert new checklists and their items
@@ -304,6 +314,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
       toast.success(initialData ? "Task updated successfully" : "Task created successfully");
       if (!initialData) {
         form.reset();
+        setLabels([]);
+        setSubtasks([]);
+        setChecklists([]);
       }
       onSuccess?.();
     } catch (error: any) {
@@ -446,6 +459,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date("1900-01-01")
+                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -485,6 +501,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date("1900-01-01")
+                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -497,11 +516,53 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 
         <FormField
           control={form.control}
+          name="completion_date"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Completion Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="assigned_to"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Assign To</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select an admin" />
@@ -526,7 +587,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -551,7 +612,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select priority" />
@@ -574,7 +635,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
