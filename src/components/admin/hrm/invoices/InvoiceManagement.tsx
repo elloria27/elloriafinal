@@ -2,8 +2,13 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useEffect } from "react";
 
 export const InvoiceManagement = () => {
+  useEffect(() => {
+    console.log("InvoiceManagement component mounted");
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
