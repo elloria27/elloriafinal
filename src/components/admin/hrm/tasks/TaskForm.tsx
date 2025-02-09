@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import TaskLabels from "./TaskLabels";
 import TaskChecklist from "./TaskChecklist";
 import TaskSubtasks from "./TaskSubtasks";
+import { cn } from "@/lib/utils";
 
 type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
 
@@ -256,10 +257,17 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                        variant="outline"
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
                       >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -269,6 +277,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -288,10 +299,17 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                        variant="outline"
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
                       >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -301,6 +319,9 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date("1900-01-01")
+                      }
                       initialFocus
                     />
                   </PopoverContent>
