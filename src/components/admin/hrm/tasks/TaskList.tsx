@@ -22,6 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pencil } from "lucide-react";
 import TaskForm from "./TaskForm";
 
+type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
+type TaskPriority = "low" | "medium" | "high";
+type TaskCategory = "hr" | "finance" | "operations" | "other";
+
 interface Task {
   id: string;
   title: string;
@@ -29,9 +33,9 @@ interface Task {
   assigned_to: string;
   due_date: string | null;
   completion_date: string | null;
-  priority: "low" | "medium" | "high";
-  category: "hr" | "finance" | "operations" | "other";
-  status: "todo" | "in_progress" | "completed" | "on_hold";
+  priority: TaskPriority;
+  category: TaskCategory;
+  status: TaskStatus;
   profiles?: {
     full_name: string | null;
   } | null;
@@ -42,6 +46,30 @@ interface TaskDetailsProps {
   onClose: () => void;
   onEdit: () => void;
 }
+
+export const getStatusColor = (status: TaskStatus) => {
+  switch (status) {
+    case "completed":
+      return "bg-green-100 text-green-800";
+    case "in_progress":
+      return "bg-blue-100 text-blue-800";
+    case "on_hold":
+      return "bg-orange-100 text-orange-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const getPriorityColor = (priority: TaskPriority) => {
+  switch (priority) {
+    case "high":
+      return "bg-red-100 text-red-800";
+    case "medium":
+      return "bg-yellow-100 text-yellow-800";
+    case "low":
+      return "bg-green-100 text-green-800";
+  }
+};
 
 const TaskDetails = ({ task, onClose, onEdit }: TaskDetailsProps) => {
   return (

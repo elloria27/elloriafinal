@@ -15,6 +15,8 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
+
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
@@ -23,6 +25,7 @@ const formSchema = z.object({
   completion_date: z.date().optional(),
   priority: z.enum(["low", "medium", "high"]),
   category: z.enum(["hr", "finance", "operations", "other"]),
+  status: z.enum(["todo", "in_progress", "completed", "on_hold"]).default("todo"),
 });
 
 interface TaskFormProps {
@@ -39,6 +42,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
     defaultValues: initialData || {
       priority: "medium",
       category: "other",
+      status: "todo",
     },
   });
 
@@ -53,11 +57,11 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         description: values.description,
         assigned_to: values.assigned_to,
         created_by: user.id,
-        due_date: values.due_date ? values.due_date.toISOString() : null,
-        completion_date: values.completion_date ? values.completion_date.toISOString() : null,
+        due_date: values.due_date?.toISOString() || null,
+        completion_date: values.completion_date?.toISOString() || null,
         priority: values.priority,
         category: values.category,
-        status: initialData ? undefined : "todo"
+        status: values.status as TaskStatus
       };
 
       if (initialData) {
@@ -148,6 +152,30 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                       {admin.full_name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="todo">Todo</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
