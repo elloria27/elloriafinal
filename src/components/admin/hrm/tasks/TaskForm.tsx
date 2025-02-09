@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -184,7 +185,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         completion_date: values.completion_date?.toISOString() || null,
         priority: values.priority,
         category: values.category,
-        status: values.status as TaskStatus,
+        status: values.status,
         estimated_hours: values.estimated_hours || null,
         actual_hours: values.actual_hours || null,
         start_date: values.start_date?.toISOString() || null,
@@ -336,7 +337,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
-                  variant="outline"
+                  variant={"outline"}
                   className={cn(
                     "w-full pl-3 text-left font-normal",
                     !field.value && "text-muted-foreground"
@@ -355,7 +356,15 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
               <Calendar
                 mode="single"
                 selected={field.value}
-                onSelect={field.onChange}
+                onSelect={(date) => {
+                  field.onChange(date);
+                  if (date) {
+                    form.setValue(name, date);
+                  }
+                }}
+                disabled={(date) =>
+                  date < new Date("1900-01-01")
+                }
                 initialFocus
               />
             </PopoverContent>
@@ -591,3 +600,4 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
 };
 
 export default TaskForm;
+
