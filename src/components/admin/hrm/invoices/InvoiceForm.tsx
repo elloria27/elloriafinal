@@ -24,7 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon, Plus, Trash } from "lucide-react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +47,11 @@ interface InvoiceFormData {
   notes?: string;
 }
 
+const generateInvoiceNumber = () => {
+  const timestamp = new Date().getTime();
+  return `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
+};
+
 const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -57,10 +62,7 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
+  const { fields, append, remove } = form.control._formValues.items;
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -93,6 +95,10 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         notes: data.notes,
         total_amount: calculateTotal(data.items),
         created_by: (await supabase.auth.getUser()).data.user?.id,
+        invoice_number: generateInvoiceNumber(),
+        currency: "CAD",
+        subtotal_amount: calculateTotal(data.items),
+        tax_amount: 0
       };
 
       const { data: invoice, error: insertError } = await supabase
@@ -110,6 +116,7 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         quantity: item.quantity,
         unit_price: item.unitPrice,
         total_price: item.quantity * item.unitPrice,
+        tax_percentage: 0
       }));
 
       const { error: itemsError } = await supabase
