@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -221,9 +220,7 @@ const TaskList = () => {
         .from("hrm_tasks")
         .select(`
           *,
-          profiles:assigned_to(
-            full_name
-          ),
+          profiles:assigned_to(full_name),
           hrm_task_label_assignments(
             hrm_task_labels (
               id,
