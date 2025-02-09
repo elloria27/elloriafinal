@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -259,7 +260,7 @@ const TaskList = () => {
             items: checklist.hrm_checklist_items || []
           })),
           profiles: task.profiles ? {
-            full_name: task.profiles.full_name || null
+            full_name: task.profiles.full_name
           } : null
         }));
         setTasks(formattedTasks);
@@ -377,7 +378,12 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={selectedTask}
+              initialData={{
+                ...selectedTask,
+                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : undefined,
+                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : undefined,
+                start_date: selectedTask.start_date ? new Date(selectedTask.start_date) : undefined,
+              }}
               onSuccess={handleEditSuccess}
             />
           )}
