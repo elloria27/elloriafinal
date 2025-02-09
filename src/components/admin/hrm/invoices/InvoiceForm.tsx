@@ -17,16 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Plus, Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -62,7 +57,6 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
-  // Fix: Use useFieldArray hook correctly
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "items",
@@ -95,7 +89,7 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       const invoiceData = {
         customer_id: data.customerId,
         due_date: format(data.dueDate, "yyyy-MM-dd"),
-        status: "pending" as const, // Fix: Explicitly type status as a literal
+        status: "pending" as const,
         notes: data.notes,
         total_amount: calculateTotal(data.items),
         created_by: (await supabase.auth.getUser()).data.user?.id,
@@ -113,7 +107,6 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       if (insertError) throw insertError;
 
-      // Insert invoice items
       const lineItems = data.items.map(item => ({
         invoice_id: invoice.id,
         description: item.description,
@@ -174,36 +167,15 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Due Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <DatePicker
+                  selected={field.value}
+                  onChange={(date: Date) => field.onChange(date)}
+                  minDate={new Date()}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholderText="Select due date"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
