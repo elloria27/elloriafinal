@@ -25,7 +25,8 @@ import {
   Gift,
   Boxes,
   Bell,
-  CheckSquare
+  CheckSquare,
+  Receipt
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -99,6 +100,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=task-manager",
         icon: CheckSquare,
         description: "Manage and assign tasks"
+      },
+      {
+        title: "Invoices",
+        href: "/admin?tab=invoices",
+        icon: Receipt,
+        description: "Manage invoices and billing"
       }
     ]
   }
