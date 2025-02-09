@@ -1,3 +1,4 @@
+
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { HomePageEditor } from "./editors/HomePageEditor";
 import { AboutPageEditor } from "./editors/AboutPageEditor";
@@ -16,8 +17,6 @@ import { SustainabilityBlockEditor } from "./editors/SustainabilityBlockEditor";
 import { TestimonialsEditor } from "./editors/TestimonialsEditor";
 import { BlogPreviewEditor } from "./editors/BlogPreviewEditor";
 import { NewsletterEditor } from "./editors/NewsletterEditor";
-import { CertificatesEditor } from "./editors/CertificatesEditor";
-import { CertificatesBlockEditor } from "./editors/CertificatesBlockEditor";
 
 interface PropertyEditorProps {
   block: ContentBlock;
@@ -123,10 +122,6 @@ export const PropertyEditor = ({ block, onUpdate }: PropertyEditorProps) => {
   ];
 
   const getEditor = () => {
-    if (block.type === "certificates") {
-      return <CertificatesBlockEditor block={block} onUpdate={onUpdate} />;
-    }
-
     if (block.type === "sustainability") {
       return <SustainabilityBlockEditor block={block} onUpdate={onUpdate} />;
     }

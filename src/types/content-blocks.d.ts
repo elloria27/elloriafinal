@@ -454,11 +454,6 @@ export interface SustainabilityProgramCtaContent extends BaseBlockContent {
   buttonText?: string;
 }
 
-export interface CertificatesBlockContent extends BaseBlockContent {
-  title?: string;
-  description?: string;
-}
-
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -476,7 +471,45 @@ export type BlockContent =
   | NewsletterContent
   | ProductCarouselContent
   | CompetitorComparisonContent
-  | CertificatesBlockContent;
+  | ContactHeroContent
+  | ContactDetailsContent
+  | ContactFormContent
+  | ContactFAQContent
+  | ContactBusinessContent
+  | ForBusinessHeroContent
+  | BusinessSolutionsContent
+  | BusinessContactContent
+  | CustomSolutionsHeroContent
+  | CustomSolutionsServicesContent
+  | CustomSolutionsProcessContent
+  | CustomSolutionsCtaContent
+  | AboutHeroContent
+  | AboutStoryContent
+  | AboutMissionContent
+  | AboutSustainabilityContent
+  | AboutTeamContent
+  | AboutCustomerImpactContent
+  | AboutCtaContent
+  | DonationHeroContent
+  | DonationImpactContent
+  | DonationFormContent
+  | DonationStoriesContent
+  | DonationPartnersContent
+  | DonationFAQContent
+  | DonationJoinMovementContent
+  | ThanksWelcomeContent
+  | ThanksReferralContent
+  | ThanksSpecialOfferContent
+  | ThanksNewsletterContent
+  | BulkHeroContent
+  | BulkBenefitsContent
+  | BulkProcessContent
+  | BulkCtaContent
+  | BulkConsultationContent
+  | SustainabilityProgramHeroContent
+  | SustainabilityProgramBenefitsContent
+  | SustainabilityProgramProcessContent
+  | SustainabilityProgramCtaContent;
 
 export type BlockType = 
   | "heading" 
@@ -493,8 +526,56 @@ export type BlockType =
   | "store_brands"
   | "sustainability"
   | "product_carousel"
-  | "certificates";
-  
+  | "product_gallery"
+  | "elevating_essentials"
+  | "game_changer"
+  | "competitor_comparison"
+  | "about_hero_section"
+  | "about_story"
+  | "about_mission"
+  | "about_sustainability"
+  | "about_team"
+  | "about_customer_impact"
+  | "about_cta"
+  | "contact_hero"
+  | "contact_details"
+  | "contact_form"
+  | "contact_faq"
+  | "contact_business"
+  | "business_hero"
+  | "business_solutions"
+  | "business_contact"
+  | "custom_solutions_hero"
+  | "custom_solutions_services"
+  | "custom_solutions_process"
+  | "custom_solutions_cta"
+  | "sustainability_hero"
+  | "sustainability_mission"
+  | "sustainability_materials"
+  | "sustainability_faq"
+  | "sustainability_cta"
+  | "donation_hero"
+  | "donation_impact"
+  | "donation_form"
+  | "donation_stories"
+  | "donation_partners"
+  | "donation_faq"
+  | "donation_join_movement"
+  | "thanks_welcome"
+  | "thanks_referral"
+  | "thanks_special_offer"
+  | "thanks_newsletter"
+  | "bulk_hero"
+  | "bulk_benefits"
+  | "bulk_process"
+  | "bulk_cta"
+  | "bulk_consultation"
+  | "sustainability_program_hero"
+  | "sustainability_program_benefits"
+  | "sustainability_program_process"
+  | "sustainability_program_cta"
+  | "not_found";
+
 export interface ContentBlock {
   id: string;
   type: BlockType;

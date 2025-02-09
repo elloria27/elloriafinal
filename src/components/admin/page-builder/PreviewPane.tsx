@@ -35,7 +35,6 @@ import { ThanksSpecialOffer } from "@/components/thanks/ThanksSpecialOffer";
 import { ThanksNewsletter } from "@/components/thanks/ThanksNewsletter";
 import NotFound from "@/pages/NotFound";
 import { cn } from "@/lib/utils";
-import { CertificatesBlock } from '@/components/CertificatesBlock';
 
 interface PreviewPaneProps {
   blocks: ContentBlock[];
@@ -251,9 +250,6 @@ export const PreviewPane = ({
             case 'thanks_newsletter':
               return <ThanksNewsletter content={block.content as ThanksNewsletterContent} />;
 
-            case 'certificates':
-              return <CertificatesBlock content={block.content} />;
-            
             default:
               return (
                 <div className={`p-4 border border-dashed rounded-lg ${
