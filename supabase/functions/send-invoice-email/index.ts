@@ -32,10 +32,11 @@ serve(async (req) => {
     });
 
     if (pdfError) throw pdfError;
+    if (!pdfResponse?.pdf) throw new Error('No PDF data received');
 
     // Convert base64 PDF to Buffer
     const pdfContent = pdfResponse.pdf.split(',')[1];
-    const pdfBuffer = Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0));
+    const pdfBuffer = Buffer.from(pdfContent, 'base64');
 
     // Fetch invoice details for email template
     const { data: invoice, error: invoiceError } = await supabaseClient
