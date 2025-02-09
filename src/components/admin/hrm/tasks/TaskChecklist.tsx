@@ -123,59 +123,64 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
   };
 
   return (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto p-2">
+    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
       <h3 className="text-lg font-semibold mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">Checklists</h3>
-      {checklists.map((checklist) => (
-        <div key={checklist.id} className="space-y-2 bg-white/50 p-4 rounded-lg shadow-sm">
-          <h4 className="font-medium">{checklist.title}</h4>
-          <div className="space-y-2">
-            {checklist.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-2">
-                <Checkbox
-                  checked={item.completed}
-                  onCheckedChange={(checked) => 
-                    toggleItem(checklist.id, item.id, checked as boolean)
-                  }
-                  className="h-5 w-5"
-                />
-                <span className={`flex-1 break-words ${item.completed ? "line-through text-gray-500" : ""}`}>
-                  {item.content}
-                </span>
+      <div className="flex-1 overflow-y-auto px-2">
+        <div className="space-y-4">
+          {checklists.map((checklist) => (
+            <div key={checklist.id} className="space-y-2 bg-white/50 p-4 rounded-lg shadow-sm">
+              <h4 className="font-medium">{checklist.title}</h4>
+              <div className="space-y-2">
+                {checklist.items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={(checked) => 
+                        toggleItem(checklist.id, item.id, checked as boolean)
+                      }
+                      className="h-5 w-5"
+                    />
+                    <span className={`flex-1 break-words ${item.completed ? "line-through text-gray-500" : ""}`}>
+                      {item.content}
+                    </span>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add new item"
+                    value={newItemContent}
+                    onChange={(e) => setNewItemContent(e.target.value)}
+                    className="rounded-full bg-white/50"
+                  />
+                  <Button
+                    onClick={() => addChecklistItem(checklist.id)}
+                    disabled={!newItemContent || loading}
+                    className="rounded-full bg-blue-400 hover:bg-blue-500 text-white shrink-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            ))}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add new item"
-                value={newItemContent}
-                onChange={(e) => setNewItemContent(e.target.value)}
-                className="rounded-full bg-white/50"
-              />
-              <Button
-                onClick={() => addChecklistItem(checklist.id)}
-                disabled={!newItemContent || loading}
-                className="rounded-full bg-blue-400 hover:bg-blue-500 text-white shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
+          ))}
         </div>
-      ))}
-      <div className="flex gap-2 sticky bottom-0 bg-background/95 backdrop-blur-sm py-2">
-        <Input
-          placeholder="New checklist title"
-          value={newChecklistTitle}
-          onChange={(e) => setNewChecklistTitle(e.target.value)}
-          className="rounded-full bg-white/50"
-        />
-        <Button
-          onClick={createChecklist}
-          disabled={!newChecklistTitle || loading}
-          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6 shrink-0"
-        >
-          <Plus className="h-5 w-5 md:mr-2" />
-          <span className="hidden md:inline">Add Checklist</span>
-        </Button>
+      </div>
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm py-2 px-2 mt-2">
+        <div className="flex gap-2">
+          <Input
+            placeholder="New checklist title"
+            value={newChecklistTitle}
+            onChange={(e) => setNewChecklistTitle(e.target.value)}
+            className="rounded-full bg-white/50"
+          />
+          <Button
+            onClick={createChecklist}
+            disabled={!newChecklistTitle || loading}
+            className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6 shrink-0"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </div>
   );
