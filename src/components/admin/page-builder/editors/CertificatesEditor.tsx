@@ -1,5 +1,5 @@
 
-import { ContentBlock } from "@/types/content-blocks";
+import { ContentBlock, CertificatesContent } from "@/types/content-blocks";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,17 @@ interface CertificatesEditorProps {
 }
 
 export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps) => {
+  const content = block.content as CertificatesContent;
+  
   const handleUpdate = (field: string, value: string) => {
     onUpdate(block.id, {
-      ...block.content,
+      ...content,
       [field]: value,
     });
   };
 
   const handleAddCertificate = () => {
-    const certificates = [...(block.content.certificates || [])];
+    const certificates = [...(content.certificates || [])];
     certificates.push({
       name: "",
       issuing_authority: "",
@@ -31,28 +33,28 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
       category: "",
     });
     onUpdate(block.id, {
-      ...block.content,
+      ...content,
       certificates,
     });
   };
 
   const handleRemoveCertificate = (index: number) => {
-    const certificates = [...(block.content.certificates || [])];
+    const certificates = [...(content.certificates || [])];
     certificates.splice(index, 1);
     onUpdate(block.id, {
-      ...block.content,
+      ...content,
       certificates,
     });
   };
 
   const handleCertificateUpdate = (index: number, field: string, value: string) => {
-    const certificates = [...(block.content.certificates || [])];
+    const certificates = [...(content.certificates || [])];
     certificates[index] = {
       ...certificates[index],
       [field]: value,
     };
     onUpdate(block.id, {
-      ...block.content,
+      ...content,
       certificates,
     });
   };
@@ -63,7 +65,7 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
         <div>
           <Label>Title</Label>
           <Input
-            value={block.content.title || ""}
+            value={content.title || ""}
             onChange={(e) => handleUpdate("title", e.target.value)}
             placeholder="Enter section title"
           />
@@ -71,7 +73,7 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
         <div>
           <Label>Subtitle</Label>
           <Textarea
-            value={block.content.subtitle || ""}
+            value={content.subtitle || ""}
             onChange={(e) => handleUpdate("subtitle", e.target.value)}
             placeholder="Enter section subtitle"
           />
@@ -94,7 +96,7 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
 
         <ScrollArea className="h-[400px]">
           <div className="space-y-4">
-            {(block.content.certificates || []).map((cert, index) => (
+            {(content.certificates || []).map((cert, index) => (
               <Card key={index}>
                 <CardContent className="pt-6 space-y-4">
                   <div className="flex justify-end">
@@ -229,3 +231,4 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
     </div>
   );
 };
+

@@ -590,7 +590,8 @@ export type BlockType =
   | "sustainability_program_process"
   | "sustainability_program_cta"
   | "not_found"
-  | "certificates";
+  | "certificates"
+  | "product_gallery";
 
 export interface ContentBlock {
   id: string;
