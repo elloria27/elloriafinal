@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,18 +15,14 @@ export const PageViewTracker = () => {
       }
 
       try {
-        // Call our Edge Function instead of ipapi.co directly
-        const { data: locationData, error } = await supabase.functions.invoke('get-geolocation');
-        
-        if (error) {
-          console.error('Error getting location:', error);
-          throw error;
-        }
+        // First, get location data
+        const locationResponse = await fetch('https://ipapi.co/json/');
+        const locationData = await locationResponse.json();
 
         console.log('Location data:', locationData);
 
-        // Insert page view with location data
-        const { error: insertError } = await supabase
+        // Then insert page view with location data
+        const { error } = await supabase
           .from('page_views')
           .insert({
             page_path: location.pathname,
@@ -38,8 +33,8 @@ export const PageViewTracker = () => {
             city: locationData.city
           });
 
-        if (insertError) {
-          console.error('Error tracking page view:', insertError);
+        if (error) {
+          console.error('Error tracking page view:', error);
         }
       } catch (err) {
         console.error('Error tracking page view:', err);

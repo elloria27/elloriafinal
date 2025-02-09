@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +9,7 @@ import {
   Settings,
   ShoppingCart,
   Package,
+  FolderIcon,
   ChevronDown,
   Globe,
   Building2,
@@ -25,11 +25,11 @@ import {
   Gift,
   Boxes,
   Bell,
-  CheckSquare,
-  Receipt
+  CheckSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SidebarItem {
@@ -99,12 +99,6 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=task-manager",
         icon: CheckSquare,
         description: "Manage and assign tasks"
-      },
-      {
-        title: "Invoices",
-        href: "/admin?tab=invoices",
-        icon: Receipt,
-        description: "Manage invoices and billing"
       }
     ]
   }
@@ -133,7 +127,6 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
   };
 
   const handleNavigate = (href: string) => {
-    console.log("Navigating to:", href);
     navigate(href);
     if (onClose) {
       onClose();
@@ -183,7 +176,7 @@ export const AdminSidebar = ({ profile, onClose }: AdminSidebarProps) => {
                         <li key={subItem.title}>
                           <Button
                             variant="ghost"
-                            className="w-full justify-start hover:bg-gray-100"
+                            className="w-full justify-start"
                             onClick={() => handleNavigate(subItem.href)}
                           >
                             <span className="flex items-center gap-2">
