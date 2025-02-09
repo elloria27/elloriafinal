@@ -33,6 +33,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting task notification process");
+
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -44,6 +46,7 @@ serve(async (req) => {
     );
 
     if (authError || !user) {
+      console.error("Authentication error:", authError);
       throw new Error('Unauthorized');
     }
 
@@ -57,6 +60,14 @@ serve(async (req) => {
       category,
     }: TaskNotificationRequest = await req.json();
 
+    console.log("Received task notification request:", {
+      taskId,
+      assignedTo,
+      taskTitle,
+      priority,
+      category
+    });
+
     // Get the assigned admin's email from their profile
     const { data: adminProfile, error: profileError } = await supabase
       .from("profiles")
@@ -68,6 +79,8 @@ serve(async (req) => {
       console.error("Error fetching admin profile:", profileError);
       throw new Error("Could not find admin email");
     }
+
+    console.log("Found admin email:", adminProfile.email);
 
     // Create notification record
     const { error: notificationError } = await supabase
@@ -85,7 +98,10 @@ serve(async (req) => {
       throw new Error("Failed to create notification");
     }
 
+    console.log("Created notification record");
+
     // Send email
+    console.log("Attempting to send email via Resend");
     const emailResponse = await resend.emails.send({
       from: "Task Manager <onboarding@resend.dev>",
       to: [adminProfile.email],
@@ -109,6 +125,8 @@ serve(async (req) => {
 
     // Update notification record to mark email as sent
     if (emailResponse) {
+      console.log("Email sent successfully:", emailResponse);
+      
       const { error: updateError } = await supabase
         .from('hrm_task_notifications')
         .update({ email_sent: true })
@@ -120,8 +138,6 @@ serve(async (req) => {
         console.error("Error updating notification:", updateError);
       }
     }
-
-    console.log("Task notification email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
