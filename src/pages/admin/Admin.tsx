@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,13 +16,16 @@ import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethod
 import { DonationManagement } from "@/components/admin/DonationManagement";
 import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
+import { InvoiceManagement } from "@/components/admin/hrm/invoices/InvoiceManagement";
 import Dashboard from "./Dashboard";
 import SiteSettings from "./SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck, Boxes } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
+import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -139,6 +143,12 @@ const Admin = () => {
         return <InventoryManagement />;
       case "personal-reminders":
         return <PersonalReminders />;
+      case "company-expenses":
+        return <ExpenseManagement />;
+      case "task-manager":
+        return <TaskManager />;
+      case "invoice-management":
+        return <InvoiceManagement />;
       default:
         return <Dashboard />;
     }
