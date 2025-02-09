@@ -173,6 +173,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
       if (error) throw error;
 
       toast.success("Invoice sent successfully");
+      // Refresh invoice to get updated last_sent info
       window.location.reload();
     } catch (error) {
       console.error("Error sending invoice:", error);

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { jsPDF } from "npm:jspdf";
@@ -19,6 +18,7 @@ const COMPANY_INFO = {
   phone: '(204) 930-2019',
   email: 'sales@elloria.ca',
   gst: '742031420RT0001',
+  logo: '/lovable-uploads/08d815c8-551d-4278-813a-fe884abd443d.png'
 };
 
 // Helper function to wrap text
@@ -51,35 +51,58 @@ serve(async (req) => {
 
   try {
     console.log("Starting invoice generation...");
-    const { invoiceId } = await req.json();
-    console.log("Invoice ID received:", invoiceId);
+    const { orderId } = await req.json();
+    console.log("Order ID received:", orderId);
 
-    if (!invoiceId) {
-      throw new Error('Invoice ID is required');
+    if (!orderId) {
+      throw new Error('Order ID is required');
     }
 
-    // Fetch the invoice details
-    const { data: invoice, error: invoiceError } = await supabaseClient
-      .from('hrm_invoices')
+    // First fetch the order details
+    const { data: order, error: orderError } = await supabaseClient
+      .from('orders')
       .select(`
         *,
-        hrm_customers:customer_id(*),
-        hrm_invoice_items(*)
+        profiles:profiles(
+          full_name,
+          email,
+          phone_number,
+          address
+        )
       `)
-      .eq('id', invoiceId)
+      .eq('id', orderId)
       .single();
 
-    if (invoiceError) {
-      console.error("Error fetching invoice:", invoiceError);
-      throw invoiceError;
+    if (orderError) {
+      console.error("Error fetching order:", orderError);
+      throw orderError;
     }
 
-    if (!invoice) {
-      console.error("Invoice not found");
-      throw new Error('Invoice not found');
+    if (!order) {
+      console.error("Order not found");
+      throw new Error('Order not found');
     }
 
-    console.log("Invoice data retrieved:", invoice);
+    // Fetch current product data for all products in the order
+    const productIds = order.items.map((item: any) => item.id);
+    const { data: products, error: productsError } = await supabaseClient
+      .from('products')
+      .select('*')
+      .in('id', productIds);
+
+    if (productsError) {
+      console.error("Error fetching products:", productsError);
+      throw productsError;
+    }
+
+    // Create a map of product IDs to their current data
+    const productMap = products.reduce((acc: any, product: any) => {
+      acc[product.id] = product;
+      return acc;
+    }, {});
+
+    console.log("Order data retrieved:", order);
+    console.log("Products data retrieved:", products);
 
     const doc = new jsPDF();
     
@@ -101,27 +124,33 @@ serve(async (req) => {
     
     // Invoice Details
     doc.setFontSize(10);
-    doc.text(`Invoice #: ${invoice.invoice_number}`, 150, 40);
-    doc.text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`, 150, 45);
-    doc.text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 150, 50);
+    doc.text(`Invoice #: ${order.order_number}`, 150, 40);
+    doc.text(`Date: ${new Date(order.created_at).toLocaleDateString()}`, 150, 45);
     
     // Customer Info
+    const shippingAddress = order.shipping_address;
+    const customerName = order.profiles?.full_name || 
+      (shippingAddress.first_name && shippingAddress.last_name 
+        ? `${shippingAddress.first_name} ${shippingAddress.last_name}`.trim() 
+        : shippingAddress.first_name || shippingAddress.last_name || 'Valued Customer');
+
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('Bill To:', 10, 75);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(invoice.hrm_customers.name, 10, 80);
-    doc.text(invoice.hrm_customers.address || 'N/A', 10, 85);
-    doc.text(invoice.hrm_customers.email || 'N/A', 10, 90);
-    doc.text(invoice.hrm_customers.phone || 'N/A', 10, 95);
+    doc.text(customerName, 10, 80);
+    doc.text(shippingAddress.address, 10, 85);
+    doc.text(`${shippingAddress.region}, ${shippingAddress.country}`, 10, 90);
+    doc.text(order.profiles?.email || shippingAddress.email || order.email_address || 'N/A', 10, 95);
+    doc.text(shippingAddress.phone || 'N/A', 10, 100);
     
     // Items Table Header
     let y = 120;
     doc.setFillColor(240, 240, 240);
     doc.rect(10, y - 5, 190, 10, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.text('Description', 15, y);
+    doc.text('Item', 15, y);
     doc.text('Qty', 140, y);
     doc.text('Price', 160, y);
     doc.text('Total', 180, y);
@@ -131,16 +160,20 @@ serve(async (req) => {
     y += 10;
     let subtotal = 0;
     
-    invoice.hrm_invoice_items.forEach((item: any) => {
-      const itemTotal = item.unit_price * item.quantity;
+    order.items.forEach((item: any) => {
+      const itemTotal = item.price * item.quantity;
       subtotal += itemTotal;
       
-      // Use wrapText for item description
-      y = wrapText(doc, item.description, 15, y, 120) + 5;
+      // Use current product name if available, fallback to item name
+      const currentProduct = productMap[item.id];
+      const productName = currentProduct ? currentProduct.name : item.name;
+      
+      // Use wrapText for item name with adjusted maxWidth
+      y = wrapText(doc, productName, 15, y, 120) + 5;
       
       // Align numbers to the right
       doc.text(item.quantity.toString(), 140, y - 5);
-      doc.text(`$${item.unit_price.toFixed(2)}`, 160, y - 5);
+      doc.text(`$${item.price.toFixed(2)}`, 160, y - 5);
       doc.text(`$${itemTotal.toFixed(2)}`, 180, y - 5);
       
       y += 5; // Space between items
@@ -152,33 +185,47 @@ serve(async (req) => {
     doc.text('Subtotal:', 150, y);
     doc.text(`$${subtotal.toFixed(2)}`, 180, y);
     
-    // Add Tax if applicable
+    // Promo code if used
+    let discount = 0;
+    if (order.applied_promo_code) {
+      y += 10;
+      if (order.applied_promo_code.type === 'percentage') {
+        discount = subtotal * (order.applied_promo_code.value / 100);
+      } else {
+        discount = order.applied_promo_code.value;
+      }
+      doc.text(`Discount (${order.applied_promo_code.code}):`, 150, y);
+      doc.text(`-$${discount.toFixed(2)}`, 180, y);
+    }
+
+    // Add Shipping Cost
     y += 10;
-    const tax = invoice.tax_amount || 0;
-    doc.text('Tax:', 150, y);
-    doc.text(`$${tax.toFixed(2)}`, 180, y);
+    const shippingCost = order.shipping_cost || 0;
+    doc.text('Shipping:', 150, y);
+    doc.text(`$${shippingCost.toFixed(2)}`, 180, y);
+
+    // Add GST
+    y += 10;
+    const gst = order.gst || 0;
+    doc.text('GST:', 150, y);
+    doc.text(`$${gst.toFixed(2)}`, 180, y);
     
     // Final Total
     y += 15;
     doc.setFontSize(12);
-    const finalTotal = subtotal + tax;
+    const finalTotal = subtotal - discount + shippingCost + gst;
     doc.text('Total:', 150, y);
     doc.text(`$${finalTotal.toFixed(2)}`, 180, y);
     
-    // Notes
-    if (invoice.notes) {
-      y += 20;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Notes:', 10, y);
-      doc.setFont('helvetica', 'normal');
-      y = wrapText(doc, invoice.notes, 10, y + 5, 180);
-    }
+    // Payment Method
+    y += 20;
+    doc.setFontSize(10);
+    doc.text(`Payment Method: ${order.payment_method === 'stripe' ? 'Credit Card (Stripe)' : order.payment_method || 'Standard'}`, 10, y);
     
     // Thank you note
     y += 30;
     doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for your business!', 105, y, { align: 'center' });
+    doc.text('Thank you for choosing Elloria Eco Products!', 105, y, { align: 'center' });
     
     console.log("Generating PDF output...");
     const pdfOutput = doc.output('datauristring');
