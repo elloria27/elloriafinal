@@ -20,21 +20,23 @@ const formSchema = z.object({
   description: z.string().optional(),
   assigned_to: z.string().uuid("Invalid user selected"),
   due_date: z.date().optional(),
+  completion_date: z.date().optional(),
   priority: z.enum(["low", "medium", "high"]),
   category: z.enum(["hr", "finance", "operations", "other"]),
 });
 
 interface TaskFormProps {
   onSuccess?: () => void;
+  initialData?: z.infer<typeof formSchema> & { id: string };
 }
 
-const TaskForm = ({ onSuccess }: TaskFormProps) => {
+const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
   const [admins, setAdmins] = useState<Array<{ id: string; full_name: string }>>([]);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       priority: "medium",
       category: "other",
     },
@@ -46,20 +48,33 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error("No user found");
 
-      const { error } = await supabase.from("hrm_tasks").insert({
+      const taskData = {
         title: values.title,
         description: values.description,
         assigned_to: values.assigned_to,
         created_by: user.id,
         due_date: values.due_date ? values.due_date.toISOString() : null,
+        completion_date: values.completion_date ? values.completion_date.toISOString() : null,
         priority: values.priority,
         category: values.category,
-        status: "todo"
-      });
+        status: initialData ? undefined : "todo"
+      };
 
-      if (error) throw error;
+      if (initialData) {
+        const { error } = await supabase
+          .from("hrm_tasks")
+          .update(taskData)
+          .eq('id', initialData.id);
+        if (error) throw error;
+        toast.success("Task updated successfully");
+      } else {
+        const { error } = await supabase
+          .from("hrm_tasks")
+          .insert(taskData);
+        if (error) throw error;
+        toast.success("Task created successfully");
+      }
 
-      toast.success("Task created successfully");
       form.reset();
       onSuccess?.();
     } catch (error: any) {
@@ -73,9 +88,8 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
   useState(() => {
     const fetchAdmins = async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .order("full_name");
+        .rpc('get_admin_users')
+        .order('full_name');
 
       if (!error && data) {
         setAdmins(data);
@@ -141,40 +155,71 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="due_date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Due Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                    >
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="due_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Due Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="completion_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Completion Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
+                      >
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -234,7 +279,7 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? "Creating..." : "Create Task"}
+            {loading ? (initialData ? "Updating..." : "Creating...") : (initialData ? "Update Task" : "Create Task")}
           </Button>
         </div>
       </form>

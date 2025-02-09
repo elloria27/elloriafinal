@@ -778,6 +778,7 @@ export type Database = {
         Row: {
           assigned_to: string
           category: Database["public"]["Enums"]["task_category"]
+          completion_date: string | null
           created_at: string | null
           created_by: string
           description: string | null
@@ -791,6 +792,7 @@ export type Database = {
         Insert: {
           assigned_to: string
           category?: Database["public"]["Enums"]["task_category"]
+          completion_date?: string | null
           created_at?: string | null
           created_by: string
           description?: string | null
@@ -804,6 +806,7 @@ export type Database = {
         Update: {
           assigned_to?: string
           category?: Database["public"]["Enums"]["task_category"]
+          completion_date?: string | null
           created_at?: string | null
           created_by?: string
           description?: string | null
@@ -1763,6 +1766,13 @@ export type Database = {
           slug: string
           title: string
           updated_at: string | null
+        }[]
+      }
+      get_admin_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          full_name: string
         }[]
       }
       get_daily_views: {
