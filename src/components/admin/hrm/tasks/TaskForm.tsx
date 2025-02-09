@@ -344,7 +344,7 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
                   )}
                 >
                   {field.value ? (
-                    format(field.value, "PPP")
+                    format(new Date(field.value), "PPP")
                   ) : (
                     <span>Pick a date</span>
                   )}
@@ -355,10 +355,10 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={field.value}
+                selected={field.value ? new Date(field.value) : undefined}
                 onSelect={(date) => {
-                  field.onChange(date);
                   if (date) {
+                    field.onChange(date);
                     form.setValue(name, date);
                   }
                 }}
