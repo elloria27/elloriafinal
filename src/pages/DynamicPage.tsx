@@ -1,10 +1,11 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentBlock, BlockContent } from "@/types/content-blocks";
 import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
 import { toast } from "sonner";
+import debounce from "lodash/debounce";
 
 export default function DynamicPage() {
   const { slug } = useParams();
@@ -14,7 +15,9 @@ export default function DynamicPage() {
   const [pageId, setPageId] = useState<string | null>(null);
 
   // Fetch page and its content blocks
-  const fetchPageContent = async () => {
+  const fetchPageContent = useCallback(async () => {
+    if (!slug) return;
+
     try {
       console.log('Fetching page with slug:', slug);
       
@@ -69,15 +72,29 @@ export default function DynamicPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [slug, navigate]);
+
+  // Debounced version of fetchPageContent to prevent multiple rapid refreshes
+  const debouncedFetch = useCallback(
+    debounce(() => {
+      console.log('Executing debounced fetch...');
+      fetchPageContent();
+    }, 300),
+    [fetchPageContent]
+  );
 
   // Handle real-time updates
-  const handleRealtimeUpdate = (payload: any) => {
+  const handleRealtimeUpdate = useCallback((payload: any) => {
     console.log('Received real-time update:', payload);
     
-    // Refresh content immediately when any change occurs
-    fetchPageContent();
-  };
+    // Only refresh if the update is for the current page
+    if (payload.new?.page_id === pageId) {
+      console.log('Update is for current page, triggering refresh');
+      debouncedFetch();
+    } else {
+      console.log('Update is for a different page, ignoring');
+    }
+  }, [pageId, debouncedFetch]);
 
   // Set up real-time subscription
   useEffect(() => {
@@ -110,14 +127,14 @@ export default function DynamicPage() {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [pageId]);
+  }, [pageId, handleRealtimeUpdate]);
 
   // Initial fetch when page loads or slug changes
   useEffect(() => {
     if (!slug) return;
     setIsLoading(true);
     fetchPageContent();
-  }, [slug]);
+  }, [slug, fetchPageContent]);
 
   if (isLoading) {
     return (
