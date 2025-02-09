@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Checklist, ChecklistItem } from "@/types/hrm";
+import type { Checklist, ChecklistItem, TaskChecklist, ChecklistItemDB } from "@/types/hrm";
 
 interface TaskChecklistProps {
   taskId: string;
@@ -35,7 +36,13 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
       if (error) throw error;
 
       if (checklist) {
-        onChecklistsChange([...checklists, { ...checklist, items: [] }]);
+        const newChecklist: Checklist = {
+          id: checklist.id,
+          title: checklist.title,
+          items: [],
+          order_index: checklist.order_index,
+        };
+        onChecklistsChange([...checklists, newChecklist]);
         setNewChecklistTitle("");
         toast.success("Checklist created successfully");
       }
@@ -65,9 +72,15 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
       if (item) {
         const updatedChecklists = checklists.map(checklist => {
           if (checklist.id === checklistId) {
+            const newItem: ChecklistItem = {
+              id: item.id,
+              content: item.content,
+              completed: item.completed,
+              order_index: item.order_index,
+            };
             return {
               ...checklist,
-              items: [...checklist.items, item],
+              items: [...checklist.items, newItem],
             };
           }
           return checklist;

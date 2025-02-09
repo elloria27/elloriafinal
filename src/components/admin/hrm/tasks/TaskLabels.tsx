@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Label } from "@/types/hrm";
+import type { Label, TaskLabel, TaskLabelAssignment } from "@/types/hrm";
 
 interface TaskLabelsProps {
   taskId: string;
@@ -51,7 +52,7 @@ const TaskLabels = ({ taskId, selectedLabels, onLabelsChange }: TaskLabelsProps)
 
         if (assignError) throw assignError;
 
-        onLabelsChange([...selectedLabels, label]);
+        onLabelsChange([...selectedLabels, label as Label]);
         setNewLabelName("");
         setIsOpen(false);
         toast.success("Label created and assigned successfully");

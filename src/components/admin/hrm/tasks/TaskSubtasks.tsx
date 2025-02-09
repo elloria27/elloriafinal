@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Subtask } from "@/types/hrm";
+import type { Subtask, SubtaskDB } from "@/types/hrm";
 
 interface TaskSubtasksProps {
   taskId: string;
@@ -34,7 +35,13 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
       if (error) throw error;
 
       if (subtask) {
-        onSubtasksChange([...subtasks, subtask]);
+        const newSubtask: Subtask = {
+          id: subtask.id,
+          title: subtask.title,
+          completed: subtask.completed,
+          order_index: subtask.order_index,
+        };
+        onSubtasksChange([...subtasks, newSubtask]);
         setNewSubtaskTitle("");
         toast.success("Subtask created successfully");
       }
