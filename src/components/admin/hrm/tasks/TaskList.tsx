@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -36,9 +35,12 @@ interface Task {
   priority: TaskPriority;
   category: TaskCategory;
   status: TaskStatus;
+  start_date?: string | null;
+  estimated_hours?: number;
+  actual_hours?: number;
   profiles?: {
     full_name: string | null;
-  } | null;
+  };
   labels?: Array<{ id: string; name: string; color: string }>;
   subtasks?: Array<{
     id: string;
@@ -57,12 +59,6 @@ interface Task {
     }>;
     order_index: number;
   }>;
-}
-
-interface TaskDetailsProps {
-  task: Task;
-  onClose: () => void;
-  onEdit: () => void;
 }
 
 export const getStatusColor = (status: TaskStatus) => {
@@ -89,7 +85,7 @@ export const getPriorityColor = (priority: TaskPriority) => {
   }
 };
 
-const TaskDetails = ({ task, onClose, onEdit }: TaskDetailsProps) => {
+const TaskDetails = ({ task, onClose, onEdit }: { task: Task; onClose: () => void; onEdit: () => void }) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
@@ -250,7 +246,7 @@ const TaskList = () => {
       if (error) throw error;
       
       if (tasksData) {
-        const formattedTasks = tasksData.map(task => ({
+        const formattedTasks: Task[] = tasksData.map(task => ({
           ...task,
           labels: task.hrm_task_label_assignments?.map(la => ({
             id: la.hrm_task_labels.id,
