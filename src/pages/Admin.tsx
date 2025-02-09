@@ -23,7 +23,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
-import { TaskManager } from "@/components/admin/hrm/tasks/TaskManager";
+import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
 
 const Admin = () => {
   const navigate = useNavigate();

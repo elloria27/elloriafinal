@@ -51,7 +51,7 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
         description: values.description,
         assigned_to: values.assigned_to,
         created_by: user.id,
-        due_date: values.due_date,
+        due_date: values.due_date ? values.due_date.toISOString() : null,
         priority: values.priority,
         category: values.category,
         status: "todo"
