@@ -672,50 +672,6 @@ export type Database = {
         }
         Relationships: []
       }
-      hrm_invoice_emails: {
-        Row: {
-          email_type: string
-          error_message: string | null
-          id: string
-          invoice_id: string | null
-          sent_at: string | null
-          sent_by: string | null
-          sent_to: string
-          status: string
-          template_version: string | null
-        }
-        Insert: {
-          email_type?: string
-          error_message?: string | null
-          id?: string
-          invoice_id?: string | null
-          sent_at?: string | null
-          sent_by?: string | null
-          sent_to: string
-          status?: string
-          template_version?: string | null
-        }
-        Update: {
-          email_type?: string
-          error_message?: string | null
-          id?: string
-          invoice_id?: string | null
-          sent_at?: string | null
-          sent_by?: string | null
-          sent_to?: string
-          status?: string
-          template_version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_invoice_emails_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       hrm_invoice_items: {
         Row: {
           created_at: string | null
@@ -811,15 +767,11 @@ export type Database = {
           employee_id: string | null
           id: string
           invoice_number: string
-          last_sent_at: string | null
-          last_sent_to: string | null
           notes: string | null
-          pdf_url: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount: number
           tax_amount: number
           tax_details: Json | null
-          template_version: string | null
           total_amount: number
           updated_at: string | null
         }
@@ -832,15 +784,11 @@ export type Database = {
           employee_id?: string | null
           id?: string
           invoice_number: string
-          last_sent_at?: string | null
-          last_sent_to?: string | null
           notes?: string | null
-          pdf_url?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount?: number
           tax_amount?: number
           tax_details?: Json | null
-          template_version?: string | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -853,15 +801,11 @@ export type Database = {
           employee_id?: string | null
           id?: string
           invoice_number?: string
-          last_sent_at?: string | null
-          last_sent_to?: string | null
           notes?: string | null
-          pdf_url?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal_amount?: number
           tax_amount?: number
           tax_details?: Json | null
-          template_version?: string | null
           total_amount?: number
           updated_at?: string | null
         }
