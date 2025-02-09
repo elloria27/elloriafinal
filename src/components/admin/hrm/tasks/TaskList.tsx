@@ -34,7 +34,7 @@ const TaskList = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: tasksData, error } = await supabase
           .from("hrm_tasks")
           .select(`
             *,
@@ -45,8 +45,10 @@ const TaskList = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        if (data) {
-          setTasks(data as Task[]);
+        
+        if (tasksData) {
+          // Explicitly type the data as Task[]
+          setTasks(tasksData as unknown as Task[]);
         }
       } catch (error: any) {
         toast.error("Error fetching tasks: " + error.message);
