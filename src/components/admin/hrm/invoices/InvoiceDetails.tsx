@@ -66,12 +66,12 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('en-CA', {
+    return new Intl.NumberFormat('en-CA', {
       style: 'currency',
       currency: 'CAD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    });
+    }).format(amount);
   };
 
   useEffect(() => {
@@ -379,10 +379,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <div>
                   <dt className="text-sm text-muted-foreground">Total Amount</dt>
                   <dd className="text-sm font-medium">
-                    {invoice.total_amount.toLocaleString("en-CA", {
-                      style: "currency",
-                      currency: "CAD",
-                    })}
+                    {formatCurrency(invoice.total_amount)}
                   </dd>
                 </div>
               </dl>

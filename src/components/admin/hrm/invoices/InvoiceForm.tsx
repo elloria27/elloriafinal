@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Form,
@@ -145,12 +144,12 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   }, [invoiceId, form]);
 
   const calculateLineTotal = (quantity: number, unitPrice: number, taxPercentage: number) => {
-    const subtotal = quantity * unitPrice;
-    const taxAmount = subtotal * (taxPercentage / 100);
+    const subtotal = Number((quantity * unitPrice).toFixed(2));
+    const taxAmount = Number(((subtotal * taxPercentage) / 100).toFixed(2));
     return {
       subtotal,
       taxAmount,
-      total: subtotal + taxAmount,
+      total: Number((subtotal + taxAmount).toFixed(2)),
     };
   };
 
@@ -163,9 +162,9 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
           item.taxPercentage
         );
         return {
-          subtotal: acc.subtotal + subtotal,
-          taxAmount: acc.taxAmount + taxAmount,
-          total: acc.total + total,
+          subtotal: Number((acc.subtotal + subtotal).toFixed(2)),
+          taxAmount: Number((acc.taxAmount + taxAmount).toFixed(2)),
+          total: Number((acc.total + total).toFixed(2)),
         };
       },
       { subtotal: 0, taxAmount: 0, total: 0 }
@@ -182,12 +181,12 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
         due_date: format(data.dueDate, "yyyy-MM-dd"),
         status: "pending" as const,
         notes: data.notes,
-        total_amount: Number(totals.total.toFixed(2)),
+        total_amount: totals.total,
         created_by: (await supabase.auth.getUser()).data.user?.id,
         invoice_number: invoiceId ? undefined : generateInvoiceNumber(),
         currency: "CAD",
-        subtotal_amount: Number(totals.subtotal.toFixed(2)),
-        tax_amount: Number(totals.taxAmount.toFixed(2)),
+        subtotal_amount: totals.subtotal,
+        tax_amount: totals.taxAmount,
         payment_instructions: settings?.payment_instructions,
         footer_text: settings?.footer_text,
         company_info: settings?.company_info,
@@ -224,14 +223,21 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
           .eq("invoice_id", invoiceId);
       }
 
-      const lineItems = data.items.map(item => ({
-        invoice_id: invoice.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: Number(item.unitPrice.toFixed(2)),
-        tax_percentage: Number(item.taxPercentage.toFixed(2)),
-        total_price: Number(calculateLineTotal(item.quantity, item.unitPrice, item.taxPercentage).total.toFixed(2)),
-      }));
+      const lineItems = data.items.map(item => {
+        const { subtotal, taxAmount, total } = calculateLineTotal(
+          item.quantity,
+          item.unitPrice,
+          item.taxPercentage
+        );
+        return {
+          invoice_id: invoice.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          tax_percentage: item.taxPercentage,
+          total_price: total,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from("hrm_invoice_items")
