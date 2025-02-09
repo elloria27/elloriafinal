@@ -54,9 +54,10 @@ interface TaskFormProps {
       order_index: number;
     }>;
   };
+  onTaskCreated?: (taskId: string, taskData: z.infer<typeof formSchema>) => Promise<void>;
 }
 
-const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
+const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
   const [admins, setAdmins] = useState<Array<{ id: string; full_name: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [labels, setLabels] = useState(initialData?.labels || []);
@@ -235,6 +236,10 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         if (createError) throw createError;
         if (!newTask) throw new Error("Failed to create task");
         taskId = newTask.id;
+
+        if (onTaskCreated) {
+          await onTaskCreated(taskId, taskData);
+        }
       }
 
       if (labels.length > 0) {

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -37,7 +38,7 @@ interface Task {
   status: TaskStatus;
   profiles?: {
     full_name: string | null;
-  } | null;
+  };
   labels?: Array<{ id: string; name: string; color: string }>;
   subtasks?: Array<{
     id: string;
@@ -216,10 +217,10 @@ const TaskList = () => {
         .from("hrm_tasks")
         .select(`
           *,
-          profiles:assigned_to (
+          profiles:assigned_to(
             full_name
           ),
-          hrm_task_label_assignments!inner (
+          hrm_task_label_assignments(
             hrm_task_labels (
               id,
               name,
@@ -249,7 +250,7 @@ const TaskList = () => {
       if (error) throw error;
       
       if (tasksData) {
-        const formattedTasks = tasksData.map(task => ({
+        const formattedTasks: Task[] = tasksData.map(task => ({
           ...task,
           labels: task.hrm_task_label_assignments?.map(la => ({
             id: la.hrm_task_labels.id,
@@ -401,7 +402,12 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={selectedTask}
+              initialData={{
+                ...selectedTask,
+                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : undefined,
+                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : undefined,
+                start_date: selectedTask.start_date ? new Date(selectedTask.start_date) : undefined,
+              }}
               onSuccess={handleEditSuccess}
               onTaskCreated={handleTaskCreated}
             />
