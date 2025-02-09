@@ -1,89 +1,146 @@
 
 import { useEffect, useState } from "react";
-import { PreviewPane } from "@/components/admin/page-builder/PreviewPane";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentBlock, BlockContent } from "@/types/content-blocks";
-import { Json } from "@/integrations/supabase/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Award, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
+
+interface Certificate {
+  id: string;
+  name: string;
+  issuing_authority: string;
+  certificate_number: string;
+  issue_date: string;
+  expiry_date: string;
+  category: string;
+  image_url?: string;
+  qr_code_url?: string;
+}
 
 export default function Certificates() {
-  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPageContent = async () => {
-      try {
-        // First get the page ID for the certificates page
-        const { data: pageData, error: pageError } = await supabase
-          .from('pages')
-          .select('id')
-          .eq('slug', 'certificates')
-          .single();
-
-        if (pageError) throw pageError;
-
-        if (pageData?.id) {
-          // Then fetch the content blocks for this page
-          const { data: contentBlocks, error: blocksError } = await supabase
-            .from('content_blocks')
-            .select('*')
-            .eq('page_id', pageData.id)
-            .order('order_index');
-
-          if (blocksError) throw blocksError;
-          
-          // Transform the data to ensure content is properly typed
-          const typedBlocks: ContentBlock[] = contentBlocks?.map(block => ({
-            ...block,
-            content: block.content as unknown as BlockContent
-          })) || [];
-          
-          setBlocks(typedBlocks);
-        }
-      } catch (error) {
-        console.error('Error fetching page content:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPageContent();
-
-    // Set up real-time subscription for content updates
-    const subscription = supabase
-      .channel('content_blocks_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'content_blocks'
-        },
-        () => {
-          fetchPageContent();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    fetchCertificates();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  const fetchCertificates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('*')
+        .order('category');
+
+      if (error) throw error;
+
+      setCertificates(data || []);
+    } catch (error) {
+      console.error('Error fetching certificates:', error);
+      toast.error("Failed to load certificates");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading certificates...</div>;
   }
 
   return (
-    <div className="min-h-screen">
-      <PreviewPane 
-        blocks={blocks}
-        onSelectBlock={() => {}}
-        selectedBlockId={null}
-      />
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">Our Certifications</h1>
+        <p className="text-xl text-muted-foreground">
+          Ensuring the highest standards in quality, safety, and compliance
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {certificates.map((certificate) => (
+          <Card 
+            key={certificate.id}
+            className="cursor-pointer transition-all hover:shadow-lg"
+            onClick={() => setSelectedCertificate(certificate)}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-start justify-between gap-4">
+                <span className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-primary" />
+                  {certificate.name}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {certificate.image_url && (
+                <img
+                  src={certificate.image_url}
+                  alt={certificate.name}
+                  className="w-full h-auto rounded-lg mb-4"
+                  loading="lazy"
+                />
+              )}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium">Issuing Authority</p>
+                  <p className="text-sm text-muted-foreground">{certificate.issuing_authority}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Certificate Number</p>
+                  <p className="text-sm text-muted-foreground">{certificate.certificate_number}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Category</p>
+                  <p className="text-sm text-muted-foreground">{certificate.category}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Dialog open={!!selectedCertificate} onOpenChange={() => setSelectedCertificate(null)}>
+        <DialogContent className="max-w-4xl">
+          {selectedCertificate && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">{selectedCertificate.name}</h2>
+              {selectedCertificate.image_url && (
+                <img
+                  src={selectedCertificate.image_url}
+                  alt={selectedCertificate.name}
+                  className="w-full h-auto rounded-lg"
+                  loading="lazy"
+                />
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium">Issuing Authority</p>
+                  <p className="text-muted-foreground">{selectedCertificate.issuing_authority}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Certificate Number</p>
+                  <p className="text-muted-foreground">{selectedCertificate.certificate_number}</p>
+                </div>
+              </div>
+              {selectedCertificate.qr_code_url && (
+                <div className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  <a
+                    href={selectedCertificate.qr_code_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Verify Certificate
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
