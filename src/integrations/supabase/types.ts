@@ -636,6 +636,196 @@ export type Database = {
           },
         ]
       }
+      hrm_customers: {
+        Row: {
+          address: Json | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          tax_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hrm_invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string | null
+          quantity: number
+          tax_percentage: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number
+          tax_percentage?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number
+          tax_percentage?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_invoice_payments: {
+        Row: {
+          amount_paid: number
+          created_at: string | null
+          created_by: string | null
+          id: string
+          invoice_id: string | null
+          payment_date: string
+          payment_method: string
+          status: Database["public"]["Enums"]["payment_status"]
+          transaction_id: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          payment_date?: string
+          payment_method: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          transaction_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          payment_date?: string
+          payment_method?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_invoices: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          currency: string
+          customer_id: string | null
+          due_date: string
+          employee_id: string | null
+          id: string
+          invoice_number: string
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal_amount: number
+          tax_amount: number
+          tax_details: Json | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string
+          customer_id?: string | null
+          due_date: string
+          employee_id?: string | null
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal_amount?: number
+          tax_amount?: number
+          tax_details?: Json | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string
+          customer_id?: string | null
+          due_date?: string
+          employee_id?: string | null
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal_amount?: number
+          tax_amount?: number
+          tax_details?: Json | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_invoices_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hrm_personal_reminders: {
         Row: {
           admin_id: string
@@ -2133,8 +2323,10 @@ export type Database = {
         | "other"
       expense_status: "paid" | "pending"
       flow_intensity: "light" | "medium" | "heavy" | "spotting"
+      invoice_status: "pending" | "paid" | "overdue" | "cancelled"
       page_view_type: "page_view" | "exit"
       payment_method: "cash" | "bank_transfer" | "credit_card"
+      payment_status: "pending" | "completed" | "failed"
       post_status: "draft" | "published"
       promo_code_type: "percentage" | "fixed_amount"
       referral_status: "pending" | "completed"
