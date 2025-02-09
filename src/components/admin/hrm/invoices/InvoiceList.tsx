@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -11,9 +11,52 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  customer_id: string;
+  due_date: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  customer: {
+    name: string;
+  };
+}
 
 const InvoiceList = () => {
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("hrm_invoices")
+          .select(`
+            *,
+            customer:hrm_customers(name)
+          `)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setInvoices(data || []);
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+        toast.error("Failed to load invoices");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -39,7 +82,15 @@ const InvoiceList = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invoices.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : invoices.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
                   No invoices found
@@ -49,7 +100,7 @@ const InvoiceList = () => {
               invoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell>{invoice.invoice_number}</TableCell>
-                  <TableCell>{invoice.customer_name}</TableCell>
+                  <TableCell>{invoice.customer?.name}</TableCell>
                   <TableCell>
                     {format(new Date(invoice.created_at), "PP")}
                   </TableCell>
@@ -62,7 +113,19 @@ const InvoiceList = () => {
                       currency: "CAD",
                     })}
                   </TableCell>
-                  <TableCell>{invoice.status}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        invoice.status === "paid"
+                          ? "bg-green-100 text-green-800"
+                          : invoice.status === "overdue"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm">
                       View
