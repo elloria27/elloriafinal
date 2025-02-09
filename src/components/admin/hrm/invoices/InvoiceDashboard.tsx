@@ -19,6 +19,14 @@ interface DashboardStats {
   overdueCount: number;
 }
 
+type InvoiceStatus = 'paid' | 'pending' | 'overdue';
+
+interface Invoice {
+  status: InvoiceStatus;
+  total_amount: number;
+  due_date: string;
+}
+
 const InvoiceDashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalInvoices: 0,
@@ -42,7 +50,7 @@ const InvoiceDashboard = () => {
 
         const currentDate = new Date();
         const stats = (invoices || []).reduce(
-          (acc, invoice) => {
+          (acc, invoice: Invoice) => {
             acc.totalInvoices++;
             
             if (invoice.status === "paid") {
