@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,20 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface ChecklistItem {
-  id: string;
-  content: string;
-  completed: boolean;
-  order_index: number;
-}
-
-interface Checklist {
-  id: string;
-  title: string;
-  items: ChecklistItem[];
-  order_index: number;
-}
+import type { Checklist, ChecklistItem } from "@/types/hrm";
 
 interface TaskChecklistProps {
   taskId: string;

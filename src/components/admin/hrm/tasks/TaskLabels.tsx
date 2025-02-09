@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,12 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-}
+import type { Label } from "@/types/hrm";
 
 interface TaskLabelsProps {
   taskId: string;
