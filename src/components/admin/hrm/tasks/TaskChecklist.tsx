@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Checklist, ChecklistItem } from "@/types/hrm";
@@ -123,57 +123,61 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2">Checklists</h3>
-      {checklists.map((checklist) => (
-        <div key={checklist.id} className="space-y-2 bg-white/50 p-4 rounded-lg">
-          <h4 className="font-medium">{checklist.title}</h4>
-          <div className="space-y-2">
-            {checklist.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-2">
-                <Checkbox
-                  checked={item.completed}
-                  onCheckedChange={(checked) => 
-                    toggleItem(checklist.id, item.id, checked as boolean)
-                  }
-                  className="h-5 w-5"
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Checklists</h3>
+      </div>
+      <div className="space-y-6">
+        {checklists.map((checklist) => (
+          <div key={checklist.id} className="bg-white/80 p-4 rounded-xl shadow-sm">
+            <h4 className="font-medium mb-3">{checklist.title}</h4>
+            <div className="space-y-3">
+              {checklist.items.map((item) => (
+                <div key={item.id} className="flex items-center gap-3">
+                  <Checkbox
+                    checked={item.completed}
+                    onCheckedChange={(checked) => 
+                      toggleItem(checklist.id, item.id, checked as boolean)
+                    }
+                    className="h-5 w-5"
+                  />
+                  <span className={`flex-1 ${item.completed ? "line-through text-gray-500" : ""}`}>
+                    {item.content}
+                  </span>
+                </div>
+              ))}
+              <div className="flex gap-2 mt-3">
+                <Input
+                  placeholder="Add new item"
+                  value={newItemContent}
+                  onChange={(e) => setNewItemContent(e.target.value)}
+                  className="rounded-full h-12 bg-white/50"
                 />
-                <span className={`flex-1 ${item.completed ? "line-through text-gray-500" : ""}`}>
-                  {item.content}
-                </span>
+                <Button
+                  onClick={() => addChecklistItem(checklist.id)}
+                  disabled={!newItemContent || loading}
+                  className="rounded-full w-12 h-12 p-0 bg-blue-400 hover:bg-blue-500 text-white flex-shrink-0"
+                >
+                  <Plus className="h-6 w-6" />
+                </Button>
               </div>
-            ))}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add new item"
-                value={newItemContent}
-                onChange={(e) => setNewItemContent(e.target.value)}
-                className="rounded-full bg-white/50"
-              />
-              <Button
-                onClick={() => addChecklistItem(checklist.id)}
-                disabled={!newItemContent || loading}
-                className="rounded-full bg-blue-400 hover:bg-blue-500 text-white"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
             </div>
           </div>
-        </div>
-      ))}
-      <div className="flex gap-2">
+        ))}
+      </div>
+      <div className="flex gap-2 mt-4">
         <Input
           placeholder="New checklist title"
           value={newChecklistTitle}
           onChange={(e) => setNewChecklistTitle(e.target.value)}
-          className="rounded-full bg-white/50"
+          className="rounded-full h-12 bg-white/80"
         />
         <Button
           onClick={createChecklist}
           disabled={!newChecklistTitle || loading}
-          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6"
+          className="rounded-full w-12 h-12 p-0 bg-blue-400 hover:bg-blue-500 text-white flex-shrink-0"
         >
-          Add Checklist
+          <Plus className="h-6 w-6" />
         </Button>
       </div>
     </div>

@@ -87,11 +87,13 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2">Subtasks</h3>
-      <div className="space-y-2">
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Subtasks</h3>
+      </div>
+      <div className="space-y-3">
         {subtasks.map((subtask) => (
-          <div key={subtask.id} className="flex items-center gap-2 bg-white/50 p-2 rounded-lg">
+          <div key={subtask.id} className="flex items-center gap-3 bg-white/80 p-4 rounded-xl shadow-sm">
             <Checkbox
               checked={subtask.completed}
               onCheckedChange={(checked) => 
@@ -106,27 +108,26 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
               variant="ghost"
               size="sm"
               onClick={() => deleteSubtask(subtask.id)}
-              className="h-8 w-8 p-0"
+              className="h-10 w-10 p-0"
             >
-              <Trash className="h-4 w-4" />
+              <Trash className="h-5 w-5" />
             </Button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-4">
         <Input
           placeholder="New subtask"
           value={newSubtaskTitle}
           onChange={(e) => setNewSubtaskTitle(e.target.value)}
-          className="rounded-full bg-white/50"
+          className="rounded-full h-12 bg-white/80"
         />
         <Button
           onClick={createSubtask}
           disabled={!newSubtaskTitle || loading}
-          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6"
+          className="rounded-full w-12 h-12 p-0 bg-blue-400 hover:bg-blue-500 text-white flex-shrink-0"
         >
-          <Plus className="h-5 w-5" />
-          Add Subtask
+          <Plus className="h-6 w-6" />
         </Button>
       </div>
     </div>
