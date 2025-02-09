@@ -43,9 +43,18 @@ const TaskForm = ({ onSuccess }: TaskFormProps) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error("No user found");
+
       const { error } = await supabase.from("hrm_tasks").insert({
-        ...values,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
+        title: values.title,
+        description: values.description,
+        assigned_to: values.assigned_to,
+        created_by: user.id,
+        due_date: values.due_date,
+        priority: values.priority,
+        category: values.category,
+        status: "todo"
       });
 
       if (error) throw error;

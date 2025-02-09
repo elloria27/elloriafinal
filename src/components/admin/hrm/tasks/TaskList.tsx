@@ -45,7 +45,9 @@ const TaskList = () => {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setTasks(data || []);
+        if (data) {
+          setTasks(data as Task[]);
+        }
       } catch (error: any) {
         toast.error("Error fetching tasks: " + error.message);
       } finally {
