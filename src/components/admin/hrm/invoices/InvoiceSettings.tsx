@@ -26,15 +26,20 @@ const InvoiceSettings = () => {
       const { data, error } = await supabase
         .from("hrm_invoice_settings")
         .select("*")
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
       if (data) {
         const formattedData: InvoiceSettings = {
           ...data,
-          company_info: data.company_info as InvoiceSettings['company_info']
+          company_info: typeof data.company_info === 'string' 
+            ? JSON.parse(data.company_info)
+            : data.company_info
         };
         form.reset(formattedData);
+      } else {
+        toast.error("No invoice settings found. Please try refreshing the page.");
       }
     } catch (error) {
       console.error("Error fetching invoice settings:", error);
