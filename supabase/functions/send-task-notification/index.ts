@@ -69,6 +69,23 @@ serve(async (req) => {
       throw new Error("Could not find admin email");
     }
 
+    // Create notification record
+    const { error: notificationError } = await supabase
+      .from('hrm_task_notifications')
+      .insert({
+        task_id: taskId,
+        user_id: assignedTo,
+        notification_type: 'assigned',
+        message: `You have been assigned a new task: ${taskTitle}`,
+        email_sent: false
+      });
+
+    if (notificationError) {
+      console.error("Error creating notification:", notificationError);
+      throw new Error("Failed to create notification");
+    }
+
+    // Send email
     const emailResponse = await resend.emails.send({
       from: "Task Manager <onboarding@resend.dev>",
       to: [adminProfile.email],
@@ -89,6 +106,20 @@ serve(async (req) => {
         <p>Please log in to the system to view the complete task details and start working on it.</p>
       `,
     });
+
+    // Update notification record to mark email as sent
+    if (emailResponse) {
+      const { error: updateError } = await supabase
+        .from('hrm_task_notifications')
+        .update({ email_sent: true })
+        .eq('task_id', taskId)
+        .eq('user_id', assignedTo)
+        .eq('notification_type', 'assigned');
+
+      if (updateError) {
+        console.error("Error updating notification:", updateError);
+      }
+    }
 
     console.log("Task notification email sent successfully:", emailResponse);
 

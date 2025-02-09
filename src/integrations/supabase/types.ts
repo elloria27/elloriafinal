@@ -945,6 +945,50 @@ export type Database = {
         }
         Relationships: []
       }
+      hrm_task_notifications: {
+        Row: {
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: Database["public"]["Enums"]["task_notification_type"]
+          task_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: Database["public"]["Enums"]["task_notification_type"]
+          task_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: Database["public"]["Enums"]["task_notification_type"]
+          task_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_task_notifications_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hrm_tasks: {
         Row: {
           actual_hours: number | null
@@ -2105,6 +2149,7 @@ export type Database = {
         | "sustainability_cta"
       symptom_severity: "light" | "medium" | "severe"
       task_category: "hr" | "finance" | "operations" | "other"
+      task_notification_type: "assigned" | "updated" | "completed" | "comment"
       task_priority: "low" | "medium" | "high"
       task_status: "todo" | "in_progress" | "completed" | "on_hold"
       user_role: "admin" | "client"
