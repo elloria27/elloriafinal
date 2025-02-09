@@ -87,50 +87,47 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
   };
 
   return (
-    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-      <h3 className="text-lg font-semibold mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">Subtasks</h3>
-      <div className="flex-1 overflow-y-auto px-2">
-        <div className="space-y-2">
-          {subtasks.map((subtask) => (
-            <div key={subtask.id} className="flex items-center gap-2 bg-white/50 p-3 rounded-lg shadow-sm">
-              <Checkbox
-                checked={subtask.completed}
-                onCheckedChange={(checked) => 
-                  toggleSubtask(subtask.id, checked as boolean)
-                }
-                className="h-5 w-5"
-              />
-              <span className={`flex-1 ${subtask.completed ? "line-through text-gray-500" : ""} break-words`}>
-                {subtask.title}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteSubtask(subtask.id)}
-                className="h-8 w-8 p-0 shrink-0"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-2">Subtasks</h3>
+      <div className="space-y-2">
+        {subtasks.map((subtask) => (
+          <div key={subtask.id} className="flex items-center gap-2 bg-white/50 p-2 rounded-lg">
+            <Checkbox
+              checked={subtask.completed}
+              onCheckedChange={(checked) => 
+                toggleSubtask(subtask.id, checked as boolean)
+              }
+              className="h-5 w-5"
+            />
+            <span className={`flex-1 ${subtask.completed ? "line-through text-gray-500" : ""}`}>
+              {subtask.title}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteSubtask(subtask.id)}
+              className="h-8 w-8 p-0"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
       </div>
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm py-2 px-2 mt-2">
-        <div className="flex gap-2">
-          <Input
-            placeholder="New subtask"
-            value={newSubtaskTitle}
-            onChange={(e) => setNewSubtaskTitle(e.target.value)}
-            className="rounded-full bg-white/50"
-          />
-          <Button
-            onClick={createSubtask}
-            disabled={!newSubtaskTitle || loading}
-            className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6 shrink-0"
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-        </div>
+      <div className="flex gap-2">
+        <Input
+          placeholder="New subtask"
+          value={newSubtaskTitle}
+          onChange={(e) => setNewSubtaskTitle(e.target.value)}
+          className="rounded-full bg-white/50"
+        />
+        <Button
+          onClick={createSubtask}
+          disabled={!newSubtaskTitle || loading}
+          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6"
+        >
+          <Plus className="h-5 w-5" />
+          Add Subtask
+        </Button>
       </div>
     </div>
   );

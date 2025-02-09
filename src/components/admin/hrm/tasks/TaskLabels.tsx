@@ -81,67 +81,66 @@ const TaskLabels = ({ taskId, selectedLabels, onLabelsChange }: TaskLabelsProps)
   };
 
   return (
-    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-      <h3 className="text-lg font-semibold mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">Labels</h3>
-      <div className="flex-1 overflow-y-auto px-2">
-        <div className="flex flex-wrap gap-2">
-          {selectedLabels.map((label) => (
-            <Badge
-              key={label.id}
-              style={{ backgroundColor: label.color, color: "white" }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm"
+    <div className="space-y-2">
+      <h3 className="text-lg font-semibold mb-2">Labels</h3>
+      <div className="flex flex-wrap gap-2">
+        {selectedLabels.map((label) => (
+          <Badge
+            key={label.id}
+            style={{ backgroundColor: label.color, color: "white" }}
+            className="flex items-center gap-1 px-3 py-1 rounded-full"
+          >
+            {label.name}
+            <X
+              className="h-3 w-3 cursor-pointer ml-1"
+              onClick={() => removeLabel(label.id)}
+            />
+          </Badge>
+        ))}
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-full px-4 py-2 h-auto bg-white/50"
             >
-              {label.name}
-              <X
-                className="h-3 w-3 cursor-pointer ml-1"
-                onClick={() => removeLabel(label.id)}
-              />
-            </Badge>
-          ))}
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="rounded-full px-4 py-2 h-auto bg-white/50"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md mx-4">
-              <DialogHeader>
-                <DialogTitle>Create New Label</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 p-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Label Name</label>
-                  <Input
-                    value={newLabelName}
-                    onChange={(e) => setNewLabelName(e.target.value)}
-                    placeholder="Enter label name"
-                    className="rounded-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Color</label>
-                  <Input
-                    type="color"
-                    value={newLabelColor}
-                    onChange={(e) => setNewLabelColor(e.target.value)}
-                    className="h-10"
-                  />
-                </div>
-                <Button
-                  onClick={createLabel}
-                  disabled={!newLabelName || loading}
-                  className="w-full rounded-full bg-blue-400 hover:bg-blue-500 text-white"
-                >
-                  {loading ? "Creating..." : "Create Label"}
-                </Button>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Label
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create New Label</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 p-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Label Name</label>
+                <Input
+                  value={newLabelName}
+                  onChange={(e) => setNewLabelName(e.target.value)}
+                  placeholder="Enter label name"
+                  className="rounded-full"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Color</label>
+                <Input
+                  type="color"
+                  value={newLabelColor}
+                  onChange={(e) => setNewLabelColor(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              <Button
+                onClick={createLabel}
+                disabled={!newLabelName || loading}
+                className="w-full rounded-full bg-blue-400 hover:bg-blue-500 text-white"
+              >
+                {loading ? "Creating..." : "Create Label"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
