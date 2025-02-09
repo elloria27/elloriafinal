@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -33,9 +32,13 @@ interface Task {
   assigned_to: string;
   due_date: string | null;
   completion_date: string | null;
+  start_date: string | null;
   priority: TaskPriority;
   category: TaskCategory;
   status: TaskStatus;
+  estimated_hours?: number;
+  actual_hours?: number;
+  created_by: string;
   profiles?: {
     full_name: string | null;
   };
@@ -272,20 +275,6 @@ const TaskList = () => {
     }
   };
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const handleEdit = () => {
-    setIsViewModalOpen(false);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSuccess = () => {
-    setIsEditModalOpen(false);
-    fetchTasks();
-  };
-
   const handleTaskCreated = async (taskId: string, taskData: any) => {
     try {
       const { error } = await supabase.functions.invoke("send-task-notification", {
@@ -308,6 +297,20 @@ const TaskList = () => {
       console.error("Error invoking function:", error);
       toast.error("Failed to send task notification");
     }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleEdit = () => {
+    setIsViewModalOpen(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditModalOpen(false);
+    fetchTasks();
   };
 
   if (loading) {

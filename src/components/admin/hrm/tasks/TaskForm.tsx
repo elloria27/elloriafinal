@@ -23,12 +23,12 @@ const formSchema = z.object({
   assigned_to: z.string().uuid("Invalid user selected"),
   due_date: z.date().optional(),
   completion_date: z.date().optional(),
+  start_date: z.date().optional(),
   priority: z.enum(["low", "medium", "high"]),
   category: z.enum(["hr", "finance", "operations", "other"]),
   status: z.enum(["todo", "in_progress", "completed", "on_hold"]).default("todo"),
   estimated_hours: z.number().min(0).optional(),
   actual_hours: z.number().min(0).optional(),
-  start_date: z.date().optional(),
 });
 
 interface TaskFormProps {
@@ -174,12 +174,12 @@ const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
         created_by: user.id,
         due_date: values.due_date?.toISOString() || null,
         completion_date: values.completion_date?.toISOString() || null,
+        start_date: values.start_date?.toISOString() || null,
         priority: values.priority,
         category: values.category,
         status: values.status,
         estimated_hours: values.estimated_hours || null,
         actual_hours: values.actual_hours || null,
-        start_date: values.start_date?.toISOString() || null,
       };
 
       let taskId: string;
@@ -238,7 +238,7 @@ const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
         taskId = newTask.id;
 
         if (onTaskCreated) {
-          await onTaskCreated(taskId, taskData);
+          await onTaskCreated(taskId, values);
         }
       }
 
@@ -324,10 +324,9 @@ const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
           <FormLabel>{label}</FormLabel>
           <FormControl>
             <DatePicker
-              selected={field.value ? new Date(field.value) : null}
-              onChange={(date) => {
+              selected={field.value}
+              onChange={(date: Date | null) => {
                 field.onChange(date);
-                form.setValue(name, date as Date);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               dateFormat="MMMM d, yyyy"
