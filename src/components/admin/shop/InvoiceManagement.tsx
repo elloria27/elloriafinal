@@ -10,7 +10,7 @@ const InvoiceManagement = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ReceiptText className="h-6 w-6" />
-          <h1 className="text-2xl font-semibold">Invoice Management</h1>
+          <h1 className="text-2xl font-semibold">Invoices</h1>
         </div>
       </div>
 
@@ -30,7 +30,7 @@ const InvoiceManagement = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  The invoice management system is currently under development. Soon, you'll be able to:
+                  The invoice system is currently under development. Soon, you'll be able to:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                   <li>View and manage all invoices in one place</li>
