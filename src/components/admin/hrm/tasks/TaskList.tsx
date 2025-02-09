@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -259,8 +258,9 @@ const TaskList = () => {
             ...checklist,
             items: checklist.hrm_checklist_items || []
           })),
-          // Ensure profiles is properly typed
-          profiles: task.profiles || null
+          profiles: task.profiles ? {
+            full_name: task.profiles.full_name || null
+          } : null
         }));
         setTasks(formattedTasks);
       }
@@ -377,12 +377,7 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={{
-                ...selectedTask,
-                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : null,
-                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : null,
-                start_date: selectedTask.start_date ? new Date(selectedTask.start_date) : null,
-              }}
+              initialData={selectedTask}
               onSuccess={handleEditSuccess}
             />
           )}
