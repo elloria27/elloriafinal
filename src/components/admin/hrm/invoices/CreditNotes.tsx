@@ -33,7 +33,7 @@ const CreditNotes = () => {
         .from("hrm_credit_notes")
         .select(`
           *,
-          customer:hrm_customers(name),
+          customer:hrm_customers(name, email),
           invoice:hrm_invoices(invoice_number)
         `)
         .order("created_at", { ascending: false });
@@ -44,6 +44,13 @@ const CreditNotes = () => {
       const transformedData = data?.map(note => ({
         ...note,
         status: note.status as 'issued' | 'applied' | 'void',
+        customer: note.customer ? {
+          name: note.customer.name,
+          email: note.customer.email || ''
+        } : undefined,
+        invoice: note.invoice ? {
+          invoice_number: note.invoice.invoice_number
+        } : undefined
       })) || [];
       
       setCreditNotes(transformedData);

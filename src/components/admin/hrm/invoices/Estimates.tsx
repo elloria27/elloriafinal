@@ -33,7 +33,7 @@ const Estimates = () => {
         .from("hrm_estimates")
         .select(`
           *,
-          customer:hrm_customers(name)
+          customer:hrm_customers(name, email)
         `)
         .order("created_at", { ascending: false });
 
@@ -43,6 +43,10 @@ const Estimates = () => {
       const transformedData = data?.map(estimate => ({
         ...estimate,
         status: estimate.status as 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired',
+        customer: estimate.customer ? {
+          name: estimate.customer.name,
+          email: estimate.customer.email || ''
+        } : undefined
       })) || [];
       
       setEstimates(transformedData);

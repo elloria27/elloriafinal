@@ -30,7 +30,11 @@ const InvoiceSettings = () => {
 
       if (error) throw error;
       if (data) {
-        form.reset(data);
+        const formattedData: InvoiceSettings = {
+          ...data,
+          company_info: data.company_info as InvoiceSettings['company_info']
+        };
+        form.reset(formattedData);
       }
     } catch (error) {
       console.error("Error fetching invoice settings:", error);

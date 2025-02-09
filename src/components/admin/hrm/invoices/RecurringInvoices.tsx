@@ -33,7 +33,7 @@ const RecurringInvoices = () => {
         .from("hrm_recurring_invoices")
         .select(`
           *,
-          customer:hrm_customers(name)
+          customer:hrm_customers(name, email)
         `)
         .order("created_at", { ascending: false });
 
@@ -43,6 +43,10 @@ const RecurringInvoices = () => {
       const transformedData = data?.map(invoice => ({
         ...invoice,
         frequency: invoice.frequency as 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+        customer: invoice.customer ? {
+          name: invoice.customer.name,
+          email: invoice.customer.email || ''
+        } : undefined
       })) || [];
       
       setInvoices(transformedData);
