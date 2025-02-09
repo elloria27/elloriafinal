@@ -112,6 +112,7 @@ const Admin = () => {
   }
 
   const renderContent = () => {
+    console.log("Current tab:", currentTab); // Debug log
     switch (currentTab) {
       case "dashboard":
         return <Dashboard />;
@@ -161,7 +162,7 @@ const Admin = () => {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-4" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-80">
