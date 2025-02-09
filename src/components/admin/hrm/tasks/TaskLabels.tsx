@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Label, TaskLabel, TaskLabelAssignment } from "@/types/hrm";
+import type { Label } from "@/types/hrm";
 
 interface TaskLabelsProps {
   taskId: string;
@@ -82,52 +82,59 @@ const TaskLabels = ({ taskId, selectedLabels, onLabelsChange }: TaskLabelsProps)
 
   return (
     <div className="space-y-2">
+      <h3 className="text-lg font-semibold mb-2">Labels</h3>
       <div className="flex flex-wrap gap-2">
         {selectedLabels.map((label) => (
           <Badge
             key={label.id}
             style={{ backgroundColor: label.color, color: "white" }}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 px-3 py-1 rounded-full"
           >
             {label.name}
             <X
-              className="h-3 w-3 cursor-pointer"
+              className="h-3 w-3 cursor-pointer ml-1"
               onClick={() => removeLabel(label.id)}
             />
           </Badge>
         ))}
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="h-6">
-              <Plus className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-full px-4 py-2 h-auto bg-white/50"
+            >
+              <Plus className="h-4 w-4 mr-1" />
               Add Label
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Label</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               <div className="space-y-2">
-                <label>Label Name</label>
+                <label className="text-sm font-medium">Label Name</label>
                 <Input
                   value={newLabelName}
                   onChange={(e) => setNewLabelName(e.target.value)}
                   placeholder="Enter label name"
+                  className="rounded-full"
                 />
               </div>
               <div className="space-y-2">
-                <label>Color</label>
+                <label className="text-sm font-medium">Color</label>
                 <Input
                   type="color"
                   value={newLabelColor}
                   onChange={(e) => setNewLabelColor(e.target.value)}
+                  className="h-10"
                 />
               </div>
               <Button
                 onClick={createLabel}
                 disabled={!newLabelName || loading}
-                className="w-full"
+                className="w-full rounded-full bg-blue-400 hover:bg-blue-500 text-white"
               >
                 {loading ? "Creating..." : "Create Label"}
               </Button>

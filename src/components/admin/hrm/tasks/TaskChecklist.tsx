@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Checklist, ChecklistItem, TaskChecklist, ChecklistItemDB } from "@/types/hrm";
+import type { Checklist, ChecklistItem } from "@/types/hrm";
 
 interface TaskChecklistProps {
   taskId: string;
@@ -124,8 +124,9 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
 
   return (
     <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-2">Checklists</h3>
       {checklists.map((checklist) => (
-        <div key={checklist.id} className="space-y-2">
+        <div key={checklist.id} className="space-y-2 bg-white/50 p-4 rounded-lg">
           <h4 className="font-medium">{checklist.title}</h4>
           <div className="space-y-2">
             {checklist.items.map((item) => (
@@ -135,8 +136,9 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
                   onCheckedChange={(checked) => 
                     toggleItem(checklist.id, item.id, checked as boolean)
                   }
+                  className="h-5 w-5"
                 />
-                <span className={item.completed ? "line-through text-gray-500" : ""}>
+                <span className={`flex-1 ${item.completed ? "line-through text-gray-500" : ""}`}>
                   {item.content}
                 </span>
               </div>
@@ -146,10 +148,12 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
                 placeholder="Add new item"
                 value={newItemContent}
                 onChange={(e) => setNewItemContent(e.target.value)}
+                className="rounded-full bg-white/50"
               />
               <Button
                 onClick={() => addChecklistItem(checklist.id)}
                 disabled={!newItemContent || loading}
+                className="rounded-full bg-blue-400 hover:bg-blue-500 text-white"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -162,10 +166,12 @@ const TaskChecklist = ({ taskId, checklists, onChecklistsChange }: TaskChecklist
           placeholder="New checklist title"
           value={newChecklistTitle}
           onChange={(e) => setNewChecklistTitle(e.target.value)}
+          className="rounded-full bg-white/50"
         />
         <Button
           onClick={createChecklist}
           disabled={!newChecklistTitle || loading}
+          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6"
         >
           Add Checklist
         </Button>
