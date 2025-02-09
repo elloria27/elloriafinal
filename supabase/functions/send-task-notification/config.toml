@@ -5,7 +5,7 @@ project_id = "euexcsqvsbkxiwdieepu"
 endpoint = "https://euexcsqvsbkxiwdieepu.supabase.co/functions/v1/send-task-notification"
 
 [auth]
-enabled = false
+enabled = true
 
 [functions.send-task-notification]
 verify_jwt = true

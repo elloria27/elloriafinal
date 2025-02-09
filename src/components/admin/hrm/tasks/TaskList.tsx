@@ -279,6 +279,11 @@ const TaskList = () => {
 
   const handleTaskCreated = async (taskId: string, taskData: any) => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("No active session");
+      }
+
       const { error } = await supabase.functions.invoke("send-task-notification", {
         body: {
           taskId,
