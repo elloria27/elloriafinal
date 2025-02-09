@@ -26,41 +26,52 @@ serve(async (req) => {
     const { invoiceId, recipientEmail } = await req.json();
     console.log('Sending invoice email:', { invoiceId, recipientEmail });
 
-    // Fetch invoice details
+    // First generate the PDF
+    const { data: pdfResponse, error: pdfError } = await supabaseClient.functions.invoke('generate-invoice', {
+      body: { invoiceId }
+    });
+
+    if (pdfError) throw pdfError;
+
+    // Convert base64 PDF to Buffer
+    const pdfContent = pdfResponse.pdf.split(',')[1];
+    const pdfBuffer = Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0));
+
+    // Fetch invoice details for email template
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from('hrm_invoices')
       .select(`
         *,
-        customer:hrm_customers(*)
+        hrm_customers:customer_id(*)
       `)
       .eq('id', invoiceId)
       .single();
 
     if (invoiceError) throw invoiceError;
 
-    // Generate download URL (you'll need to implement this based on your storage setup)
-    const downloadUrl = `${Deno.env.get('PUBLIC_SITE_URL')}/invoices/${invoice.id}`;
-
     // Render email template
     const html = await renderAsync(
       React.createElement(InvoiceEmail, {
         invoiceNumber: invoice.invoice_number,
-        customerName: invoice.customer.name,
+        customerName: invoice.hrm_customers.name,
         amount: invoice.total_amount.toLocaleString('en-CA', {
           style: 'currency',
           currency: 'CAD'
         }),
-        dueDate: new Date(invoice.due_date).toLocaleDateString(),
-        downloadUrl
+        dueDate: new Date(invoice.due_date).toLocaleDateString()
       })
     );
 
-    // Send email
+    // Send email with PDF attachment
     const { data: emailResult, error: emailError } = await resend.emails.send({
       from: 'Elloria Eco Products <invoicing@elloria.ca>',
       to: recipientEmail,
       subject: `Invoice #${invoice.invoice_number} from Elloria Eco Products`,
       html,
+      attachments: [{
+        filename: `invoice-${invoice.invoice_number}.pdf`,
+        content: pdfBuffer
+      }]
     });
 
     if (emailError) throw emailError;
@@ -87,6 +98,8 @@ serve(async (req) => {
       .eq('id', invoiceId);
 
     if (updateError) throw updateError;
+
+    console.log('Email sent successfully:', emailResult);
 
     return new Response(
       JSON.stringify({ success: true, data: emailResult }),

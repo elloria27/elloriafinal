@@ -5,9 +5,11 @@ import {
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Text,
+  Section,
+  Button,
+  Hr,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
 
@@ -16,7 +18,6 @@ interface InvoiceEmailProps {
   customerName: string;
   amount: string;
   dueDate: string;
-  downloadUrl: string;
 }
 
 export const InvoiceEmail = ({
@@ -24,33 +25,40 @@ export const InvoiceEmail = ({
   customerName,
   amount,
   dueDate,
-  downloadUrl,
 }: InvoiceEmailProps) => (
   <Html>
     <Head />
     <Preview>Invoice #{invoiceNumber} from Elloria Eco Products</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Invoice #{invoiceNumber}</Heading>
-        <Text style={text}>Dear {customerName},</Text>
-        <Text style={text}>
-          Please find attached your invoice #{invoiceNumber} for {amount}, due on {dueDate}.
-        </Text>
-        <Link
-          href={downloadUrl}
-          target="_blank"
-          style={{
-            ...link,
-            display: 'block',
-            marginBottom: '16px',
-          }}
-        >
-          View Invoice
-        </Link>
-        <Text style={footer}>
-          Thank you for your business!<br />
-          Elloria Eco Products LTD.
-        </Text>
+        <Section style={logoContainer}>
+          <Heading style={h1}>Elloria Eco Products</Heading>
+        </Section>
+        
+        <Section style={section}>
+          <Text style={greeting}>Dear {customerName},</Text>
+          <Text style={text}>
+            Please find attached your invoice #{invoiceNumber} for {amount}, due on {dueDate}.
+          </Text>
+          
+          <Text style={text}>
+            This invoice has been attached to this email as a PDF file for your records.
+          </Text>
+        </Section>
+        
+        <Hr style={hr} />
+        
+        <Section style={footer}>
+          <Text style={footerText}>
+            Elloria Eco Products LTD.<br />
+            229 Dowling Ave W, Winnipeg, MB R3B 2B9<br />
+            (204) 930-2019<br />
+            sales@elloria.ca
+          </Text>
+          <Text style={footerText}>
+            GST Number: 742031420RT0001
+          </Text>
+        </Section>
       </Container>
     </Body>
   </Html>
@@ -59,39 +67,66 @@ export const InvoiceEmail = ({
 export default InvoiceEmail
 
 const main = {
-  backgroundColor: '#ffffff',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+  backgroundColor: '#f6f9fc',
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 }
 
 const container = {
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '40px 0',
+  width: '560px',
+}
+
+const logoContainer = {
+  padding: '25px',
+  backgroundColor: '#ffffff',
+  borderRadius: '5px 5px 0 0',
+  borderBottom: '1px solid #e6ebf1',
+}
+
+const section = {
+  backgroundColor: '#ffffff',
+  padding: '25px',
 }
 
 const h1 = {
-  color: '#1a1a1a',
+  color: '#484848',
   fontSize: '24px',
   fontWeight: '600',
   lineHeight: '1.4',
+  margin: '0',
+  textAlign: 'center' as const,
+}
+
+const greeting = {
+  color: '#484848',
+  fontSize: '18px',
+  lineHeight: '1.6',
   margin: '16px 0',
 }
 
 const text = {
-  color: '#333',
+  color: '#484848',
   fontSize: '16px',
   lineHeight: '1.6',
   margin: '16px 0',
 }
 
-const link = {
-  color: '#2563eb',
-  fontSize: '16px',
-  textDecoration: 'underline',
+const hr = {
+  borderColor: '#e6ebf1',
+  margin: '0',
 }
 
 const footer = {
-  color: '#898989',
+  backgroundColor: '#ffffff',
+  borderRadius: '0 0 5px 5px',
+  padding: '25px',
+}
+
+const footerText = {
+  color: '#777',
   fontSize: '14px',
-  lineHeight: '22px',
-  margin: '48px 0 24px',
+  lineHeight: '1.5',
+  textAlign: 'center' as const,
+  margin: '8px 0',
 }
