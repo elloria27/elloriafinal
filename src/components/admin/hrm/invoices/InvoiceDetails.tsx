@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -227,10 +228,12 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDownload = async (invoiceId: string) => {
+  const handleDownload = async () => {
+    if (!invoice?.id) return;
+    
     try {
       const { data, error } = await supabase.functions.invoke('generate-invoice', {
-        body: { invoiceId }
+        body: { invoiceId: invoice.id }
       });
 
       if (error) throw error;
@@ -243,7 +246,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `invoice-${invoice?.invoice_number}.pdf`);
+      link.setAttribute('download', `invoice-${invoice.invoice_number}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -533,3 +536,4 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
 };
 
 export default InvoiceDetails;
+
