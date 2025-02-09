@@ -111,10 +111,10 @@ const Admin = () => {
     return null;
   }
 
-  console.log("Current tab:", currentTab); // Debug log
+  console.log("Current tab:", currentTab);
 
   const renderContent = () => {
-    console.log("Rendering content for tab:", currentTab); // Additional debug log
+    console.log("Rendering content for tab:", currentTab);
     switch (currentTab) {
       case "dashboard":
         return <Dashboard />;
