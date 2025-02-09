@@ -111,9 +111,10 @@ const Admin = () => {
     return null;
   }
 
-  console.log("Current tab:", currentTab); // Add this log to debug
+  console.log("Current tab:", currentTab); // Debug log
 
   const renderContent = () => {
+    console.log("Rendering content for tab:", currentTab); // Additional debug log
     switch (currentTab) {
       case "dashboard":
         return <Dashboard />;
@@ -153,7 +154,7 @@ const Admin = () => {
         console.log("Rendering InvoiceManagement component");
         return <InvoiceManagement />;
       default:
-        console.log("Default case - rendering Dashboard");
+        console.log("Default case - rendering Dashboard for tab:", currentTab);
         return <Dashboard />;
     }
   };
@@ -191,4 +192,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
