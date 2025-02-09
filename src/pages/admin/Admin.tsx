@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,16 +15,13 @@ import { DeliveryMethodManagement } from "@/components/admin/shop/DeliveryMethod
 import { DonationManagement } from "@/components/admin/DonationManagement";
 import { InventoryManagement } from "@/components/admin/shop/InventoryManagement";
 import PersonalReminders from "@/components/admin/reminders/PersonalReminders";
-import Dashboard from "@/pages/admin/Dashboard";
-import SiteSettings from "@/pages/admin/SiteSettings";
+import Dashboard from "./Dashboard";
+import SiteSettings from "./SiteSettings";
 import { AdminSidebar } from "@/components/admin/sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, Package, Users, FileText, ShoppingCart, Settings, FolderIcon, Tag, CreditCard, Truck, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
-import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
-import InvoiceManagement from "@/components/admin/hrm/invoices/InvoiceManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -112,7 +108,6 @@ const Admin = () => {
   }
 
   const renderContent = () => {
-    console.log("Current tab:", currentTab); // Debug log
     switch (currentTab) {
       case "dashboard":
         return <Dashboard />;
@@ -144,12 +139,6 @@ const Admin = () => {
         return <InventoryManagement />;
       case "personal-reminders":
         return <PersonalReminders />;
-      case "company-expenses":
-        return <ExpenseManagement />;
-      case "task-manager":
-        return <TaskManager />;
-      case "invoice-management":
-        return <InvoiceManagement />;
       default:
         return <Dashboard />;
     }
@@ -162,7 +151,7 @@ const Admin = () => {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
-                <Menu className="h-5 w-4" />
+                <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-80">
