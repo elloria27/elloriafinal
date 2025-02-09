@@ -1,17 +1,27 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Mail, Printer } from "lucide-react";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
+import { format } from "date-fns";
+import { useReactToPrint } from "react-to-print";
+import { useRef } from "react";
 
 export default function Invoices() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState<string | null>(null);
   const { toast } = useToast();
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -134,6 +144,30 @@ export default function Invoices() {
     }
   };
 
+  const handleSendEmail = async (orderId: string) => {
+    try {
+      setSending(orderId);
+      const { error } = await supabase.functions.invoke('send-invoice-email', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Invoice sent successfully",
+      });
+    } catch (error) {
+      console.error("Error sending invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send invoice. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(null);
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -144,38 +178,59 @@ export default function Invoices() {
 
   return (
     <div className="space-y-8 p-6 pt-24">
-      {orders.map((order) => (
-        <div
-          key={order.id}
-          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-        >
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Invoice #{order.order_number}</h3>
-              <p className="text-gray-600">
-                {new Date(order.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDownload(order.id)}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="pt-4">
-              <div className="flex justify-between font-medium">
-                <span>Total Amount</span>
-                <span>${order.total_amount}</span>
+      <div ref={printRef}>
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow mb-6"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+              <div>
+                <h3 className="text-lg font-semibold">Invoice #{order.order_number}</h3>
+                <p className="text-gray-600">
+                  {format(new Date(order.created_at), "PPP")}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(order.id)}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSendEmail(order.id)}
+                  disabled={sending === order.id}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  {sending === order.id ? "Sending..." : "Email"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrint}
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+            
+            <div className="space-y-4">
+              <div className="pt-4">
+                <div className="flex justify-between font-medium">
+                  <span>Status</span>
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                    order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </span>
+                </div>
+                <div className="flex justify-between font-medium mt-2">
+                  <span>Total Amount</span>
