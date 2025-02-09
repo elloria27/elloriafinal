@@ -2780,6 +2780,7 @@ export type Database = {
         | "sustainability_program_process"
         | "sustainability_program_cta"
         | "not_found"
+        | "certificates"
       expense_category:
         | "inventory"
         | "marketing"

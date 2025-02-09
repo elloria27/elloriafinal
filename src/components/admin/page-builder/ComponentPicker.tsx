@@ -31,6 +31,7 @@ export const ComponentPicker = ({ open, onClose, onSelect }: ComponentPickerProp
         { type: "button", label: "Button", description: "Call to action button" },
         { type: "spacer", label: "Spacer", description: "Add vertical spacing" },
         { type: "not_found", label: "Not Found", description: "404 error page content" },
+        { type: "certificates", label: "Certificates", description: "Display certifications grid" },
       ],
     },
     {

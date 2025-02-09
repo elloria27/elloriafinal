@@ -454,6 +454,21 @@ export interface SustainabilityProgramCtaContent extends BaseBlockContent {
   buttonText?: string;
 }
 
+export interface CertificatesContent extends BaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  certificates?: Array<{
+    name: string;
+    issuing_authority: string;
+    certificate_number: string;
+    issue_date: string;
+    expiry_date?: string;
+    category: string;
+    image_url?: string;
+    qr_code_url?: string;
+  }>;
+}
+
 export type BlockContent = 
   | HeadingBlockContent 
   | TextBlockContent 
@@ -509,7 +524,8 @@ export type BlockContent =
   | SustainabilityProgramHeroContent
   | SustainabilityProgramBenefitsContent
   | SustainabilityProgramProcessContent
-  | SustainabilityProgramCtaContent;
+  | SustainabilityProgramCtaContent
+  | CertificatesContent;
 
 export type BlockType = 
   | "heading" 
@@ -526,7 +542,6 @@ export type BlockType =
   | "store_brands"
   | "sustainability"
   | "product_carousel"
-  | "product_gallery"
   | "elevating_essentials"
   | "game_changer"
   | "competitor_comparison"
@@ -574,7 +589,8 @@ export type BlockType =
   | "sustainability_program_benefits"
   | "sustainability_program_process"
   | "sustainability_program_cta"
-  | "not_found";
+  | "not_found"
+  | "certificates";
 
 export interface ContentBlock {
   id: string;
