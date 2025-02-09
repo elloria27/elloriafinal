@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Award } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Certificate {
   id: string;
@@ -29,6 +31,7 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCertificate, setNewCertificate] = useState<Partial<Certificate>>({});
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchCertificates();
@@ -60,7 +63,6 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
         return;
       }
 
-      // Create a complete certificate object with all required fields
       const certificateToInsert = {
         name: newCertificate.name,
         issuing_authority: newCertificate.issuing_authority,
@@ -106,117 +108,133 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
     }
   };
 
+  const renderCertificatesList = () => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {certificates.map((cert) => (
+          <Card key={cert.id} className="relative">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-blue-500" />
+                  <CardTitle className="text-xl">{cert.name}</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div>
+                  <span className="font-medium text-gray-700">Issuing Authority</span>
+                  <p className="text-gray-600">{cert.issuing_authority}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Certificate Number</span>
+                  <p className="text-gray-600">{cert.certificate_number}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Category</span>
+                  <p className="text-gray-600">{cert.category}</p>
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <div>
+                    <span className="font-medium text-gray-700">Valid Until</span>
+                    <p className="text-gray-600">{format(new Date(cert.expiry_date), 'PP')}</p>
+                  </div>
+                  {isEditing && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteCertificate(cert.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return <div>Loading certificates...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-        <h3 className="text-lg font-medium">Add New Certificate</h3>
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={newCertificate.name || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, name: e.target.value })}
-              placeholder="Certificate name"
-            />
-          </div>
-          <div>
-            <Label htmlFor="issuing_authority">Issuing Authority</Label>
-            <Input
-              id="issuing_authority"
-              value={newCertificate.issuing_authority || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, issuing_authority: e.target.value })}
-              placeholder="Issuing authority"
-            />
-          </div>
-          <div>
-            <Label htmlFor="certificate_number">Certificate Number</Label>
-            <Input
-              id="certificate_number"
-              value={newCertificate.certificate_number || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, certificate_number: e.target.value })}
-              placeholder="Certificate number"
-            />
-          </div>
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={newCertificate.category || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, category: e.target.value })}
-              placeholder="Category"
-            />
-          </div>
-          <div>
-            <Label htmlFor="issue_date">Issue Date</Label>
-            <Input
-              id="issue_date"
-              type="date"
-              value={newCertificate.issue_date || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, issue_date: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="expiry_date">Expiry Date</Label>
-            <Input
-              id="expiry_date"
-              type="date"
-              value={newCertificate.expiry_date || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, expiry_date: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="image_url">Image URL</Label>
-            <Input
-              id="image_url"
-              value={newCertificate.image_url || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, image_url: e.target.value })}
-              placeholder="Image URL (optional)"
-            />
-          </div>
-          <div>
-            <Label htmlFor="qr_code_url">QR Code URL</Label>
-            <Input
-              id="qr_code_url"
-              value={newCertificate.qr_code_url || ''}
-              onChange={(e) => setNewCertificate({ ...newCertificate, qr_code_url: e.target.value })}
-              placeholder="QR code URL (optional)"
-            />
-          </div>
-          <Button onClick={handleAddCertificate}>Add Certificate</Button>
-        </div>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Certificates</h3>
+        <Button onClick={() => setIsEditing(!isEditing)} variant="outline">
+          {isEditing ? 'Done' : 'Edit Certificates'}
+        </Button>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Existing Certificates</h3>
-        {certificates.map((cert) => (
-          <div key={cert.id} className="bg-white p-4 rounded-lg border space-y-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <h4 className="font-medium">{cert.name}</h4>
-                <p className="text-sm text-gray-600">{cert.issuing_authority}</p>
-              </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDeleteCertificate(cert.id)}
-              >
-                Delete
-              </Button>
+      {isEditing && (
+        <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+          <h3 className="text-lg font-medium">Add New Certificate</h3>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={newCertificate.name || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, name: e.target.value })}
+                placeholder="Certificate name"
+              />
             </div>
-            <div className="text-sm">
-              <p><span className="font-medium">Certificate Number:</span> {cert.certificate_number}</p>
-              <p><span className="font-medium">Category:</span> {cert.category}</p>
-              <p><span className="font-medium">Issue Date:</span> {format(new Date(cert.issue_date), 'PP')}</p>
-              <p><span className="font-medium">Expiry Date:</span> {format(new Date(cert.expiry_date), 'PP')}</p>
+            <div>
+              <Label htmlFor="issuing_authority">Issuing Authority</Label>
+              <Input
+                id="issuing_authority"
+                value={newCertificate.issuing_authority || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, issuing_authority: e.target.value })}
+                placeholder="Issuing authority"
+              />
             </div>
+            <div>
+              <Label htmlFor="certificate_number">Certificate Number</Label>
+              <Input
+                id="certificate_number"
+                value={newCertificate.certificate_number || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, certificate_number: e.target.value })}
+                placeholder="Certificate number"
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                value={newCertificate.category || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, category: e.target.value })}
+                placeholder="Category"
+              />
+            </div>
+            <div>
+              <Label htmlFor="issue_date">Issue Date</Label>
+              <Input
+                id="issue_date"
+                type="date"
+                value={newCertificate.issue_date || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, issue_date: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="expiry_date">Expiry Date</Label>
+              <Input
+                id="expiry_date"
+                type="date"
+                value={newCertificate.expiry_date || ''}
+                onChange={(e) => setNewCertificate({ ...newCertificate, expiry_date: e.target.value })}
+              />
+            </div>
+            <Button onClick={handleAddCertificate}>Add Certificate</Button>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {renderCertificatesList()}
     </div>
   );
 };
