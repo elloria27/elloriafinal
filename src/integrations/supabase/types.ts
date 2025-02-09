@@ -238,6 +238,48 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          category: string
+          certificate_number: string
+          created_at: string
+          expiry_date: string
+          id: string
+          image_url: string | null
+          issue_date: string
+          issuing_authority: string
+          name: string
+          qr_code_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          certificate_number: string
+          created_at?: string
+          expiry_date: string
+          id?: string
+          image_url?: string | null
+          issue_date: string
+          issuing_authority: string
+          name: string
+          qr_code_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          certificate_number?: string
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          image_url?: string | null
+          issue_date?: string
+          issuing_authority?: string
+          name?: string
+          qr_code_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_interactions: {
         Row: {
           created_at: string | null
