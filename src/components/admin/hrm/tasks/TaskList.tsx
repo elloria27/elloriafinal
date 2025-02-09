@@ -18,13 +18,13 @@ interface Task {
   title: string;
   description: string;
   assigned_to: string;
-  due_date: string;
+  due_date: string | null;
   priority: "low" | "medium" | "high";
   category: "hr" | "finance" | "operations" | "other";
   status: "todo" | "in_progress" | "completed" | "on_hold";
-  profiles: {
-    full_name: string;
-  };
+  profiles?: {
+    full_name: string | null;
+  } | null;
 }
 
 const TaskList = () => {
@@ -103,7 +103,7 @@ const TaskList = () => {
           {tasks.map((task) => (
             <TableRow key={task.id}>
               <TableCell>{task.title}</TableCell>
-              <TableCell>{task.profiles.full_name}</TableCell>
+              <TableCell>{task.profiles?.full_name || "Unassigned"}</TableCell>
               <TableCell>
                 {task.due_date && format(new Date(task.due_date), "PP")}
               </TableCell>
