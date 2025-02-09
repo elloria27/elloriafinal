@@ -81,14 +81,14 @@ const TaskLabels = ({ taskId, selectedLabels, onLabelsChange }: TaskLabelsProps)
   };
 
   return (
-    <div className="space-y-2">
-      <h3 className="text-lg font-semibold mb-2">Labels</h3>
+    <div className="space-y-2 max-h-[60vh] overflow-y-auto p-2">
+      <h3 className="text-lg font-semibold mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">Labels</h3>
       <div className="flex flex-wrap gap-2">
         {selectedLabels.map((label) => (
           <Badge
             key={label.id}
             style={{ backgroundColor: label.color, color: "white" }}
-            className="flex items-center gap-1 px-3 py-1 rounded-full"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm"
           >
             {label.name}
             <X
@@ -104,11 +104,11 @@ const TaskLabels = ({ taskId, selectedLabels, onLabelsChange }: TaskLabelsProps)
               size="sm" 
               className="rounded-full px-4 py-2 h-auto bg-white/50"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Label
+              <Plus className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Add Label</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md mx-4">
             <DialogHeader>
               <DialogTitle>Create New Label</DialogTitle>
             </DialogHeader>

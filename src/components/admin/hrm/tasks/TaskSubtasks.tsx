@@ -87,11 +87,11 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2">Subtasks</h3>
+    <div className="space-y-4 max-h-[60vh] overflow-y-auto p-2">
+      <h3 className="text-lg font-semibold mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">Subtasks</h3>
       <div className="space-y-2">
         {subtasks.map((subtask) => (
-          <div key={subtask.id} className="flex items-center gap-2 bg-white/50 p-2 rounded-lg">
+          <div key={subtask.id} className="flex items-center gap-2 bg-white/50 p-3 rounded-lg shadow-sm">
             <Checkbox
               checked={subtask.completed}
               onCheckedChange={(checked) => 
@@ -99,21 +99,21 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
               }
               className="h-5 w-5"
             />
-            <span className={`flex-1 ${subtask.completed ? "line-through text-gray-500" : ""}`}>
+            <span className={`flex-1 ${subtask.completed ? "line-through text-gray-500" : ""} break-words`}>
               {subtask.title}
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => deleteSubtask(subtask.id)}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 shrink-0"
             >
               <Trash className="h-4 w-4" />
             </Button>
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 sticky bottom-0 bg-background/95 backdrop-blur-sm py-2">
         <Input
           placeholder="New subtask"
           value={newSubtaskTitle}
@@ -123,10 +123,10 @@ const TaskSubtasks = ({ taskId, subtasks, onSubtasksChange }: TaskSubtasksProps)
         <Button
           onClick={createSubtask}
           disabled={!newSubtaskTitle || loading}
-          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6"
+          className="rounded-full bg-blue-400 hover:bg-blue-500 text-white px-6 shrink-0"
         >
-          <Plus className="h-5 w-5" />
-          Add Subtask
+          <Plus className="h-5 w-5 md:mr-2" />
+          <span className="hidden md:inline">Add Subtask</span>
         </Button>
       </div>
     </div>
