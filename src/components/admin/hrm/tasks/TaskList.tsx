@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -286,6 +285,30 @@ const TaskList = () => {
     fetchTasks();
   };
 
+  const handleTaskCreated = async (taskId: string, taskData: any) => {
+    try {
+      const { error } = await supabase.functions.invoke("send-task-notification", {
+        body: {
+          taskId,
+          assignedTo: taskData.assigned_to,
+          taskTitle: taskData.title,
+          taskDescription: taskData.description || "",
+          dueDate: taskData.due_date,
+          priority: taskData.priority,
+          category: taskData.category,
+        },
+      });
+
+      if (error) {
+        console.error("Error sending task notification:", error);
+        toast.error("Failed to send task notification email");
+      }
+    } catch (error) {
+      console.error("Error invoking function:", error);
+      toast.error("Failed to send task notification");
+    }
+  };
+
   if (loading) {
     return <div>Loading tasks...</div>;
   }
@@ -380,6 +403,7 @@ const TaskList = () => {
             <TaskForm
               initialData={selectedTask}
               onSuccess={handleEditSuccess}
+              onTaskCreated={handleTaskCreated}
             />
           )}
         </DialogContent>

@@ -1,0 +1,11 @@
+
+project_id = "euexcsqvsbkxiwdieepu"
+
+[api]
+endpoint = "https://euexcsqvsbkxiwdieepu.supabase.co/functions/v1/send-task-notification"
+
+[auth]
+enabled = false
+
+[functions.send-task-notification]
+verify_jwt = true
