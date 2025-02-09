@@ -19,12 +19,21 @@ interface DashboardStats {
   overdueCount: number;
 }
 
-type InvoiceStatus = 'paid' | 'pending' | 'overdue';
+type InvoiceStatus = 'paid' | 'pending' | 'overdue' | 'cancelled';
 
-interface Invoice {
+interface DatabaseInvoice {
+  id: string;
   status: InvoiceStatus;
   total_amount: number;
   due_date: string;
+  created_at: string;
+  created_by: string;
+  currency: string;
+  customer_id: string;
+  employee_id: string;
+  invoice_number: string;
+  notes: string;
+  updated_at: string;
 }
 
 const InvoiceDashboard = () => {
@@ -41,7 +50,6 @@ const InvoiceDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch all invoices for statistics
         const { data: invoices, error } = await supabase
           .from("hrm_invoices")
           .select("*");
@@ -49,8 +57,17 @@ const InvoiceDashboard = () => {
         if (error) throw error;
 
         const currentDate = new Date();
-        const stats = (invoices || []).reduce(
-          (acc, invoice: Invoice) => {
+        const initialStats: DashboardStats = {
+          totalInvoices: 0,
+          pendingAmount: 0,
+          overdueAmount: 0,
+          totalRevenue: 0,
+          pendingCount: 0,
+          overdueCount: 0,
+        };
+
+        const calculatedStats = (invoices || []).reduce(
+          (acc: DashboardStats, invoice: DatabaseInvoice) => {
             acc.totalInvoices++;
             
             if (invoice.status === "paid") {
@@ -68,17 +85,10 @@ const InvoiceDashboard = () => {
 
             return acc;
           },
-          {
-            totalInvoices: 0,
-            pendingAmount: 0,
-            overdueAmount: 0,
-            totalRevenue: 0,
-            pendingCount: 0,
-            overdueCount: 0,
-          }
+          initialStats
         );
 
-        setStats(stats);
+        setStats(calculatedStats);
       } catch (error) {
         console.error("Error fetching dashboard stats:", error);
         toast.error("Failed to load dashboard statistics");
