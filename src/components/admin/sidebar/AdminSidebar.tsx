@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -102,8 +103,8 @@ const sidebarItems: SidebarItem[] = [
         description: "Manage and assign tasks"
       },
       {
-        title: "Invoices",
-        href: "/admin?tab=invoices",
+        title: "Invoice Management",
+        href: "/admin?tab=invoice-management",
         icon: Receipt,
         description: "Manage invoices and billing"
       }

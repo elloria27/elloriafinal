@@ -148,7 +148,7 @@ const Admin = () => {
         return <ExpenseManagement />;
       case "task-manager":
         return <TaskManager />;
-      case "invoices":
+      case "invoice-management":
         return <InvoiceManagement />;
       default:
         return <Dashboard />;
