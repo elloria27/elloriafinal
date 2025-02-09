@@ -74,28 +74,6 @@ export default function DynamicPage() {
     }
   }, [slug, navigate]);
 
-  // Debounced version of fetchPageContent to prevent multiple rapid refreshes
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      console.log('Executing debounced fetch...');
-      fetchPageContent();
-    }, 300),
-    [fetchPageContent]
-  );
-
-  // Handle real-time updates
-  const handleRealtimeUpdate = useCallback((payload: any) => {
-    console.log('Received real-time update:', payload);
-    
-    // Only refresh if the update is for the current page
-    if (payload.new?.page_id === pageId) {
-      console.log('Update is for current page, triggering refresh');
-      debouncedFetch();
-    } else {
-      console.log('Update is for a different page, ignoring');
-    }
-  }, [pageId, debouncedFetch]);
-
   // Set up real-time subscription
   useEffect(() => {
     if (!pageId) return;
@@ -103,31 +81,30 @@ export default function DynamicPage() {
     console.log('Setting up real-time subscription for page:', pageId);
 
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('content-blocks-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'content_blocks',
           filter: `page_id=eq.${pageId}`,
         },
-        handleRealtimeUpdate
+        (payload) => {
+          console.log('Received real-time update:', payload);
+          // Immediately fetch fresh content when any change occurs
+          fetchPageContent();
+        }
       )
       .subscribe((status) => {
         console.log('Subscription status:', status);
-        
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to content changes');
-        }
       });
 
-    // Clean up subscription on unmount or when pageId changes
     return () => {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [pageId, handleRealtimeUpdate]);
+  }, [pageId, fetchPageContent]);
 
   // Initial fetch when page loads or slug changes
   useEffect(() => {
