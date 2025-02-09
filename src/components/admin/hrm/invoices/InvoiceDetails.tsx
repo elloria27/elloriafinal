@@ -20,9 +20,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Printer, Download, Mail, Edit, Save, X } from "lucide-react";
+import { Printer, Download, Mail, Edit, Save, X, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import InvoiceForm from "./InvoiceForm";
 
 interface InvoiceDetailsProps {
   invoiceId: string;
@@ -64,6 +72,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   const [sending, setSending] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState("");
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (amount: number) => {
@@ -75,49 +84,66 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }).format(amount);
   };
 
+  const calculateTotals = (items: InvoiceLineItem[]) => {
+    return items.reduce((acc, item) => {
+      const subtotal = Number((item.quantity * item.unit_price).toFixed(2));
+      const taxAmount = Number(((subtotal * item.tax_percentage) / 100).toFixed(2));
+      return {
+        subtotal: acc.subtotal + subtotal,
+        tax: acc.tax + taxAmount,
+        total: acc.total + subtotal + taxAmount
+      };
+    }, { subtotal: 0, tax: 0, total: 0 });
+  };
+
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: invoiceData, error: invoiceError } = await supabase
           .from("hrm_invoices")
-          .select(
-            `
+          .select(`
             *,
             customer:hrm_customers(*),
             items:hrm_invoice_items(*)
-          `
-          )
+          `)
           .eq("id", invoiceId)
           .single();
 
-        if (error) throw error;
+        if (invoiceError) throw invoiceError;
+
+        const { data: settingsData, error: settingsError } = await supabase
+          .from("hrm_invoice_settings")
+          .select("*")
+          .single();
+
+        if (settingsError) throw settingsError;
 
         const transformedData: InvoiceDetails = {
-          id: data.id,
-          invoice_number: data.invoice_number,
+          id: invoiceData.id,
+          invoice_number: invoiceData.invoice_number,
           customer: {
-            name: data.customer.name,
-            email: data.customer.email,
-            phone: data.customer.phone || '',
-            tax_id: data.customer.tax_id || '',
+            name: invoiceData.customer.name,
+            email: invoiceData.customer.email,
+            phone: invoiceData.customer.phone || '',
+            tax_id: invoiceData.customer.tax_id || '',
           },
-          status: data.status,
-          due_date: data.due_date,
-          created_at: data.created_at,
-          total_amount: data.total_amount,
-          notes: data.notes || '',
-          items: data.items.map((item: any) => ({
+          status: invoiceData.status,
+          due_date: invoiceData.due_date,
+          created_at: invoiceData.created_at,
+          total_amount: invoiceData.total_amount,
+          notes: invoiceData.notes || '',
+          items: invoiceData.items.map((item: any) => ({
             id: item.id,
             description: item.description,
             quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.total_price,
-            tax_percentage: item.tax_percentage,
+            unit_price: Number(item.unit_price),
+            total_price: Number(item.total_price),
+            tax_percentage: Number(item.tax_percentage || 0),
           })),
-          last_sent_at: data.last_sent_at,
-          last_sent_to: data.last_sent_to,
-          subtotal_amount: data.subtotal_amount,
-          tax_amount: data.tax_amount,
+          last_sent_at: invoiceData.last_sent_at,
+          last_sent_to: invoiceData.last_sent_to,
+          subtotal_amount: invoiceData.subtotal_amount,
+          tax_amount: invoiceData.tax_amount,
         };
 
         setInvoice(transformedData);
@@ -165,6 +191,35 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     } catch (error) {
       console.error("Error updating notes:", error);
       toast.error("Failed to update notes");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!invoice) return;
+    
+    try {
+      // First delete invoice items
+      const { error: itemsError } = await supabase
+        .from("hrm_invoice_items")
+        .delete()
+        .eq("invoice_id", invoice.id);
+
+      if (itemsError) throw itemsError;
+
+      // Then delete the invoice
+      const { error: invoiceError } = await supabase
+        .from("hrm_invoices")
+        .delete()
+        .eq("id", invoice.id);
+
+      if (invoiceError) throw invoiceError;
+
+      toast.success("Invoice deleted successfully");
+      // Navigate back or refresh the list
+      window.history.back();
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error("Failed to delete invoice");
     }
   };
 
@@ -228,7 +283,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!invoice?.id) return;
     
     try {
@@ -270,6 +325,8 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   if (!invoice) {
     return <div>Invoice not found</div>;
   }
+
+  const totals = calculateTotals(invoice.items);
 
   return (
     <div className="space-y-6">
@@ -314,6 +371,39 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
             >
               <Mail className="h-4 w-4 mr-2" />
               {sending ? "Sending..." : "Email"}
+            </Button>
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Edit Invoice</DialogTitle>
+                </DialogHeader>
+                <InvoiceForm
+                  invoiceId={invoice.id}
+                  onSuccess={() => {
+                    setShowEditDialog(false);
+                    window.location.reload();
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              className="w-full sm:w-auto"
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Delete
             </Button>
           </div>
         </div>
@@ -382,7 +472,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <div>
                   <dt className="text-sm text-muted-foreground">Total Amount</dt>
                   <dd className="text-sm font-medium">
-                    {formatCurrency(invoice.total_amount)}
+                    {formatCurrency(totals.total)}
                   </dd>
                 </div>
               </dl>
@@ -408,9 +498,9 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
               </TableHeader>
               <TableBody>
                 {invoice.items.map((item) => {
-                  const subtotal = item.quantity * item.unit_price;
-                  const taxAmount = subtotal * (item.tax_percentage / 100);
-                  const total = subtotal + taxAmount;
+                  const subtotal = Number((item.quantity * item.unit_price).toFixed(2));
+                  const taxAmount = Number(((subtotal * item.tax_percentage) / 100).toFixed(2));
+                  const total = Number((subtotal + taxAmount).toFixed(2));
 
                   return (
                     <TableRow key={item.id}>
@@ -426,19 +516,19 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <TableRow className="font-medium">
                   <TableCell colSpan={4}>Subtotal</TableCell>
                   <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(invoice.subtotal_amount)}
+                    {formatCurrency(totals.subtotal)}
                   </TableCell>
                 </TableRow>
                 <TableRow className="font-medium">
                   <TableCell colSpan={4}>Tax Total</TableCell>
                   <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(invoice.tax_amount)}
+                    {formatCurrency(totals.tax)}
                   </TableCell>
                 </TableRow>
                 <TableRow className="font-medium">
                   <TableCell colSpan={4}>Total</TableCell>
                   <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(invoice.total_amount)}
+                    {formatCurrency(totals.total)}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -536,4 +626,3 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
 };
 
 export default InvoiceDetails;
-
