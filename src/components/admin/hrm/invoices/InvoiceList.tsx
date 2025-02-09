@@ -8,11 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import InvoiceForm from "./InvoiceForm";
+import InvoiceDetails from "./InvoiceDetails";
 
 interface Invoice {
   id: string;
@@ -30,31 +39,33 @@ interface Invoice {
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
+
+  const fetchInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("hrm_invoices")
+        .select(`
+          *,
+          customer:hrm_customers(name)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setInvoices(data || []);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      toast.error("Failed to load invoices");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("hrm_invoices")
-          .select(`
-            *,
-            customer:hrm_customers(name)
-          `)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setInvoices(data || []);
-      } catch (error) {
-        console.error("Error fetching invoices:", error);
-        toast.error("Failed to load invoices");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchInvoices();
   }, []);
 
@@ -62,10 +73,25 @@ const InvoiceList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Invoices</h3>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Invoice
-        </Button>
+        <Dialog open={showNewInvoiceDialog} onOpenChange={setShowNewInvoiceDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Invoice
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Invoice</DialogTitle>
+            </DialogHeader>
+            <InvoiceForm
+              onSuccess={() => {
+                setShowNewInvoiceDialog(false);
+                fetchInvoices();
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="rounded-md border">
@@ -104,9 +130,7 @@ const InvoiceList = () => {
                   <TableCell>
                     {format(new Date(invoice.created_at), "PP")}
                   </TableCell>
-                  <TableCell>
-                    {format(new Date(invoice.due_date), "PP")}
-                  </TableCell>
+                  <TableCell>{format(new Date(invoice.due_date), "PP")}</TableCell>
                   <TableCell>
                     {invoice.total_amount.toLocaleString("en-CA", {
                       style: "currency",
@@ -123,13 +147,30 @@ const InvoiceList = () => {
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      {invoice.status.charAt(0).toUpperCase() +
+                        invoice.status.slice(1)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedInvoiceId(invoice.id)}
+                        >
+                          View
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                          <DialogTitle>Invoice Details</DialogTitle>
+                        </DialogHeader>
+                        {selectedInvoiceId && (
+                          <InvoiceDetails invoiceId={selectedInvoiceId} />
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))
