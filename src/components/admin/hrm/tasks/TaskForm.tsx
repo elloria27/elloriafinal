@@ -103,13 +103,15 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
         start_date: values.start_date?.toISOString() || null,
       };
 
+      let taskId: string;
+
       if (initialData) {
         const { error } = await supabase
           .from("hrm_tasks")
           .update(taskData)
           .eq('id', initialData.id);
         if (error) throw error;
-        toast.success("Task updated successfully");
+        taskId = initialData.id;
       } else {
         const { data: newTask, error } = await supabase
           .from("hrm_tasks")
@@ -117,9 +119,114 @@ const TaskForm = ({ onSuccess, initialData }: TaskFormProps) => {
           .select()
           .single();
         if (error) throw error;
-        toast.success("Task created successfully");
+        if (!newTask) throw new Error("Failed to create task");
+        taskId = newTask.id;
       }
 
+      // Update label assignments
+      if (initialData) {
+        // Delete existing label assignments
+        await supabase
+          .from("hrm_task_label_assignments")
+          .delete()
+          .eq('task_id', taskId);
+      }
+
+      // Insert new label assignments
+      if (labels.length > 0) {
+        const labelAssignments = labels.map(label => ({
+          task_id: taskId,
+          label_id: label.id
+        }));
+        
+        const { error: labelError } = await supabase
+          .from("hrm_task_label_assignments")
+          .insert(labelAssignments);
+        if (labelError) throw labelError;
+      }
+
+      // Update subtasks
+      if (initialData) {
+        // Delete existing subtasks
+        await supabase
+          .from("hrm_subtasks")
+          .delete()
+          .eq('task_id', taskId);
+      }
+
+      if (subtasks.length > 0) {
+        const subtasksData = subtasks.map((subtask, index) => ({
+          task_id: taskId,
+          title: subtask.title,
+          completed: subtask.completed,
+          order_index: index,
+          created_by: user.id
+        }));
+
+        const { error: subtasksError } = await supabase
+          .from("hrm_subtasks")
+          .insert(subtasksData);
+        if (subtasksError) throw subtasksError;
+      }
+
+      // Update checklists and their items
+      if (initialData) {
+        // Get existing checklists
+        const { data: existingChecklists } = await supabase
+          .from("hrm_task_checklists")
+          .select('id')
+          .eq('task_id', taskId);
+
+        if (existingChecklists) {
+          // Delete checklist items first
+          for (const checklist of existingChecklists) {
+            await supabase
+              .from("hrm_checklist_items")
+              .delete()
+              .eq('checklist_id', checklist.id);
+          }
+
+          // Then delete checklists
+          await supabase
+            .from("hrm_task_checklists")
+            .delete()
+            .eq('task_id', taskId);
+        }
+      }
+
+      // Insert new checklists and their items
+      for (const [index, checklist] of checklists.entries()) {
+        const { data: newChecklist, error: checklistError } = await supabase
+          .from("hrm_task_checklists")
+          .insert({
+            task_id: taskId,
+            title: checklist.title,
+            order_index: index,
+            created_by: user.id
+          })
+          .select()
+          .single();
+
+        if (checklistError) throw checklistError;
+        if (!newChecklist) throw new Error("Failed to create checklist");
+
+        if (checklist.items && checklist.items.length > 0) {
+          const checklistItems = checklist.items.map((item, itemIndex) => ({
+            checklist_id: newChecklist.id,
+            content: item.content,
+            completed: item.completed,
+            order_index: itemIndex,
+            created_by: user.id
+          }));
+
+          const { error: itemsError } = await supabase
+            .from("hrm_checklist_items")
+            .insert(checklistItems);
+          if (itemsError) throw itemsError;
+        }
+      }
+
+      toast.success(initialData ? "Task updated successfully" : "Task created successfully");
       form.reset();
       onSuccess?.();
     } catch (error: any) {
