@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil } from "lucide-react";
+import { Eye, Pencil, CheckCircle2, Circle } from "lucide-react";
 import TaskForm from "./TaskForm";
 
 type TaskStatus = "todo" | "in_progress" | "completed" | "on_hold";
@@ -39,6 +39,24 @@ interface Task {
   profiles?: {
     full_name: string | null;
   } | null;
+  labels?: Array<{ id: string; name: string; color: string }>;
+  subtasks?: Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+    order_index: number;
+  }>;
+  checklists?: Array<{
+    id: string;
+    title: string;
+    items: Array<{
+      id: string;
+      content: string;
+      completed: boolean;
+      order_index: number;
+    }>;
+    order_index: number;
+  }>;
 }
 
 interface TaskDetailsProps {
@@ -73,7 +91,7 @@ export const getPriorityColor = (priority: TaskPriority) => {
 
 const TaskDetails = ({ task, onClose, onEdit }: TaskDetailsProps) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h4 className="font-medium">Assigned To</h4>
@@ -104,10 +122,76 @@ const TaskDetails = ({ task, onClose, onEdit }: TaskDetailsProps) => {
           <Badge variant="outline">{task.category}</Badge>
         </div>
       </div>
+
+      {task.labels && task.labels.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-2">Labels</h4>
+          <div className="flex flex-wrap gap-2">
+            {task.labels.map((label) => (
+              <Badge
+                key={label.id}
+                style={{ backgroundColor: label.color }}
+                className="text-white"
+              >
+                {label.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-2">Subtasks</h4>
+          <div className="space-y-2">
+            {task.subtasks.map((subtask) => (
+              <div key={subtask.id} className="flex items-center gap-2">
+                {subtask.completed ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Circle className="h-4 w-4 text-gray-400" />
+                )}
+                <span className={subtask.completed ? "line-through text-gray-500" : ""}>
+                  {subtask.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {task.checklists && task.checklists.length > 0 && (
+        <div>
+          <h4 className="font-medium mb-2">Checklists</h4>
+          <div className="space-y-4">
+            {task.checklists.map((checklist) => (
+              <div key={checklist.id}>
+                <h5 className="font-medium text-sm mb-2">{checklist.title}</h5>
+                <div className="space-y-2">
+                  {checklist.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      {item.completed ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-gray-400" />
+                      )}
+                      <span className={item.completed ? "line-through text-gray-500" : ""}>
+                        {item.content}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h4 className="font-medium">Description</h4>
         <p className="whitespace-pre-wrap">{task.description || "No description provided"}</p>
       </div>
+
       <div className="flex justify-end space-x-2 pt-4">
         <Button variant="outline" onClick={onClose}>
           Close
@@ -135,6 +219,30 @@ const TaskList = () => {
           *,
           profiles:assigned_to (
             full_name
+          ),
+          hrm_task_label_assignments!inner (
+            hrm_task_labels (
+              id,
+              name,
+              color
+            )
+          ),
+          hrm_subtasks (
+            id,
+            title,
+            completed,
+            order_index
+          ),
+          hrm_task_checklists (
+            id,
+            title,
+            order_index,
+            hrm_checklist_items (
+              id,
+              content,
+              completed,
+              order_index
+            )
           )
         `)
         .order("created_at", { ascending: false });
@@ -142,7 +250,20 @@ const TaskList = () => {
       if (error) throw error;
       
       if (tasksData) {
-        setTasks(tasksData as unknown as Task[]);
+        const formattedTasks = tasksData.map(task => ({
+          ...task,
+          labels: task.hrm_task_label_assignments?.map(la => ({
+            id: la.hrm_task_labels.id,
+            name: la.hrm_task_labels.name,
+            color: la.hrm_task_labels.color
+          })) || [],
+          subtasks: task.hrm_subtasks || [],
+          checklists: (task.hrm_task_checklists || []).map(checklist => ({
+            ...checklist,
+            items: checklist.hrm_checklist_items || []
+          }))
+        }));
+        setTasks(formattedTasks);
       }
     } catch (error: any) {
       toast.error("Error fetching tasks: " + error.message);
@@ -154,30 +275,6 @@ const TaskList = () => {
   useEffect(() => {
     fetchTasks();
   }, []);
-
-  const getPriorityColor = (priority: Task["priority"]) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
-    }
-  };
-
-  const getStatusColor = (status: Task["status"]) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800";
-      case "on_hold":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const handleEdit = () => {
     setIsViewModalOpen(false);
@@ -281,11 +378,7 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={{
-                ...selectedTask,
-                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : undefined,
-                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : undefined,
-              }}
+              initialData={selectedTask}
               onSuccess={handleEditSuccess}
             />
           )}
