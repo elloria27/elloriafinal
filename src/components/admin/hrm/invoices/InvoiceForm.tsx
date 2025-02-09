@@ -24,7 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon, Plus, Trash } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +62,11 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
-  const { fields, append, remove } = form.control._formValues.items;
+  // Fix: Use useFieldArray hook correctly
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -91,7 +95,7 @@ const InvoiceForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       const invoiceData = {
         customer_id: data.customerId,
         due_date: format(data.dueDate, "yyyy-MM-dd"),
-        status: "pending",
+        status: "pending" as const, // Fix: Explicitly type status as a literal
         notes: data.notes,
         total_amount: calculateTotal(data.items),
         created_by: (await supabase.auth.getUser()).data.user?.id,
