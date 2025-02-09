@@ -60,9 +60,21 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
         return;
       }
 
+      // Create a complete certificate object with all required fields
+      const certificateToInsert = {
+        name: newCertificate.name,
+        issuing_authority: newCertificate.issuing_authority,
+        certificate_number: newCertificate.certificate_number,
+        issue_date: newCertificate.issue_date,
+        expiry_date: newCertificate.expiry_date,
+        category: newCertificate.category,
+        image_url: newCertificate.image_url,
+        qr_code_url: newCertificate.qr_code_url
+      };
+
       const { error } = await supabase
         .from('certificates')
-        .insert([newCertificate]);
+        .insert([certificateToInsert]);
 
       if (error) throw error;
 
