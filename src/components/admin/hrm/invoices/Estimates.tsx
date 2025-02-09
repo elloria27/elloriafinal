@@ -38,7 +38,14 @@ const Estimates = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEstimates(data || []);
+      
+      // Transform the data to match our Estimate type
+      const transformedData = data?.map(estimate => ({
+        ...estimate,
+        status: estimate.status as 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired',
+      })) || [];
+      
+      setEstimates(transformedData);
     } catch (error) {
       console.error("Error fetching estimates:", error);
       toast.error("Failed to load estimates");
@@ -54,13 +61,13 @@ const Estimates = () => {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "accepted":
-        return "success";
+        return "default";
       case "rejected":
         return "destructive";
       case "expired":
         return "secondary";
       default:
-        return "default";
+        return "secondary";
     }
   };
 
@@ -127,8 +134,7 @@ const Estimates = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(estimate.status)}>
-                      {estimate.status.charAt(0).toUpperCase() +
-                        estimate.status.slice(1)}
+                      {estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
                     </Badge>
                   </TableCell>
                   <TableCell>

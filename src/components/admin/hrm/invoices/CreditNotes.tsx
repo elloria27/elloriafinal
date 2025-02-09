@@ -39,7 +39,14 @@ const CreditNotes = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCreditNotes(data || []);
+      
+      // Transform the data to match our CreditNote type
+      const transformedData = data?.map(note => ({
+        ...note,
+        status: note.status as 'issued' | 'applied' | 'void',
+      })) || [];
+      
+      setCreditNotes(transformedData);
     } catch (error) {
       console.error("Error fetching credit notes:", error);
       toast.error("Failed to load credit notes");
@@ -55,11 +62,11 @@ const CreditNotes = () => {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "applied":
-        return "success";
+        return "default";
       case "void":
         return "destructive";
       default:
-        return "default";
+        return "secondary";
     }
   };
 

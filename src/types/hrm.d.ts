@@ -80,7 +80,7 @@ export interface SubtaskDB {
 
 export interface InvoiceSettings {
   id: string;
-  company_id: string;
+  company_id?: string;
   logo_url?: string;
   company_info: {
     name?: string;
@@ -108,6 +108,10 @@ export interface RecurringInvoice {
   next_generation?: string;
   template_data: any;
   is_active: boolean;
+  customer?: {
+    name: string;
+    email: string;
+  };
 }
 
 export interface Estimate {
@@ -123,6 +127,10 @@ export interface Estimate {
   terms?: string;
   created_by?: string;
   created_at?: string;
+  customer?: {
+    name: string;
+    email: string;
+  };
 }
 
 export interface EstimateItem {
@@ -153,6 +161,13 @@ export interface CreditNote {
   status: 'issued' | 'applied' | 'void';
   created_by?: string;
   created_at?: string;
+  customer?: {
+    name: string;
+    email: string;
+  };
+  invoice?: {
+    invoice_number: string;
+  };
 }
 
 export interface TaxRate {

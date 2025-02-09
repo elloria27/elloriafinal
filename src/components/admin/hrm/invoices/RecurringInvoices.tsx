@@ -38,7 +38,14 @@ const RecurringInvoices = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setInvoices(data || []);
+      
+      // Transform the data to match our RecurringInvoice type
+      const transformedData = data?.map(invoice => ({
+        ...invoice,
+        frequency: invoice.frequency as 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+      })) || [];
+      
+      setInvoices(transformedData);
     } catch (error) {
       console.error("Error fetching recurring invoices:", error);
       toast.error("Failed to load recurring invoices");
