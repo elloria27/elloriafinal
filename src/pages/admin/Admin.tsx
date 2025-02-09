@@ -111,6 +111,8 @@ const Admin = () => {
     return null;
   }
 
+  console.log("Current tab:", currentTab); // Add this log to debug
+
   const renderContent = () => {
     switch (currentTab) {
       case "dashboard":
@@ -151,6 +153,7 @@ const Admin = () => {
         console.log("Rendering InvoiceManagement component");
         return <InvoiceManagement />;
       default:
+        console.log("Default case - rendering Dashboard");
         return <Dashboard />;
     }
   };
@@ -188,3 +191,4 @@ const Admin = () => {
 };
 
 export default Admin;
+
