@@ -36,9 +36,6 @@ interface Task {
   priority: TaskPriority;
   category: TaskCategory;
   status: TaskStatus;
-  start_date?: string | null;
-  estimated_hours?: number;
-  actual_hours?: number;
   profiles?: {
     full_name: string | null;
   } | null;
@@ -52,14 +49,20 @@ interface Task {
   checklists?: Array<{
     id: string;
     title: string;
-    order_index: number;
     items: Array<{
       id: string;
       content: string;
       completed: boolean;
       order_index: number;
     }>;
+    order_index: number;
   }>;
+}
+
+interface TaskDetailsProps {
+  task: Task;
+  onClose: () => void;
+  onEdit: () => void;
 }
 
 export const getStatusColor = (status: TaskStatus) => {
@@ -86,7 +89,7 @@ export const getPriorityColor = (priority: TaskPriority) => {
   }
 };
 
-const TaskDetails = ({ task, onClose, onEdit }: { task: Task; onClose: () => void; onEdit: () => void }) => {
+const TaskDetails = ({ task, onClose, onEdit }: TaskDetailsProps) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
@@ -247,7 +250,7 @@ const TaskList = () => {
       if (error) throw error;
       
       if (tasksData) {
-        const formattedTasks: Task[] = tasksData.map(task => ({
+        const formattedTasks = tasksData.map(task => ({
           ...task,
           labels: task.hrm_task_label_assignments?.map(la => ({
             id: la.hrm_task_labels.id,
@@ -258,10 +261,7 @@ const TaskList = () => {
           checklists: (task.hrm_task_checklists || []).map(checklist => ({
             ...checklist,
             items: checklist.hrm_checklist_items || []
-          })),
-          profiles: task.profiles ? {
-            full_name: task.profiles.full_name
-          } : null
+          }))
         }));
         setTasks(formattedTasks);
       }
@@ -378,12 +378,7 @@ const TaskList = () => {
           </DialogHeader>
           {selectedTask && (
             <TaskForm
-              initialData={{
-                ...selectedTask,
-                due_date: selectedTask.due_date ? new Date(selectedTask.due_date) : undefined,
-                completion_date: selectedTask.completion_date ? new Date(selectedTask.completion_date) : undefined,
-                start_date: selectedTask.start_date ? new Date(selectedTask.start_date) : undefined,
-              }}
+              initialData={selectedTask}
               onSuccess={handleEditSuccess}
             />
           )}
