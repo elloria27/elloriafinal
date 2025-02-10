@@ -16,31 +16,31 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash2, Edit, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import InvoiceForm from "./InvoiceForm";
 import InvoiceDetails from "./InvoiceDetails";
-
-interface Invoice {
-  id: string;
-  invoice_number: string;
-  customer_id: string;
-  due_date: string;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  customer: {
-    name: string;
-  };
-}
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
 
   const fetchInvoices = async () => {
     try {
@@ -63,6 +63,32 @@ const InvoiceList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from("hrm_invoices")
+        .delete()
+        .eq("id", invoiceId);
+
+      if (error) throw error;
+
+      toast.success("Invoice deleted successfully");
+      fetchInvoices();
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error("Failed to delete invoice");
+    }
+    setShowDeleteDialog(false);
+    setInvoiceToDelete(null);
+  };
+
+  const formatAmount = (amount: number) => {
+    return amount.toLocaleString('en-CA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).replace(',', ' ');
   };
 
   useEffect(() => {
@@ -132,10 +158,7 @@ const InvoiceList = () => {
                   </TableCell>
                   <TableCell>{format(new Date(invoice.due_date), "PP")}</TableCell>
                   <TableCell>
-                    {invoice.total_amount.toLocaleString("en-CA", {
-                      style: "currency",
-                      currency: "CAD",
-                    })}
+                    ${formatAmount(invoice.total_amount)}
                   </TableCell>
                   <TableCell>
                     <span
@@ -152,25 +175,67 @@ const InvoiceList = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedInvoiceId(invoice.id)}
-                        >
-                          View
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl">
-                        <DialogHeader>
-                          <DialogTitle>Invoice Details</DialogTitle>
-                        </DialogHeader>
-                        {selectedInvoiceId && (
-                          <InvoiceDetails invoiceId={selectedInvoiceId} />
-                        )}
-                      </DialogContent>
-                    </Dialog>
+                    <div className="flex items-center gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedInvoiceId(invoice.id)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>Invoice Details</DialogTitle>
+                          </DialogHeader>
+                          {selectedInvoiceId && (
+                            <InvoiceDetails invoiceId={selectedInvoiceId} />
+                          )}
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedInvoiceId(invoice.id)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>Edit Invoice</DialogTitle>
+                          </DialogHeader>
+                          {selectedInvoiceId && (
+                            <InvoiceForm
+                              invoiceId={selectedInvoiceId}
+                              onSuccess={() => {
+                                setShowEditDialog(false);
+                                fetchInvoices();
+                              }}
+                            />
+                          )}
+                        </DialogContent>
+                      </Dialog>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setInvoiceToDelete(invoice.id);
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -178,8 +243,29 @@ const InvoiceList = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the invoice and all its data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => invoiceToDelete && handleDeleteInvoice(invoiceToDelete)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
 export default InvoiceList;
+

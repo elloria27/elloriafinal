@@ -208,6 +208,7 @@ const generateOrderInvoice = async (orderId: string, doc: any) => {
 const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   console.log("Generating HRM invoice for ID:", invoiceId);
   
+  // Fetch invoice with related data including settings
   const { data: invoice, error: invoiceError } = await supabaseClient
     .from('hrm_invoices')
     .select(`
@@ -221,17 +222,26 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   if (invoiceError) throw invoiceError;
   if (!invoice) throw new Error('Invoice not found');
 
-  console.log("Retrieved invoice data:", invoice);
+  // Fetch invoice settings
+  const { data: settings, error: settingsError } = await supabaseClient
+    .from('hrm_invoice_settings')
+    .select('*')
+    .maybeSingle();
 
-  // Company Info from invoice settings or default
-  const companyInfo = invoice.company_info || COMPANY_INFO;
+  if (settingsError) throw settingsError;
+
+  console.log("Retrieved invoice data:", invoice);
+  console.log("Retrieved settings data:", settings);
+
+  // Use settings data or fallback to defaults
+  const companyInfo = settings?.company_info || COMPANY_INFO;
   
   // Add invoice header
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.text('INVOICE', 105, 20, { align: 'center' });
   
-  // Company Info
+  // Company Info (from settings)
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text(companyInfo.name, 10, 40);
@@ -242,6 +252,15 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.text(`Email: ${companyInfo.email || ''}`, 10, 55);
   if (companyInfo.tax_id) {
     doc.text(`Tax ID: ${companyInfo.tax_id}`, 10, 60);
+  }
+
+  // Add logo if present
+  if (settings?.logo_url) {
+    try {
+      doc.addImage(settings.logo_url, 'PNG', 150, 20, 40, 40);
+    } catch (error) {
+      console.error('Error adding logo:', error);
+    }
   }
   
   // Invoice Details
@@ -257,7 +276,7 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text(invoice.customer.name, 10, 80);
-  doc.text(invoice.customer.address || '', 10, 85);
+  doc.text(invoice.customer.address?.street || '', 10, 85);
   doc.text(invoice.customer.email || '', 10, 90);
   doc.text(invoice.customer.phone || '', 10, 95);
   if (invoice.customer.tax_id) {
@@ -275,7 +294,7 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.text('Tax %', 155, y);
   doc.text('Total', 180, y);
   
-  // Items
+  // Items with proper number formatting
   doc.setFont('helvetica', 'normal');
   y += 10;
   
@@ -285,47 +304,55 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
     // Use wrapText for item description with adjusted maxWidth
     y = wrapText(doc, item.description, 15, y, 90) + 5;
     
-    // Align numbers to the right
+    // Align numbers to the right with proper formatting
     doc.text(item.quantity.toString(), 110, y - 5);
-    doc.text(item.unit_price.toFixed(2), 130, y - 5);
+    doc.text(formatAmount(item.unit_price), 130, y - 5);
     doc.text(item.tax_percentage.toString() + '%', 155, y - 5);
-    doc.text(itemTotal.toFixed(2), 180, y - 5);
+    doc.text(formatAmount(itemTotal), 180, y - 5);
     
-    y += 5; // Space between items
+    y += 5;
   });
   
-  // Totals section
+  // Totals section with proper number formatting
   y += 10;
   doc.setFont('helvetica', 'bold');
   doc.text('Subtotal:', 150, y);
-  doc.text(invoice.subtotal_amount.toFixed(2), 180, y);
+  doc.text(formatAmount(invoice.subtotal_amount), 180, y);
   
   y += 10;
   doc.text('Tax Total:', 150, y);
-  doc.text(invoice.tax_amount.toFixed(2), 180, y);
+  doc.text(formatAmount(invoice.tax_amount), 180, y);
   
   // Final Total
   y += 15;
   doc.setFontSize(12);
   doc.text('Total:', 150, y);
-  doc.text(invoice.total_amount.toFixed(2), 180, y);
+  doc.text(formatAmount(invoice.total_amount), 180, y);
   
-  // Payment Instructions
-  if (invoice.payment_instructions) {
+  // Payment Instructions from settings
+  if (settings?.payment_instructions) {
     y += 20;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Payment Instructions:', 10, y);
     doc.setFont('helvetica', 'normal');
-    y = wrapText(doc, invoice.payment_instructions, 10, y + 5, 180) + 10;
+    y = wrapText(doc, settings.payment_instructions, 10, y + 5, 180) + 10;
   }
   
-  // Footer Text
-  if (invoice.footer_text) {
+  // Footer Text from settings
+  if (settings?.footer_text) {
     y += 10;
     doc.setFont('helvetica', 'italic');
-    wrapText(doc, invoice.footer_text, 10, y, 180);
+    wrapText(doc, settings.footer_text, 10, y, 180);
   }
+};
+
+// Helper function to format amounts
+const formatAmount = (amount: number) => {
+  return amount.toLocaleString('en-CA', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).replace(',', ' ');
 };
 
 serve(async (req) => {
