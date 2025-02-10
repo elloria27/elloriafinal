@@ -48,15 +48,20 @@ serve(async (req) => {
     const pdfData = pdfResponse.data.pdf;
     const base64Data = pdfData.split(',')[1]; // Remove the data:application/pdf;base64, prefix
 
+    // Format amount without decimal places
+    const formattedAmount = new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(invoice.total_amount);
+
     // Render email template
     const html = await renderAsync(
       React.createElement(InvoiceEmail, {
         invoiceNumber: invoice.invoice_number,
         customerName: invoice.customer.name,
-        amount: invoice.total_amount.toLocaleString('en-CA', {
-          style: 'currency',
-          currency: 'CAD'
-        }),
+        amount: formattedAmount,
         dueDate: new Date(invoice.due_date).toLocaleDateString()
       })
     );
