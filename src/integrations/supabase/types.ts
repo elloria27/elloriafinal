@@ -1111,6 +1111,7 @@ export type Database = {
       }
       hrm_invoices: {
         Row: {
+          company_info: Json | null
           created_at: string | null
           created_by: string | null
           currency: string
@@ -1139,6 +1140,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          company_info?: Json | null
           created_at?: string | null
           created_by?: string | null
           currency?: string
@@ -1167,6 +1169,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          company_info?: Json | null
           created_at?: string | null
           created_by?: string | null
           currency?: string
