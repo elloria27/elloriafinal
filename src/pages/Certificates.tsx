@@ -64,7 +64,7 @@ export default function Certificates() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-12">
+      <div className="max-w-3xl mx-auto text-left mb-12">
         <h1 className="text-4xl font-bold mb-4">Our Certifications</h1>
         <p className="text-xl text-muted-foreground">
           Ensuring the highest standards in quality, safety, and compliance
