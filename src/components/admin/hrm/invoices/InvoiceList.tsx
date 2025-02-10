@@ -96,10 +96,10 @@ const InvoiceList = () => {
   };
 
   const formatAmount = (amount: number) => {
-    return amount.toLocaleString('en-CA', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).replace(',', ' ');
+    return new Intl.NumberFormat('en-CA', {
+      maximumFractionDigits: 0,
+      useGrouping: true
+    }).format(amount).replace(/,/g, ' ');
   };
 
   useEffect(() => {
@@ -208,32 +208,17 @@ const InvoiceList = () => {
                         </DialogContent>
                       </Dialog>
 
-                      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedInvoiceId(invoice.id)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
-                          <DialogHeader>
-                            <DialogTitle>Edit Invoice</DialogTitle>
-                          </DialogHeader>
-                          {selectedInvoiceId && (
-                            <InvoiceForm
-                              invoiceId={selectedInvoiceId}
-                              onSuccess={() => {
-                                setShowEditDialog(false);
-                                fetchInvoices();
-                              }}
-                            />
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedInvoiceId(invoice.id);
+                          setShowEditDialog(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
 
                       <Button
                         variant="ghost"
@@ -254,6 +239,23 @@ const InvoiceList = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+          </DialogHeader>
+          {selectedInvoiceId && (
+            <InvoiceForm
+              invoiceId={selectedInvoiceId}
+              onSuccess={() => {
+                setShowEditDialog(false);
+                fetchInvoices();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
