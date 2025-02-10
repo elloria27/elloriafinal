@@ -1120,6 +1120,7 @@ export type Database = {
           discount_type: string | null
           due_date: string
           employee_id: string | null
+          footer_text: string | null
           id: string
           invoice_number: string
           last_sent_at: string | null
@@ -1149,6 +1150,7 @@ export type Database = {
           discount_type?: string | null
           due_date: string
           employee_id?: string | null
+          footer_text?: string | null
           id?: string
           invoice_number: string
           last_sent_at?: string | null
@@ -1178,6 +1180,7 @@ export type Database = {
           discount_type?: string | null
           due_date?: string
           employee_id?: string | null
+          footer_text?: string | null
           id?: string
           invoice_number?: string
           last_sent_at?: string | null
