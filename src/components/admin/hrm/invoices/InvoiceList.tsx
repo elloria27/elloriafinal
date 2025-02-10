@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -12,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit, Eye } from "lucide-react";
@@ -53,6 +55,10 @@ const InvoiceList = () => {
           total_amount,
           status,
           discount_type,
+          subtotal_amount,
+          tax_amount,
+          currency,
+          customer_id,
           customer:hrm_customers(
             name,
             email
@@ -60,11 +66,8 @@ const InvoiceList = () => {
         `)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Transform and validate the data to match the Invoice type
       const transformedInvoices: Invoice[] = (data || []).map(invoice => ({
         ...invoice,
         discount_type: (invoice.discount_type as "fixed" | "percentage" | null) || undefined,
