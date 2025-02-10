@@ -88,12 +88,29 @@ const InvoiceList = () => {
 
   const handleDeleteInvoice = async (invoiceId: string) => {
     try {
-      const { error } = await supabase
+      // First delete related emails
+      const { error: emailsError } = await supabase
+        .from("hrm_invoice_emails")
+        .delete()
+        .eq("invoice_id", invoiceId);
+
+      if (emailsError) throw emailsError;
+
+      // Then delete related invoice items
+      const { error: itemsError } = await supabase
+        .from("hrm_invoice_items")
+        .delete()
+        .eq("invoice_id", invoiceId);
+
+      if (itemsError) throw itemsError;
+
+      // Finally delete the invoice
+      const { error: invoiceError } = await supabase
         .from("hrm_invoices")
         .delete()
         .eq("id", invoiceId);
 
-      if (error) throw error;
+      if (invoiceError) throw invoiceError;
 
       toast.success("Invoice deleted successfully");
       fetchInvoices();
