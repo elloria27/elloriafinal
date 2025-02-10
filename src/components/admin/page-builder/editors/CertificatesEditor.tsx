@@ -3,8 +3,9 @@ import { CertificatesContent, ContentBlock } from "@/types/content-blocks";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Image } from "lucide-react";
 import { useState } from "react";
+import { MediaLibraryModal } from "@/components/admin/media/MediaLibraryModal";
 
 interface CertificatesEditorProps {
   block: ContentBlock;
@@ -14,6 +15,8 @@ interface CertificatesEditorProps {
 export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps) => {
   const content = block.content as CertificatesContent;
   const [certificates, setCertificates] = useState(content.certificates || []);
+  const [selectedCertificateIndex, setSelectedCertificateIndex] = useState<number | null>(null);
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
 
   const handleAddCertificate = () => {
     const newCertificates = [...certificates, {
@@ -43,6 +46,14 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
     const newCertificates = certificates.filter((_, i) => i !== index);
     setCertificates(newCertificates);
     onUpdate(block.id, { ...content, certificates: newCertificates });
+  };
+
+  const handleImageSelect = (url: string) => {
+    if (selectedCertificateIndex !== null) {
+      handleUpdateCertificate(selectedCertificateIndex, 'image_url', url);
+    }
+    setMediaLibraryOpen(false);
+    setSelectedCertificateIndex(null);
   };
 
   return (
@@ -118,11 +129,27 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Image URL (Optional)</label>
-                  <Input
-                    value={certificate.image_url}
-                    onChange={(e) => handleUpdateCertificate(index, "image_url", e.target.value)}
-                  />
+                  <label className="text-sm font-medium mb-1 block">Certificate Image</label>
+                  <div className="flex items-center gap-2">
+                    {certificate.image_url && (
+                      <img
+                        src={certificate.image_url}
+                        alt={certificate.name}
+                        className="h-10 w-10 object-cover rounded"
+                      />
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedCertificateIndex(index);
+                        setMediaLibraryOpen(true);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Image className="h-4 w-4" />
+                      {certificate.image_url ? 'Change Image' : 'Add Image'}
+                    </Button>
+                  </div>
                 </div>
 
                 <div>
@@ -137,6 +164,16 @@ export const CertificatesEditor = ({ block, onUpdate }: CertificatesEditorProps)
           </Card>
         ))}
       </div>
+
+      <MediaLibraryModal
+        open={mediaLibraryOpen}
+        onClose={() => {
+          setMediaLibraryOpen(false);
+          setSelectedCertificateIndex(null);
+        }}
+        onSelect={handleImageSelect}
+        type="image"
+      />
     </div>
   );
 };
