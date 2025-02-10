@@ -1127,6 +1127,7 @@ export type Database = {
           last_sent_to: string | null
           late_fee_percentage: number | null
           notes: string | null
+          payment_instructions: string | null
           payment_terms: string | null
           pdf_url: string | null
           reference_number: string | null
@@ -1157,6 +1158,7 @@ export type Database = {
           last_sent_to?: string | null
           late_fee_percentage?: number | null
           notes?: string | null
+          payment_instructions?: string | null
           payment_terms?: string | null
           pdf_url?: string | null
           reference_number?: string | null
@@ -1187,6 +1189,7 @@ export type Database = {
           last_sent_to?: string | null
           late_fee_percentage?: number | null
           notes?: string | null
+          payment_instructions?: string | null
           payment_terms?: string | null
           pdf_url?: string | null
           reference_number?: string | null

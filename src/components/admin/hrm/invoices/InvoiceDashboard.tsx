@@ -106,6 +106,7 @@ const InvoiceDashboard = () => {
     return amount.toLocaleString("en-CA", {
       style: "currency",
       currency: "CAD",
+      maximumFractionDigits: 0,
     });
   };
 
