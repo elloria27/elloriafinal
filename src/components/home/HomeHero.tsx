@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Leaf, Heart, Shield, Sparkles } from "lucide-react";
@@ -109,6 +110,24 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
           >
+            {content?.videoPoster && (
+              <picture>
+                <source
+                  srcSet={`${content.videoPoster}?format=webp`}
+                  type="image/webp"
+                />
+                <img
+                  src={content.videoPoster}
+                  alt="Video poster"
+                  width={660}
+                  height={371}
+                  loading="eager"
+                  fetchPriority="high"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  decoding="sync"
+                />
+              </picture>
+            )}
             <ReactPlayer
               url={content?.videoUrl || "https://elloria.ca/Video_290mm.mp4"}
               playing={isPlaying}

@@ -61,81 +61,8 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
       : defaultContent.brands
   };
 
-  // Animation variants for container
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3
-      }
-    }
-  };
-
-  // Animation variants for brand cards
-  const cardVariants = {
-    hidden: { 
-      opacity: 0,
-      scale: 0.8,
-      y: 50
-    },
-    visible: { 
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    },
-    hover: {
-      scale: 1.05,
-      transition: {
-        duration: 0.5,
-        ease: "easeInOut"
-      }
-    }
-  };
-
-  // Arc background variants
-  const arcVariants = {
-    initial: {
-      opacity: 0,
-      scale: 0.8,
-      rotate: -45
-    },
-    hover: {
-      opacity: 1,
-      scale: 1,
-      rotate: 0,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut"
-      }
-    }
-  };
-
-  // Icon variants
-  const iconVariants = {
-    initial: {
-      opacity: 0,
-      y: 10
-    },
-    hover: {
-      opacity: 0.8,
-      y: 0,
-      transition: {
-        delay: 0.1,
-        duration: 0.3,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
     <section className="relative w-full py-24 md:py-32">
-      {/* Background with custom pattern and gradient */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-white to-accent-peach/30">
           <div className="absolute inset-0 opacity-[0.03] pattern-grid-lg dark:opacity-[0.02]" />
@@ -143,7 +70,6 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -170,9 +96,14 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
           </p>
         </motion.div>
 
-        {/* Brands Grid */}
         <motion.div
-          variants={containerVariants}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.3 }
+            }
+          }}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -184,7 +115,23 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
               href={brand.link}
               target="_blank"
               rel="noopener noreferrer"
-              variants={cardVariants}
+              variants={{
+                hidden: { 
+                  opacity: 0,
+                  scale: 0.8,
+                  y: 50
+                },
+                visible: { 
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15
+                  }
+                }
+              }}
               whileHover="hover"
               className="group relative"
             >
@@ -192,33 +139,66 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
                            shadow-lg hover:shadow-xl transition-all duration-300
                            border border-gray-100 hover:border-primary/20
                            flex items-center justify-center overflow-hidden">
-                {/* Arc background with Elloria leaf icon */}
                 <motion.div
-                  variants={arcVariants}
+                  variants={{
+                    initial: {
+                      opacity: 0,
+                      scale: 0.8,
+                      rotate: -45
+                    },
+                    hover: {
+                      opacity: 1,
+                      scale: 1,
+                      rotate: 0,
+                      transition: {
+                        duration: 0.4,
+                        ease: "easeOut"
+                      }
+                    }
+                  }}
                   initial="initial"
                   whileHover="hover"
                   className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8"
                 >
                   <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full" />
                   <motion.div
-                    variants={iconVariants}
+                    variants={{
+                      initial: {
+                        opacity: 0,
+                        y: 10
+                      },
+                      hover: {
+                        opacity: 0.8,
+                        y: 0,
+                        transition: {
+                          delay: 0.1,
+                          duration: 0.3,
+                          ease: "easeOut"
+                        }
+                      }
+                    }}
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   >
                     <Leaf className="w-6 h-6 text-primary/60" />
                   </motion.div>
                 </motion.div>
                 
-                {/* Logo container */}
-                <div className="relative z-10 w-full h-full flex items-center justify-center 
-                              transform transition-transform duration-300 group-hover:scale-110">
+                <picture>
+                  <source
+                    srcSet={`${brand.logo}?format=webp`}
+                    type="image/webp"
+                  />
                   <img
                     src={brand.logo}
                     alt={`${brand.name} logo`}
-                    className="w-full h-full object-contain filter group-hover:brightness-110"
+                    width={200}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-contain filter group-hover:brightness-110 transform transition-transform duration-300 group-hover:scale-110"
                   />
-                </div>
+                </picture>
 
-                {/* Hover overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 
                               opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
               </div>
