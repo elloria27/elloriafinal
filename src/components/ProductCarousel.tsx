@@ -75,6 +75,7 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
     setTimeout(() => setAnimatingProduct(null), 1000);
   };
 
+  // Use content from props if available, otherwise use default content
   const finalContent = {
     title: content?.title || defaultContent.title,
     subtitle: content?.subtitle || defaultContent.subtitle,
@@ -142,22 +143,11 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
                     transition={{ duration: 0.5 }}
                     className="relative"
                   >
-                    <picture>
-                      <source
-                        srcSet={`${product.image}?format=webp`}
-                        type="image/webp"
-                      />
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        width={400}
-                        height={400}
-                        loading={index < 2 ? "eager" : "lazy"}
-                        fetchPriority={index < 2 ? "high" : "auto"}
-                        decoding={index < 2 ? "sync" : "async"}
-                        className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </picture>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
+                    />
                     {animatingProduct === product.id && (
                       <motion.div
                         initial={{ scale: 1, x: 0, y: 0, opacity: 1 }}
@@ -173,8 +163,6 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
                         <img
                           src={product.image}
                           alt={product.name}
-                          width={400}
-                          height={400}
                           className="w-full h-full object-contain"
                         />
                       </motion.div>
