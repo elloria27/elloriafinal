@@ -1957,18 +1957,21 @@ export type Database = {
           content: Json
           content_blocks: Json[] | null
           created_at: string | null
+          custom_canonical_url: string | null
           id: string
           is_published: boolean | null
           menu_order: number | null
           menu_type: string | null
           meta_description: string | null
           meta_keywords: string | null
+          meta_robots: string | null
           meta_title: string | null
           og_description: string | null
           og_image: string | null
           og_title: string | null
           page_template: string | null
           parent_id: string | null
+          redirect_url: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
@@ -1981,18 +1984,21 @@ export type Database = {
           content?: Json
           content_blocks?: Json[] | null
           created_at?: string | null
+          custom_canonical_url?: string | null
           id?: string
           is_published?: boolean | null
           menu_order?: number | null
           menu_type?: string | null
           meta_description?: string | null
           meta_keywords?: string | null
+          meta_robots?: string | null
           meta_title?: string | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
           page_template?: string | null
           parent_id?: string | null
+          redirect_url?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug: string
@@ -2005,18 +2011,21 @@ export type Database = {
           content?: Json
           content_blocks?: Json[] | null
           created_at?: string | null
+          custom_canonical_url?: string | null
           id?: string
           is_published?: boolean | null
           menu_order?: number | null
           menu_type?: string | null
           meta_description?: string | null
           meta_keywords?: string | null
+          meta_robots?: string | null
           meta_title?: string | null
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
           page_template?: string | null
           parent_id?: string | null
+          redirect_url?: string | null
           show_in_footer?: boolean | null
           show_in_header?: boolean | null
           slug?: string
@@ -2385,6 +2394,39 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_settings: {
+        Row: {
+          created_at: string
+          default_meta_description: string | null
+          default_meta_keywords: string | null
+          default_title_template: string | null
+          google_site_verification: string | null
+          id: string
+          robots_txt: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_meta_description?: string | null
+          default_meta_keywords?: string | null
+          default_title_template?: string | null
+          google_site_verification?: string | null
+          id?: string
+          robots_txt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_meta_description?: string | null
+          default_meta_keywords?: string | null
+          default_title_template?: string | null
+          google_site_verification?: string | null
+          id?: string
+          robots_txt?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_company_expenses: {
         Row: {
           amount: number
@@ -2646,18 +2688,21 @@ export type Database = {
           content: Json
           content_blocks: Json[] | null
           created_at: string | null
+          custom_canonical_url: string | null
           id: string
           is_published: boolean | null
           menu_order: number | null
           menu_type: string | null
           meta_description: string | null
           meta_keywords: string | null
+          meta_robots: string | null
           meta_title: string | null
           og_description: string | null
           og_image: string | null
           og_title: string | null
           page_template: string | null
           parent_id: string | null
+          redirect_url: string | null
           show_in_footer: boolean | null
           show_in_header: boolean | null
           slug: string
