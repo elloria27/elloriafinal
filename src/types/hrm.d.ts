@@ -90,6 +90,8 @@ export interface InvoiceSettings {
     website?: string;
     tax_id?: string;
   };
+  company_phone?: string;
+  company_email?: string;
   invoice_template: string;
   default_due_days: number;
   late_fee_percentage: number;

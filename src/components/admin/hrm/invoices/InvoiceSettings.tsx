@@ -108,6 +108,34 @@ const InvoiceSettings = () => {
 
                 <FormField
                   control={form.control}
+                  name="company_phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Phone</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="tel" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="company_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="default_due_days"
                   render={({ field }) => (
                     <FormItem>

@@ -248,8 +248,12 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text(companyInfo.address || '', 10, 45);
-  doc.text(`Phone: ${companyInfo.phone || ''}`, 10, 50);
-  doc.text(`Email: ${companyInfo.email || ''}`, 10, 55);
+  if (settings?.company_phone) {
+    doc.text(`Phone: ${settings.company_phone}`, 10, 50);
+  }
+  if (settings?.company_email) {
+    doc.text(`Email: ${settings.company_email}`, 10, 55);
+  }
   if (companyInfo.tax_id) {
     doc.text(`Tax ID: ${companyInfo.tax_id}`, 10, 60);
   }
@@ -304,7 +308,7 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
     // Use wrapText for item description with adjusted maxWidth
     y = wrapText(doc, item.description, 15, y, 90) + 5;
     
-    // Align numbers to the right with proper formatting
+    // Format numbers without decimal places
     doc.text(item.quantity.toString(), 110, y - 5);
     doc.text(formatAmount(item.unit_price), 130, y - 5);
     doc.text(item.tax_percentage.toString() + '%', 155, y - 5);
@@ -347,12 +351,12 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   }
 };
 
-// Helper function to format amounts
+// Helper function to format amounts without decimal places
 const formatAmount = (amount: number) => {
   return amount.toLocaleString('en-CA', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).replace(',', ' ');
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
 };
 
 serve(async (req) => {

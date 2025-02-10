@@ -1058,8 +1058,10 @@ export type Database = {
       }
       hrm_invoice_settings: {
         Row: {
+          company_email: string | null
           company_id: string | null
           company_info: Json | null
+          company_phone: string | null
           created_at: string | null
           default_due_days: number | null
           default_notes: string | null
@@ -1072,8 +1074,10 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          company_email?: string | null
           company_id?: string | null
           company_info?: Json | null
+          company_phone?: string | null
           created_at?: string | null
           default_due_days?: number | null
           default_notes?: string | null
@@ -1086,8 +1090,10 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          company_email?: string | null
           company_id?: string | null
           company_info?: Json | null
+          company_phone?: string | null
           created_at?: string | null
           default_due_days?: number | null
           default_notes?: string | null
