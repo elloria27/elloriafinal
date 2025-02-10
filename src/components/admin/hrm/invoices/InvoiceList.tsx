@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -13,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Edit, Eye } from "lucide-react";
@@ -48,8 +46,17 @@ const InvoiceList = () => {
       const { data, error } = await supabase
         .from("hrm_invoices")
         .select(`
-          *,
-          customer:hrm_customers(name)
+          id,
+          invoice_number,
+          created_at,
+          due_date,
+          total_amount,
+          status,
+          discount_type,
+          customer:hrm_customers(
+            name,
+            email
+          )
         `)
         .order("created_at", { ascending: false });
 
@@ -63,7 +70,7 @@ const InvoiceList = () => {
         discount_type: (invoice.discount_type as "fixed" | "percentage" | null) || undefined,
         customer: {
           name: invoice.customer?.name || '',
-          email: '',  // Add default empty values for required fields
+          email: invoice.customer?.email || '',
         }
       }));
 
