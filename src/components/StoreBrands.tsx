@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { StoreBrandsContent } from "@/types/content-blocks";
 import { Json } from "@/integrations/supabase/types";
-import { Store } from "lucide-react";
+import { Store, Leaf } from "lucide-react";
 
 interface StoreBrandsProps {
   content?: StoreBrandsContent;
@@ -91,10 +91,44 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     },
     hover: {
       scale: 1.05,
-      rotate: [0, -3, 3, -3, 0],
       transition: {
         duration: 0.5,
         ease: "easeInOut"
+      }
+    }
+  };
+
+  // Arc background variants
+  const arcVariants = {
+    initial: {
+      opacity: 0,
+      scale: 0.8,
+      rotate: -45
+    },
+    hover: {
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  // Icon variants
+  const iconVariants = {
+    initial: {
+      opacity: 0,
+      y: 10
+    },
+    hover: {
+      opacity: 0.8,
+      y: 0,
+      transition: {
+        delay: 0.1,
+        duration: 0.3,
+        ease: "easeOut"
       }
     }
   };
@@ -152,19 +186,27 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
               rel="noopener noreferrer"
               variants={cardVariants}
               whileHover="hover"
-              className="group"
+              className="group relative"
             >
               <div className="relative h-48 md:h-56 rounded-2xl bg-white p-6 
                            shadow-lg hover:shadow-xl transition-all duration-300
                            border border-gray-100 hover:border-primary/20
                            flex items-center justify-center overflow-hidden">
-                {/* Animated gradient background on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 
-                              opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 
-                              rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                {/* Arc background with Elloria leaf icon */}
+                <motion.div
+                  variants={arcVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8"
+                >
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full" />
+                  <motion.div
+                    variants={iconVariants}
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <Leaf className="w-6 h-6 text-primary/60" />
+                  </motion.div>
+                </motion.div>
                 
                 {/* Logo container */}
                 <div className="relative z-10 w-full h-full flex items-center justify-center 
@@ -175,6 +217,10 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
                     className="w-full h-full object-contain filter group-hover:brightness-110"
                   />
                 </div>
+
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 
+                              opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
               </div>
             </motion.a>
           ))}
@@ -183,4 +229,3 @@ export const StoreBrands = ({ content }: StoreBrandsProps) => {
     </section>
   );
 };
-
