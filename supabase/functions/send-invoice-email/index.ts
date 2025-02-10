@@ -38,8 +38,15 @@ serve(async (req) => {
 
     if (invoiceError) throw invoiceError;
 
-    // Generate download URL (you'll need to implement this based on your storage setup)
-    const downloadUrl = `${Deno.env.get('PUBLIC_SITE_URL')}/invoices/${invoice.id}`;
+    // Get the PDF from generate-invoice function
+    const pdfResponse = await supabaseClient.functions.invoke('generate-invoice', {
+      body: { invoiceId }
+    });
+
+    if (pdfResponse.error) throw pdfResponse.error;
+
+    const pdfData = pdfResponse.data.pdf;
+    const base64Data = pdfData.split(',')[1]; // Remove the data:application/pdf;base64, prefix
 
     // Render email template
     const html = await renderAsync(
@@ -50,17 +57,20 @@ serve(async (req) => {
           style: 'currency',
           currency: 'CAD'
         }),
-        dueDate: new Date(invoice.due_date).toLocaleDateString(),
-        downloadUrl
+        dueDate: new Date(invoice.due_date).toLocaleDateString()
       })
     );
 
-    // Send email
+    // Send email with PDF attachment
     const { data: emailResult, error: emailError } = await resend.emails.send({
       from: 'Elloria Eco Products <invoicing@elloria.ca>',
       to: recipientEmail,
       subject: `Invoice #${invoice.invoice_number} from Elloria Eco Products`,
       html,
+      attachments: [{
+        filename: `invoice-${invoice.invoice_number}.pdf`,
+        content: base64Data
+      }]
     });
 
     if (emailError) throw emailError;

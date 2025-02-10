@@ -4,9 +4,10 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
-  Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
@@ -16,7 +17,6 @@ interface InvoiceEmailProps {
   customerName: string;
   amount: string;
   dueDate: string;
-  downloadUrl: string;
 }
 
 export const InvoiceEmail = ({
@@ -24,29 +24,37 @@ export const InvoiceEmail = ({
   customerName,
   amount,
   dueDate,
-  downloadUrl,
 }: InvoiceEmailProps) => (
   <Html>
     <Head />
     <Preview>Invoice #{invoiceNumber} from Elloria Eco Products</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Invoice #{invoiceNumber}</Heading>
-        <Text style={text}>Dear {customerName},</Text>
-        <Text style={text}>
-          Please find attached your invoice #{invoiceNumber} for {amount}, due on {dueDate}.
-        </Text>
-        <Link
-          href={downloadUrl}
-          target="_blank"
-          style={{
-            ...link,
-            display: 'block',
-            marginBottom: '16px',
-          }}
-        >
-          View Invoice
-        </Link>
+        <Section style={logo}>
+          <Heading style={h1}>Elloria Eco Products</Heading>
+        </Section>
+        
+        <Section style={section}>
+          <Text style={text}>Dear {customerName},</Text>
+          <Text style={text}>
+            Please find attached your invoice #{invoiceNumber} for {amount}, due on {dueDate}.
+          </Text>
+        </Section>
+
+        <Section style={section}>
+          <Text style={text}>
+            Your invoice has been attached to this email as a PDF document. Please review it and ensure payment is made by the due date.
+          </Text>
+        </Section>
+
+        <Hr style={hr} />
+
+        <Section style={section}>
+          <Text style={text}>
+            If you have any questions about this invoice, please don't hesitate to contact us.
+          </Text>
+        </Section>
+
         <Text style={footer}>
           Thank you for your business!<br />
           Elloria Eco Products LTD.
@@ -59,39 +67,54 @@ export const InvoiceEmail = ({
 export default InvoiceEmail
 
 const main = {
-  backgroundColor: '#ffffff',
+  backgroundColor: '#f6f9fc',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 }
 
 const container = {
+  backgroundColor: '#ffffff',
   margin: '0 auto',
-  padding: '20px 0 48px',
+  padding: '40px 0',
+  marginBottom: '64px',
+  maxWidth: '600px',
+  borderRadius: '8px',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+}
+
+const logo = {
+  padding: '0 40px',
+  marginBottom: '30px',
 }
 
 const h1 = {
-  color: '#1a1a1a',
+  color: '#484848',
   fontSize: '24px',
   fontWeight: '600',
   lineHeight: '1.4',
   margin: '16px 0',
+  textAlign: 'center' as const,
+}
+
+const section = {
+  padding: '0 40px',
 }
 
 const text = {
-  color: '#333',
+  color: '#525f7f',
   fontSize: '16px',
   lineHeight: '1.6',
   margin: '16px 0',
 }
 
-const link = {
-  color: '#2563eb',
-  fontSize: '16px',
-  textDecoration: 'underline',
+const hr = {
+  borderColor: '#e6ebf1',
+  margin: '20px 0',
 }
 
 const footer = {
-  color: '#898989',
+  color: '#8898aa',
   fontSize: '14px',
   lineHeight: '22px',
+  textAlign: 'center' as const,
   margin: '48px 0 24px',
 }
