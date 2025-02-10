@@ -57,7 +57,17 @@ const InvoiceList = () => {
         throw error;
       }
 
-      setInvoices(data || []);
+      // Transform and validate the data to match the Invoice type
+      const transformedInvoices: Invoice[] = (data || []).map(invoice => ({
+        ...invoice,
+        discount_type: (invoice.discount_type as "fixed" | "percentage" | null) || undefined,
+        customer: {
+          name: invoice.customer?.name || '',
+          email: '',  // Add default empty values for required fields
+        }
+      }));
+
+      setInvoices(transformedInvoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);
       toast.error("Failed to load invoices");
@@ -269,4 +279,3 @@ const InvoiceList = () => {
 };
 
 export default InvoiceList;
-
