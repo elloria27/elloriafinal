@@ -1321,6 +1321,44 @@ export type Database = {
           },
         ]
       }
+      hrm_subtasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          order_index: number
+          task_id: string
+          title: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          order_index: number
+          task_id: string
+          title: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          order_index?: number
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_task"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hrm_task_attachments: {
         Row: {
           created_at: string | null
@@ -1359,6 +1397,48 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_task_checklists: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          order_index: number
+          task_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          order_index: number
+          task_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          order_index?: number
+          task_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_task"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_task_checklists_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tasks"
             referencedColumns: ["id"]
           },
         ]
