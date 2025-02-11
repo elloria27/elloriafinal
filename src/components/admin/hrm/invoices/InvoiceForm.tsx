@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Form,
@@ -357,6 +358,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                 name={`items.${index}.description`}
                 render={({ field }) => (
                   <FormItem className="flex-1">
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Description" />
                     </FormControl>
@@ -370,6 +372,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                 name={`items.${index}.quantity`}
                 render={({ field }) => (
                   <FormItem className="w-24">
+                    <FormLabel>Quantity</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -389,6 +392,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                 name={`items.${index}.unitPrice`}
                 render={({ field }) => (
                   <FormItem className="w-32">
+                    <FormLabel>Price per unit</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -408,6 +412,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                 name={`items.${index}.taxPercentage`}
                 render={({ field }) => (
                   <FormItem className="w-24">
+                    <FormLabel>Tax (%)</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -424,15 +429,17 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                 )}
               />
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => remove(index)}
-                disabled={fields.length === 1}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
+              <div className="pt-8">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  disabled={fields.length === 1}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
