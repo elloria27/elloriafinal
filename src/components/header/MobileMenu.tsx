@@ -1,3 +1,4 @@
+
 import { Menu, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -81,7 +82,7 @@ export const MobileMenu = () => {
             {hasChildren && (
               <button
                 onClick={() => toggleExpanded(item.path)}
-                className="p-2 mx-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                className="p-2 mx-2 rounded-md hover:bg-gray-200 text-gray-700 transition-colors bg-gray-100"
                 aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
               >
                 <motion.div

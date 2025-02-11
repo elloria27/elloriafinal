@@ -668,15 +668,7 @@ export type Database = {
           id?: string
           order_index?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_checklist_items_checklist_id_fkey"
-            columns: ["checklist_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_task_checklists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       hrm_credit_notes: {
         Row: {
@@ -978,6 +970,7 @@ export type Database = {
           id: string
           invoice_id: string | null
           quantity: number
+          tax_category_id: string | null
           tax_percentage: number | null
           total_price: number
           unit_price: number
@@ -988,6 +981,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           quantity?: number
+          tax_category_id?: string | null
           tax_percentage?: number | null
           total_price: number
           unit_price: number
@@ -998,6 +992,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           quantity?: number
+          tax_category_id?: string | null
           tax_percentage?: number | null
           total_price?: number
           unit_price?: number
@@ -1326,44 +1321,6 @@ export type Database = {
           },
         ]
       }
-      hrm_subtasks: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          order_index: number
-          task_id: string | null
-          title: string
-        }
-        Insert: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index: number
-          task_id?: string | null
-          title: string
-        }
-        Update: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index?: number
-          task_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_subtasks_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       hrm_task_attachments: {
         Row: {
           created_at: string | null
@@ -1402,41 +1359,6 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_task_checklists: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          order_index: number
-          task_id: string | null
-          title: string
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index: number
-          task_id?: string | null
-          title: string
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index?: number
-          task_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_task_checklists_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -1697,39 +1619,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      hrm_tax_rates: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          is_compound: boolean | null
-          name: string
-          percentage: number
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_compound?: boolean | null
-          name: string
-          percentage: number
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_compound?: boolean | null
-          name?: string
-          percentage?: number
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       inventory: {
         Row: {
@@ -2874,6 +2763,7 @@ export type Database = {
       task_priority: "low" | "medium" | "high"
       task_status: "todo" | "in_progress" | "completed" | "on_hold"
       user_role: "admin" | "client"
+      work_act_status: "draft" | "pending" | "signed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
