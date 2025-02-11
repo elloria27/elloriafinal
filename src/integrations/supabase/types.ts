@@ -759,13 +759,6 @@ export type Database = {
             foreignKeyName: "hrm_credit_notes_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
-          {
-            foreignKeyName: "hrm_credit_notes_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -817,13 +810,6 @@ export type Database = {
             foreignKeyName: "hrm_customer_analytics_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
-          {
-            foreignKeyName: "hrm_customer_analytics_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -858,13 +844,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "hrm_customer_payment_methods_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
           {
             foreignKeyName: "hrm_customer_payment_methods_customer_id_fkey"
             columns: ["customer_id"]
@@ -1031,13 +1010,6 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "hrm_estimates_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
           {
             foreignKeyName: "hrm_estimates_customer_id_fkey"
             columns: ["customer_id"]
@@ -1294,13 +1266,6 @@ export type Database = {
             foreignKeyName: "hrm_invoice_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
-          {
-            foreignKeyName: "hrm_invoice_settings_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -1401,13 +1366,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "hrm_invoices_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
           {
             foreignKeyName: "hrm_invoices_customer_id_fkey"
             columns: ["customer_id"]
@@ -1515,13 +1473,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "hrm_recurring_invoices_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_customer_debts"
-            referencedColumns: ["customer_id"]
-          },
           {
             foreignKeyName: "hrm_recurring_invoices_customer_id_fkey"
             columns: ["customer_id"]
@@ -3054,24 +3005,7 @@ export type Database = {
       }
     }
     Views: {
-      hrm_cash_flow_forecast: {
-        Row: {
-          date: string | null
-          expected_income: number | null
-          unique_customers: number | null
-        }
-        Relationships: []
-      }
-      hrm_customer_debts: {
-        Row: {
-          customer_id: string | null
-          customer_name: string | null
-          latest_due_date: string | null
-          overdue_invoices: number | null
-          total_debt: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_fetch_all_pages: {
