@@ -978,6 +978,7 @@ export type Database = {
           id: string
           invoice_id: string | null
           quantity: number
+          tax_category_id: string | null
           tax_percentage: number | null
           total_price: number
           unit_price: number
@@ -988,6 +989,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           quantity?: number
+          tax_category_id?: string | null
           tax_percentage?: number | null
           total_price: number
           unit_price: number
@@ -998,6 +1000,7 @@ export type Database = {
           id?: string
           invoice_id?: string | null
           quantity?: number
+          tax_category_id?: string | null
           tax_percentage?: number | null
           total_price?: number
           unit_price?: number
@@ -1008,6 +1011,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "hrm_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_invoice_items_tax_category_id_fkey"
+            columns: ["tax_category_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tax_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1698,6 +1708,30 @@ export type Database = {
           },
         ]
       }
+      hrm_tax_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hrm_tax_rates: {
         Row: {
           created_at: string | null
@@ -1730,6 +1764,60 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      hrm_tax_rules: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: number | null
+          region: string | null
+          tax_rate_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority?: number | null
+          region?: string | null
+          tax_rate_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: number | null
+          region?: string | null
+          tax_rate_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_tax_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tax_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hrm_tax_rules_tax_rate_id_fkey"
+            columns: ["tax_rate_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory: {
         Row: {
