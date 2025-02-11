@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,17 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Printer, Download, Mail, Edit, Save, X, Trash } from "lucide-react";
+import { Printer, Download, Mail, Edit, Save, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import InvoiceForm from "./InvoiceForm";
 
 interface InvoiceDetailsProps {
   invoiceId: string;
@@ -72,7 +63,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   const [sending, setSending] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState("");
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (amount: number) => {
@@ -194,35 +184,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!invoice) return;
-    
-    try {
-      // First delete invoice items
-      const { error: itemsError } = await supabase
-        .from("hrm_invoice_items")
-        .delete()
-        .eq("invoice_id", invoice.id);
-
-      if (itemsError) throw itemsError;
-
-      // Then delete the invoice
-      const { error: invoiceError } = await supabase
-        .from("hrm_invoices")
-        .delete()
-        .eq("id", invoice.id);
-
-      if (invoiceError) throw invoiceError;
-
-      toast.success("Invoice deleted successfully");
-      // Navigate back or refresh the list
-      window.history.back();
-    } catch (error) {
-      console.error("Error deleting invoice:", error);
-      toast.error("Failed to delete invoice");
-    }
-  };
-
   const handleEmailInvoice = async () => {
     if (!invoice?.customer.email) {
       toast.error("No customer email address available");
@@ -283,7 +244,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  const handleDownload = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleDownload = async () => {
     if (!invoice?.id) return;
     
     try {
@@ -371,39 +332,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
             >
               <Mail className="h-4 w-4 mr-2" />
               {sending ? "Sending..." : "Email"}
-            </Button>
-            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>Edit Invoice</DialogTitle>
-                </DialogHeader>
-                <InvoiceForm
-                  invoiceId={invoice.id}
-                  onSuccess={() => {
-                    setShowEditDialog(false);
-                    window.location.reload();
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              className="w-full sm:w-auto"
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              Delete
             </Button>
           </div>
         </div>
