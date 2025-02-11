@@ -640,45 +640,6 @@ export type Database = {
           },
         ]
       }
-      hrm_bulk_invoices: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          invoice_ids: string[] | null
-          name: string
-          operation_type: string
-          parameters: Json | null
-          result_log: Json | null
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          invoice_ids?: string[] | null
-          name: string
-          operation_type: string
-          parameters?: Json | null
-          result_log?: Json | null
-          status?: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          invoice_ids?: string[] | null
-          name?: string
-          operation_type?: string
-          parameters?: Json | null
-          result_log?: Json | null
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       hrm_checklist_items: {
         Row: {
           checklist_id: string | null
@@ -707,15 +668,7 @@ export type Database = {
           id?: string
           order_index?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_checklist_items_checklist_id_fkey"
-            columns: ["checklist_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_task_checklists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       hrm_credit_notes: {
         Row: {
@@ -767,50 +720,6 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "hrm_invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_customer_analytics: {
-        Row: {
-          average_payment_time: number | null
-          created_at: string | null
-          customer_id: string | null
-          id: string
-          last_invoice_date: string | null
-          payment_reliability_score: number | null
-          total_invoiced: number | null
-          total_paid: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          average_payment_time?: number | null
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          last_invoice_date?: string | null
-          payment_reliability_score?: number | null
-          total_invoiced?: number | null
-          total_paid?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          average_payment_time?: number | null
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          last_invoice_date?: string | null
-          payment_reliability_score?: number | null
-          total_invoiced?: number | null
-          total_paid?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_customer_analytics_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
         ]
@@ -885,39 +794,6 @@ export type Database = {
           name?: string
           phone?: string | null
           tax_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      hrm_document_templates: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          is_default: boolean | null
-          name: string
-          template_data: Json
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_default?: boolean | null
-          name: string
-          template_data?: Json
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_default?: boolean | null
-          name?: string
-          template_data?: Json
-          type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -1043,36 +919,6 @@ export type Database = {
         }
         Relationships: []
       }
-      hrm_financial_stats: {
-        Row: {
-          created_at: string | null
-          data: Json
-          id: string
-          period_end: string
-          period_start: string
-          stats_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          data?: Json
-          id?: string
-          period_end: string
-          period_start: string
-          stats_type: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          data?: Json
-          id?: string
-          period_end?: string
-          period_start?: string
-          stats_type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       hrm_invoice_emails: {
         Row: {
           email_type: string
@@ -1157,13 +1003,6 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "hrm_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hrm_invoice_items_tax_category_id_fkey"
-            columns: ["tax_category_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tax_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1482,44 +1321,6 @@ export type Database = {
           },
         ]
       }
-      hrm_subtasks: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          order_index: number
-          task_id: string | null
-          title: string
-        }
-        Insert: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index: number
-          task_id?: string | null
-          title: string
-        }
-        Update: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index?: number
-          task_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_subtasks_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       hrm_task_attachments: {
         Row: {
           created_at: string | null
@@ -1558,41 +1359,6 @@ export type Database = {
             columns: ["uploaded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_task_checklists: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          order_index: number
-          task_id: string | null
-          title: string
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index: number
-          task_id?: string | null
-          title: string
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          order_index?: number
-          task_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_task_checklists_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -1850,211 +1616,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_tax_categories: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      hrm_tax_rates: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          is_compound: boolean | null
-          name: string
-          percentage: number
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_compound?: boolean | null
-          name: string
-          percentage: number
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_compound?: boolean | null
-          name?: string
-          percentage?: number
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      hrm_tax_rules: {
-        Row: {
-          category_id: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          priority: number | null
-          region: string | null
-          tax_rate_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          priority?: number | null
-          region?: string | null
-          tax_rate_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          priority?: number | null
-          region?: string | null
-          tax_rate_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_tax_rules_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tax_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "hrm_tax_rules_tax_rate_id_fkey"
-            columns: ["tax_rate_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_tax_rates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_work_act_items: {
-        Row: {
-          act_id: string | null
-          created_at: string | null
-          description: string
-          id: string
-          quantity: number
-          tax_amount: number
-          total_price: number
-          unit_price: number
-        }
-        Insert: {
-          act_id?: string | null
-          created_at?: string | null
-          description: string
-          id?: string
-          quantity?: number
-          tax_amount?: number
-          total_price: number
-          unit_price: number
-        }
-        Update: {
-          act_id?: string | null
-          created_at?: string | null
-          description?: string
-          id?: string
-          quantity?: number
-          tax_amount?: number
-          total_price?: number
-          unit_price?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_work_act_items_act_id_fkey"
-            columns: ["act_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_work_acts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hrm_work_acts: {
-        Row: {
-          act_date: string
-          act_number: string
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          invoice_id: string | null
-          signing_date: string | null
-          status: string
-          tax_amount: number
-          total_amount: number
-          updated_at: string | null
-        }
-        Insert: {
-          act_date?: string
-          act_number: string
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          invoice_id?: string | null
-          signing_date?: string | null
-          status?: string
-          tax_amount?: number
-          total_amount: number
-          updated_at?: string | null
-        }
-        Update: {
-          act_date?: string
-          act_number?: string
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          invoice_id?: string | null
-          signing_date?: string | null
-          status?: string
-          tax_amount?: number
-          total_amount?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hrm_work_acts_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "hrm_invoices"
             referencedColumns: ["id"]
           },
         ]
