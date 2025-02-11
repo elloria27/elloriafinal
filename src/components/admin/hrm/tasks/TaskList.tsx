@@ -262,7 +262,9 @@ const TaskList = () => {
           })) || [],
           subtasks: task.hrm_subtasks || [],
           checklists: (task.hrm_task_checklists || []).map(checklist => ({
-            ...checklist,
+            id: checklist.id,
+            title: checklist.title,
+            order_index: checklist.order_index,
             items: checklist.hrm_checklist_items || []
           }))
         }));

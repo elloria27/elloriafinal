@@ -131,9 +131,7 @@ const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
         const { data: checklists, error: checklistsError } = await supabase
           .from('hrm_task_checklists')
           .select(`
-            id,
-            title,
-            order_index,
+            *,
             hrm_checklist_items (
               id,
               content,
@@ -149,7 +147,7 @@ const TaskForm = ({ onSuccess, initialData, onTaskCreated }: TaskFormProps) => {
         if (checklists) {
           const formattedChecklists = checklists.map(checklist => ({
             ...checklist,
-            items: checklist.hrm_checklist_items.sort((a, b) => a.order_index - b.order_index)
+            items: (checklist.hrm_checklist_items || []).sort((a, b) => a.order_index - b.order_index)
           }));
           setChecklists(formattedChecklists);
         }
