@@ -640,6 +640,45 @@ export type Database = {
           },
         ]
       }
+      hrm_bulk_invoices: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          invoice_ids: string[] | null
+          name: string
+          operation_type: string
+          parameters: Json | null
+          result_log: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_ids?: string[] | null
+          name: string
+          operation_type: string
+          parameters?: Json | null
+          result_log?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_ids?: string[] | null
+          name?: string
+          operation_type?: string
+          parameters?: Json | null
+          result_log?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hrm_checklist_items: {
         Row: {
           checklist_id: string | null
@@ -720,6 +759,13 @@ export type Database = {
             foreignKeyName: "hrm_credit_notes_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "hrm_credit_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -728,6 +774,57 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "hrm_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_customer_analytics: {
+        Row: {
+          average_payment_time: number | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          last_invoice_date: string | null
+          payment_reliability_score: number | null
+          total_invoiced: number | null
+          total_paid: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_payment_time?: number | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          last_invoice_date?: string | null
+          payment_reliability_score?: number | null
+          total_invoiced?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_payment_time?: number | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          last_invoice_date?: string | null
+          payment_reliability_score?: number | null
+          total_invoiced?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_customer_analytics_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "hrm_customer_analytics_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
         ]
@@ -761,6 +858,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hrm_customer_payment_methods_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
           {
             foreignKeyName: "hrm_customer_payment_methods_customer_id_fkey"
             columns: ["customer_id"]
@@ -931,6 +1035,13 @@ export type Database = {
             foreignKeyName: "hrm_estimates_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "hrm_estimates_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -956,6 +1067,36 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hrm_financial_stats: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          period_end: string
+          period_start: string
+          stats_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          period_end: string
+          period_start: string
+          stats_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          period_end?: string
+          period_start?: string
+          stats_type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -1153,6 +1294,13 @@ export type Database = {
             foreignKeyName: "hrm_invoice_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "hrm_invoice_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
             referencedRelation: "hrm_customers"
             referencedColumns: ["id"]
           },
@@ -1253,6 +1401,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hrm_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
           {
             foreignKeyName: "hrm_invoices_customer_id_fkey"
             columns: ["customer_id"]
@@ -1360,6 +1515,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hrm_recurring_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_customer_debts"
+            referencedColumns: ["customer_id"]
+          },
           {
             foreignKeyName: "hrm_recurring_invoices_customer_id_fkey"
             columns: ["customer_id"]
@@ -2892,7 +3054,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      hrm_cash_flow_forecast: {
+        Row: {
+          date: string | null
+          expected_income: number | null
+          unique_customers: number | null
+        }
+        Relationships: []
+      }
+      hrm_customer_debts: {
+        Row: {
+          customer_id: string | null
+          customer_name: string | null
+          latest_due_date: string | null
+          overdue_invoices: number | null
+          total_debt: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_fetch_all_pages: {
