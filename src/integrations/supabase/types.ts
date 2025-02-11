@@ -806,6 +806,39 @@ export type Database = {
         }
         Relationships: []
       }
+      hrm_document_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          template_data: Json
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          template_data?: Json
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          template_data?: Json
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       hrm_estimate_items: {
         Row: {
           created_at: string | null
@@ -1815,6 +1848,100 @@ export type Database = {
             columns: ["tax_rate_id"]
             isOneToOne: false
             referencedRelation: "hrm_tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_work_act_items: {
+        Row: {
+          act_id: string | null
+          created_at: string | null
+          description: string
+          id: string
+          quantity: number
+          tax_amount: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          act_id?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          quantity?: number
+          tax_amount?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          act_id?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          quantity?: number
+          tax_amount?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_work_act_items_act_id_fkey"
+            columns: ["act_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_work_acts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hrm_work_acts: {
+        Row: {
+          act_date: string
+          act_number: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          invoice_id: string | null
+          signing_date: string | null
+          status: string
+          tax_amount: number
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          act_date?: string
+          act_number: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          signing_date?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          act_date?: string
+          act_number?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          signing_date?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hrm_work_acts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_invoices"
             referencedColumns: ["id"]
           },
         ]
