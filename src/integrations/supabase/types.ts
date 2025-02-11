@@ -642,7 +642,7 @@ export type Database = {
       }
       hrm_checklist_items: {
         Row: {
-          checklist_id: string | null
+          checklist_id: string
           completed: boolean | null
           content: string
           created_at: string | null
@@ -651,7 +651,7 @@ export type Database = {
           order_index: number
         }
         Insert: {
-          checklist_id?: string | null
+          checklist_id: string
           completed?: boolean | null
           content: string
           created_at?: string | null
@@ -660,7 +660,7 @@ export type Database = {
           order_index: number
         }
         Update: {
-          checklist_id?: string | null
+          checklist_id?: string
           completed?: boolean | null
           content?: string
           created_at?: string | null
@@ -668,7 +668,15 @@ export type Database = {
           id?: string
           order_index?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_checklist_items_checklist"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "hrm_task_checklists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hrm_credit_notes: {
         Row: {

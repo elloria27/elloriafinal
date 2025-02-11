@@ -222,24 +222,24 @@ const TaskList = () => {
         .select(`
           *,
           profiles!hrm_tasks_assigned_to_fkey(full_name),
-          hrm_task_label_assignments(
-            hrm_task_labels (
+          hrm_task_label_assignments!inner(
+            hrm_task_labels!inner(
               id,
               name,
               color
             )
           ),
-          hrm_subtasks (
+          hrm_subtasks(
             id,
             title,
             completed,
             order_index
           ),
-          hrm_task_checklists (
+          hrm_task_checklists!left(
             id,
             title,
             order_index,
-            hrm_checklist_items (
+            hrm_checklist_items!hrm_checklist_items_checklist_id_fkey(
               id,
               content,
               completed,
