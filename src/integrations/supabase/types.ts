@@ -3268,6 +3268,7 @@ export type Database = {
       task_priority: "low" | "medium" | "high"
       task_status: "todo" | "in_progress" | "completed" | "on_hold"
       user_role: "admin" | "client"
+      work_act_status: "draft" | "pending" | "signed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
