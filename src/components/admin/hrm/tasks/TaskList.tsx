@@ -235,11 +235,11 @@ const TaskList = () => {
             completed,
             order_index
           ),
-          hrm_task_checklists!left(
+          hrm_task_checklists(
             id,
             title,
             order_index,
-            hrm_checklist_items!hrm_checklist_items_checklist_id_fkey(
+            hrm_checklist_items(
               id,
               content,
               completed,
@@ -252,22 +252,35 @@ const TaskList = () => {
       if (error) throw error;
       
       if (tasksData) {
-        const formattedTasks: Task[] = tasksData.map(task => ({
-          ...task,
-          profiles: task.profiles || { full_name: null },
-          labels: task.hrm_task_label_assignments?.map(la => ({
-            id: la.hrm_task_labels.id,
-            name: la.hrm_task_labels.name,
-            color: la.hrm_task_labels.color
-          })) || [],
-          subtasks: task.hrm_subtasks || [],
-          checklists: (task.hrm_task_checklists || []).map(checklist => ({
+        const formattedTasks: Task[] = tasksData.map(task => {
+          // Ensure proper type casting for checklists and their items
+          const checklists = (task.hrm_task_checklists || []).map(checklist => ({
             id: checklist.id,
             title: checklist.title,
             order_index: checklist.order_index,
-            items: checklist.hrm_checklist_items || []
-          }))
-        }));
+            items: Array.isArray(checklist.hrm_checklist_items) 
+              ? checklist.hrm_checklist_items.map(item => ({
+                  id: item.id,
+                  content: item.content,
+                  completed: item.completed || false,
+                  order_index: item.order_index
+                }))
+              : []
+          }));
+
+          return {
+            ...task,
+            profiles: task.profiles || { full_name: null },
+            labels: task.hrm_task_label_assignments?.map(la => ({
+              id: la.hrm_task_labels.id,
+              name: la.hrm_task_labels.name,
+              color: la.hrm_task_labels.color
+            })) || [],
+            subtasks: task.hrm_subtasks || [],
+            checklists
+          };
+        });
+        
         setTasks(formattedTasks);
       }
     } catch (error: any) {
