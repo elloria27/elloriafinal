@@ -148,17 +148,24 @@ export const BusinessFormsManagement = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-      timeZone: 'America/Winnipeg'
-    });
+    try {
+      const date = new Date(dateString);
+      const winnipegOffset = -6; // Winnipeg is UTC-6
+      const utcHours = date.getUTCHours();
+      date.setUTCHours(utcHours + winnipegOffset);
+      
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
   };
 
   if (loading) {

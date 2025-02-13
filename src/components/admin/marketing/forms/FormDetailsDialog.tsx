@@ -48,17 +48,24 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-      timeZone: 'America/Winnipeg'
-    });
+    try {
+      const date = new Date(dateString);
+      const winnipegOffset = -6; // Winnipeg is UTC-6
+      const utcHours = date.getUTCHours();
+      date.setUTCHours(utcHours + winnipegOffset);
+      
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
   };
 
   const handleUpdateNotes = async () => {
@@ -82,19 +89,31 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handleFileUpload = async (file: File) => {
     try {
-      const fileName = `${form.id}-${file.name}`;
-      console.log('Uploading file:', fileName); // Debug log
+      const timestamp = Date.now();
+      const fileName = `${form.id}-${timestamp}-${file.name}`;
+      console.log('Uploading file:', fileName);
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('form-attachments')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: 'no-cache',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
-      const attachments = form.attachments ? [...form.attachments, fileName] : [fileName];
-      console.log('New attachments array:', attachments); // Debug log
+      console.log('Upload successful:', data);
 
-      const { data, error: updateError } = await supabase
+      const { data: urlData } = supabase.storage
+        .from('form-attachments')
+        .getPublicUrl(fileName);
+
+      console.log('File public URL:', urlData.publicUrl);
+
+      const attachments = form.attachments ? [...form.attachments, fileName] : [fileName];
+      console.log('Updated attachments array:', attachments);
+
+      const { data: formData, error: updateError } = await supabase
         .from('business_form_submissions')
         .update({ attachments })
         .eq('id', form.id)
@@ -103,7 +122,8 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (updateError) throw updateError;
 
-      onUpdate(data as BusinessFormSubmission);
+      console.log('Form updated with new attachment:', formData);
+      onUpdate(formData as BusinessFormSubmission);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -113,22 +133,18 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handlePreview = async (fileName: string) => {
     try {
-      console.log('Trying to preview file:', fileName); // Debug log
-      console.log('Current attachments:', form.attachments); // Debug log
+      console.log('Attempting to preview file:', fileName);
 
       const { data: urlData } = supabase.storage
         .from('form-attachments')
         .getPublicUrl(fileName);
 
-      console.log('Public URL:', urlData.publicUrl); // Debug log
-
       if (!urlData?.publicUrl) {
         throw new Error('Failed to get public URL');
       }
 
-      // Force cache refresh
       const refreshedUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      console.log('Final URL with cache busting:', refreshedUrl); // Debug log
+      console.log('Preview URL:', refreshedUrl);
       
       setPreviewUrl(refreshedUrl);
       setSelectedFile(fileName);
@@ -164,7 +180,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const getDisplayFileName = (fileName: string) => {
     try {
-      return fileName.split('-').slice(1).join('-');
+      return fileName.split('-').slice(2).join('-');
     } catch (error) {
       console.error('Error processing filename:', fileName, error);
       return 'Unnamed file';
@@ -252,20 +268,18 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
           <div>
             <Label>Attachments</Label>
-            {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
-              <div className="mt-2 space-y-2">
-                {form.attachments.map((fileName, index) => {
-                  console.log('Rendering attachment:', fileName); // Debug log
-                  return typeof fileName === 'string' && (
+            <div className="mt-2">
+              {form.attachments && form.attachments.length > 0 ? (
+                <div className="space-y-2">
+                  {form.attachments.map((fileName, index) => (
                     <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
                       <File className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1">{getDisplayFileName(fileName)}</span>
+                      <span className="flex-1">{fileName.split('-').slice(2).join('-')}</span>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handlePreview(fileName)}
-                          title="Preview"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -273,18 +287,17 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
                           variant="outline"
                           size="sm"
                           onClick={() => handleDownload(fileName)}
-                          title="Download"
                         >
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-muted-foreground mt-1">No attachments</p>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No attachments</p>
+              )}
+            </div>
 
             <div className="mt-4">
               <FileUpload onUpload={handleFileUpload} />
