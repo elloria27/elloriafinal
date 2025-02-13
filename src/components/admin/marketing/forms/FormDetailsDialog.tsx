@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -121,13 +120,11 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handlePreview = async (fileName: string) => {
     try {
-      const { data: { publicUrl }, error } = await supabase.storage
+      const { data } = supabase.storage
         .from('form-attachments')
         .getPublicUrl(fileName);
 
-      if (error) throw error;
-
-      setPreviewUrl(publicUrl);
+      setPreviewUrl(data.publicUrl);
       setSelectedFile(fileName);
     } catch (error) {
       console.error('Error getting file preview:', error);
