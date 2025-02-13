@@ -75,7 +75,13 @@ export const BusinessFormsManagement = () => {
 
       if (error) throw error;
 
-      setForms(data || []);
+      // Cast the data to ensure it matches our interface
+      const typedData = (data || []).map(form => ({
+        ...form,
+        attachments: Array.isArray(form.attachments) ? form.attachments : null
+      })) as BusinessFormSubmission[];
+
+      setForms(typedData);
     } catch (error) {
       console.error('Error fetching business forms:', error);
       toast.error('Failed to load business forms');
