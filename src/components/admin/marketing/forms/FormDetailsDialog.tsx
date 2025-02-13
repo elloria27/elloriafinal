@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -120,11 +121,18 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handlePreview = async (fileName: string) => {
     try {
-      const { data } = supabase.storage
+      // Get the public URL for the file
+      const { data: urlData } = supabase.storage
         .from('form-attachments')
         .getPublicUrl(fileName);
 
-      setPreviewUrl(data.publicUrl);
+      console.log('Public URL:', urlData.publicUrl); // Debug log
+
+      if (!urlData?.publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
+
+      setPreviewUrl(urlData.publicUrl);
       setSelectedFile(fileName);
     } catch (error) {
       console.error('Error getting file preview:', error);
