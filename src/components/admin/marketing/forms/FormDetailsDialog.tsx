@@ -57,7 +57,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
       minute: '2-digit',
       second: '2-digit',
       hour12: true,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timeZone: 'America/Winnipeg'
     });
   };
 
@@ -83,6 +83,8 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
   const handleFileUpload = async (file: File) => {
     try {
       const fileName = `${form.id}-${file.name}`;
+      console.log('Uploading file:', fileName); // Debug log
+
       const { error: uploadError } = await supabase.storage
         .from('form-attachments')
         .upload(fileName, file);
@@ -90,6 +92,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
       if (uploadError) throw uploadError;
 
       const attachments = form.attachments ? [...form.attachments, fileName] : [fileName];
+      console.log('New attachments array:', attachments); // Debug log
 
       const { data, error: updateError } = await supabase
         .from('business_form_submissions')
@@ -105,6 +108,33 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error('Failed to upload file');
+    }
+  };
+
+  const handlePreview = async (fileName: string) => {
+    try {
+      console.log('Trying to preview file:', fileName); // Debug log
+      console.log('Current attachments:', form.attachments); // Debug log
+
+      const { data: urlData } = supabase.storage
+        .from('form-attachments')
+        .getPublicUrl(fileName);
+
+      console.log('Public URL:', urlData.publicUrl); // Debug log
+
+      if (!urlData?.publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
+
+      // Force cache refresh
+      const refreshedUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      console.log('Final URL with cache busting:', refreshedUrl); // Debug log
+      
+      setPreviewUrl(refreshedUrl);
+      setSelectedFile(fileName);
+    } catch (error) {
+      console.error('Error getting file preview:', error);
+      toast.error('Failed to preview file');
     }
   };
 
@@ -129,28 +159,6 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
     } catch (error) {
       console.error('Error downloading file:', error);
       toast.error('Failed to download file');
-    }
-  };
-
-  const handlePreview = async (fileName: string) => {
-    try {
-      const { data: urlData } = supabase.storage
-        .from('form-attachments')
-        .getPublicUrl(fileName);
-
-      console.log('Public URL:', urlData.publicUrl); // Debug log
-      console.log('File name:', fileName); // Debug log for file name
-
-      if (!urlData?.publicUrl) {
-        throw new Error('Failed to get public URL');
-      }
-
-      const refreshedUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      setPreviewUrl(refreshedUrl);
-      setSelectedFile(fileName);
-    } catch (error) {
-      console.error('Error getting file preview:', error);
-      toast.error('Failed to preview file');
     }
   };
 
@@ -246,8 +254,9 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
             <Label>Attachments</Label>
             {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
               <div className="mt-2 space-y-2">
-                {form.attachments.map((fileName, index) => (
-                  typeof fileName === 'string' && (
+                {form.attachments.map((fileName, index) => {
+                  console.log('Rendering attachment:', fileName); // Debug log
+                  return typeof fileName === 'string' && (
                     <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
                       <File className="h-4 w-4 text-muted-foreground" />
                       <span className="flex-1">{getDisplayFileName(fileName)}</span>
@@ -270,8 +279,8 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
                         </Button>
                       </div>
                     </div>
-                  )
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-muted-foreground mt-1">No attachments</p>
@@ -293,19 +302,19 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
                 <DialogTitle>{getDisplayFileName(selectedFile)}</DialogTitle>
               </DialogHeader>
               <div className="mt-4 overflow-auto">
-                {getFileType(selectedFile) === 'pdf' ? (
+                {selectedFile.toLowerCase().endsWith('.pdf') ? (
                   <iframe
                     src={previewUrl}
                     className="w-full h-[60vh]"
                     title="PDF Preview"
-                    key={previewUrl} // Force iframe refresh
+                    key={previewUrl}
                   />
                 ) : (
                   <img
                     src={previewUrl}
                     alt="File Preview"
                     className="max-w-full h-auto"
-                    key={previewUrl} // Force image refresh
+                    key={previewUrl}
                   />
                 )}
               </div>

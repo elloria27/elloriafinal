@@ -75,7 +75,6 @@ export const BusinessFormsManagement = () => {
 
       if (error) throw error;
 
-      // Cast the data to ensure it matches our interface
       const typedData = (data || []).map(form => ({
         ...form,
         attachments: Array.isArray(form.attachments) ? form.attachments : null
@@ -149,7 +148,6 @@ export const BusinessFormsManagement = () => {
   };
 
   const formatDate = (dateString: string) => {
-    // Convert UTC date to local timezone
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
       year: 'numeric',
@@ -159,7 +157,7 @@ export const BusinessFormsManagement = () => {
       minute: '2-digit',
       second: '2-digit',
       hour12: true,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timeZone: 'America/Winnipeg'
     });
   };
 
