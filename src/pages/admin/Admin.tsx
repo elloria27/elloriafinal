@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -25,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
 import InvoiceManagement from "@/components/admin/hrm/invoices/InvoiceManagement";
+import { SubscriptionManagement } from "@/components/admin/marketing/SubscriptionManagement";
+import { BusinessFormsManagement } from "@/components/admin/marketing/BusinessFormsManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -148,6 +151,10 @@ const Admin = () => {
         return <TaskManager />;
       case "invoices":
         return <InvoiceManagement />;
+      case "subscriptions":
+        return <SubscriptionManagement />;
+      case "business-forms":
+        return <BusinessFormsManagement />;
       default:
         return <Dashboard />;
     }
