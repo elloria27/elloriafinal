@@ -271,7 +271,7 @@ export default function SiteSettings() {
           onClick={handleSave} 
           disabled={saving}
           size="lg"
-          className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 rounded-xl"
+          className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 md:px-8 py-6 rounded-xl"
         >
           {saving ? (
             <>
@@ -326,12 +326,13 @@ export default function SiteSettings() {
                         className="w-full h-auto rounded-lg border"
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => document.getElementById('logo-upload')?.click()}
                         disabled={uploadingLogo}
+                        className="w-full sm:w-auto"
                       >
                         {uploadingLogo ? (
                           <>
@@ -350,6 +351,7 @@ export default function SiteSettings() {
                         variant="outline"
                         onClick={handleRemoveLogo}
                         disabled={uploadingLogo}
+                        className="w-full sm:w-auto"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Remove Logo
