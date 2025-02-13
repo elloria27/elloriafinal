@@ -301,6 +301,33 @@ export type Database = {
         }
         Relationships: []
       }
+      business_forms: {
+        Row: {
+          company_name: string
+          created_at: string
+          email: string
+          id: string
+          inquiry_type: string
+          message: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          email: string
+          id?: string
+          inquiry_type: string
+          message: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          inquiry_type?: string
+          message?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           category: string
