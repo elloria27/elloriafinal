@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -94,7 +93,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
       const fileName = `${form.id}-${timestamp}-${file.name}`;
       console.log('Uploading file:', fileName);
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('form-attachments')
         .upload(fileName, file, {
           cacheControl: 'no-cache',
@@ -103,20 +102,20 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (uploadError) throw uploadError;
 
-      console.log('Upload successful:', data);
+      const { data: currentForm, error: fetchError } = await supabase
+        .from('business_form_submissions')
+        .select('*')
+        .eq('id', form.id)
+        .single();
 
-      const { data: urlData } = supabase.storage
-        .from('form-attachments')
-        .getPublicUrl(fileName);
+      if (fetchError) throw fetchError;
 
-      console.log('File public URL:', urlData.publicUrl);
-
-      const attachments = form.attachments ? [...form.attachments, fileName] : [fileName];
-      console.log('Updated attachments array:', attachments);
+      const currentAttachments = currentForm.attachments || [];
+      const updatedAttachments = [...currentAttachments, fileName];
 
       const { data: formData, error: updateError } = await supabase
         .from('business_form_submissions')
-        .update({ attachments })
+        .update({ attachments: updatedAttachments })
         .eq('id', form.id)
         .select()
         .single();
@@ -180,17 +179,11 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
   };
 
   const getDisplayFileName = (fileName: string) => {
-    try {
-      return fileName.split('-').slice(2).join('-');
-    } catch (error) {
-      console.error('Error processing filename:', fileName, error);
+    if (!fileName || typeof fileName !== 'string') {
       return 'Unnamed file';
     }
-  };
-
-  const getFileType = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    return extension;
+    const parts = fileName.split('-');
+    return parts.length >= 3 ? parts.slice(2).join('-') : fileName;
   };
 
   return (
@@ -273,7 +266,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
               {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
                 <div className="space-y-2">
                   {form.attachments.map((fileName, index) => {
-                    if (typeof fileName !== 'string') {
+                    if (!fileName || typeof fileName !== 'string') {
                       console.error('Invalid attachment:', fileName);
                       return null;
                     }
