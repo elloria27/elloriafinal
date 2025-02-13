@@ -1,7 +1,8 @@
+
 import { FileObject } from "@supabase/storage-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileIcon, Trash2, Copy, ExternalLink } from "lucide-react";
+import { FileIcon, Trash2, Copy, ExternalLink, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -29,21 +30,32 @@ export const MediaList = ({ files, onDelete }: MediaListProps) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    if (['mp4', 'webm', 'ogg'].includes(ext || '')) {
+      return <Video className="h-8 w-8 text-primary" />;
+    }
+    return <FileIcon className="h-8 w-8 text-primary" />;
+  };
+
   return (
     <div className="space-y-4">
       {files.map((file) => {
         const url = getFileUrl(file.name);
+        const isVideo = ['mp4', 'webm', 'ogg'].includes(file.name.split('.').pop()?.toLowerCase() || '');
+        
         return (
           <Card key={file.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <FileIcon className="h-8 w-8 text-primary" />
+                {getFileIcon(file.name)}
                 <div>
                   <p className="font-medium">
                     {file.name.split('-').slice(1).join('-')}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {formatFileSize(file.metadata?.size || 0)}
+                    {isVideo && ' • Video'}
                   </p>
                 </div>
               </div>
@@ -74,6 +86,17 @@ export const MediaList = ({ files, onDelete }: MediaListProps) => {
                 </Button>
               </div>
             </div>
+            {isVideo && (
+              <div className="mt-4">
+                <video 
+                  controls
+                  className="w-full max-h-48 object-contain bg-black rounded-lg"
+                >
+                  <source src={url} type={`video/${file.name.split('.').pop()}`} />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            )}
           </Card>
         );
       })}

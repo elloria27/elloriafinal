@@ -1,6 +1,7 @@
+
 import { FileObject } from "@supabase/storage-js";
 import { Button } from "@/components/ui/button";
-import { Trash2, Copy, ExternalLink } from "lucide-react";
+import { Trash2, Copy, ExternalLink, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -25,6 +26,11 @@ export const MediaGrid = ({ files, onDelete }: MediaGridProps) => {
     return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '');
   };
 
+  const isVideoFile = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ['mp4', 'webm', 'ogg'].includes(ext || '');
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {files.map((file) => {
@@ -38,6 +44,26 @@ export const MediaGrid = ({ files, onDelete }: MediaGridProps) => {
                   alt={file.name}
                   className="w-full h-full object-cover"
                 />
+              ) : isVideoFile(file.name) ? (
+                <div className="relative w-full h-full">
+                  <video 
+                    className="w-full h-full object-cover"
+                    muted
+                    loop
+                    onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                    onMouseOut={(e) => {
+                      const video = e.target as HTMLVideoElement;
+                      video.pause();
+                      video.currentTime = 0;
+                    }}
+                  >
+                    <source src={url} type={`video/${file.name.split('.').pop()}`} />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                    <Play className="w-8 h-8 text-white" />
+                  </div>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
                   <span className="text-sm uppercase">{file.name.split('.').pop()}</span>
@@ -76,7 +102,7 @@ export const MediaGrid = ({ files, onDelete }: MediaGridProps) => {
               </div>
             </div>
           </div>
-        )
+        );
       })}
     </div>
   );
