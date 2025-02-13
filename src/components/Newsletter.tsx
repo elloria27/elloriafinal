@@ -59,6 +59,8 @@ export const Newsletter = ({ content }: NewsletterProps) => {
     }
   };
 
+  const buttonText = typeof content?.buttonText === 'string' ? content.buttonText : "Subscribe";
+
   return (
     <section className="w-full py-24 bg-gradient-to-b from-secondary/10 to-white">
       <div className="max-w-7xl mx-auto px-4">
@@ -71,10 +73,10 @@ export const Newsletter = ({ content }: NewsletterProps) => {
         >
           <Mail className="w-12 h-12 mx-auto mb-6 text-primary" />
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            {content?.title || "Join the Elloria Movement"}
+            {typeof content?.title === 'string' ? content.title : "Join the Elloria Movement"}
           </h2>
           <p className="text-gray-600 text-lg mb-12">
-            {content?.description || "Be the first to know about exclusive offers, eco-updates, and new product launches."}
+            {typeof content?.description === 'string' ? content.description : "Be the first to know about exclusive offers, eco-updates, and new product launches."}
           </p>
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
             <Input
@@ -96,9 +98,7 @@ export const Newsletter = ({ content }: NewsletterProps) => {
                   <Mail className="h-4 w-4 animate-spin" />
                   Subscribing...
                 </span>
-              ) : (
-                content?.buttonText || "Subscribe"
-              )}
+              ) : buttonText}
             </Button>
           </form>
         </motion.div>
