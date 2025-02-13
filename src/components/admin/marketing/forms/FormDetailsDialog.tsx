@@ -31,7 +31,7 @@ interface BusinessFormSubmission {
   assigned_to: string | null;
   form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';
   terms_accepted: boolean;
-  attachments: any | null;
+  attachments: string[] | null;
   admin_notes: string | null;
 }
 
@@ -89,6 +89,15 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error('Failed to upload file');
+    }
+  };
+
+  const getDisplayFileName = (fileName: string) => {
+    try {
+      return fileName.split('-').slice(1).join('-');
+    } catch (error) {
+      console.error('Error processing filename:', fileName, error);
+      return 'Unnamed file';
     }
   };
 
@@ -168,18 +177,20 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
           <div>
             <Label>Attachments</Label>
-            {form.attachments && form.attachments.length > 0 ? (
+            {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
               <div className="mt-2 space-y-2">
-                {form.attachments.map((fileName: string) => (
-                  <div key={fileName} className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedFile(fileName)}
-                    >
-                      View {fileName.split('-').slice(1).join('-')}
-                    </Button>
-                  </div>
+                {form.attachments.map((fileName, index) => (
+                  typeof fileName === 'string' && (
+                    <div key={index} className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedFile(fileName)}
+                      >
+                        View {getDisplayFileName(fileName)}
+                      </Button>
+                    </div>
+                  )
                 ))}
               </div>
             ) : (
