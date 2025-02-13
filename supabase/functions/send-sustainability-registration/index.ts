@@ -1,7 +1,13 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +20,7 @@ interface RegistrationData {
   email: string;
   phone?: string;
   message: string;
+  termsAccepted: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,6 +33,32 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Received sustainability program registration");
     const data: RegistrationData = await req.json();
     console.log("Registration data:", data);
+
+    // Store in business_form_submissions
+    console.log("Storing submission in database...");
+    const { data: submissionData, error: submissionError } = await supabase
+      .from('business_form_submissions')
+      .insert([
+        {
+          full_name: data.fullName,
+          company_name: data.companyName,
+          email: data.email,
+          phone: data.phone,
+          message: data.message,
+          form_type: 'sustainability',
+          status: 'new',
+          terms_accepted: data.termsAccepted
+        }
+      ])
+      .select()
+      .single();
+
+    if (submissionError) {
+      console.error("Error storing submission:", submissionError);
+      throw submissionError;
+    }
+
+    console.log("Submission stored successfully:", submissionData);
 
     const recipients = [
       "sales@elloria.ca",
