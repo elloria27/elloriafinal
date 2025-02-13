@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -269,30 +270,36 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
           <div>
             <Label>Attachments</Label>
             <div className="mt-2">
-              {form.attachments && form.attachments.length > 0 ? (
+              {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
                 <div className="space-y-2">
-                  {form.attachments.map((fileName, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                      <File className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1">{fileName.split('-').slice(2).join('-')}</span>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePreview(fileName)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(fileName)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                  {form.attachments.map((fileName, index) => {
+                    if (typeof fileName !== 'string') {
+                      console.error('Invalid attachment:', fileName);
+                      return null;
+                    }
+                    return (
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
+                        <File className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1">{getDisplayFileName(fileName)}</span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePreview(fileName)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(fileName)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-muted-foreground">No attachments</p>
