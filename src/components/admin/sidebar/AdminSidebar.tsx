@@ -35,7 +35,20 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-const sidebarItems = [
+interface SidebarItem {
+  title: string;
+  icon: React.ElementType;
+  href?: string;
+  description?: string;
+  items?: {
+    title: string;
+    href: string;
+    icon: React.ElementType;
+    description?: string;
+  }[];
+}
+
+const sidebarItems: SidebarItem[] = [
   {
     title: "Site",
     icon: Globe,

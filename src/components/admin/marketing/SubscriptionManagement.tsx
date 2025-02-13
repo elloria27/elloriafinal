@@ -16,7 +16,7 @@ interface Subscription {
   id: string;
   email: string;
   created_at: string;
-  source: string;
+  source: string | null;
 }
 
 export const SubscriptionManagement = () => {
@@ -30,15 +30,15 @@ export const SubscriptionManagement = () => {
   const fetchSubscriptions = async () => {
     try {
       const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("subscriptions")
+        .select("id, email, created_at, source")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       setSubscriptions(data || []);
     } catch (error: any) {
-      toast.error('Error fetching subscriptions: ' + error.message);
+      toast.error("Error fetching subscriptions: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -71,9 +71,9 @@ export const SubscriptionManagement = () => {
             {subscriptions.map((subscription) => (
               <TableRow key={subscription.id}>
                 <TableCell>{subscription.email}</TableCell>
-                <TableCell>{subscription.source || 'Website'}</TableCell>
+                <TableCell>{subscription.source || "Website"}</TableCell>
                 <TableCell>
-                  {format(new Date(subscription.created_at), 'MMM d, yyyy h:mm a')}
+                  {format(new Date(subscription.created_at), "MMM d, yyyy h:mm a")}
                 </TableCell>
               </TableRow>
             ))}
