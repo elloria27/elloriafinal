@@ -14,7 +14,7 @@ interface ThanksNewsletterProps {
 
 export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
   const [email, setEmail] = useState("");
-  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,21 +23,39 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
       return;
     }
 
-    setIsSubscribing(true);
+    setIsSubmitting(true);
     try {
-      const { error } = await supabase.functions.invoke('send-subscription-email', {
-        body: { email }
-      });
+      // Check if email already exists
+      const { data: existingSubscription } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("email", email)
+        .single();
+
+      if (existingSubscription) {
+        toast.error("This email is already subscribed to our newsletter");
+        return;
+      }
+
+      // Add new subscription
+      const { error } = await supabase
+        .from("subscriptions")
+        .insert([
+          {
+            email,
+            source: "thanks_page"
+          }
+        ]);
 
       if (error) throw error;
 
-      toast.success("Thank you for subscribing! Check your email for exclusive offers.");
+      toast.success("Thank you for subscribing to our newsletter!");
       setEmail("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error subscribing:", error);
-      toast.error("Subscription error. Please try again.");
+      toast.error("Failed to subscribe. Please try again later.");
     } finally {
-      setIsSubscribing(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -59,13 +77,14 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="flex-1"
+            disabled={isSubmitting}
           />
           <Button 
             type="submit" 
-            disabled={isSubscribing}
+            disabled={isSubmitting}
             className="bg-primary hover:bg-primary/90 w-full md:w-auto"
           >
-            {isSubscribing ? (
+            {isSubmitting ? (
               <Mail className="h-4 w-4 animate-spin" />
             ) : (
               content.buttonText || "Subscribe"
