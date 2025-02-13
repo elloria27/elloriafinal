@@ -32,7 +32,7 @@ export const BusinessFormsManagement = () => {
   const fetchForms = async () => {
     try {
       const { data, error } = await supabase
-        .from('business_form_submissions')
+        .from('business_forms')
         .select('*')
         .order('created_at', { ascending: false });
 
