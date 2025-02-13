@@ -110,7 +110,10 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (fetchError) throw fetchError;
 
-      const currentAttachments = currentForm.attachments || [];
+      const currentAttachments = Array.isArray(currentForm.attachments) 
+        ? currentForm.attachments.filter((attachment): attachment is string => typeof attachment === 'string')
+        : [];
+
       const updatedAttachments = [...currentAttachments, fileName];
 
       const { data: formData, error: updateError } = await supabase
@@ -265,34 +268,36 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
             <div className="mt-2">
               {Array.isArray(form.attachments) && form.attachments.length > 0 ? (
                 <div className="space-y-2">
-                  {form.attachments.map((fileName, index) => {
-                    if (!fileName || typeof fileName !== 'string') {
-                      console.error('Invalid attachment:', fileName);
-                      return null;
-                    }
-                    return (
-                      <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                        <File className="h-4 w-4 text-muted-foreground" />
-                        <span className="flex-1">{getDisplayFileName(fileName)}</span>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePreview(fileName)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDownload(fileName)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                  {form.attachments
+                    .filter((fileName): fileName is string => typeof fileName === 'string')
+                    .map((fileName, index) => {
+                      if (!fileName || typeof fileName !== 'string') {
+                        console.error('Invalid attachment:', fileName);
+                        return null;
+                      }
+                      return (
+                        <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
+                          <File className="h-4 w-4 text-muted-foreground" />
+                          <span className="flex-1">{getDisplayFileName(fileName)}</span>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePreview(fileName)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownload(fileName)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               ) : (
                 <p className="text-muted-foreground">No attachments</p>
