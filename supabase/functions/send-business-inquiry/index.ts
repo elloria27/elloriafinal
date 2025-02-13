@@ -1,7 +1,13 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +38,34 @@ const handler = async (req: Request): Promise<Response> => {
     const inquiry: BusinessInquiry = await req.json();
     console.log("Parsed inquiry data:", { ...inquiry, attachments: inquiry.attachments?.length });
 
+    // Store the submission in the database
+    console.log("Storing submission in database...");
+    const { data: submissionData, error: submissionError } = await supabase
+      .from('business_form_submissions')
+      .insert([
+        {
+          full_name: inquiry.fullName,
+          company_name: inquiry.companyName,
+          email: inquiry.email,
+          phone: inquiry.phoneNumber,
+          business_type: inquiry.businessType,
+          message: inquiry.message,
+          form_type: 'business_contact',
+          status: 'new',
+          attachments: inquiry.attachments,
+          terms_accepted: true
+        }
+      ])
+      .select()
+      .single();
+
+    if (submissionError) {
+      console.error("Error storing submission:", submissionError);
+      throw submissionError;
+    }
+
+    console.log("Submission stored successfully:", submissionData);
+
     const recipients = [
       "sales@elloria.ca",
       "mariia_r@elloria.ca",
@@ -40,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Map attachments to include the original file extension
     const formattedAttachments = inquiry.attachments?.map(attachment => ({
-      filename: attachment.name, // This will preserve the original filename with extension
+      filename: attachment.name,
       content: attachment.content,
     }));
 
@@ -66,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ submissionData, emailResponse }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error sending business inquiry:", error);
+    console.error("Error in business inquiry handler:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
