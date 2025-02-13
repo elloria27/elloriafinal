@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Download, Upload, Image } from "lucide-react";
+import { Loader2, Download, Upload, Image, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
@@ -26,6 +26,7 @@ type SiteSettings = {
   created_at: string;
   updated_at: string;
   homepage_slug: string;
+  logo_url: string | null;
 }
 
 export default function SiteSettings() {
@@ -34,6 +35,7 @@ export default function SiteSettings() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoadData();
@@ -92,7 +94,8 @@ export default function SiteSettings() {
       setSettings({
         ...data,
         custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
-        homepage_slug: data.homepage_slug || ''
+        homepage_slug: data.homepage_slug || '',
+        logo_url: data.logo_url || null
       });
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -146,6 +149,99 @@ export default function SiteSettings() {
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error("Error saving settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        return;
+      }
+
+      setUploadingLogo(true);
+      console.log('Uploading logo:', file.name);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      console.log('Logo uploaded successfully:', uploadData);
+
+      const { data: publicUrlData } = supabase.storage
+        .from('logos')
+        .getPublicUrl(fileName);
+
+      if (!settings) return;
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({
+          logo_url: publicUrlData.publicUrl
+        })
+        .eq('id', settings.id);
+
+      if (updateError) throw updateError;
+
+      setSettings({
+        ...settings,
+        logo_url: publicUrlData.publicUrl
+      });
+
+      toast.success('Logo updated successfully');
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!settings?.logo_url) return;
+
+    try {
+      setSaving(true);
+      const fileName = settings.logo_url.split('/').pop();
+      
+      if (fileName) {
+        const { error: deleteError } = await supabase.storage
+          .from('logos')
+          .remove([fileName]);
+
+        if (deleteError) throw deleteError;
+      }
+
+      const { error: updateError } = await supabase
+        .from('site_settings')
+        .update({ logo_url: null })
+        .eq('id', settings.id);
+
+      if (updateError) throw updateError;
+
+      setSettings({
+        ...settings,
+        logo_url: null
+      });
+
+      toast.success('Logo removed successfully');
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('Failed to remove logo');
     } finally {
       setSaving(false);
     }
@@ -219,6 +315,82 @@ export default function SiteSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-6 space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="site_logo" className="text-base font-medium">Site Logo</Label>
+                {settings.logo_url ? (
+                  <div className="space-y-4">
+                    <div className="max-w-xs">
+                      <img 
+                        src={settings.logo_url} 
+                        alt="Site logo" 
+                        className="w-full h-auto rounded-lg border"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        disabled={uploadingLogo}
+                      >
+                        {uploadingLogo ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Change Logo
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveLogo}
+                        disabled={uploadingLogo}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Remove Logo
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                      disabled={uploadingLogo}
+                      className="w-full max-w-xs h-32 border-dashed"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Image className="mr-2 h-5 w-5" />
+                          Upload Logo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <p className="text-sm text-gray-500">
+                  Recommended size: 200x50 pixels. Supports PNG, JPG, or SVG.
+                </p>
+              </div>
+
               <div className="space-y-3">
                 <Label htmlFor="site_title" className="text-base font-medium">Site Title</Label>
                 <Input

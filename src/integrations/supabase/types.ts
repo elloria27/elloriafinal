@@ -2626,6 +2626,7 @@ export type Database = {
           google_analytics_id: string | null
           homepage_slug: string | null
           id: string
+          logo_url: string | null
           maintenance_mode: boolean | null
           max_upload_size: number | null
           meta_description: string | null
@@ -2647,6 +2648,7 @@ export type Database = {
           google_analytics_id?: string | null
           homepage_slug?: string | null
           id?: string
+          logo_url?: string | null
           maintenance_mode?: boolean | null
           max_upload_size?: number | null
           meta_description?: string | null
@@ -2668,6 +2670,7 @@ export type Database = {
           google_analytics_id?: string | null
           homepage_slug?: string | null
           id?: string
+          logo_url?: string | null
           maintenance_mode?: boolean | null
           max_upload_size?: number | null
           meta_description?: string | null
