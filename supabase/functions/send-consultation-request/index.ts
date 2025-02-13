@@ -26,15 +26,8 @@ interface ConsultationRequest {
 
 // Map inquiry types to form types
 const mapInquiryToFormType = (inquiryType: string): 'custom_solutions' | 'bulk_order' | 'business_contact' => {
-  switch (inquiryType) {
-    case 'Bulk Purchase':
-      return 'bulk_order';
-    case 'Private Label':
-    case 'Custom Packaging':
-      return 'custom_solutions';
-    default:
-      return 'business_contact';
-  }
+  // For Custom Solutions page, always return custom_solutions
+  return 'custom_solutions';
 };
 
 const handler = async (req: Request): Promise<Response> => {
