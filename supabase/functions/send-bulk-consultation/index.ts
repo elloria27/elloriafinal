@@ -1,7 +1,13 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +33,34 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("Received consultation request");
     const data: ConsultationRequest = await req.json();
-    console.log("Request data:", data);
+    console.log("Parsed request data:", data);
+
+    // Store the submission in the database
+    console.log("Storing submission in database...");
+    const { data: submissionData, error: submissionError } = await supabase
+      .from('business_form_submissions')
+      .insert([
+        {
+          full_name: data.fullName,
+          company_name: data.companyName,
+          email: data.email,
+          phone: data.phone,
+          business_type: data.orderQuantity,
+          message: data.message,
+          form_type: 'bulk_order',
+          status: 'new',
+          terms_accepted: data.contactConsent
+        }
+      ])
+      .select()
+      .single();
+
+    if (submissionError) {
+      console.error("Error storing submission:", submissionError);
+      throw submissionError;
+    }
+
+    console.log("Submission stored successfully:", submissionData);
 
     const recipients = [
       "sales@elloria.ca",
@@ -70,7 +103,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Emails sent successfully:", { teamEmailResponse, userEmailResponse });
 
-    return new Response(JSON.stringify({ teamEmailResponse, userEmailResponse }), {
+    return new Response(JSON.stringify({ 
+      submissionData,
+      teamEmailResponse, 
+      userEmailResponse 
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
