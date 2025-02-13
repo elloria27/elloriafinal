@@ -28,7 +28,8 @@ import {
   Bell,
   CheckSquare,
   Receipt,
-  Mail
+  Mail,
+  FileInput
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -89,6 +90,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=subscriptions",
         icon: Mail,
         description: "Manage newsletter subscriptions"
+      },
+      {
+        title: "Business Forms",
+        href: "/admin?tab=business-forms",
+        icon: FileInput,
+        description: "Manage business form submissions"
       }
     ]
   },

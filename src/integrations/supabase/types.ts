@@ -238,6 +238,69 @@ export type Database = {
         }
         Relationships: []
       }
+      business_form_submissions: {
+        Row: {
+          assigned_to: string | null
+          attachments: Json | null
+          business_type: string | null
+          company_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          email: string
+          form_type: Database["public"]["Enums"]["form_type"]
+          full_name: string
+          id: string
+          inquiry_type: string | null
+          message: string | null
+          notes: string | null
+          order_quantity: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["form_status"] | null
+          terms_accepted: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          business_type?: string | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          email: string
+          form_type: Database["public"]["Enums"]["form_type"]
+          full_name: string
+          id?: string
+          inquiry_type?: string | null
+          message?: string | null
+          notes?: string | null
+          order_quantity?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["form_status"] | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          business_type?: string | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          email?: string
+          form_type?: Database["public"]["Enums"]["form_type"]
+          full_name?: string
+          id?: string
+          inquiry_type?: string | null
+          message?: string | null
+          notes?: string | null
+          order_quantity?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["form_status"] | null
+          terms_accepted?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           category: string
@@ -2865,6 +2928,12 @@ export type Database = {
         | "other"
       expense_status: "paid" | "pending"
       flow_intensity: "light" | "medium" | "heavy" | "spotting"
+      form_status: "new" | "in_progress" | "completed" | "archived"
+      form_type:
+        | "business_contact"
+        | "custom_solutions"
+        | "bulk_order"
+        | "sustainability"
       invoice_status: "pending" | "paid" | "overdue" | "cancelled"
       page_view_type: "page_view" | "exit"
       payment_method: "cash" | "bank_transfer" | "credit_card"
