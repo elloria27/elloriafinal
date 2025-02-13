@@ -13,6 +13,7 @@ export interface ChecklistItem {
   order_index: number;
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 export interface Checklist {
@@ -22,6 +23,7 @@ export interface Checklist {
   items: ChecklistItem[];
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 export interface Subtask {
@@ -31,6 +33,7 @@ export interface Subtask {
   order_index: number;
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 // Database table types - these match the actual table schemas
@@ -56,6 +59,7 @@ export interface TaskChecklist {
   order_index: number;
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 export interface ChecklistItemDB {
@@ -66,6 +70,7 @@ export interface ChecklistItemDB {
   order_index: number;
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 export interface SubtaskDB {
@@ -76,6 +81,7 @@ export interface SubtaskDB {
   order_index: number;
   created_by?: string;
   created_at?: string;
+  last_updated_at?: string;
 }
 
 export interface InvoiceSettings {

@@ -648,6 +648,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          last_updated_at: string | null
           order_index: number
         }
         Insert: {
@@ -657,6 +658,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index: number
         }
         Update: {
@@ -666,6 +668,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index?: number
         }
         Relationships: [
@@ -1414,6 +1417,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          last_updated_at: string | null
           order_index: number
           task_id: string | null
           title: string
@@ -1422,6 +1426,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index: number
           task_id?: string | null
           title: string
@@ -1430,6 +1435,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index?: number
           task_id?: string | null
           title?: string
@@ -1651,6 +1657,7 @@ export type Database = {
           due_date: string | null
           estimated_hours: number | null
           id: string
+          last_updated_at: string | null
           priority: Database["public"]["Enums"]["task_priority"]
           start_date: string | null
           status: Database["public"]["Enums"]["task_status"]
@@ -1668,6 +1675,7 @@ export type Database = {
           due_date?: string | null
           estimated_hours?: number | null
           id?: string
+          last_updated_at?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
@@ -1685,6 +1693,7 @@ export type Database = {
           due_date?: string | null
           estimated_hours?: number | null
           id?: string
+          last_updated_at?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]

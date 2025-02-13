@@ -40,6 +40,9 @@ interface Task {
   estimated_hours?: number;
   actual_hours?: number;
   created_by: string;
+  created_at?: string;
+  updated_at?: string;
+  last_updated_at?: string;
   profiles?: {
     full_name: string | null;
   };
@@ -49,6 +52,7 @@ interface Task {
     title: string;
     completed: boolean;
     order_index: number;
+    last_updated_at?: string;
   }>;
   checklists?: Array<{
     id: string;
@@ -58,8 +62,10 @@ interface Task {
       content: string;
       completed: boolean;
       order_index: number;
+      last_updated_at?: string;
     }>;
     order_index: number;
+    last_updated_at?: string;
   }>;
 }
 
@@ -233,17 +239,20 @@ const TaskList = () => {
             id,
             title,
             completed,
-            order_index
+            order_index,
+            last_updated_at
           ),
           hrm_task_checklists(
             id,
             title,
             order_index,
+            last_updated_at,
             hrm_checklist_items(
               id,
               content,
               completed,
-              order_index
+              order_index,
+              last_updated_at
             )
           )
         `)
@@ -253,17 +262,18 @@ const TaskList = () => {
       
       if (tasksData) {
         const formattedTasks: Task[] = tasksData.map(task => {
-          // Ensure proper type casting for checklists and their items
           const checklists = (task.hrm_task_checklists || []).map(checklist => ({
             id: checklist.id,
             title: checklist.title,
             order_index: checklist.order_index,
+            last_updated_at: checklist.last_updated_at,
             items: Array.isArray(checklist.hrm_checklist_items) 
               ? checklist.hrm_checklist_items.map(item => ({
                   id: item.id,
                   content: item.content,
                   completed: item.completed || false,
-                  order_index: item.order_index
+                  order_index: item.order_index,
+                  last_updated_at: item.last_updated_at
                 }))
               : []
           }));
@@ -276,7 +286,10 @@ const TaskList = () => {
               name: la.hrm_task_labels.name,
               color: la.hrm_task_labels.color
             })) || [],
-            subtasks: task.hrm_subtasks || [],
+            subtasks: (task.hrm_subtasks || []).map(subtask => ({
+              ...subtask,
+              completed: subtask.completed || false
+            })),
             checklists
           };
         });
