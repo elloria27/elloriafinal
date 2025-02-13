@@ -46,6 +46,7 @@ interface FormDetailsDialogProps {
 export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialogProps) => {
   const [adminNotes, setAdminNotes] = useState(form.admin_notes || '');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleUpdateNotes = async () => {
     try {
@@ -96,18 +97,15 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handleDownload = async (fileName: string) => {
     try {
-      console.log('Downloading file:', fileName);
       const { data, error } = await supabase.storage
         .from('form-attachments')
         .download(fileName);
 
       if (error) throw error;
 
-      // Create a download link
       const url = window.URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
-      // Remove the form ID prefix from the filename for download
       link.download = fileName.split('-').slice(1).join('-');
       document.body.appendChild(link);
       link.click();
@@ -121,6 +119,22 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
     }
   };
 
+  const handlePreview = async (fileName: string) => {
+    try {
+      const { data: { publicUrl }, error } = await supabase.storage
+        .from('form-attachments')
+        .getPublicUrl(fileName);
+
+      if (error) throw error;
+
+      setPreviewUrl(publicUrl);
+      setSelectedFile(fileName);
+    } catch (error) {
+      console.error('Error getting file preview:', error);
+      toast.error('Failed to preview file');
+    }
+  };
+
   const getDisplayFileName = (fileName: string) => {
     try {
       return fileName.split('-').slice(1).join('-');
@@ -128,6 +142,11 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
       console.error('Error processing filename:', fileName, error);
       return 'Unnamed file';
     }
+  };
+
+  const getFileType = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    return extension;
   };
 
   return (
@@ -213,14 +232,24 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
                     <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
                       <File className="h-4 w-4 text-muted-foreground" />
                       <span className="flex-1">{getDisplayFileName(fileName)}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(fileName)}
-                        className="ml-2"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePreview(fileName)}
+                          title="Preview"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownload(fileName)}
+                          title="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   )
                 ))}
@@ -234,6 +263,43 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
             </div>
           </div>
         </div>
+
+        {selectedFile && previewUrl && (
+          <Dialog open={true} onOpenChange={() => {
+            setSelectedFile(null);
+            setPreviewUrl(null);
+          }}>
+            <DialogContent className="max-w-4xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>{getDisplayFileName(selectedFile)}</DialogTitle>
+              </DialogHeader>
+              <div className="mt-4 overflow-auto">
+                {getFileType(selectedFile) === 'pdf' ? (
+                  <iframe
+                    src={previewUrl}
+                    className="w-full h-[60vh]"
+                    title="PDF Preview"
+                  />
+                ) : (
+                  <img
+                    src={previewUrl}
+                    alt="File Preview"
+                    className="max-w-full h-auto"
+                  />
+                )}
+              </div>
+              <div className="flex justify-end mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownload(selectedFile)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </DialogContent>
     </Dialog>
   );
