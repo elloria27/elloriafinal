@@ -45,12 +45,12 @@ interface BusinessFormSubmission {
   notes: string | null;
   completed_at: string | null;
   assigned_to: string | null;
-  form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';
-  terms_accepted: boolean;
-  attachments: any | null;
-  admin_notes: string | null;
   assigned_at: string | null;
   last_updated_at: string | null;
+  form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';
+  terms_accepted: boolean;
+  attachments: string[] | null;
+  admin_notes: string | null;
 }
 
 export const BusinessFormsManagement = () => {

@@ -29,6 +29,8 @@ interface BusinessFormSubmission {
   notes: string | null;
   completed_at: string | null;
   assigned_to: string | null;
+  assigned_at: string | null;
+  last_updated_at: string | null;
   form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';
   terms_accepted: boolean;
   attachments: string[] | null;
@@ -56,7 +58,9 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (error) throw error;
 
-      onUpdate(data);
+      // Cast the data to ensure it matches our interface
+      const updatedForm = data as unknown as BusinessFormSubmission;
+      onUpdate(updatedForm);
       toast.success('Notes updated successfully');
     } catch (error) {
       console.error('Error updating notes:', error);
@@ -84,7 +88,9 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (updateError) throw updateError;
 
-      onUpdate(data);
+      // Cast the data to ensure it matches our interface
+      const updatedForm = data as unknown as BusinessFormSubmission;
+      onUpdate(updatedForm);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Error uploading file:', error);
