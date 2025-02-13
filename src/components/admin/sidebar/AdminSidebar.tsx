@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -26,22 +27,15 @@ import {
   Boxes,
   Bell,
   CheckSquare,
-  Receipt
+  Receipt,
+  Mail
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-interface SidebarItem {
-  title: string;
-  icon: React.ElementType;
-  href?: string;
-  description?: string;
-  items?: { title: string; href: string; icon: React.ElementType; description?: string }[];
-}
-
-const sidebarItems: SidebarItem[] = [
+const sidebarItems = [
   {
     title: "Site",
     icon: Globe,
@@ -76,6 +70,12 @@ const sidebarItems: SidebarItem[] = [
         href: "/admin?tab=donations", 
         icon: Gift,
         description: "View and manage donations"
+      },
+      {
+        title: "Subscriptions",
+        href: "/admin?tab=subscriptions",
+        icon: Mail,
+        description: "Manage newsletter subscriptions"
       }
     ]
   },

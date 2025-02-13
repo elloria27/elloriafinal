@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { ExpenseManagement } from "@/components/admin/shop/expenses/ExpenseManagement";
 import TaskManager from "@/components/admin/hrm/tasks/TaskManager";
 import InvoiceManagement from "@/components/admin/hrm/invoices/InvoiceManagement";
+import { SubscriptionManagement } from "@/components/admin/marketing/SubscriptionManagement";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -149,6 +150,8 @@ const Admin = () => {
         return <TaskManager />;
       case "invoices":
         return <InvoiceManagement />;
+      case "subscriptions":
+        return <SubscriptionManagement />;
       default:
         return <Dashboard />;
     }
