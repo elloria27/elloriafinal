@@ -1338,6 +1338,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          last_updated_at: string | null
           order_index: number
           task_id: string
           title: string
@@ -1347,6 +1348,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index: number
           task_id: string
           title: string
@@ -1356,6 +1358,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          last_updated_at?: string | null
           order_index?: number
           task_id?: string
           title?: string

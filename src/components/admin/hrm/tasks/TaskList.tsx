@@ -241,7 +241,7 @@ const TaskList = () => {
             order_index,
             last_updated_at
           ),
-          hrm_task_checklists!fk_task(
+          hrm_task_checklists!hrm_task_checklists_task_id_fkey(
             id,
             title,
             order_index,
