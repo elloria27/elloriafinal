@@ -10,7 +10,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+import { 
+  Search,
+  Trash2,
+  FileText,
+  Calendar,
+  Filter
+} from "lucide-react";
+import { FormDetailsDialog } from "./forms/FormDetailsDialog";
+import { DeleteConfirmDialog } from "./forms/DeleteConfirmDialog";
 
 interface BusinessFormSubmission {
   id: string;
@@ -23,18 +41,26 @@ interface BusinessFormSubmission {
   inquiry_type: string | null;
   order_quantity: string | null;
   message: string | null;
-  status: 'new' | 'in_progress' | 'completed' | 'archived';  // Updated to match database enum
+  status: 'new' | 'in_progress' | 'completed' | 'archived';
   notes: string | null;
   completed_at: string | null;
   assigned_to: string | null;
-  form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';  // Added specific form types
+  form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';
   terms_accepted: boolean;
   attachments: any | null;
+  admin_notes: string | null;
+  assigned_at: string | null;
+  last_updated_at: string | null;
 }
 
 export const BusinessFormsManagement = () => {
   const [forms, setForms] = useState<BusinessFormSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [selectedForm, setSelectedForm] = useState<BusinessFormSubmission | null>(null);
+  const [formToDelete, setFormToDelete] = useState<BusinessFormSubmission | null>(null);
 
   useEffect(() => {
     fetchForms();
@@ -58,6 +84,60 @@ export const BusinessFormsManagement = () => {
     }
   };
 
+  const handleStatusChange = async (formId: string, newStatus: BusinessFormSubmission['status']) => {
+    try {
+      const { error } = await supabase
+        .from('business_form_submissions')
+        .update({ 
+          status: newStatus,
+          completed_at: newStatus === 'completed' ? new Date().toISOString() : null 
+        })
+        .eq('id', formId);
+
+      if (error) throw error;
+
+      setForms(forms.map(form => 
+        form.id === formId 
+          ? { ...form, status: newStatus, completed_at: newStatus === 'completed' ? new Date().toISOString() : null }
+          : form
+      ));
+      toast.success('Status updated successfully');
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDelete = async (formId: string) => {
+    try {
+      const { error } = await supabase
+        .from('business_form_submissions')
+        .delete()
+        .eq('id', formId);
+
+      if (error) throw error;
+
+      setForms(forms.filter(form => form.id !== formId));
+      setFormToDelete(null);
+      toast.success('Form deleted successfully');
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      toast.error('Failed to delete form');
+    }
+  };
+
+  const filteredForms = forms.filter(form => {
+    const matchesSearch = 
+      form.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      form.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      form.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || form.status === statusFilter;
+    const matchesType = typeFilter === 'all' || form.form_type === typeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -75,6 +155,48 @@ export const BusinessFormsManagement = () => {
         </p>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, or company..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Select
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="new">New</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={typeFilter}
+          onValueChange={setTypeFilter}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="business_contact">Business Contact</SelectItem>
+            <SelectItem value="custom_solutions">Custom Solutions</SelectItem>
+            <SelectItem value="bulk_order">Bulk Order</SelectItem>
+            <SelectItem value="sustainability">Sustainability</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <Table>
           <TableHeader>
@@ -83,42 +205,70 @@ export const BusinessFormsManagement = () => {
               <TableHead>Full Name</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Message</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {forms.length === 0 ? (
+            {filteredForms.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
-                  No form submissions yet
+                <TableCell colSpan={7} className="text-center">
+                  No form submissions found
                 </TableCell>
               </TableRow>
             ) : (
-              forms.map((form) => (
+              filteredForms.map((form) => (
                 <TableRow key={form.id}>
                   <TableCell>
                     {new Date(form.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>{form.full_name}</TableCell>
-                  <TableCell>{form.company_name}</TableCell>
+                  <TableCell>{form.company_name || '-'}</TableCell>
                   <TableCell>{form.email}</TableCell>
-                  <TableCell>{form.phone || '-'}</TableCell>
-                  <TableCell>{form.form_type}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      form.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                      form.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                      form.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {form.status}
+                    <span className="capitalize">
+                      {form.form_type.replace(/_/g, ' ')}
                     </span>
                   </TableCell>
-                  <TableCell className="max-w-md truncate">
-                    {form.message || '-'}
+                  <TableCell>
+                    <Select
+                      value={form.status}
+                      onValueChange={(value: BusinessFormSubmission['status']) => 
+                        handleStatusChange(form.id, value)
+                      }
+                    >
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">New</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setSelectedForm(form)}
+                        title="View Details"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setFormToDelete(form)}
+                        className="text-destructive"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -126,6 +276,25 @@ export const BusinessFormsManagement = () => {
           </TableBody>
         </Table>
       </Card>
+
+      {selectedForm && (
+        <FormDetailsDialog
+          form={selectedForm}
+          onClose={() => setSelectedForm(null)}
+          onUpdate={(updatedForm) => {
+            setForms(forms.map(f => f.id === updatedForm.id ? updatedForm : f));
+            setSelectedForm(null);
+          }}
+        />
+      )}
+
+      {formToDelete && (
+        <DeleteConfirmDialog
+          form={formToDelete}
+          onClose={() => setFormToDelete(null)}
+          onConfirm={() => handleDelete(formToDelete.id)}
+        />
+      )}
     </div>
   );
 };

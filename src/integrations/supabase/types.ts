@@ -240,6 +240,8 @@ export type Database = {
       }
       business_form_submissions: {
         Row: {
+          admin_notes: string | null
+          assigned_at: string | null
           assigned_to: string | null
           attachments: Json | null
           business_type: string | null
@@ -251,6 +253,7 @@ export type Database = {
           full_name: string
           id: string
           inquiry_type: string | null
+          last_updated_at: string | null
           message: string | null
           notes: string | null
           order_quantity: string | null
@@ -260,6 +263,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          assigned_at?: string | null
           assigned_to?: string | null
           attachments?: Json | null
           business_type?: string | null
@@ -271,6 +276,7 @@ export type Database = {
           full_name: string
           id?: string
           inquiry_type?: string | null
+          last_updated_at?: string | null
           message?: string | null
           notes?: string | null
           order_quantity?: string | null
@@ -280,6 +286,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          assigned_at?: string | null
           assigned_to?: string | null
           attachments?: Json | null
           business_type?: string | null
@@ -291,6 +299,7 @@ export type Database = {
           full_name?: string
           id?: string
           inquiry_type?: string | null
+          last_updated_at?: string | null
           message?: string | null
           notes?: string | null
           order_quantity?: string | null
