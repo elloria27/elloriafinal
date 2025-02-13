@@ -23,11 +23,11 @@ interface BusinessFormSubmission {
   inquiry_type: string | null;
   order_quantity: string | null;
   message: string | null;
-  status: 'new' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'new' | 'in_progress' | 'completed' | 'archived';  // Updated to match database enum
   notes: string | null;
   completed_at: string | null;
   assigned_to: string | null;
-  form_type: string;
+  form_type: 'business_contact' | 'custom_solutions' | 'bulk_order' | 'sustainability';  // Added specific form types
   terms_accepted: boolean;
   attachments: any | null;
 }
