@@ -25,12 +25,12 @@ export const ThanksNewsletter = ({ content }: ThanksNewsletterProps) => {
 
     setIsSubmitting(true);
     try {
-      // Check if email already exists
+      // Check if email already exists using maybeSingle() instead of single()
       const { data: existingSubscription } = await supabase
         .from("subscriptions")
         .select("id")
         .eq("email", email)
-        .single();
+        .maybeSingle();
 
       if (existingSubscription) {
         toast.error("This email is already subscribed to our newsletter");
