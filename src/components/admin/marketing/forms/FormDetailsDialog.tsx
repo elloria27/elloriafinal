@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/admin/file/FileUpload";
-import { FilePreview } from "@/components/admin/file/FilePreview";
 import { toast } from "sonner";
+import { Download, Eye, File } from "lucide-react";
 
 interface BusinessFormSubmission {
   id: string;
@@ -58,9 +58,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (error) throw error;
 
-      // Cast the data to ensure it matches our interface
-      const updatedForm = data as unknown as BusinessFormSubmission;
-      onUpdate(updatedForm);
+      onUpdate(data as BusinessFormSubmission);
       toast.success('Notes updated successfully');
     } catch (error) {
       console.error('Error updating notes:', error);
@@ -88,13 +86,38 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
       if (updateError) throw updateError;
 
-      // Cast the data to ensure it matches our interface
-      const updatedForm = data as unknown as BusinessFormSubmission;
-      onUpdate(updatedForm);
+      onUpdate(data as BusinessFormSubmission);
       toast.success('File uploaded successfully');
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error('Failed to upload file');
+    }
+  };
+
+  const handleDownload = async (fileName: string) => {
+    try {
+      console.log('Downloading file:', fileName);
+      const { data, error } = await supabase.storage
+        .from('form-attachments')
+        .download(fileName);
+
+      if (error) throw error;
+
+      // Create a download link
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      // Remove the form ID prefix from the filename for download
+      link.download = fileName.split('-').slice(1).join('-');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('File downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -187,13 +210,16 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
               <div className="mt-2 space-y-2">
                 {form.attachments.map((fileName, index) => (
                   typeof fileName === 'string' && (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
+                      <File className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1">{getDisplayFileName(fileName)}</span>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setSelectedFile(fileName)}
+                        onClick={() => handleDownload(fileName)}
+                        className="ml-2"
                       >
-                        View {getDisplayFileName(fileName)}
+                        <Download className="h-4 w-4" />
                       </Button>
                     </div>
                   )
@@ -208,13 +234,6 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
             </div>
           </div>
         </div>
-
-        {selectedFile && (
-          <FilePreview
-            fileName={selectedFile}
-            onClose={() => setSelectedFile(null)}
-          />
-        )}
       </DialogContent>
     </Dialog>
   );
