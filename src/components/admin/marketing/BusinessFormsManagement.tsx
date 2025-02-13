@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -25,7 +24,8 @@ import {
   Trash2,
   FileText,
   Calendar,
-  Filter
+  Filter,
+  Paperclip
 } from "lucide-react";
 import { FormDetailsDialog } from "./forms/FormDetailsDialog";
 import { DeleteConfirmDialog } from "./forms/DeleteConfirmDialog";
@@ -144,6 +144,10 @@ export const BusinessFormsManagement = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const getAttachmentCount = (form: BusinessFormSubmission) => {
+    return form.attachments?.length || 0;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -213,13 +217,14 @@ export const BusinessFormsManagement = () => {
               <TableHead>Email</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Files</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredForms.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   No form submissions found
                 </TableCell>
               </TableRow>
@@ -254,6 +259,16 @@ export const BusinessFormsManagement = () => {
                         <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    {getAttachmentCount(form) > 0 ? (
+                      <div className="flex items-center gap-1">
+                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                        <span>{getAttachmentCount(form)}</span>
+                      </div>
+                    ) : (
+                      '-'
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
