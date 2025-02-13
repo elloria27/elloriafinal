@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -47,6 +46,20 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
   const [adminNotes, setAdminNotes] = useState(form.admin_notes || '');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+  };
 
   const handleUpdateNotes = async () => {
     try {
@@ -121,18 +134,19 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
 
   const handlePreview = async (fileName: string) => {
     try {
-      // Get the public URL for the file
       const { data: urlData } = supabase.storage
         .from('form-attachments')
         .getPublicUrl(fileName);
 
       console.log('Public URL:', urlData.publicUrl); // Debug log
+      console.log('File name:', fileName); // Debug log for file name
 
       if (!urlData?.publicUrl) {
         throw new Error('Failed to get public URL');
       }
 
-      setPreviewUrl(urlData.publicUrl);
+      const refreshedUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setPreviewUrl(refreshedUrl);
       setSelectedFile(fileName);
     } catch (error) {
       console.error('Error getting file preview:', error);
@@ -165,7 +179,7 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Submission Date</Label>
-              <p className="mt-1">{new Date(form.created_at).toLocaleString()}</p>
+              <p className="mt-1">{formatDate(form.created_at)}</p>
             </div>
             <div>
               <Label>Status</Label>
@@ -284,12 +298,14 @@ export const FormDetailsDialog = ({ form, onClose, onUpdate }: FormDetailsDialog
                     src={previewUrl}
                     className="w-full h-[60vh]"
                     title="PDF Preview"
+                    key={previewUrl} // Force iframe refresh
                   />
                 ) : (
                   <img
                     src={previewUrl}
                     alt="File Preview"
                     className="max-w-full h-auto"
+                    key={previewUrl} // Force image refresh
                   />
                 )}
               </div>

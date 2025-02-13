@@ -148,6 +148,21 @@ export const BusinessFormsManagement = () => {
     return form.attachments?.length || 0;
   };
 
+  const formatDate = (dateString: string) => {
+    // Convert UTC date to local timezone
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -232,7 +247,7 @@ export const BusinessFormsManagement = () => {
               filteredForms.map((form) => (
                 <TableRow key={form.id}>
                   <TableCell>
-                    {new Date(form.created_at).toLocaleDateString()}
+                    {formatDate(form.created_at)}
                   </TableCell>
                   <TableCell>{form.full_name}</TableCell>
                   <TableCell>{form.company_name || '-'}</TableCell>
