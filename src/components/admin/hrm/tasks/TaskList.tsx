@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -235,14 +234,14 @@ const TaskList = () => {
               color
             )
           ),
-          hrm_subtasks(
+          hrm_subtasks!fk_task(
             id,
             title,
             completed,
             order_index,
             last_updated_at
           ),
-          hrm_task_checklists(
+          hrm_task_checklists!fk_task(
             id,
             title,
             order_index,
@@ -287,8 +286,11 @@ const TaskList = () => {
               color: la.hrm_task_labels.color
             })) || [],
             subtasks: (task.hrm_subtasks || []).map(subtask => ({
-              ...subtask,
-              completed: subtask.completed || false
+              id: subtask.id,
+              title: subtask.title,
+              completed: subtask.completed || false,
+              order_index: subtask.order_index,
+              last_updated_at: subtask.last_updated_at
             })),
             checklists
           };
