@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Sparkles } from "lucide-react";
@@ -29,7 +28,7 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
   }));
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-[#FFDEE2] via-white to-[#E5DEFF] overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-[#FFDEE2] via-white to-[#E5DEFF] overflow-hidden mt-14 md:mt-20">
       {/* Animated background gradient */}
       <motion.div 
         className="absolute inset-0"
