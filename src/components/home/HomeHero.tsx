@@ -109,6 +109,111 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             {content?.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
           </motion.p>
           
+          {/* New Promo Code Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mb-8 relative"
+          >
+            <motion.div
+              className="bg-gradient-to-r from-[#D946EF]/20 via-[#9b87f5]/20 to-[#E5DEFF]/20 p-4 rounded-2xl relative overflow-hidden"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-[#D946EF]/0 via-white/30 to-[#D946EF]/0"
+                animate={{
+                  x: ["-200%", "200%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+              <p className="text-gray-600 mb-2">Use promo code:</p>
+              <div className="flex items-center justify-center gap-4">
+                <motion.div
+                  className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#D946EF] via-[#9b87f5] to-[#7E69AB] bg-clip-text text-transparent"
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  Elloria14
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    navigator.clipboard.writeText("Elloria14");
+                    // You might want to add a toast notification here
+                  }}
+                >
+                  <motion.div
+                    className="flex items-center gap-1 text-sm bg-[#D946EF] text-white px-3 py-1 rounded-full"
+                    whileHover={{
+                      backgroundColor: "#c935de",
+                    }}
+                  >
+                    Copy
+                    <motion.div
+                      animate={{
+                        rotate: [0, 10, -10, 0],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Heart className="w-3 h-3" />
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              </div>
+              <p className="text-[#D946EF] mt-2">Save 35% on your Valentine's Day order!</p>
+            </motion.div>
+            
+            {/* Decorative hearts around promo code */}
+            <motion.div
+              className="absolute -top-2 -right-2"
+              animate={{
+                y: [-2, 2, -2],
+                rotate: [-5, 5, -5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Heart className="w-4 h-4 text-[#D946EF]" fill="#D946EF" />
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-2 -left-2"
+              animate={{
+                y: [2, -2, 2],
+                rotate: [5, -5, 5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.5,
+              }}
+            >
+              <Heart className="w-4 h-4 text-[#9b87f5]" fill="#9b87f5" />
+            </motion.div>
+          </motion.div>
+          
+          {/* Continue with existing buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
