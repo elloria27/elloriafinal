@@ -87,8 +87,8 @@ export async function migrateDatabase(): Promise<{ success: boolean; errors: Mig
 async function ensureRequiredTables(errors: MigrationError[]) {
   try {
     // Create types first
-    const { error: typesError } = await supabase.rpc('execute', {
-      sql_string: `
+    const { error: typesError } = await supabase.rpc('create_types', {
+      sql: `
         DO $$ BEGIN
           CREATE TYPE IF NOT EXISTS public.user_role AS ENUM ('admin', 'client', 'moderator');
           CREATE TYPE IF NOT EXISTS public.post_status AS ENUM ('draft', 'published', 'archived');
@@ -112,8 +112,8 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     if (typesError) errors.push({ table: 'types', error: typesError });
 
     // Create profiles table
-    const { error: profilesError } = await supabase.rpc('execute', {
-      sql_string: `
+    const { error: profilesError } = await supabase.rpc('create_table', {
+      sql: `
         CREATE TABLE IF NOT EXISTS public.profiles (
           id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
           full_name TEXT,
@@ -136,8 +136,8 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     if (profilesError) errors.push({ table: 'profiles', error: profilesError });
 
     // Create user_roles table
-    const { error: rolesError } = await supabase.rpc('execute', {
-      sql_string: `
+    const { error: rolesError } = await supabase.rpc('create_table', {
+      sql: `
         CREATE TABLE IF NOT EXISTS public.user_roles (
           id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
           user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -149,57 +149,9 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     
     if (rolesError) errors.push({ table: 'user_roles', error: rolesError });
 
-    // Create all other tables (blog, products, orders, etc.)
-    const tablesToCreate = [
-      // Blog related tables
-      `CREATE TABLE IF NOT EXISTS public.blog_posts (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        title TEXT NOT NULL,
-        slug TEXT,
-        content JSONB NOT NULL DEFAULT '{}'::jsonb,
-        status post_status DEFAULT 'draft',
-        author_id UUID REFERENCES auth.users(id),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-        published_at TIMESTAMP WITH TIME ZONE,
-        view_count INTEGER DEFAULT 0
-      )`,
-      
-      // Products related tables
-      `CREATE TABLE IF NOT EXISTS public.products (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-        price NUMERIC NOT NULL,
-        image TEXT NOT NULL,
-        features TEXT[] NOT NULL DEFAULT '{}',
-        specifications JSONB NOT NULL DEFAULT '{}'::jsonb,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-      )`,
-      
-      // Orders related tables
-      `CREATE TABLE IF NOT EXISTS public.orders (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id UUID REFERENCES auth.users(id),
-        order_number TEXT NOT NULL,
-        total_amount NUMERIC NOT NULL,
-        status TEXT NOT NULL,
-        items JSONB NOT NULL,
-        shipping_address JSONB NOT NULL,
-        billing_address JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-      )`
-    ];
-
-    for (const sql of tablesToCreate) {
-      const { error } = await supabase.rpc('execute', { sql_string: sql });
-      if (error) errors.push({ table: 'tables', error });
-    }
-
-    // Add handle_new_user function and trigger
-    const { error: triggerError } = await supabase.rpc('execute', {
-      sql_string: `
+    // Create handle_new_user function and trigger
+    const { error: triggerError } = await supabase.rpc('create_trigger', {
+      sql: `
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS trigger
         LANGUAGE plpgsql
