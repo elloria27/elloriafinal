@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { migrateDatabase } from './integrations/supabase/migration';
 import { CartProvider } from "@/contexts/CartContext";
