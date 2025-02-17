@@ -7,16 +7,60 @@ interface MigrationError {
   error: any;
 }
 
+async function isDatabaseEmpty(): Promise<boolean> {
+  try {
+    // Try to get user_roles table as it's one of our core tables
+    const { data: userRoles, error: userRolesError } = await supabase
+      .from('user_roles')
+      .select('id')
+      .limit(1);
+
+    // If we get an error about the table not existing, database needs setup
+    if (userRolesError && userRolesError.message.includes('does not exist')) {
+      return true;
+    }
+
+    // If we can query the table but it's empty, we still need setup
+    if (!userRolesError && (!userRoles || userRoles.length === 0)) {
+      // Double check profiles table as well
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+
+      if (profilesError && profilesError.message.includes('does not exist')) {
+        return true;
+      }
+
+      return !profiles || profiles.length === 0;
+    }
+
+    // If we get here, the database has data
+    return false;
+  } catch (error) {
+    console.error('Error checking database:', error);
+    return false; // Assume database is not empty on error to prevent data loss
+  }
+}
+
 export async function migrateDatabase(): Promise<{ success: boolean; errors: MigrationError[] }> {
   const errors: MigrationError[] = [];
   
-  // Show installation message
-  toast.loading("Please wait, system installation in progress...", {
-    duration: Infinity,
-    id: "installation-toast"
-  });
-
   try {
+    // Check if database needs installation
+    const needsInstallation = await isDatabaseEmpty();
+    
+    if (!needsInstallation) {
+      console.log('Database already initialized, skipping installation');
+      return { success: true, errors: [] };
+    }
+
+    // Show installation message
+    toast.loading("Please wait, system installation in progress...", {
+      duration: Infinity,
+      id: "installation-toast"
+    });
+
     // First, ensure all required tables exist
     await ensureRequiredTables(errors);
     
