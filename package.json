@@ -51,6 +51,7 @@
     "@types/react-datepicker": "^7.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@xyflow/react": "^12.4.2",
+    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
