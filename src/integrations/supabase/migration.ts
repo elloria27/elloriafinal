@@ -43,8 +43,8 @@ export async function migrateDatabase(): Promise<{ success: boolean; errors: Mig
 async function ensureRequiredTables(errors: MigrationError[]) {
   try {
     // Create types first
-    const { error: typesError } = await supabase.rpc('create_types', {
-      sql: `
+    const { error: typesError } = await supabase.from('_sqlQueries').rpc('execute', {
+      query: `
         DO $$ BEGIN
           CREATE TYPE IF NOT EXISTS public.user_role AS ENUM ('admin', 'client', 'moderator');
           CREATE TYPE IF NOT EXISTS public.post_status AS ENUM ('draft', 'published', 'archived');
@@ -68,8 +68,8 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     if (typesError) errors.push({ table: 'types', error: typesError });
 
     // Create profiles table
-    const { error: profilesError } = await supabase.rpc('create_table', {
-      sql: `
+    const { error: profilesError } = await supabase.from('_sqlQueries').rpc('execute', {
+      query: `
         CREATE TABLE IF NOT EXISTS public.profiles (
           id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
           full_name TEXT,
@@ -92,8 +92,8 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     if (profilesError) errors.push({ table: 'profiles', error: profilesError });
 
     // Create user_roles table
-    const { error: rolesError } = await supabase.rpc('create_table', {
-      sql: `
+    const { error: rolesError } = await supabase.from('_sqlQueries').rpc('execute', {
+      query: `
         CREATE TABLE IF NOT EXISTS public.user_roles (
           id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
           user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -106,7 +106,6 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     if (rolesError) errors.push({ table: 'user_roles', error: rolesError });
 
     // Create all other tables (blog, products, orders, etc.)
-    // Note: For brevity, I'm showing just a few examples. In practice, you'd add ALL tables.
     const tablesToCreate = [
       // Blog related tables
       `CREATE TABLE IF NOT EXISTS public.blog_posts (
@@ -150,13 +149,13 @@ async function ensureRequiredTables(errors: MigrationError[]) {
     ];
 
     for (const sql of tablesToCreate) {
-      const { error } = await supabase.rpc('create_table', { sql });
+      const { error } = await supabase.from('_sqlQueries').rpc('execute', { query: sql });
       if (error) errors.push({ table: 'tables', error });
     }
 
     // Add handle_new_user function and trigger
-    const { error: triggerError } = await supabase.rpc('create_trigger', {
-      sql: `
+    const { error: triggerError } = await supabase.from('_sqlQueries').rpc('execute', {
+      query: `
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS trigger
         LANGUAGE plpgsql
