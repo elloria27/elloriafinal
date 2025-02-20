@@ -7,6 +7,9 @@ import { AdminUserStep } from "./steps/AdminUserStep";
 import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
 import { supabase } from "@/integrations/supabase/client";
 
+// Import the constants directly from the client file
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
+
 export const InstallationWizard = () => {
   const [step, setStep] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
@@ -16,9 +19,9 @@ export const InstallationWizard = () => {
   }, []);
 
   const checkSupabaseConfiguration = async () => {
-    // Check the configuration values directly from the constants in client.ts
-    const url = supabase.supabaseUrl;
-    const key = supabase.supabaseKey;
+    // Check the configuration values directly from the imported constants
+    const url = SUPABASE_URL;
+    const key = SUPABASE_PUBLISHABLE_KEY;
 
     // Check if either URL or key is empty/invalid
     const isUnconfigured = !url || !key || url === "undefined" || key === "undefined";
