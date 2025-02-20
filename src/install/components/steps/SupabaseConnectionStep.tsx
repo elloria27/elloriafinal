@@ -85,12 +85,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         .map(stmt => stmt.trim())
         .filter(stmt => stmt.length > 0);
 
-      // Execute each statement directly using regular SQL query
+      // Execute each statement using rpc
       for (const statement of statements) {
-        const { error } = await supabase.from('migrations')
-          .select('*')
-          .limit(0)
-          .execute(statement);
+        const { error } = await supabase.rpc('exec', {
+          sql_statement: statement
+        });
         
         if (error) {
           // Ignore errors about tables/types already existing
