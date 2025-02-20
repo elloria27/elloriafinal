@@ -76,7 +76,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   const setupDatabase = async (supabase: any) => {
     try {
       // Create types
-      const createTypesQuery = `
+      const { error: typesError } = await supabase.sql`
         DO $$ BEGIN
           CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
           EXCEPTION WHEN duplicate_object THEN NULL;
@@ -93,15 +93,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         END $$;
       `;
 
-      const { error: typesError } = await supabase.from('types').select('*').limit(1)
-        .then(async () => {
-          return await supabase.rpc('create_types', { sql: createTypesQuery });
-        });
-
       if (typesError) throw typesError;
 
       // Create tables
-      const createTablesQuery = `
+      const { error: tablesError } = await supabase.sql`
         CREATE TABLE IF NOT EXISTS profiles (
           id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
           email TEXT,
@@ -117,15 +112,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         );
       `;
 
-      const { error: tablesError } = await supabase.from('profiles').select('*').limit(1)
-        .then(async () => {
-          return await supabase.rpc('create_table', { sql: createTablesQuery });
-        });
-
       if (tablesError) throw tablesError;
 
       // Create trigger
-      const createTriggerQuery = `
+      const { error: triggerError } = await supabase.sql`
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS trigger
         LANGUAGE plpgsql
@@ -148,11 +138,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           AFTER INSERT ON auth.users
           FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
       `;
-
-      const { error: triggerError } = await supabase.from('triggers').select('*').limit(1)
-        .then(async () => {
-          return await supabase.rpc('create_trigger', { sql: createTriggerQuery });
-        });
 
       if (triggerError) throw triggerError;
 
