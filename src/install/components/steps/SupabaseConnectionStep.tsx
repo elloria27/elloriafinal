@@ -85,14 +85,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         .map(stmt => stmt.trim())
         .filter(stmt => stmt.length > 0);
 
-      // Execute each statement
+      // Execute each statement directly using regular SQL query
       for (const statement of statements) {
-        const { error } = await supabase.rpc('create_table', {
-          sql: statement
-        });
+        const { error } = await supabase.from('migrations')
+          .select('*')
+          .limit(0)
+          .execute(statement);
         
         if (error) {
-          // Ignore errors about types/tables already existing
+          // Ignore errors about tables/types already existing
           if (!error.message.includes('already exists')) {
             throw error;
           }
@@ -102,7 +103,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       return true;
     } catch (error: any) {
       console.error('Migration failed:', error);
-      throw new Error('Failed to set up database schema');
+      throw new Error('Failed to set up database schema. Please make sure you have the necessary permissions.');
     }
   };
 
