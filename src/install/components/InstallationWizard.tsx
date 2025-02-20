@@ -1,76 +1,58 @@
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Dialog } from "@/components/ui/dialog";
+import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
+import { AdminUserStep } from "./steps/AdminUserStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { BenefitsStep } from "./steps/BenefitsStep";
-import { AdminUserStep } from "./steps/AdminUserStep";
-import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
-
-// Import the constants directly from the client file
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
-
-interface AdminDetails {
-  email: string;
-  password: string;
-  fullName: string;
-}
 
 export const InstallationWizard = () => {
-  const [step, setStep] = useState(1);
-  const [isOpen, setIsOpen] = useState(false);
-  const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
-
-  useEffect(() => {
-    checkSupabaseConfiguration();
-  }, []);
-
-  const checkSupabaseConfiguration = () => {
-    // Check if either URL or key is missing or empty
-    const isUnconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || 
-                          SUPABASE_URL === "" || SUPABASE_PUBLISHABLE_KEY === "";
-    
-    if (isUnconfigured) {
-      setIsOpen(true);
-      // Add a class to hide the main content
-      document.body.classList.add('installer-active');
-    }
-  };
+  const [currentStep, setCurrentStep] = useState(0);
+  const [adminDetails, setAdminDetails] = useState({
+    email: "",
+    password: "",
+    fullName: ""
+  });
 
   const handleNext = () => {
-    setStep((prev) => Math.min(prev + 1, 4));
+    setCurrentStep((prev) => prev + 1);
   };
 
   const handleBack = () => {
-    setStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => prev - 1);
   };
 
-  const handleAdminDetailsSubmit = (details: AdminDetails) => {
+  const handleAdminDetails = (details: { email: string; password: string; fullName: string }) => {
     setAdminDetails(details);
     handleNext();
   };
 
-  const handleInstallationComplete = () => {
-    setIsOpen(false);
-    // Remove the class that hides the main content
-    document.body.classList.remove('installer-active');
-    // Reload the page to initialize the new Supabase client
-    window.location.reload();
+  const handleComplete = () => {
+    // Handle installation completion
+    window.location.href = "/";
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <WelcomeStep onNext={handleNext} />;
+      case 1:
+        return <BenefitsStep onNext={handleNext} onBack={handleBack} />;
+      case 2:
+        return <SupabaseConnectionStep onNext={handleNext} onBack={handleBack} />;
+      case 3:
+        return <AdminUserStep onSubmit={handleAdminDetails} onBack={handleBack} />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
-        {step === 1 && <WelcomeStep onNext={handleNext} />}
-        {step === 2 && <BenefitsStep onNext={handleNext} onBack={handleBack} />}
-        {step === 3 && <AdminUserStep onSubmit={handleAdminDetailsSubmit} onBack={handleBack} />}
-        {step === 4 && (
-          <SupabaseConnectionStep 
-            adminDetails={adminDetails!} 
-            onNext={handleInstallationComplete} 
-            onBack={handleBack} 
-          />
-        )}
-      </DialogContent>
+    <Dialog open>
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
+      <div className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] bg-background p-6 shadow-lg duration-200 rounded-xl border">
+        {renderStep()}
+      </div>
     </Dialog>
   );
 };

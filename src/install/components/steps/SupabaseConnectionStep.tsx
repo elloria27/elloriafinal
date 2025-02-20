@@ -10,14 +10,9 @@ import { createClient } from '@supabase/supabase-js';
 interface SupabaseConnectionStepProps {
   onNext: () => void;
   onBack: () => void;
-  adminDetails: {
-    email: string;
-    password: string;
-    fullName: string;
-  };
 }
 
-export const SupabaseConnectionStep = ({ onNext, onBack, adminDetails }: SupabaseConnectionStepProps) => {
+export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionStepProps) => {
   const [projectId, setProjectId] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
@@ -97,43 +92,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const createAdminUser = async (supabase: any) => {
-    try {
-      // Create the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: adminDetails.email,
-        password: adminDetails.password,
-        options: {
-          data: {
-            full_name: adminDetails.fullName
-          }
-        }
-      });
-
-      if (authError) throw authError;
-
-      // Wait briefly for triggers to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Verify the user was created with admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
-
-      if (roleError) throw roleError;
-      if (!roleData || roleData.role !== 'admin') {
-        throw new Error('Failed to set up admin role');
-      }
-
-      return true;
-    } catch (error: any) {
-      console.error('Error creating admin user:', error);
-      throw new Error(error.message || 'Failed to create admin user');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsConnecting(true);
@@ -158,13 +116,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       // Step 3: Run migrations to set up database schema
       await runMigrations(supabase);
       
-      // Step 4: Create the admin user
-      await createAdminUser(supabase);
-
-      toast.success("Installation completed successfully!");
+      toast.success("Database setup completed successfully!");
       onNext();
     } catch (error: any) {
-      toast.error(error.message || "Failed to complete installation");
+      toast.error(error.message || "Failed to complete setup");
     } finally {
       setIsConnecting(false);
     }
@@ -220,7 +175,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           Back
         </Button>
         <Button type="submit" disabled={isConnecting}>
-          {isConnecting ? "Setting up project..." : "Complete Setup"}
+          {isConnecting ? "Setting up project..." : "Next"}
         </Button>
       </div>
     </form>
