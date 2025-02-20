@@ -5,7 +5,6 @@ import { WelcomeStep } from "./steps/WelcomeStep";
 import { BenefitsStep } from "./steps/BenefitsStep";
 import { AdminUserStep } from "./steps/AdminUserStep";
 import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
-import { supabase } from "@/integrations/supabase/client";
 
 // Import the constants directly from the client file
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
@@ -25,9 +24,10 @@ export const InstallationWizard = () => {
     checkSupabaseConfiguration();
   }, []);
 
-  const checkSupabaseConfiguration = async () => {
-    // Check if either URL or key is missing
-    const isUnconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY;
+  const checkSupabaseConfiguration = () => {
+    // Check if either URL or key is missing or empty
+    const isUnconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || 
+                          SUPABASE_URL.trim() === "" || SUPABASE_PUBLISHABLE_KEY.trim() === "";
     
     if (isUnconfigured) {
       setIsOpen(true);
@@ -53,6 +53,8 @@ export const InstallationWizard = () => {
     setIsOpen(false);
     // Remove the class that hides the main content
     document.body.classList.remove('installer-active');
+    // Reload the page to initialize the new Supabase client
+    window.location.reload();
   };
 
   return (

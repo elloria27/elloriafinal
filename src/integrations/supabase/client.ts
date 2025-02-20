@@ -3,10 +3,29 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-export const SUPABASE_URL = "https://euexcsqvsbkxiwdieepu.supabase.co";
-export const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZXhjc3F2c2JreGl3ZGllZXB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1OTE0ODYsImV4cCI6MjA1MzE2NzQ4Nn0.SA8nsT8fEf2Igd91FNUNFYxT0WQb9qmYblrxxE7eV4U";
+export const SUPABASE_URL = "";
+export const SUPABASE_PUBLISHABLE_KEY = "";
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Create a dummy client when URL/key are not configured
+const createSafeClient = () => {
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    return {
+      from: () => ({
+        select: () => Promise.resolve({ data: null, error: null }),
+        insert: () => Promise.resolve({ data: null, error: null }),
+        update: () => Promise.resolve({ data: null, error: null }),
+        delete: () => Promise.resolve({ data: null, error: null }),
+      }),
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signUp: () => Promise.resolve({ data: { user: null }, error: null }),
+        signIn: () => Promise.resolve({ data: { user: null }, error: null }),
+        signOut: () => Promise.resolve({ error: null }),
+      },
+      rpc: () => Promise.resolve({ data: null, error: null }),
+    };
+  }
+  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+};
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createSafeClient();
