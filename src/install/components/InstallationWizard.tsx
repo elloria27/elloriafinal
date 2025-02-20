@@ -16,9 +16,10 @@ export const InstallationWizard = () => {
   }, []);
 
   const checkSupabaseConfiguration = async () => {
-    // Get the configuration values
-    const url = supabase.getUrl();
-    const key = supabase.getPublicKey();
+    // Access config directly from the imported client
+    const config = supabase.getClientConfig();
+    const url = config.url;
+    const key = config.key;
 
     // Check if either URL or key is empty/invalid
     const isUnconfigured = !url || !key || url === "undefined" || key === "undefined";
@@ -28,6 +29,14 @@ export const InstallationWizard = () => {
       // Add a class to hide the main content
       document.body.classList.add('installer-active');
     }
+  };
+
+  const handleNext = () => {
+    setStep((prev) => Math.min(prev + 1, 4));
+  };
+
+  const handleBack = () => {
+    setStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleInstallationComplete = () => {
