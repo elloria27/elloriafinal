@@ -18,7 +18,7 @@ const createSafeClient = () => {
     };
 
     const dummyQueryBuilder = {
-      select: () => ({ ...dummyQueryBuilder, ...dummyQueryResponse }),
+      select: () => dummyQueryBuilder,
       insert: () => Promise.resolve(dummyQueryResponse),
       update: () => Promise.resolve(dummyQueryResponse),
       delete: () => Promise.resolve(dummyQueryResponse),
@@ -44,6 +44,41 @@ const createSafeClient = () => {
       offset: () => dummyQueryBuilder,
       single: () => Promise.resolve(dummyQueryResponse),
       maybeSingle: () => Promise.resolve(dummyQueryResponse),
+      then: (callback: any) => Promise.resolve(callback(dummyQueryResponse)),
+      or: (filter: string) => dummyQueryBuilder,
+    };
+
+    const dummyAuthResponse = {
+      data: { 
+        session: null,
+        user: null 
+      },
+      error: null
+    };
+
+    const dummyChannel = {
+      subscribe: () => ({
+        unsubscribe: () => {},
+      }),
+      on: () => dummyChannel,
+      unsubscribe: () => {},
+      // Add required RealtimeChannel properties
+      topic: '',
+      params: {},
+      socket: {
+        isConnected: () => false,
+        connect: () => {},
+        disconnect: () => {},
+      },
+      bindings: {},
+      presence: {
+        state: {},
+        onJoin: () => {},
+        onLeave: () => {},
+      },
+      rejoinTimer: {
+        reset: () => {},
+      },
     };
 
     return {
@@ -60,13 +95,21 @@ const createSafeClient = () => {
       },
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-        signUp: () => Promise.resolve({ data: { user: null }, error: null }),
-        signIn: () => Promise.resolve({ data: { user: null }, error: null }),
+        getSession: () => Promise.resolve(dummyAuthResponse),
+        signUp: () => Promise.resolve(dummyAuthResponse),
+        signIn: () => Promise.resolve(dummyAuthResponse),
+        signInWithPassword: () => Promise.resolve(dummyAuthResponse),
         signOut: () => Promise.resolve({ error: null }),
+        onAuthStateChange: (callback: any) => {
+          // Return dummy subscription
+          return {
+            data: { subscription: { unsubscribe: () => {} } },
+            error: null
+          };
+        },
+        updateUser: () => Promise.resolve(dummyAuthResponse),
       },
-      channel: () => ({
-        on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-      }),
+      channel: (topic: string) => dummyChannel,
       removeChannel: () => Promise.resolve(),
       functions: {
         invoke: () => Promise.resolve({ data: null, error: null }),
