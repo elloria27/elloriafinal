@@ -16,10 +16,9 @@ export const InstallationWizard = () => {
   }, []);
 
   const checkSupabaseConfiguration = async () => {
-    // Access config directly from the imported client
-    const config = supabase.getClientConfig();
-    const url = config.url;
-    const key = config.key;
+    // Check the configuration values directly from the constants in client.ts
+    const url = supabase.supabaseUrl;
+    const key = supabase.supabaseKey;
 
     // Check if either URL or key is empty/invalid
     const isUnconfigured = !url || !key || url === "undefined" || key === "undefined";
