@@ -76,6 +76,30 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
+  const executeSqlStatement = async (sql: string) => {
+    try {
+      const result = await fetch(`${supabaseUrl}/rest/v1/rpc/create_table`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          sql: sql
+        })
+      });
+
+      if (!result.ok) {
+        const errorData = await result.json();
+        throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const runMigrations = async () => {
     try {
       // Get the SQL content from the migrations file
@@ -85,28 +109,29 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       }
       const sqlContent = await response.text();
       
+      // First, create the create_table RPC function
+      const createRpcFunction = `
+        CREATE OR REPLACE FUNCTION create_table(sql text)
+        RETURNS void
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$;
+      `;
+      
+      // Execute it using raw SQL via Supabase client
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      await supabase.rpc('create_table', { sql: createRpcFunction });
+      
       // Split SQL content into individual statements
       const statements = sqlContent.split(';').filter(statement => statement.trim().length > 0);
       
       // Execute each statement sequentially
       for (const statement of statements) {
-        const result = await fetch(`${supabaseUrl}/rest/v1/rpc/create_table`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify({
-            sql: statement.trim()
-          })
-        });
-
-        if (!result.ok) {
-          const errorData = await result.json();
-          throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
-        }
+        await executeSqlStatement(statement.trim());
       }
 
       // Wait briefly for migrations to complete
