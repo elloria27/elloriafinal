@@ -10,9 +10,16 @@ import { supabase } from "@/integrations/supabase/client";
 // Import the constants directly from the client file
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 
+interface AdminDetails {
+  email: string;
+  password: string;
+  fullName: string;
+}
+
 export const InstallationWizard = () => {
   const [step, setStep] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
+  const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
 
   useEffect(() => {
     checkSupabaseConfiguration();
@@ -37,6 +44,11 @@ export const InstallationWizard = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleAdminDetailsSubmit = (details: AdminDetails) => {
+    setAdminDetails(details);
+    handleNext();
+  };
+
   const handleInstallationComplete = () => {
     setIsOpen(false);
     // Remove the class that hides the main content
@@ -48,9 +60,13 @@ export const InstallationWizard = () => {
       <DialogContent className="sm:max-w-[600px]" onInteractOutside={(e) => e.preventDefault()}>
         {step === 1 && <WelcomeStep onNext={handleNext} />}
         {step === 2 && <BenefitsStep onNext={handleNext} onBack={handleBack} />}
-        {step === 3 && <AdminUserStep onNext={handleNext} onBack={handleBack} />}
+        {step === 3 && <AdminUserStep onSubmit={handleAdminDetailsSubmit} onBack={handleBack} />}
         {step === 4 && (
-          <SupabaseConnectionStep onNext={handleInstallationComplete} onBack={handleBack} />
+          <SupabaseConnectionStep 
+            adminDetails={adminDetails!} 
+            onNext={handleInstallationComplete} 
+            onBack={handleBack} 
+          />
         )}
       </DialogContent>
     </Dialog>

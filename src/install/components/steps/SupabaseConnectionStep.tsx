@@ -12,9 +12,14 @@ import { createClient } from '@supabase/supabase-js';
 interface SupabaseConnectionStepProps {
   onNext: () => void;
   onBack: () => void;
+  adminDetails: {
+    email: string;
+    password: string;
+    fullName: string;
+  };
 }
 
-export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionStepProps) => {
+export const SupabaseConnectionStep = ({ onNext, onBack, adminDetails }: SupabaseConnectionStepProps) => {
   const [projectId, setProjectId] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
@@ -42,6 +47,31 @@ export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionSte
     } catch (error) {
       console.error('Error setting up database:', error);
       return false;
+    }
+  };
+
+  const createAdminUser = async (supabase: any) => {
+    try {
+      // Create the user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: adminDetails.email,
+        password: adminDetails.password,
+        options: {
+          data: {
+            full_name: adminDetails.fullName
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // The profile and user_role will be created automatically through the database trigger
+      // that we set up in the initial-setup.sql file
+
+      return true;
+    } catch (error: any) {
+      console.error('Error creating admin user:', error);
+      throw new Error(error.message || 'Failed to create admin user');
     }
   };
 
@@ -81,8 +111,8 @@ export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionSte
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "${supabaseUrl}";
-const SUPABASE_PUBLISHABLE_KEY = "${supabaseKey}";
+export const SUPABASE_URL = "${supabaseUrl}";
+export const SUPABASE_PUBLISHABLE_KEY = "${supabaseKey}";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 `;
@@ -115,16 +145,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to set up database schema");
       }
 
+      // Create the admin user
+      await createAdminUser(supabase);
+
       // Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
       }
 
-      toast.success("Supabase project configured successfully");
+      toast.success("Installation completed successfully!");
       onNext();
     } catch (error: any) {
-      toast.error(error.message || "Failed to configure Supabase connection");
+      toast.error(error.message || "Failed to complete installation");
     } finally {
       setIsConnecting(false);
     }
@@ -177,7 +210,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           Back
         </Button>
         <Button type="submit" disabled={isConnecting}>
-          {isConnecting ? "Setting up database..." : "Complete Setup"}
+          {isConnecting ? "Setting up project..." : "Complete Setup"}
         </Button>
       </div>
     </form>
