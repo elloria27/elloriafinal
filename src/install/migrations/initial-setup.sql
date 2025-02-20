@@ -1,4 +1,3 @@
-
 -- Create required types
 CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
 CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
@@ -503,35 +502,339 @@ CREATE TABLE IF NOT EXISTS business_form_submissions (
     last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Shop settings and analytics
-CREATE TABLE IF NOT EXISTS shop_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    default_currency supported_currency NOT NULL DEFAULT 'USD',
-    enable_guest_checkout BOOLEAN DEFAULT true,
-    min_order_amount NUMERIC DEFAULT 0,
-    max_order_amount NUMERIC,
-    tax_rate NUMERIC DEFAULT 0,
-    shipping_countries TEXT[] DEFAULT ARRAY['US', 'CA'],
-    payment_methods JSONB DEFAULT '{"stripe": false, "cash_on_delivery": true}'::jsonb,
-    stripe_settings JSONB DEFAULT '{"secret_key": "", "publishable_key": ""}'::jsonb,
-    shipping_methods JSONB DEFAULT '{"CA": [], "US": []}'::jsonb,
-    tax_settings JSONB DEFAULT '{"CA": {"provinces": {"Quebec": {"gst": 5, "pst": 9.975}, "Alberta": {"gst": 5, "pst": 0}, "Ontario": {"hst": 13}, "Manitoba": {"gst": 5, "pst": 7}, "Nova Scotia": {"hst": 15}, "Saskatchewan": {"gst": 5, "pst": 6}, "New Brunswick": {"hst": 15}, "British Columbia": {"gst": 5, "pst": 7}, "Prince Edward Island": {"hst": 15}, "Newfoundland and Labrador": {"hst": 15}}}, "US": {"states": {}}}'::jsonb,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+-- HRM Invoice and Customer Management
+CREATE TABLE IF NOT EXISTS hrm_customers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    tax_id TEXT,
+    address JSONB,
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS page_views (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    session_id TEXT NOT NULL,
-    page_path TEXT NOT NULL,
-    view_type page_view_type DEFAULT 'page_view',
-    visitor_ip TEXT,
-    country TEXT,
-    city TEXT,
-    user_agent TEXT,
-    referrer TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+CREATE TABLE IF NOT EXISTS hrm_invoice_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID,
+    invoice_template TEXT DEFAULT 'standard',
+    payment_instructions TEXT,
+    default_notes TEXT,
+    footer_text TEXT,
+    company_email TEXT,
+    company_phone TEXT,
+    logo_url TEXT,
+    company_info JSONB DEFAULT '{}'::jsonb,
+    late_fee_percentage NUMERIC DEFAULT 0,
+    default_due_days INTEGER DEFAULT 30,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS hrm_invoices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_number TEXT NOT NULL,
+    customer_id UUID REFERENCES hrm_customers(id),
+    employee_id UUID,
+    status invoice_status NOT NULL DEFAULT 'draft',
+    due_date DATE NOT NULL,
+    subtotal_amount NUMERIC NOT NULL DEFAULT 0,
+    tax_amount NUMERIC NOT NULL DEFAULT 0,
+    total_amount NUMERIC NOT NULL DEFAULT 0,
+    total_amount_with_tax NUMERIC DEFAULT 0,
+    currency TEXT NOT NULL DEFAULT 'CAD',
+    payment_terms TEXT,
+    notes TEXT,
+    company_info JSONB DEFAULT '{}'::jsonb,
+    tax_details JSONB DEFAULT '{}'::jsonb,
+    footer_text TEXT,
+    payment_instructions TEXT,
+    reference_number TEXT,
+    discount_type TEXT,
+    discount_amount NUMERIC DEFAULT 0,
+    shipping_amount NUMERIC DEFAULT 0,
+    late_fee_percentage NUMERIC DEFAULT 0,
+    template_version TEXT DEFAULT '1.0',
+    last_sent_at TIMESTAMP WITH TIME ZONE,
+    last_sent_to TEXT,
+    pdf_url TEXT,
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_invoice_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_id UUID REFERENCES hrm_invoices(id),
+    description TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price NUMERIC NOT NULL,
+    total_price NUMERIC NOT NULL,
+    tax_percentage NUMERIC DEFAULT 0,
+    tax_category_id UUID,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_invoice_payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_id UUID REFERENCES hrm_invoices(id),
+    amount_paid NUMERIC NOT NULL,
+    payment_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    payment_method TEXT NOT NULL,
+    status payment_status NOT NULL DEFAULT 'pending',
+    transaction_id TEXT,
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_invoice_emails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    invoice_id UUID REFERENCES hrm_invoices(id),
+    sent_to TEXT NOT NULL,
+    sent_by UUID REFERENCES profiles(id),
+    sent_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    status TEXT NOT NULL DEFAULT 'sent',
+    email_type TEXT NOT NULL DEFAULT 'invoice',
+    template_version TEXT,
+    error_message TEXT
+);
+
+CREATE TABLE IF NOT EXISTS hrm_estimates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    estimate_number TEXT NOT NULL,
+    customer_id UUID REFERENCES hrm_customers(id),
+    status TEXT NOT NULL DEFAULT 'draft',
+    valid_until DATE,
+    subtotal_amount NUMERIC NOT NULL DEFAULT 0,
+    tax_amount NUMERIC NOT NULL DEFAULT 0,
+    total_amount NUMERIC NOT NULL DEFAULT 0,
+    terms TEXT,
+    notes TEXT,
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_estimate_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    estimate_id UUID REFERENCES hrm_estimates(id),
+    description TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price NUMERIC NOT NULL,
+    total_price NUMERIC NOT NULL,
+    tax_percentage NUMERIC DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_recurring_invoices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID REFERENCES hrm_customers(id),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    frequency TEXT NOT NULL,
+    template_data JSONB NOT NULL,
+    next_generation TIMESTAMP WITH TIME ZONE,
+    last_generated TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_credit_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID REFERENCES hrm_customers(id),
+    invoice_id UUID REFERENCES hrm_invoices(id),
+    credit_note_number TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    reason TEXT,
+    status TEXT NOT NULL DEFAULT 'issued',
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_customer_payment_methods (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID REFERENCES hrm_customers(id),
+    type TEXT NOT NULL,
+    details JSONB NOT NULL,
+    is_default BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_expense_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hrm_personal_reminders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID NOT NULL REFERENCES profiles(id),
+    title TEXT NOT NULL,
+    description TEXT,
+    reminder_date DATE NOT NULL,
+    reminder_time TIME NOT NULL,
+    recurrence reminder_recurrence NOT NULL DEFAULT 'none',
+    email_notify BOOLEAN NOT NULL DEFAULT true,
+    status BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- Content Management
+CREATE TABLE IF NOT EXISTS pages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    content JSONB NOT NULL DEFAULT '[]'::jsonb,
+    content_blocks JSONB[] DEFAULT '{}'::jsonb[],
+    is_published BOOLEAN DEFAULT false,
+    parent_id UUID REFERENCES pages(id),
+    menu_order INTEGER DEFAULT 0,
+    menu_type TEXT DEFAULT 'main',
+    show_in_header BOOLEAN DEFAULT false,
+    show_in_footer BOOLEAN DEFAULT false,
+    page_template TEXT DEFAULT 'default',
+    allow_indexing BOOLEAN DEFAULT true,
+    meta_title TEXT,
+    meta_description TEXT,
+    meta_keywords TEXT,
+    canonical_url TEXT,
+    custom_canonical_url TEXT,
+    og_title TEXT,
+    og_description TEXT,
+    og_image TEXT,
+    redirect_url TEXT,
+    meta_robots TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS content_blocks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    page_id UUID REFERENCES pages(id),
+    type TEXT NOT NULL,
+    content JSONB NOT NULL DEFAULT '{}'::jsonb,
+    order_index INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS component_definitions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT,
+    type TEXT NOT NULL,
+    category TEXT NOT NULL,
+    icon TEXT,
+    status component_status DEFAULT 'draft',
+    default_props JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Donations
+CREATE TABLE IF NOT EXISTS donations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    amount NUMERIC NOT NULL,
+    currency TEXT DEFAULT 'USD',
+    donor_name TEXT,
+    donor_email TEXT,
+    status TEXT DEFAULT 'completed',
+    payment_method TEXT,
+    stripe_session_id TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS donation_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    page_id UUID REFERENCES pages(id),
+    title TEXT,
+    description TEXT,
+    button_text TEXT,
+    button_link TEXT,
+    icon TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chat and Subscriptions
+CREATE TABLE IF NOT EXISTS chat_interactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES profiles(id),
+    message TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email TEXT NOT NULL,
+    source TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS business_forms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    inquiry_type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- Shop Company Expenses
+CREATE TABLE IF NOT EXISTS shop_company_expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    date DATE NOT NULL,
+    category TEXT NOT NULL,
+    vendor_name TEXT NOT NULL,
+    notes TEXT,
+    receipt_path TEXT,
+    status expense_status NOT NULL DEFAULT 'pending',
+    created_by UUID REFERENCES profiles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Create trigger for generating invoice numbers
+CREATE OR REPLACE FUNCTION generate_invoice_number()
+RETURNS TRIGGER AS $$
+DECLARE
+    year_prefix TEXT;
+    sequence_number INTEGER;
+BEGIN
+    IF NEW.invoice_number IS NULL THEN
+        year_prefix := to_char(CURRENT_DATE, 'YYYY');
+        
+        -- Get the latest sequence number for this year
+        SELECT COALESCE(MAX(NULLIF(regexp_replace(invoice_number, '^' || year_prefix || '-', ''), '')), '0')::integer + 1
+        INTO sequence_number
+        FROM hrm_invoices
+        WHERE invoice_number LIKE year_prefix || '-%';
+        
+        -- Generate new invoice number
+        NEW.invoice_number := year_prefix || '-' || LPAD(sequence_number::text, 6, '0');
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER generate_invoice_number_trigger
+    BEFORE INSERT ON hrm_invoices
+    FOR EACH ROW
+    EXECUTE FUNCTION generate_invoice_number();
 
 -- Create RLS policies
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -570,4 +873,3 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-
