@@ -71,41 +71,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const runMigrations = async (supabase: any) => {
-    try {
-      // Read the initial-setup.sql content
-      const response = await fetch('/src/install/migrations/initial-setup.sql');
-      if (!response.ok) throw new Error('Failed to load database migrations');
-      
-      const sqlContent = await response.text();
-      
-      // Split the SQL content into individual statements
-      const statements = sqlContent
-        .split(';')
-        .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0);
-
-      // Execute each statement using rpc
-      for (const statement of statements) {
-        const { error } = await supabase.rpc('exec', {
-          sql_statement: statement
-        });
-        
-        if (error) {
-          // Ignore errors about tables/types already existing
-          if (!error.message.includes('already exists')) {
-            throw error;
-          }
-        }
-      }
-
-      return true;
-    } catch (error: any) {
-      console.error('Migration failed:', error);
-      throw new Error('Failed to set up database schema. Please make sure you have the necessary permissions.');
-    }
-  };
-
   const createAdminUser = async (supabase: any) => {
     try {
       // Create the user in Supabase Auth
@@ -157,18 +122,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       // Step 1: Verify basic connectivity
       await verifyConnection(supabase);
-      
-      // Step 2: Run migrations to set up database schema
-      await runMigrations(supabase);
-      
-      // Step 3: Create the admin user
-      await createAdminUser(supabase);
 
-      // Step 4: Update configuration files
+      // Step 2: Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
       }
+      
+      // Step 3: Create the admin user
+      await createAdminUser(supabase);
 
       toast.success("Installation completed successfully!");
       onNext();
