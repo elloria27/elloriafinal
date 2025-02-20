@@ -1,3 +1,4 @@
+
 #root {
   text-align: center;
   min-height: 100vh;
@@ -18,6 +19,16 @@ main {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Installation wizard styles */
+body.installer-active > *:not(.radix-dialog-overlay):not(.radix-dialog-content) {
+  display: none !important;
+}
+
+body.installer-active {
+  background: rgb(var(--background));
+  overflow: hidden;
 }
 
 /* Add responsive padding adjustments */
