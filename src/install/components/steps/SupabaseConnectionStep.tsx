@@ -59,6 +59,53 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
+  const verifyConnection = async (supabase: any) => {
+    try {
+      // Simple health check using a basic RPC call
+      const { error } = await supabase.rpc('version');
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Connection verification failed:', error);
+      throw new Error('Could not connect to Supabase. Please check your credentials.');
+    }
+  };
+
+  const runMigrations = async (supabase: any) => {
+    try {
+      // Read the initial-setup.sql content
+      const response = await fetch('/src/install/migrations/initial-setup.sql');
+      if (!response.ok) throw new Error('Failed to load database migrations');
+      
+      const sqlContent = await response.text();
+      
+      // Split the SQL content into individual statements
+      const statements = sqlContent
+        .split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0);
+
+      // Execute each statement
+      for (const statement of statements) {
+        const { error } = await supabase.rpc('create_table', {
+          sql: statement
+        });
+        
+        if (error) {
+          // Ignore errors about types/tables already existing
+          if (!error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error('Migration failed:', error);
+      throw new Error('Failed to set up database schema');
+    }
+  };
+
   const createAdminUser = async (supabase: any) => {
     try {
       // Create the user in Supabase Auth
@@ -73,6 +120,21 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       });
 
       if (authError) throw authError;
+
+      // Wait briefly for triggers to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify the user was created with admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      if (roleError) throw roleError;
+      if (!roleData || roleData.role !== 'admin') {
+        throw new Error('Failed to set up admin role');
+      }
 
       return true;
     } catch (error: any) {
@@ -91,13 +153,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         return;
       }
 
-      // Test the connection by creating a client
       const supabase = createClient(supabaseUrl, supabaseKey);
       
-      // Create the admin user
+      // Step 1: Verify basic connectivity
+      await verifyConnection(supabase);
+      
+      // Step 2: Run migrations to set up database schema
+      await runMigrations(supabase);
+      
+      // Step 3: Create the admin user
       await createAdminUser(supabase);
 
-      // Update configuration files
+      // Step 4: Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
