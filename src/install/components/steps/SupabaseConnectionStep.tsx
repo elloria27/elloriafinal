@@ -36,7 +36,7 @@ export const SUPABASE_PUBLISHABLE_KEY = "${supabaseKey}";
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 `;
       
-      // Update both config files
+      // Update both config files with correct path format
       const [clientResponse, configResponse] = await Promise.all([
         fetch('/api/lovable/update-file', {
           method: 'POST',
@@ -44,8 +44,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            path: 'src/integrations/supabase/client.ts',
-            content
+            path: 'integrations/supabase/client.ts',
+            content,
           }),
         }),
         fetch('/api/lovable/update-file', {
@@ -55,12 +55,14 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           },
           body: JSON.stringify({
             path: 'supabase/config.toml',
-            content: `project_id = "${projectId}"`
+            content: `project_id = "${projectId}"`,
           }),
         })
       ]);
 
       if (!clientResponse.ok || !configResponse.ok) {
+        console.error('Client response:', await clientResponse.text());
+        console.error('Config response:', await configResponse.text());
         throw new Error('Failed to update configuration files');
       }
 
