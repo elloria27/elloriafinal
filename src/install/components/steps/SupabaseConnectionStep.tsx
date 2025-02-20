@@ -73,100 +73,94 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const setupInitialFunction = async (supabase: any) => {
-    try {
-      const { error } = await supabase.rpc('create_table', {
-        sql: `
-          CREATE OR REPLACE FUNCTION create_table(sql text)
-          RETURNS void
-          LANGUAGE plpgsql
-          SECURITY DEFINER
-          AS $$
-          BEGIN
-            EXECUTE sql;
-          END;
-          $$;
-        `
-      });
-
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Failed to create initial function:', error);
-      throw error;
-    }
-  };
-
   const setupDatabase = async (supabase: any) => {
     try {
-      // First create the function
-      await setupInitialFunction(supabase);
+      // First create the types
+      const { error: typesError } = await supabase
+        .from('_schema')
+        .select('version')
+        .then(async () => {
+          return await supabase.from('_schema').rpc('create_types', {
+            sql: `
+              DO $$ BEGIN
+                CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
+                EXCEPTION WHEN duplicate_object THEN NULL;
+              END $$;
 
-      // Create types
-      await supabase.rpc('create_table', {
-        sql: `
-          DO $$ BEGIN
-            CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
-            EXCEPTION WHEN duplicate_object THEN NULL;
-          END $$;
+              DO $$ BEGIN
+                CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
+                EXCEPTION WHEN duplicate_object THEN NULL;
+              END $$;
 
-          DO $$ BEGIN
-            CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
-            EXCEPTION WHEN duplicate_object THEN NULL;
-          END $$;
+              DO $$ BEGIN
+                CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
+                EXCEPTION WHEN duplicate_object THEN NULL;
+              END $$;
+            `
+          });
+        });
 
-          DO $$ BEGIN
-            CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
-            EXCEPTION WHEN duplicate_object THEN NULL;
-          END $$;
-        `
-      });
+      if (typesError) throw typesError;
 
       // Create tables
-      await supabase.rpc('create_table', {
-        sql: `
-          CREATE TABLE IF NOT EXISTS profiles (
-            id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-            email TEXT,
-            full_name TEXT,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-          );
+      const { error: tablesError } = await supabase
+        .from('_schema')
+        .select('version')
+        .then(async () => {
+          return await supabase.from('_schema').rpc('create_table', {
+            sql: `
+              CREATE TABLE IF NOT EXISTS profiles (
+                id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+                email TEXT,
+                full_name TEXT,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+              );
 
-          CREATE TABLE IF NOT EXISTS user_roles (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-            role user_role NOT NULL DEFAULT 'client',
-            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
-          );
-        `
-      });
+              CREATE TABLE IF NOT EXISTS user_roles (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+                role user_role NOT NULL DEFAULT 'client',
+                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+              );
+            `
+          });
+        });
+
+      if (tablesError) throw tablesError;
 
       // Create trigger
-      await supabase.rpc('create_table', {
-        sql: `
-          CREATE OR REPLACE FUNCTION public.handle_new_user()
-          RETURNS trigger
-          LANGUAGE plpgsql
-          SECURITY DEFINER
-          AS $$
-          BEGIN
-            INSERT INTO public.profiles (id, email, full_name)
-            VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'full_name', ''));
-            
-            INSERT INTO public.user_roles (user_id, role)
-            VALUES (new.id, 'client');
-            
-            RETURN new;
-          END;
-          $$;
+      const { error: triggerError } = await supabase
+        .from('_schema')
+        .select('version')
+        .then(async () => {
+          return await supabase.from('_schema').rpc('create_trigger', {
+            sql: `
+              CREATE OR REPLACE FUNCTION public.handle_new_user()
+              RETURNS trigger
+              LANGUAGE plpgsql
+              SECURITY DEFINER
+              AS $$
+              BEGIN
+                INSERT INTO public.profiles (id, email, full_name)
+                VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'full_name', ''));
+                
+                INSERT INTO public.user_roles (user_id, role)
+                VALUES (new.id, 'client');
+                
+                RETURN new;
+              END;
+              $$;
 
-          DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-          
-          CREATE TRIGGER on_auth_user_created
-            AFTER INSERT ON auth.users
-            FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-        `
-      });
+              DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+              
+              CREATE TRIGGER on_auth_user_created
+                AFTER INSERT ON auth.users
+                FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+            `
+          });
+        });
+
+      if (triggerError) throw triggerError;
 
       return true;
     } catch (error: any) {
