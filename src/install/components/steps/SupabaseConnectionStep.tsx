@@ -78,10 +78,21 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const runMigrations = async (supabase: any) => {
     try {
-      // Execute the initial setup SQL from migrations
-      const { error } = await supabase.rpc('create_initial_setup');
-      if (error) throw error;
-      
+      // Make direct fetch call to RPC endpoint with proper headers
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/create_initial_setup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
+      }
+
       // Wait briefly for migrations to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -106,19 +117,23 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       // Step 1: Verify basic connectivity
       await verifyConnection(supabase);
+      console.log("Connection verified successfully");
 
       // Step 2: Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
       }
+      console.log("Configuration updated successfully");
       
       // Step 3: Run migrations to set up database schema
       await runMigrations(supabase);
+      console.log("Migrations completed successfully");
       
       toast.success("Database setup completed successfully!");
       onNext();
     } catch (error: any) {
+      console.error('Setup failed:', error);
       toast.error(error.message || "Failed to complete setup");
     } finally {
       setIsConnecting(false);
