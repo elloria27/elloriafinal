@@ -78,6 +78,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const executeSqlStatement = async (sql: string) => {
     try {
+      // Clean up SQL statement by removing any extra whitespace
+      const cleanSql = sql.trim();
+      if (!cleanSql) return;
+
+      console.log('Executing SQL:', cleanSql); // For debugging
+
       const result = await fetch(`${supabaseUrl}/rest/v1/rpc/create_table`, {
         method: 'POST',
         headers: {
@@ -87,15 +93,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           'Prefer': 'resolution=merge-duplicates'
         },
         body: JSON.stringify({
-          sql: sql
+          sql: cleanSql
         })
       });
 
       if (!result.ok) {
         const errorData = await result.json();
+        console.error('SQL execution error:', errorData);
         throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
       }
+
+      return result;
     } catch (error) {
+      console.error('SQL execution failed:', error);
       throw error;
     }
   };
@@ -126,12 +136,26 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       const supabase = createClient(supabaseUrl, supabaseKey);
       await supabase.rpc('create_table', { sql: createRpcFunction });
       
-      // Split SQL content into individual statements
-      const statements = sqlContent.split(';').filter(statement => statement.trim().length > 0);
+      // Split SQL content into statements, being careful to handle comments and empty lines
+      const statements = sqlContent
+        .split(';')
+        .map(statement => statement.trim())
+        .filter(statement => {
+          // Remove SQL comments and empty statements
+          const cleanStatement = statement
+            .split('\n')
+            .filter(line => !line.trim().startsWith('--'))
+            .join('\n')
+            .trim();
+          return cleanStatement.length > 0;
+        });
       
       // Execute each statement sequentially
       for (const statement of statements) {
-        await executeSqlStatement(statement.trim());
+        console.log('Executing statement:', statement); // For debugging
+        await executeSqlStatement(statement);
+        // Small delay between statements to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       // Wait briefly for migrations to complete
