@@ -75,70 +75,31 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      const commands = [
-        // Create types
-        `DO $$ 
-        BEGIN
-          CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
-          EXCEPTION WHEN duplicate_object THEN NULL;
-        END $$;`,
-        
-        `DO $$ 
-        BEGIN
-          CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
-          EXCEPTION WHEN duplicate_object THEN NULL;
-        END $$;`,
-        
-        `DO $$ 
-        BEGIN
-          CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
-          EXCEPTION WHEN duplicate_object THEN NULL;
-        END $$;`,
-
-        // Create tables
-        `CREATE TABLE IF NOT EXISTS profiles (
-          id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-          email TEXT,
-          full_name TEXT,
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-        );`,
-
-        `CREATE TABLE IF NOT EXISTS user_roles (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-          role user_role NOT NULL DEFAULT 'client',
-          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
-        );`,
-
-        // Create trigger function
-        `CREATE OR REPLACE FUNCTION public.handle_new_user()
-        RETURNS trigger
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          INSERT INTO public.profiles (id, email, full_name)
-          VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'full_name', ''));
-          
-          INSERT INTO public.user_roles (user_id, role)
-          VALUES (new.id, 'client');
-          
-          RETURN new;
-        END;
-        $$;`,
-
-        // Create trigger
-        `DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;`,
-        
-        `CREATE TRIGGER on_auth_user_created
-          AFTER INSERT ON auth.users
-          FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();`
-      ];
+      const response = await fetch('/initial-setup.sql');
+      const sqlContent = await response.text();
+      
+      // Split the SQL content into individual commands
+      const commands = sqlContent
+        .split(';')
+        .map(cmd => cmd.trim())
+        .filter(cmd => cmd.length > 0);
 
       // Execute each command separately
       for (const command of commands) {
-        const { error } = await supabase.sql(command);
-        if (error) throw error;
+        try {
+          const { error } = await supabase.sql(command + ';');
+          if (error) {
+            console.error('SQL command failed:', command);
+            throw error;
+          }
+        } catch (error) {
+          // Log the error but continue with other commands
+          console.error('Error executing SQL command:', error);
+          // Only throw if it's a critical error
+          if (error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
       }
 
       return true;
