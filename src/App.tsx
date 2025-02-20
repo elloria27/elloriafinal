@@ -10,12 +10,12 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/
 import { useEffect, useState } from "react";
 
 function App() {
-  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
 
   useEffect(() => {
     // Check if Supabase is configured
     const unconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || 
-                        SUPABASE_URL.trim() === "" || SUPABASE_PUBLISHABLE_KEY.trim() === "";
+                        SUPABASE_URL === "" || SUPABASE_PUBLISHABLE_KEY === "";
     setIsSupabaseConfigured(!unconfigured);
     
     // Add installer-active class when Supabase is not configured

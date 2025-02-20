@@ -27,7 +27,7 @@ export const InstallationWizard = () => {
   const checkSupabaseConfiguration = () => {
     // Check if either URL or key is missing or empty
     const isUnconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || 
-                          SUPABASE_URL.trim() === "" || SUPABASE_PUBLISHABLE_KEY.trim() === "";
+                          SUPABASE_URL === "" || SUPABASE_PUBLISHABLE_KEY === "";
     
     if (isUnconfigured) {
       setIsOpen(true);
