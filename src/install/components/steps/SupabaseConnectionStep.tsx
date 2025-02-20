@@ -59,58 +59,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const testConnection = async (url: string, key: string) => {
-    try {
-      const supabase = createClient(url, key);
-      const { data, error } = await supabase.from('user_roles').select('*').limit(1);
-      
-      // If we can query user_roles, the database is already set up
-      if (!error && data) {
-        throw new Error('This Supabase project already has tables set up. Please use a fresh project.');
-      }
-      
-      return supabase;
-    } catch (error: any) {
-      // If error is about relations not existing, that's good - means we have a fresh DB
-      if (error?.message?.includes('relation "user_roles" does not exist')) {
-        return createClient(url, key);
-      }
-      throw error;
-    }
-  };
-
-  const setupDatabase = async (supabase: any) => {
-    try {
-      // Execute initial database setup
-      const { error } = await supabase.rpc('create_types', {
-        sql: `
-          CREATE TYPE user_role AS ENUM ('admin', 'client');
-          
-          CREATE TABLE IF NOT EXISTS profiles (
-            id UUID PRIMARY KEY,
-            email TEXT,
-            full_name TEXT,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-          );
-          
-          CREATE TABLE IF NOT EXISTS user_roles (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL,
-            role user_role NOT NULL DEFAULT 'client',
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-            UNIQUE(user_id, role)
-          );
-        `
-      });
-
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Error setting up database:', error);
-      return false;
-    }
-  };
-
   const createAdminUser = async (supabase: any) => {
     try {
       // Create the user in Supabase Auth
@@ -126,7 +74,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       if (authError) throw authError;
 
-      // The profile and user_role will be created automatically through database triggers
       return true;
     } catch (error: any) {
       console.error('Error creating admin user:', error);
@@ -144,15 +91,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         return;
       }
 
-      // First test the connection and ensure it's a fresh project
-      const supabase = await testConnection(supabaseUrl, supabaseKey);
+      // Test the connection by creating a client
+      const supabase = createClient(supabaseUrl, supabaseKey);
       
-      // Set up the database schema
-      const dbSetup = await setupDatabase(supabase);
-      if (!dbSetup) {
-        throw new Error("Failed to set up database schema");
-      }
-
       // Create the admin user
       await createAdminUser(supabase);
 
