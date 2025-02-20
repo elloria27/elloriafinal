@@ -75,21 +75,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupInitialFunction = async (supabase: any) => {
     try {
-      const { error } = await supabase
-        .from('_schema')
-        .rpc('create_table', {
-          sql: `
-            CREATE OR REPLACE FUNCTION create_table(sql text)
-            RETURNS void
-            LANGUAGE plpgsql
-            SECURITY DEFINER
-            AS $$
-            BEGIN
-              EXECUTE sql;
-            END;
-            $$;
-          `
-        });
+      const { error } = await supabase.rpc('create_table', {
+        sql: `
+          CREATE OR REPLACE FUNCTION create_table(sql text)
+          RETURNS void
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          AS $$
+          BEGIN
+            EXECUTE sql;
+          END;
+          $$;
+        `
+      });
 
       if (error) throw error;
       return true;
