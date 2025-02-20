@@ -19,12 +19,8 @@ export const InstallationWizard = () => {
   }, []);
 
   const checkSupabaseConfiguration = async () => {
-    // Check the configuration values directly from the imported constants
-    const url = SUPABASE_URL;
-    const key = SUPABASE_PUBLISHABLE_KEY;
-
-    // Check if either URL or key is empty
-    const isUnconfigured = !url || !key || url === "" || key === "";
+    // Check if either URL or key is missing
+    const isUnconfigured = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY;
     
     if (isUnconfigured) {
       setIsOpen(true);
