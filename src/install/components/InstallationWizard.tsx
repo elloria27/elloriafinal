@@ -23,8 +23,8 @@ export const InstallationWizard = () => {
     const url = SUPABASE_URL;
     const key = SUPABASE_PUBLISHABLE_KEY;
 
-    // Check if either URL or key is empty/invalid
-    const isUnconfigured = !url || !key || url === "undefined" || key === "undefined";
+    // Check if either URL or key is empty
+    const isUnconfigured = !url || !key || url === "" || key === "";
     
     if (isUnconfigured) {
       setIsOpen(true);
