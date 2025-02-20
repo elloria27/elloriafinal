@@ -102,8 +102,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const runMigrations = async () => {
     try {
-      // Get the SQL content from the migrations file
-      const response = await fetch('/api/lovable/read?path=src/install/migrations/initial-setup.sql');
+      // Get the SQL content from the hosted file
+      const response = await fetch('https://elloria.ca/initial-setup.sql');
       if (!response.ok) {
         throw new Error('Failed to read migrations file');
       }
