@@ -81,6 +81,22 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
+  const runMigrations = async (supabase: any) => {
+    try {
+      // Execute the initial setup SQL from migrations
+      const { error } = await supabase.rpc('create_initial_setup');
+      if (error) throw error;
+      
+      // Wait briefly for migrations to complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      return true;
+    } catch (error: any) {
+      console.error('Migration failed:', error);
+      throw new Error('Failed to set up database schema');
+    }
+  };
+
   const createAdminUser = async (supabase: any) => {
     try {
       // Create the user in Supabase Auth
@@ -139,7 +155,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
       
-      // Step 3: Create the admin user
+      // Step 3: Run migrations to set up database schema
+      await runMigrations(supabase);
+      
+      // Step 4: Create the admin user
       await createAdminUser(supabase);
 
       toast.success("Installation completed successfully!");
