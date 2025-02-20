@@ -52,7 +52,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       });
 
       if (!clientResponse.ok) {
-        console.error('Update response:', await clientResponse.text());
         throw new Error('Failed to update configuration files');
       }
 
@@ -74,73 +73,81 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const executeSqlStatement = async (sql: string) => {
+  const setupDatabase = async (supabase: any) => {
     try {
-      // Clean up SQL statement
-      const cleanSql = sql
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line && !line.startsWith('--'))
-        .join(' ')
-        .trim();
+      // First, create the RPC function
+      const { error: rpcError } = await supabase.rpc('create_table', {
+        sql: `
+          CREATE OR REPLACE FUNCTION create_table(sql text)
+          RETURNS void
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          AS $$
+          BEGIN
+            EXECUTE sql;
+          END;
+          $$;
+        `
+      });
 
-      if (!cleanSql) return;
+      if (rpcError) throw rpcError;
 
-      console.log('Executing SQL:', cleanSql);
+      // Setup required types
+      await supabase.rpc('create_table', {
+        sql: `
+          CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator');
+          CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
+          CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
+        `
+      });
 
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const { error } = await supabase.rpc('create_table', { sql: cleanSql });
+      // Create the main tables
+      await supabase.rpc('create_table', {
+        sql: `
+          CREATE TABLE IF NOT EXISTS profiles (
+            id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+            email TEXT,
+            full_name TEXT,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+          );
 
-      if (error) {
-        console.error('SQL execution error:', error);
-        throw error;
-      }
-    } catch (error) {
-      console.error('SQL execution failed:', error);
-      throw error;
-    }
-  };
+          CREATE TABLE IF NOT EXISTS user_roles (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+            role user_role NOT NULL DEFAULT 'client',
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+          );
+        `
+      });
 
-  const runMigrations = async () => {
-    try {
-      // Get the SQL content from the migrations file
-      const response = await fetch('/api/lovable/read?path=src/install/migrations/initial-setup.sql');
-      if (!response.ok) {
-        throw new Error('Failed to read migrations file');
-      }
+      // Create trigger for new user creation
+      await supabase.rpc('create_table', {
+        sql: `
+          CREATE OR REPLACE FUNCTION public.handle_new_user()
+          RETURNS trigger
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          AS $$
+          BEGIN
+            INSERT INTO public.profiles (id, email, full_name)
+            VALUES (new.id, new.email, COALESCE(new.raw_user_meta_data->>'full_name', ''));
+            
+            INSERT INTO public.user_roles (user_id, role)
+            VALUES (new.id, 'client');
+            
+            RETURN new;
+          END;
+          $$;
 
-      const sqlContent = await response.text();
-      
-      // First, create the create_table RPC function
-      const createRpcFunction = `
-        CREATE OR REPLACE FUNCTION create_table(sql text)
-        RETURNS void
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          EXECUTE sql;
-        END;
-        $$;
-      `.trim();
-
-      await executeSqlStatement(createRpcFunction);
-      
-      // Split SQL content into statements and execute them
-      const statements = sqlContent
-        .split(';')
-        .map(stmt => stmt.trim())
-        .filter(stmt => stmt.length > 0);
-
-      for (const statement of statements) {
-        await executeSqlStatement(statement);
-        // Small delay between statements
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+          CREATE TRIGGER on_auth_user_created
+            AFTER INSERT ON auth.users
+            FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+        `
+      });
 
       return true;
     } catch (error: any) {
-      console.error('Migration failed:', error);
+      console.error('Database setup failed:', error);
       throw new Error(`Failed to set up database schema: ${error.message}`);
     }
   };
@@ -168,9 +175,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       }
       console.log("Configuration updated successfully");
       
-      // Step 3: Run migrations to set up database schema
-      await runMigrations();
-      console.log("Migrations completed successfully");
+      // Step 3: Setup database schema
+      await setupDatabase(supabase);
+      console.log("Database setup completed successfully");
       
       toast.success("Database setup completed successfully!");
       onNext();
