@@ -2825,24 +2825,6 @@ export type Database = {
           updated_at: string | null
         }[]
       }
-      create_table: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_trigger: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_types: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
       get_admin_users: {
         Args: Record<PropertyKey, never>
         Returns: {
