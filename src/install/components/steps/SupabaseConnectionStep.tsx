@@ -85,21 +85,28 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       }
       const sqlContent = await response.text();
       
-      // Execute the SQL directly
-      const result = await fetch(`${supabaseUrl}/rest/v1/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: sqlContent
-      });
+      // Split SQL content into individual statements
+      const statements = sqlContent.split(';').filter(statement => statement.trim().length > 0);
+      
+      // Execute each statement sequentially
+      for (const statement of statements) {
+        const result = await fetch(`${supabaseUrl}/rest/v1/rpc/create_table`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            sql: statement.trim()
+          })
+        });
 
-      if (!result.ok) {
-        const errorData = await result.json();
-        throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
+        if (!result.ok) {
+          const errorData = await result.json();
+          throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
+        }
       }
 
       // Wait briefly for migrations to complete
