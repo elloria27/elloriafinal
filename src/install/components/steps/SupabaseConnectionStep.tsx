@@ -76,20 +76,29 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const runMigrations = async (supabase: any) => {
+  const runMigrations = async () => {
     try {
-      // Make direct fetch call to RPC endpoint with proper headers
-      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/create_initial_setup`, {
+      // Get the SQL content from the migrations file
+      const response = await fetch('/api/lovable/read?path=src/install/migrations/initial-setup.sql');
+      if (!response.ok) {
+        throw new Error('Failed to read migrations file');
+      }
+      const sqlContent = await response.text();
+      
+      // Execute the SQL directly
+      const result = await fetch(`${supabaseUrl}/rest/v1/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Prefer': 'resolution=merge-duplicates'
         },
+        body: sqlContent
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!result.ok) {
+        const errorData = await result.json();
         throw new Error(`Migration failed: ${JSON.stringify(errorData)}`);
       }
 
@@ -127,7 +136,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log("Configuration updated successfully");
       
       // Step 3: Run migrations to set up database schema
-      await runMigrations(supabase);
+      await runMigrations();
       console.log("Migrations completed successfully");
       
       toast.success("Database setup completed successfully!");
