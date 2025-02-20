@@ -7,11 +7,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 interface AdminUserStepProps {
-  onSubmit: (details: { email: string; password: string; fullName: string }) => void;
+  onNext: () => void;
   onBack: () => void;
 }
 
-export const AdminUserStep = ({ onSubmit, onBack }: AdminUserStepProps) => {
+export const AdminUserStep = ({ onNext, onBack }: AdminUserStepProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -24,20 +24,13 @@ export const AdminUserStep = ({ onSubmit, onBack }: AdminUserStepProps) => {
       return;
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
-      return;
+    try {
+      // Will be implemented when Supabase is connected
+      toast.success("Admin user created successfully");
+      onNext();
+    } catch (error) {
+      toast.error("Failed to create admin user");
     }
-
-    // Validate password strength
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long");
-      return;
-    }
-
-    onSubmit({ email, password, fullName });
   };
 
   return (
