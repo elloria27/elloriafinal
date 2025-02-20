@@ -61,15 +61,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const verifyConnection = async (supabase: any) => {
     try {
-      // Use a simple query to verify connection
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
-        
-      if (error && !error.message.includes('does not exist')) {
-        throw error;
-      }
+      // Simply check if we can connect to Supabase using the auth API
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
       return true;
     } catch (error: any) {
       console.error('Connection verification failed:', error);
