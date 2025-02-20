@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 interface SupabaseConnectionStepProps {
   onNext: () => void;
@@ -18,6 +19,51 @@ export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionSte
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
+
+  const setupDatabase = async (supabase: any) => {
+    try {
+      // Read the SQL file content
+      const sqlPath = path.join(process.cwd(), 'src', 'install', 'migrations', 'initial-setup.sql');
+      const sqlContent = await fs.promises.readFile(sqlPath, 'utf8');
+      
+      // Split the SQL into individual statements
+      const statements = sqlContent
+        .split(';')
+        .map(statement => statement.trim())
+        .filter(statement => statement.length > 0);
+
+      // Execute each statement
+      for (const statement of statements) {
+        const { error } = await supabase.rpc('create_types', { sql: statement });
+        if (error) throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error setting up database:', error);
+      return false;
+    }
+  };
+
+  const testConnection = async (url: string, key: string) => {
+    try {
+      const supabase = createClient(url, key);
+      const { data, error } = await supabase.from('user_roles').select('count');
+      
+      // If we can query user_roles, the database is already set up
+      if (!error && data) {
+        throw new Error('This Supabase project already has tables set up. Please use a fresh project.');
+      }
+      
+      return supabase;
+    } catch (error: any) {
+      // If error is about relations not existing, that's good - means we have a fresh DB
+      if (error?.message?.includes('relation "user_roles" does not exist')) {
+        return createClient(url, key);
+      }
+      throw error;
+    }
+  };
 
   const updateConfig = async () => {
     try {
@@ -60,15 +106,25 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         return;
       }
 
-      const success = await updateConfig();
-      if (success) {
-        toast.success("Supabase connection configured successfully");
-        onNext();
-      } else {
-        toast.error("Failed to update configuration files");
+      // First test the connection and ensure it's a fresh project
+      const supabase = await testConnection(supabaseUrl, supabaseKey);
+      
+      // Set up the database with our schema
+      const dbSetup = await setupDatabase(supabase);
+      if (!dbSetup) {
+        throw new Error("Failed to set up database schema");
       }
-    } catch (error) {
-      toast.error("Failed to configure Supabase connection");
+
+      // Update configuration files
+      const configUpdated = await updateConfig();
+      if (!configUpdated) {
+        throw new Error("Failed to update configuration files");
+      }
+
+      toast.success("Supabase project configured successfully");
+      onNext();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to configure Supabase connection");
     } finally {
       setIsConnecting(false);
     }
@@ -79,7 +135,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       <DialogHeader>
         <DialogTitle>Connect to Supabase</DialogTitle>
         <DialogDescription>
-          Enter your Supabase project details to connect the application
+          Enter your Supabase project details to connect the application.
+          Make sure to use a fresh Supabase project without any existing tables.
         </DialogDescription>
       </DialogHeader>
 
@@ -120,7 +177,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           Back
         </Button>
         <Button type="submit" disabled={isConnecting}>
-          {isConnecting ? "Connecting..." : "Complete Setup"}
+          {isConnecting ? "Setting up database..." : "Complete Setup"}
         </Button>
       </div>
     </form>
