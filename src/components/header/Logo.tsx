@@ -1,16 +1,9 @@
 
 import { motion } from "framer-motion";
 import { useLogo } from "@/hooks/use-logo";
-import { useLocation } from "react-router-dom";
 
 export const Logo = () => {
   const logoUrl = useLogo();
-  const location = useLocation();
-
-  // Don't show logo on setup page
-  if (location.pathname === '/setup') {
-    return null;
-  }
 
   return (
     <motion.a 

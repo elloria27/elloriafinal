@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
@@ -11,8 +10,8 @@ import { useLocation } from "react-router-dom";
 export const Header = () => {
   const location = useLocation();
   
-  // Hide header on admin routes and setup page
-  if (location.pathname.startsWith('/admin') || location.pathname === '/setup') {
+  // Hide header on admin routes
+  if (location.pathname.startsWith('/admin')) {
     return null;
   }
 

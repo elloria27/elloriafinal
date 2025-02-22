@@ -1,4 +1,3 @@
-
 import { User, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -21,11 +20,6 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -39,8 +33,6 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   }, []);
 
   const handleSignOut = async () => {
-    if (!supabase) return;
-
     try {
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
@@ -70,11 +62,6 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
       return;
     }
   };
-
-  // Don't show on setup page
-  if (location.pathname === '/setup') {
-    return null;
-  }
 
   if (loading) {
     return null;
