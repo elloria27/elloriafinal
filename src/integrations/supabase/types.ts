@@ -2992,6 +2992,10 @@ export type Database = {
         | "bulk_order"
         | "sustainability"
       invoice_status: "pending" | "paid" | "overdue" | "cancelled"
+      notification_type:
+        | "task_assigned"
+        | "task_updated"
+        | "deadline_approaching"
       page_view_type: "page_view" | "exit"
       payment_method: "cash" | "bank_transfer" | "credit_card"
       payment_status: "pending" | "completed" | "failed"
