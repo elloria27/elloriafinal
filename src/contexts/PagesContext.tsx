@@ -1,5 +1,6 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 type Page = {
   id: string;
@@ -28,9 +29,15 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Only fetch pages if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchPages = async () => {
       try {
-        const { data: pages, error } = await supabase
+        const { data: pages, error } = await supabase!
           .from('pages')
           .select('id, slug, title, is_published, show_in_header, show_in_footer, parent_id, menu_order, menu_type')
           .order('menu_order');
@@ -51,21 +58,23 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
 
     fetchPages();
 
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'pages' },
-        () => {
-          fetchPages();
-        }
-      )
-      .subscribe();
+    // Only set up realtime subscription if Supabase is configured
+    if (supabase) {
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'pages' },
+          () => {
+            fetchPages();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, []);
 
   return (
