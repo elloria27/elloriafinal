@@ -8,23 +8,28 @@ import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
 import { supabase } from "@/integrations/supabase/client";
 
 export const InstallationWizard = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true); // Changed to true by default
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
+    console.log("Installation Wizard mounted");
     checkInstallation();
   }, []);
 
   const checkInstallation = async () => {
     try {
+      console.log("Checking installation...");
       // Try to connect to Supabase
       const { data, error } = await supabase.from('profiles').select('count');
+      
+      console.log("Supabase check result:", { data, error });
       
       // If we can't connect, show the wizard
       if (error) {
         setIsOpen(true);
       }
     } catch (error) {
+      console.error("Installation check error:", error);
       setIsOpen(true);
     }
   };
@@ -41,6 +46,8 @@ export const InstallationWizard = () => {
     setIsOpen(false);
     window.location.reload();
   };
+
+  console.log("Installation Wizard rendering with state:", { isOpen, currentStep });
 
   const renderStep = () => {
     switch (currentStep) {
