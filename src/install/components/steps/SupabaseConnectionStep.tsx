@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from '@supabase/supabase-js';
+import initialSetup from '@/install/migrations/initial-setup.json';
 
 interface SupabaseConnectionStepProps {
   onNext: () => void;
@@ -75,56 +76,57 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      // Updated to use the external URL
-      const response = await fetch('https://elloria.ca/initial-setup.json');
-      if (!response.ok) {
-        throw new Error('Failed to load setup configuration');
-      }
-      const setupConfig = await response.json();
+      console.log('Setting up database with local configuration...');
       
       // Execute types first
-      for (const typeCommand of setupConfig.types) {
+      for (const typeCommand of initialSetup.types) {
         try {
           const { error } = await supabase.rpc('create_types', { sql: typeCommand });
           if (error) {
-            console.error('Type creation failed:', typeCommand);
-            throw error;
+            console.error('Type creation failed:', typeCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error creating type:', error);
-          if (error.message.includes('permission denied')) {
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
             throw error;
           }
         }
       }
 
       // Then create tables
-      for (const tableCommand of setupConfig.tables) {
+      for (const tableCommand of initialSetup.tables) {
         try {
           const { error } = await supabase.rpc('create_table', { sql: tableCommand });
           if (error) {
-            console.error('Table creation failed:', tableCommand);
-            throw error;
+            console.error('Table creation failed:', tableCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error creating table:', error);
-          if (error.message.includes('permission denied')) {
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
             throw error;
           }
         }
       }
 
       // Finally create triggers
-      for (const triggerCommand of setupConfig.triggers) {
+      for (const triggerCommand of initialSetup.triggers) {
         try {
           const { error } = await supabase.rpc('create_trigger', { sql: triggerCommand });
           if (error) {
-            console.error('Trigger creation failed:', triggerCommand);
-            throw error;
+            console.error('Trigger creation failed:', triggerCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error creating trigger:', error);
-          if (error.message.includes('permission denied')) {
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
             throw error;
           }
         }
