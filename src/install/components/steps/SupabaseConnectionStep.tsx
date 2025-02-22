@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             },
             {
               path: 'supabase/config.toml',
+              content: configContent
+            },
+            {
+              path: 'supabase/functions/mobile-api/config.toml',
               content: configContent
             }
           ]
@@ -210,7 +215,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       }
 
       await setupDatabase(supabase);
-
       await createAdminUser(supabase);
 
       toast.success("Successfully connected to Supabase and created admin user!");
