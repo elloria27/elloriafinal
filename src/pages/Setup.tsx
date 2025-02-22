@@ -3,7 +3,6 @@ import { SEOHead } from "@/components/SEOHead";
 import { InstallationWizard } from "@/install/components/InstallationWizard";
 
 export default function Setup() {
-  console.log("Setup page rendered");
   return (
     <>
       <SEOHead
