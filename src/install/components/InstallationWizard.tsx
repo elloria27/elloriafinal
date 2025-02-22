@@ -6,6 +6,12 @@ import { BenefitsStep } from './steps/BenefitsStep';
 import { SupabaseConnectionStep } from './steps/SupabaseConnectionStep';
 import { AdminSetupStep } from './steps/AdminSetupStep';
 
+type Step = {
+  id: number;
+  Component: React.ComponentType<any>;
+  props: Record<string, any>;
+};
+
 export const InstallationWizard = () => {
   const [step, setStep] = useState(0);
   const [isOpen, setIsOpen] = useState(true);
@@ -22,31 +28,46 @@ export const InstallationWizard = () => {
     setIsOpen(false);
   };
 
-  const steps = [
+  const steps: Step[] = [
     {
-      component: WelcomeStep,
-      props: { onNext: handleNext }
+      id: 0,
+      Component: WelcomeStep,
+      props: { 
+        onNext: handleNext 
+      }
     },
     {
-      component: BenefitsStep,
-      props: { onNext: handleNext, onBack: handleBack }
+      id: 1,
+      Component: BenefitsStep,
+      props: { 
+        onNext: handleNext, 
+        onBack: handleBack 
+      }
     },
     {
-      component: SupabaseConnectionStep,
-      props: { onNext: handleNext, onBack: handleBack }
+      id: 2,
+      Component: SupabaseConnectionStep,
+      props: { 
+        onNext: handleNext, 
+        onBack: handleBack 
+      }
     },
     {
-      component: AdminSetupStep,
-      props: { onBack: handleBack, onComplete: handleClose }
+      id: 3,
+      Component: AdminSetupStep,
+      props: { 
+        onBack: handleBack, 
+        onComplete: handleClose 
+      }
     }
   ];
 
-  const CurrentStep = steps[step].component;
+  const currentStep = steps[step];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[500px]">
-        <CurrentStep {...steps[step].props} />
+        <currentStep.Component {...currentStep.props} />
       </DialogContent>
     </Dialog>
   );
