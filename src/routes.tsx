@@ -1,8 +1,6 @@
-
-import { Routes as RouterRoutes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { isSupabaseConfigured } from "@/utils/supabase-helpers";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
@@ -30,57 +28,47 @@ import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
 import Setup from "@/pages/Setup";
 
-const MainLayout = () => {
+export function Routes() {
   return (
     <>
-      <Header />
-      <main className="min-h-screen pt-20">
-        <Outlet />
-      </main>
-      <Footer />
+      <RouterRoutes>
+        <Route 
+          path="/setup" 
+          element={<Setup />} 
+        />
+        <Route element={
+          <>
+            <Header />
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/for-business" element={<ForBusiness />} />
+              <Route path="/custom-solutions" element={<CustomSolutions />} />
+              <Route path="/sustainability" element={<Sustainability />} />
+              <Route path="/sustainability-program" element={<SustainabilityProgram />} />
+              <Route path="/donation" element={<Donation />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/profile/*" element={<Profile />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order-success" element={<OrderSuccess />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/thanks" element={<Thanks />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/shared/:token" element={<SharedFile />} />
+              <Route path="/shared/bulk/:token" element={<SharedFile />} />
+              <Route path="/bulk-orders" element={<BulkOrders />} />
+              <Route path="/certificates" element={<Certificates />} />
+              <Route path="/:slug" element={<DynamicPage />} />
+              <Route path="*" element={<NotFound />} />
+            <Footer />
+          </>
+        } />
+      </RouterRoutes>
     </>
-  );
-};
-
-export function Routes() {
-  const isConfigured = isSupabaseConfigured();
-
-  return (
-    <RouterRoutes>
-      {!isConfigured ? (
-        <Route path="*" element={<Setup />} />
-      ) : (
-        <>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/products/:slug" element={<ProductDetail />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
-            <Route path="/for-business" element={<ForBusiness />} />
-            <Route path="/custom-solutions" element={<CustomSolutions />} />
-            <Route path="/sustainability" element={<Sustainability />} />
-            <Route path="/sustainability-program" element={<SustainabilityProgram />} />
-            <Route path="/donation" element={<Donation />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile/*" element={<Profile />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-success" element={<OrderSuccess />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/thanks" element={<Thanks />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/shared/:token" element={<SharedFile />} />
-            <Route path="/shared/bulk/:token" element={<SharedFile />} />
-            <Route path="/bulk-orders" element={<BulkOrders />} />
-            <Route path="/certificates" element={<Certificates />} />
-            <Route path="/:slug" element={<DynamicPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </>
-      )}
-    </RouterRoutes>
   );
 }
