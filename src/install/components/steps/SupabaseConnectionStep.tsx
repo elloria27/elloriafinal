@@ -66,58 +66,46 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      console.log('Setting up database with local configuration...');
+      console.log('Setting up database with combined SQL...');
       
-      // Execute types first
-      for (const typeCommand of initialSetup.types) {
-        try {
-          const { error } = await supabase.rpc('create_types', { sql: typeCommand });
-          if (error) {
-            console.error('Type creation failed:', typeCommand, error);
-            if (!error.message.includes('already exists')) {
-              throw error;
-            }
-          }
-        } catch (error: any) {
-          console.error('Error creating type:', error);
-          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
-            throw error;
-          }
+      // Combine all type creation commands into a single SQL statement
+      const typesSQL = initialSetup.types.join(';\n');
+      const { error: typesError } = await supabase.rpc('create_table', { 
+        sql: typesSQL 
+      });
+      
+      if (typesError) {
+        console.error('Types creation failed:', typesError);
+        // Continue even if types exist
+        if (!typesError.message.includes('already exists')) {
+          throw typesError;
         }
       }
 
-      // Then create tables
+      // Create tables
       for (const tableCommand of initialSetup.tables) {
-        try {
-          const { error } = await supabase.rpc('create_table', { sql: tableCommand });
-          if (error) {
-            console.error('Table creation failed:', tableCommand, error);
-            if (!error.message.includes('already exists')) {
-              throw error;
-            }
-          }
-        } catch (error: any) {
-          console.error('Error creating table:', error);
-          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
-            throw error;
+        const { error: tableError } = await supabase.rpc('create_table', { 
+          sql: tableCommand 
+        });
+        
+        if (tableError) {
+          console.error('Table creation failed:', tableCommand, tableError);
+          if (!tableError.message.includes('already exists')) {
+            throw tableError;
           }
         }
       }
 
-      // Finally create triggers
+      // Create triggers
       for (const triggerCommand of initialSetup.triggers) {
-        try {
-          const { error } = await supabase.rpc('create_trigger', { sql: triggerCommand });
-          if (error) {
-            console.error('Trigger creation failed:', triggerCommand, error);
-            if (!error.message.includes('already exists')) {
-              throw error;
-            }
-          }
-        } catch (error: any) {
-          console.error('Error creating trigger:', error);
-          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
-            throw error;
+        const { error: triggerError } = await supabase.rpc('create_table', { 
+          sql: triggerCommand 
+        });
+        
+        if (triggerError) {
+          console.error('Trigger creation failed:', triggerCommand, triggerError);
+          if (!triggerError.message.includes('already exists')) {
+            throw triggerError;
           }
         }
       }
