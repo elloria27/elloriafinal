@@ -84,10 +84,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         .map(cmd => cmd.trim())
         .filter(cmd => cmd.length > 0);
 
-      // Execute each command separately
+      // Execute each command separately using RPC
       for (const command of commands) {
         try {
-          const { error } = await supabase.sql(command + ';');
+          const { error } = await supabase.rpc('create_table', { sql: command });
           if (error) {
             console.error('SQL command failed:', command);
             throw error;
