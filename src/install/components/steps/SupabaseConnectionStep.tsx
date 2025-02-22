@@ -67,16 +67,49 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     try {
       console.log('Setting up database schema...');
 
-      // First, create the utility functions
+      // First, clear the schema cache
+      const clearCacheSQL = `SELECT pg_stat_clear_snapshot();`;
+      const { error: clearCacheError } = await supabase.rpc('execute_sql', { 
+        sql: clearCacheSQL 
+      });
+
+      // If we get a "function not found" error, we need to create it first
+      if (clearCacheError?.message?.includes('Could not find the function')) {
+        console.log('Creating execute_sql function...');
+        const createExecuteSQL = `
+          CREATE OR REPLACE FUNCTION execute_sql(sql_command text) 
+          RETURNS void AS $$
+          BEGIN
+            EXECUTE sql_command;
+          END;
+          $$ LANGUAGE plpgsql SECURITY DEFINER;
+        `;
+
+        // Use direct SQL execution since we can't use RPC yet
+        const { error: createFunctionError } = await supabase
+          .from('rest/v1/sql')
+          .select('*')
+          .eq('query', createExecuteSQL);
+
+        if (createFunctionError) {
+          console.error('Failed to create execute_sql function:', createFunctionError);
+          throw createFunctionError;
+        }
+
+        // Try clearing the cache again now that we have the function
+        await supabase.rpc('execute_sql', { sql_command: clearCacheSQL });
+      }
+
+      // Now create our utility functions
       const utilityFunctions = [
-        `CREATE OR REPLACE FUNCTION create_types(sql text) RETURNS void AS $$ BEGIN EXECUTE sql; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`,
-        `CREATE OR REPLACE FUNCTION create_table(sql text) RETURNS void AS $$ BEGIN EXECUTE sql; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`,
-        `CREATE OR REPLACE FUNCTION create_trigger(sql text) RETURNS void AS $$ BEGIN EXECUTE sql; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`
+        `CREATE OR REPLACE FUNCTION create_types(sql_command text) RETURNS void AS $$ BEGIN EXECUTE sql_command; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`,
+        `CREATE OR REPLACE FUNCTION create_table(sql_command text) RETURNS void AS $$ BEGIN EXECUTE sql_command; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`,
+        `CREATE OR REPLACE FUNCTION create_trigger(sql_command text) RETURNS void AS $$ BEGIN EXECUTE sql_command; END; $$ LANGUAGE plpgsql SECURITY DEFINER;`
       ];
 
       for (const functionSql of utilityFunctions) {
         const { error: functionError } = await supabase.rpc('execute_sql', { 
-          sql: functionSql 
+          sql_command: functionSql 
         });
         if (functionError) {
           console.error('Function creation failed:', functionError);
@@ -88,7 +121,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating types...');
       for (const typeCommand of initialSetup.types) {
         const { error } = await supabase.rpc('create_types', { 
-          sql: typeCommand 
+          sql_command: typeCommand 
         });
         if (error && !error.message?.includes('already exists')) {
           console.error('Type creation failed:', typeCommand, error);
@@ -100,7 +133,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating tables...');
       for (const tableCommand of initialSetup.tables) {
         const { error } = await supabase.rpc('create_table', { 
-          sql: tableCommand 
+          sql_command: tableCommand 
         });
         if (error && !error.message?.includes('already exists')) {
           console.error('Table creation failed:', tableCommand, error);
@@ -112,7 +145,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating triggers...');
       for (const triggerCommand of initialSetup.triggers) {
         const { error } = await supabase.rpc('create_trigger', { 
-          sql: triggerCommand 
+          sql_command: triggerCommand 
         });
         if (error && !error.message?.includes('already exists')) {
           console.error('Trigger creation failed:', triggerCommand, error);
