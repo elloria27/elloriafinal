@@ -66,46 +66,60 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      console.log('Setting up database with combined SQL...');
+      console.log('Setting up database schema...');
       
-      // Combine all type creation commands into a single SQL statement
-      const typesSQL = initialSetup.types.join(';\n');
-      const { error: typesError } = await supabase.rpc('create_table', { 
-        sql: typesSQL 
-      });
-      
-      if (typesError) {
-        console.error('Types creation failed:', typesError);
-        // Continue even if types exist
-        if (!typesError.message.includes('already exists')) {
-          throw typesError;
-        }
-      }
-
-      // Create tables
-      for (const tableCommand of initialSetup.tables) {
-        const { error: tableError } = await supabase.rpc('create_table', { 
-          sql: tableCommand 
-        });
-        
-        if (tableError) {
-          console.error('Table creation failed:', tableCommand, tableError);
-          if (!tableError.message.includes('already exists')) {
-            throw tableError;
+      // Execute each type creation command separately to ensure proper order
+      for (const typeCommand of initialSetup.types) {
+        try {
+          // Execute raw SQL for type creation
+          const { error } = await supabase.rpc('create_table', { 
+            sql: typeCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Type creation failed:', typeCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          // Only rethrow if it's not an "already exists" error
+          if (!error.message.includes('already exists')) {
+            throw error;
           }
         }
       }
 
-      // Create triggers
+      // Now create tables after all types are created
+      for (const tableCommand of initialSetup.tables) {
+        try {
+          const { error } = await supabase.rpc('create_table', { 
+            sql: tableCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Table creation failed:', tableCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Finally create triggers
       for (const triggerCommand of initialSetup.triggers) {
-        const { error: triggerError } = await supabase.rpc('create_table', { 
-          sql: triggerCommand 
-        });
-        
-        if (triggerError) {
-          console.error('Trigger creation failed:', triggerCommand, triggerError);
-          if (!triggerError.message.includes('already exists')) {
-            throw triggerError;
+        try {
+          const { error } = await supabase.rpc('create_table', { 
+            sql: triggerCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Trigger creation failed:', triggerCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message.includes('already exists')) {
+            throw error;
           }
         }
       }
