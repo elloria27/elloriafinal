@@ -1,0 +1,31 @@
+
+{
+  "types": [
+    "CREATE TYPE user_role AS ENUM ('admin', 'client', 'manager');",
+    "CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');",
+    "CREATE TYPE form_type AS ENUM ('contact', 'business', 'consultation');",
+    "CREATE TYPE form_status AS ENUM ('new', 'in_progress', 'completed', 'cancelled');",
+    "CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');",
+    "CREATE TYPE referral_status AS ENUM ('pending', 'completed', 'cancelled');",
+    "CREATE TYPE page_view_type AS ENUM ('page_view', 'conversion');",
+    "CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected');",
+    "CREATE TYPE expense_payment_method AS ENUM ('cash', 'credit_card', 'bank_transfer');",
+    "CREATE TYPE expense_category AS ENUM ('office_supplies', 'marketing', 'utilities', 'other');",
+    "CREATE TYPE supported_currency AS ENUM ('USD', 'CAD', 'EUR', 'GBP');",
+    "CREATE TYPE supported_language AS ENUM ('en', 'fr', 'es');",
+    "CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');",
+    "CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'done', 'cancelled');",
+    "CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high');",
+    "CREATE TYPE task_category AS ENUM ('development', 'marketing', 'support', 'other');",
+    "CREATE TYPE notification_type AS ENUM ('task_assigned', 'task_updated', 'task_completed');",
+    "CREATE TYPE reminder_recurrence AS ENUM ('none', 'daily', 'weekly', 'monthly');"
+  ],
+  "tables": [
+    // ... All table creation SQL statements will go here
+    // I'll provide these in the next message due to length
+  ],
+  "triggers": [
+    // ... All trigger creation SQL statements will go here
+    // I'll provide these in the next message due to length
+  ]
+}
