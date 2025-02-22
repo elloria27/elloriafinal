@@ -17,6 +17,7 @@ export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionSte
   const [projectId, setProjectId] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
+  const [serviceRoleKey, setServiceRoleKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
 
   const updateConfig = async () => {
@@ -63,56 +64,54 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const setupDatabase = async (supabase: any) => {
+  const setupDatabase = async () => {
     try {
       console.log('Setting up database schema...');
-
-      // First, create the utility functions needed for setup
-      const utilityFunctions = `
-        CREATE OR REPLACE FUNCTION execute_sql(sql text) RETURNS void AS $$
-        BEGIN
-          EXECUTE sql;
-        END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-        CREATE OR REPLACE FUNCTION create_types(sql text) RETURNS void AS $$
-        BEGIN
-          EXECUTE sql;
-        END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-        CREATE OR REPLACE FUNCTION create_table(sql text) RETURNS void AS $$
-        BEGIN
-          EXECUTE sql;
-        END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-        CREATE OR REPLACE FUNCTION create_trigger(sql text) RETURNS void AS $$
-        BEGIN
-          EXECUTE sql;
-        END;
-        $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-        SELECT pg_stat_clear_snapshot();
-      `;
-
-      // Create utility functions first
-      const { error: utilityError } = await supabase.rpc('execute_sql', { 
-        sql: utilityFunctions 
+      
+      // Create a dedicated admin client with service role key
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        db: { schema: 'public' }
       });
 
-      if (utilityError) {
-        console.error('Failed to create utility functions:', utilityError);
-        throw utilityError;
-      }
-      
-      // Execute all SQL commands in sequence
-      for (const sql of [...initialSetup.types, ...initialSetup.tables, ...initialSetup.triggers]) {
+      // Execute types first
+      console.log('Creating types...');
+      for (const sql of initialSetup.types) {
         try {
-          const { error } = await supabase.rpc('execute_sql', { sql });
-          
+          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
           if (error && !error.message?.includes('already exists')) {
-            console.error('SQL execution failed:', sql, error);
+            console.error('Type creation failed:', sql, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message?.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Execute tables next
+      console.log('Creating tables...');
+      for (const sql of initialSetup.tables) {
+        try {
+          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
+          if (error && !error.message?.includes('already exists')) {
+            console.error('Table creation failed:', sql, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message?.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Execute triggers last
+      console.log('Creating triggers...');
+      for (const sql of initialSetup.triggers) {
+        try {
+          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
+          if (error && !error.message?.includes('already exists')) {
+            console.error('Trigger creation failed:', sql, error);
             throw error;
           }
         } catch (error: any) {
@@ -138,7 +137,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       const adminSetup = JSON.parse(adminSetupStr);
       
-      // Sign up the admin user with metadata that will trigger the role assignment
+      // Sign up the admin user with metadata that will trigger the handle_new_user trigger
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: adminSetup.email,
         password: adminSetup.password,
@@ -166,6 +165,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     if (!projectId.trim()) throw new Error("Project ID is required");
     if (!supabaseUrl.trim()) throw new Error("Supabase URL is required");
     if (!supabaseKey.trim()) throw new Error("Supabase Key is required");
+    if (!serviceRoleKey.trim()) throw new Error("Service Role Key is required");
     
     try {
       new URL(supabaseUrl);
@@ -177,8 +177,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       throw new Error("Invalid Project ID format");
     }
 
-    if (!supabaseKey.includes('.')) {
-      throw new Error("Invalid Supabase Key format");
+    if (!supabaseKey.includes('.') || !serviceRoleKey.includes('.')) {
+      throw new Error("Invalid key format");
     }
   };
 
@@ -190,11 +190,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       validateInputs();
 
       // Create a new Supabase client with the provided credentials
-      const supabase = createClient(supabaseUrl, supabaseKey, {
-        db: {
-          schema: 'public'
-        }
-      });
+      const supabase = createClient(supabaseUrl, supabaseKey);
       
       // Test the connection
       const { data, error } = await supabase.auth.getSession();
@@ -208,10 +204,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
 
-      // Initialize the database
-      await setupDatabase(supabase);
+      // Initialize the database using service role
+      await setupDatabase();
       
-      // Create the admin user
+      // Create the admin user using public client
       await createAdminUser(supabase);
 
       toast.success("Successfully connected to Supabase!");
@@ -265,6 +261,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             onChange={(e) => setSupabaseKey(e.target.value)}
             placeholder="Enter your Supabase anon key"
             className="rounded-full h-12"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="serviceRoleKey">Service Role Key</Label>
+          <Input
+            id="serviceRoleKey"
+            value={serviceRoleKey}
+            onChange={(e) => setServiceRoleKey(e.target.value)}
+            placeholder="Enter your Supabase service role key"
+            className="rounded-full h-12"
+            type="password"
           />
         </div>
       </div>
