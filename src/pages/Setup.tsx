@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { initializeSupabase } from "@/integrations/supabase/client";
 
 type SetupStep = "welcome" | "benefits" | "supabase" | "admin";
 
@@ -24,39 +25,52 @@ export default function Setup() {
 
   const handleSupabaseConfig = async () => {
     try {
-      const response = await fetch('/api/setup/configure-supabase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(supabaseConfig)
-      });
+      // Initialize Supabase client with the new configuration
+      const client = initializeSupabase(
+        supabaseConfig.supabase_url,
+        supabaseConfig.supabase_key
+      );
 
-      if (!response.ok) {
-        throw new Error('Failed to configure Supabase');
+      // Test the connection by making a simple query
+      const { error } = await client
+        .from('site_settings')
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        throw new Error('Failed to connect to Supabase');
       }
+
+      // Store the configuration in localStorage
+      localStorage.setItem('supabase_url', supabaseConfig.supabase_url);
+      localStorage.setItem('supabase_key', supabaseConfig.supabase_key);
 
       toast.success("Supabase configuration saved successfully");
       setCurrentStep("admin");
     } catch (error) {
-      toast.error("Failed to save Supabase configuration");
+      toast.error("Failed to configure Supabase. Please check your credentials.");
       console.error(error);
     }
   };
 
   const handleCreateAdmin = async () => {
     try {
-      const response = await fetch('/api/setup/create-admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(adminData)
+      const client = initializeSupabase(
+        localStorage.getItem('supabase_url') || '',
+        localStorage.getItem('supabase_key') || ''
+      );
+
+      const { error: signUpError } = await client.auth.signUp({
+        email: adminData.email,
+        password: adminData.password,
+        options: {
+          data: {
+            full_name: adminData.full_name,
+          }
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create admin user');
-      }
+      if (signUpError) throw signUpError;
 
       toast.success("Setup completed successfully!");
       navigate('/');
