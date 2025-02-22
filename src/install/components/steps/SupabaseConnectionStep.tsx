@@ -64,32 +64,118 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
+  const setupDatabase = async (supabase: any) => {
+    try {
+      console.log('Setting up database with local configuration...');
+      
+      // Execute types first
+      for (const typeCommand of initialSetup.types) {
+        try {
+          const { error } = await supabase.rpc('create_types', { sql: typeCommand });
+          if (error) {
+            console.error('Type creation failed:', typeCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
+          }
+        } catch (error: any) {
+          console.error('Error creating type:', error);
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
+      }
+
+      // Then create tables
+      for (const tableCommand of initialSetup.tables) {
+        try {
+          const { error } = await supabase.rpc('create_table', { sql: tableCommand });
+          if (error) {
+            console.error('Table creation failed:', tableCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
+          }
+        } catch (error: any) {
+          console.error('Error creating table:', error);
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
+      }
+
+      // Finally create triggers
+      for (const triggerCommand of initialSetup.triggers) {
+        try {
+          const { error } = await supabase.rpc('create_trigger', { sql: triggerCommand });
+          if (error) {
+            console.error('Trigger creation failed:', triggerCommand, error);
+            if (!error.message.includes('already exists')) {
+              throw error;
+            }
+          }
+        } catch (error: any) {
+          console.error('Error creating trigger:', error);
+          if (!error.message.includes('already exists') && !error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error('Database setup failed:', error);
+      throw new Error(`Failed to set up database schema: ${error.message}`);
+    }
+  };
+
+  const validateInputs = () => {
+    if (!projectId.trim()) throw new Error("Project ID is required");
+    if (!supabaseUrl.trim()) throw new Error("Supabase URL is required");
+    if (!supabaseKey.trim()) throw new Error("Supabase Key is required");
+    
+    // Validate URL format
+    try {
+      new URL(supabaseUrl);
+    } catch {
+      throw new Error("Invalid Supabase URL format");
+    }
+
+    // Validate project ID format
+    if (!/^[a-zA-Z0-9-_]+$/.test(projectId)) {
+      throw new Error("Invalid Project ID format");
+    }
+
+    // Validate key format (basic check)
+    if (!supabaseKey.includes('.')) {
+      throw new Error("Invalid Supabase Key format");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsConnecting(true);
 
     try {
-      if (!projectId || !supabaseUrl || !supabaseKey) {
-        toast.error("Please fill in all fields");
-        return;
-      }
+      // Validate inputs first
+      validateInputs();
 
       // Test the connection
       const supabase = createClient(supabaseUrl, supabaseKey);
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
-        throw new Error("Could not connect to Supabase");
+        throw new Error("Could not connect to Supabase. Please check your credentials.");
       }
 
       // Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
-        throw new Error("Failed to update configuration");
+        throw new Error("Failed to update configuration files");
       }
 
       // Initialize the database
-      await initializeDatabase(supabase);
+      await setupDatabase(supabase);
 
       toast.success("Successfully connected to Supabase!");
       onNext();
@@ -101,26 +187,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const initializeDatabase = async (supabase: any) => {
-    try {
-      // Execute SQL commands from initialSetup.json
-      for (const sql of initialSetup.tables) {
-        const { error } = await supabase.rpc('execute_sql', { sql });
-        if (error) throw error;
-      }
-      return true;
-    } catch (error) {
-      console.error('Database initialization failed:', error);
-      throw new Error("Failed to initialize database");
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <DialogHeader>
         <DialogTitle>Connect to Supabase</DialogTitle>
         <DialogDescription>
-          Enter your Supabase project details to connect the application
+          Enter your Supabase project details to connect the application.
+          Make sure to use a fresh Supabase project without any existing tables.
         </DialogDescription>
       </DialogHeader>
 
@@ -164,7 +237,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           Back
         </Button>
         <Button type="submit" disabled={isConnecting}>
-          {isConnecting ? "Connecting..." : "Complete Setup"}
+          {isConnecting ? "Setting up project..." : "Next"}
         </Button>
       </div>
     </form>
