@@ -1,7 +1,8 @@
 
-import { Routes as RouterRoutes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes as RouterRoutes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { isSupabaseConfigured } from "@/integrations/supabase/client";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
@@ -30,6 +31,13 @@ import Certificates from "@/pages/Certificates";
 import Setup from "@/pages/Setup";
 
 const MainLayout = () => {
+  const location = useLocation();
+  
+  // Redirect to setup if Supabase is not configured
+  if (!isSupabaseConfigured() && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />;
+  }
+
   return (
     <>
       <Header />
@@ -41,10 +49,18 @@ const MainLayout = () => {
   );
 };
 
+const SetupRoute = () => {
+  // Redirect to home if Supabase is already configured
+  if (isSupabaseConfigured()) {
+    return <Navigate to="/" replace />;
+  }
+  return <Setup />;
+};
+
 export function Routes() {
   return (
     <RouterRoutes>
-      <Route path="/setup" element={<Setup />} />
+      <Route path="/setup" element={<SetupRoute />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<Index />} />
         <Route path="/about" element={<About />} />
