@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -66,52 +67,24 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     try {
       console.log('Setting up database schema...');
       
-      for (const typeCommand of initialSetup.types) {
-        try {
-          const { error } = await supabase.rpc('create_table', { 
-            sql: typeCommand 
-          });
-          
-          if (error && !error.message.includes('already exists')) {
-            console.error('Type creation failed:', typeCommand, error);
-            throw error;
-          }
-        } catch (error: any) {
-          if (!error.message.includes('already exists')) {
-            throw error;
-          }
-        }
-      }
+      // Execute all SQL commands in sequence
+      const allCommands = [
+        ...initialSetup.types,
+        ...initialSetup.tables,
+        ...initialSetup.triggers
+      ];
 
-      for (const tableCommand of initialSetup.tables) {
+      for (const command of allCommands) {
         try {
-          const { error } = await supabase.rpc('create_table', { 
-            sql: tableCommand 
-          });
+          const { error } = await supabase.auth.admin.executeRaw(command);
           
-          if (error && !error.message.includes('already exists')) {
-            console.error('Table creation failed:', tableCommand, error);
+          if (error && !error.message?.includes('already exists')) {
+            console.error('SQL execution failed:', command, error);
             throw error;
           }
         } catch (error: any) {
-          if (!error.message.includes('already exists')) {
-            throw error;
-          }
-        }
-      }
-
-      for (const triggerCommand of initialSetup.triggers) {
-        try {
-          const { error } = await supabase.rpc('create_table', { 
-            sql: triggerCommand 
-          });
-          
-          if (error && !error.message.includes('already exists')) {
-            console.error('Trigger creation failed:', triggerCommand, error);
-            throw error;
-          }
-        } catch (error: any) {
-          if (!error.message.includes('already exists')) {
+          // Only throw if it's not an "already exists" error
+          if (!error.message?.includes('already exists')) {
             throw error;
           }
         }
