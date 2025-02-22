@@ -66,6 +66,45 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   const setupDatabase = async (supabase: any) => {
     try {
       console.log('Setting up database schema...');
+
+      // First, create the utility functions needed for setup
+      const utilityFunctions = `
+        CREATE OR REPLACE FUNCTION execute_sql(sql text) RETURNS void AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+        CREATE OR REPLACE FUNCTION create_types(sql text) RETURNS void AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+        CREATE OR REPLACE FUNCTION create_table(sql text) RETURNS void AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+        CREATE OR REPLACE FUNCTION create_trigger(sql text) RETURNS void AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+        SELECT pg_stat_clear_snapshot();
+      `;
+
+      // Create utility functions first
+      const { error: utilityError } = await supabase.rpc('execute_sql', { 
+        sql: utilityFunctions 
+      });
+
+      if (utilityError) {
+        console.error('Failed to create utility functions:', utilityError);
+        throw utilityError;
+      }
       
       // Execute all SQL commands in sequence
       for (const sql of [...initialSetup.types, ...initialSetup.tables, ...initialSetup.triggers]) {
