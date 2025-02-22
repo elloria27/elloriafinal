@@ -136,8 +136,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     try {
       validateInputs();
 
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const { data, error } = await supabase.auth.getSession();
+      // Create a temporary Supabase client to test the connection
+      const tempSupabase = createClient(supabaseUrl, supabaseKey);
+      const { data, error } = await tempSupabase.auth.getSession();
       
       if (error) {
         throw new Error("Could not connect to Supabase. Please check your credentials.");
@@ -148,7 +149,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
 
-      await setupDatabase(supabase);
+      // Force reload the page to use the new Supabase configuration
+      window.location.reload();
 
       toast.success("Successfully connected to Supabase!");
       onNext();

@@ -6,18 +6,31 @@ import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 function App() {
   console.log('App rendering');
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     checkSetup();
   }, []);
 
   const checkSetup = async () => {
+    // If we're already on the setup page, don't redirect
+    if (location.pathname === '/setup') {
+      return;
+    }
+
+    // If supabase client is null, we need setup
+    if (!supabase) {
+      console.log('Supabase not configured, redirecting to /setup');
+      navigate('/setup');
+      return;
+    }
+
     try {
       // Try to connect to Supabase and check if site_settings table exists
       const { error } = await supabase.from('site_settings').select('*', { count: 'exact', head: true });
