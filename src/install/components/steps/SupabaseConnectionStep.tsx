@@ -75,8 +75,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      // Fetch the JSON setup file
-      const response = await fetch('/src/install/migrations/initial-setup.json');
+      // Updated to use the external URL
+      const response = await fetch('https://elloria.ca/initial-setup.json');
       if (!response.ok) {
         throw new Error('Failed to load setup configuration');
       }
