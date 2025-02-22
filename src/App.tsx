@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 function App() {
+  console.log('App rendering');
   return (
     <CartProvider>
       <PagesProvider>
