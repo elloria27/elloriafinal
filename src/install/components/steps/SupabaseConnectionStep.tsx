@@ -71,18 +71,16 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       // Execute each type creation command separately to ensure proper order
       for (const typeCommand of initialSetup.types) {
         try {
-          // Execute raw SQL for type creation
-          const { error } = await supabase.rpc('create_table', { 
+          const { error } = await supabase.rpc('create_types', { 
             sql: typeCommand 
           });
           
-          if (error && !error.message.includes('already exists')) {
+          if (error && !error.message?.includes('already exists')) {
             console.error('Type creation failed:', typeCommand, error);
             throw error;
           }
         } catch (error: any) {
-          // Only rethrow if it's not an "already exists" error
-          if (!error.message.includes('already exists')) {
+          if (!error.message?.includes('already exists')) {
             throw error;
           }
         }
@@ -95,12 +93,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             sql: tableCommand 
           });
           
-          if (error && !error.message.includes('already exists')) {
+          if (error && !error.message?.includes('already exists')) {
             console.error('Table creation failed:', tableCommand, error);
             throw error;
           }
         } catch (error: any) {
-          if (!error.message.includes('already exists')) {
+          if (!error.message?.includes('already exists')) {
             throw error;
           }
         }
@@ -109,16 +107,16 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       // Finally create triggers
       for (const triggerCommand of initialSetup.triggers) {
         try {
-          const { error } = await supabase.rpc('create_table', { 
+          const { error } = await supabase.rpc('create_trigger', { 
             sql: triggerCommand 
           });
           
-          if (error && !error.message.includes('already exists')) {
+          if (error && !error.message?.includes('already exists')) {
             console.error('Trigger creation failed:', triggerCommand, error);
             throw error;
           }
         } catch (error: any) {
-          if (!error.message.includes('already exists')) {
+          if (!error.message?.includes('already exists')) {
             throw error;
           }
         }
@@ -128,6 +126,39 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     } catch (error: any) {
       console.error('Database setup failed:', error);
       throw new Error(`Failed to set up database schema: ${error.message}`);
+    }
+  };
+
+  const createAdminUser = async (supabase: any) => {
+    try {
+      const adminSetupStr = localStorage.getItem('admin_setup');
+      if (!adminSetupStr) {
+        throw new Error('Admin profile data not found');
+      }
+
+      const adminSetup = JSON.parse(adminSetupStr);
+      
+      // Sign up the admin user with metadata that will trigger the role assignment
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: adminSetup.email,
+        password: adminSetup.password,
+        options: {
+          data: {
+            full_name: adminSetup.fullName,
+            is_admin: true  // This will be used by the handle_new_user trigger
+          }
+        }
+      });
+
+      if (signUpError) throw signUpError;
+
+      // Clear the stored admin data
+      localStorage.removeItem('admin_setup');
+      
+      return true;
+    } catch (error: any) {
+      console.error('Failed to create admin user:', error);
+      throw new Error(`Failed to create admin user: ${error.message}`);
     }
   };
 
@@ -159,13 +190,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     setIsConnecting(true);
 
     try {
-      // Validate inputs first
       validateInputs();
 
-      // Test the connection
+      // Create a new Supabase client with the provided credentials
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { data, error } = await supabase.auth.getSession();
       
+      // Test the connection
+      const { data, error } = await supabase.auth.getSession();
       if (error) {
         throw new Error("Could not connect to Supabase. Please check your credentials.");
       }
@@ -178,6 +209,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       // Initialize the database
       await setupDatabase(supabase);
+      
+      // Create the admin user
+      await createAdminUser(supabase);
 
       toast.success("Successfully connected to Supabase!");
       onNext();
