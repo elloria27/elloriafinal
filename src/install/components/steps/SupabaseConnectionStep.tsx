@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -89,11 +88,9 @@ export const isSupabaseConfigured = () => {
       // Execute types creation
       for (const typeCommand of initialSetup.types) {
         try {
-          const { error } = await supabase
-            .from('_schema')
-            .rpc('execute', { 
-              query: typeCommand 
-            });
+          const { error } = await supabase.rpc('execute', { 
+            query: typeCommand 
+          });
           
           if (error && !error.message.includes('already exists')) {
             console.error('Type creation failed:', typeCommand, error);
@@ -109,11 +106,9 @@ export const isSupabaseConfigured = () => {
       // Execute table creation
       for (const tableCommand of initialSetup.tables) {
         try {
-          const { error } = await supabase
-            .from('_schema')
-            .rpc('execute', { 
-              query: tableCommand 
-            });
+          const { error } = await supabase.rpc('execute', { 
+            query: tableCommand 
+          });
           
           if (error && !error.message.includes('already exists')) {
             console.error('Table creation failed:', tableCommand, error);
@@ -129,11 +124,9 @@ export const isSupabaseConfigured = () => {
       // Execute trigger creation
       for (const triggerCommand of initialSetup.triggers) {
         try {
-          const { error } = await supabase
-            .from('_schema')
-            .rpc('execute', { 
-              query: triggerCommand 
-            });
+          const { error } = await supabase.rpc('execute', { 
+            query: triggerCommand 
+          });
           
           if (error && !error.message.includes('already exists')) {
             console.error('Trigger creation failed:', triggerCommand, error);
