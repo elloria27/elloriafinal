@@ -17,7 +17,6 @@ export const SupabaseConnectionStep = ({ onNext, onBack }: SupabaseConnectionSte
   const [projectId, setProjectId] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
-  const [serviceRoleKey, setServiceRoleKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
 
   const updateConfig = async () => {
@@ -34,6 +33,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       const configContent = `project_id = "${projectId}"`;
       
+      // Save the configuration files
       const response = await window.fetch('/lovable/api/save', {
         method: 'POST',
         headers: {
@@ -64,88 +64,61 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const setupDatabase = async () => {
+  const setupDatabase = async (supabase: any) => {
     try {
       console.log('Setting up database schema...');
       
-      // Create a dedicated admin client with service role key
-      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
-        db: { schema: 'public' }
-      });
-
-      // Execute types first
-      console.log('Creating types...');
-      for (const sql of initialSetup.types) {
+      // Execute each type creation command separately to ensure proper order
+      for (const typeCommand of initialSetup.types) {
         try {
-          const { error } = await adminClient.rpc('execute_sql', { sql });
-          if (error && !error.message?.includes('already exists')) {
-            console.error('Type creation failed:', sql, error);
+          // Execute raw SQL for type creation
+          const { error } = await supabase.rpc('create_table', { 
+            sql: typeCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Type creation failed:', typeCommand, error);
             throw error;
           }
         } catch (error: any) {
-          if (!error.message?.includes('already exists')) {
-            // First, try to create the execute_sql function if it doesn't exist
-            if (error.message?.includes('function "execute_sql" does not exist')) {
-              const createFunctionSQL = `
-                CREATE OR REPLACE FUNCTION execute_sql(sql text) 
-                RETURNS void AS $$
-                BEGIN
-                  EXECUTE sql;
-                END;
-                $$ LANGUAGE plpgsql SECURITY DEFINER;
-              `;
-              
-              const { error: functionError } = await adminClient.rpc('execute_sql', { 
-                sql: createFunctionSQL 
-              });
-              
-              if (!functionError) {
-                // Retry the original SQL after creating the function
-                const { error: retryError } = await adminClient.rpc('execute_sql', { sql });
-                if (retryError && !retryError.message?.includes('already exists')) {
-                  throw retryError;
-                }
-              } else {
-                // If we can't create the function, try direct SQL execution
-                const { error: directError } = await adminClient.from('rest/v1/sql').select('*').eq('query', sql);
-                if (directError && !directError.message?.includes('already exists')) {
-                  throw directError;
-                }
-              }
-            } else {
-              throw error;
-            }
-          }
-        }
-      }
-
-      // Execute tables next
-      console.log('Creating tables...');
-      for (const sql of initialSetup.tables) {
-        try {
-          const { error } = await adminClient.rpc('execute_sql', { sql });
-          if (error && !error.message?.includes('already exists')) {
-            console.error('Table creation failed:', sql, error);
-            throw error;
-          }
-        } catch (error: any) {
-          if (!error.message?.includes('already exists')) {
+          // Only rethrow if it's not an "already exists" error
+          if (!error.message.includes('already exists')) {
             throw error;
           }
         }
       }
 
-      // Execute triggers last
-      console.log('Creating triggers...');
-      for (const sql of initialSetup.triggers) {
+      // Now create tables after all types are created
+      for (const tableCommand of initialSetup.tables) {
         try {
-          const { error } = await adminClient.rpc('execute_sql', { sql });
-          if (error && !error.message?.includes('already exists')) {
-            console.error('Trigger creation failed:', sql, error);
+          const { error } = await supabase.rpc('create_table', { 
+            sql: tableCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Table creation failed:', tableCommand, error);
             throw error;
           }
         } catch (error: any) {
-          if (!error.message?.includes('already exists')) {
+          if (!error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Finally create triggers
+      for (const triggerCommand of initialSetup.triggers) {
+        try {
+          const { error } = await supabase.rpc('create_table', { 
+            sql: triggerCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Trigger creation failed:', triggerCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message.includes('already exists')) {
             throw error;
           }
         }
@@ -158,57 +131,26 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const createAdminUser = async (supabase: any) => {
-    try {
-      const adminSetupStr = localStorage.getItem('admin_setup');
-      if (!adminSetupStr) {
-        throw new Error('Admin profile data not found');
-      }
-
-      const adminSetup = JSON.parse(adminSetupStr);
-      
-      // Sign up the admin user with metadata that will trigger the handle_new_user trigger
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: adminSetup.email,
-        password: adminSetup.password,
-        options: {
-          data: {
-            full_name: adminSetup.fullName,
-            is_admin: true  // This will be used by the handle_new_user trigger
-          }
-        }
-      });
-
-      if (signUpError) throw signUpError;
-
-      // Clear the stored admin data
-      localStorage.removeItem('admin_setup');
-      
-      return true;
-    } catch (error: any) {
-      console.error('Failed to create admin user:', error);
-      throw new Error(`Failed to create admin user: ${error.message}`);
-    }
-  };
-
   const validateInputs = () => {
     if (!projectId.trim()) throw new Error("Project ID is required");
     if (!supabaseUrl.trim()) throw new Error("Supabase URL is required");
     if (!supabaseKey.trim()) throw new Error("Supabase Key is required");
-    if (!serviceRoleKey.trim()) throw new Error("Service Role Key is required");
     
+    // Validate URL format
     try {
       new URL(supabaseUrl);
     } catch {
       throw new Error("Invalid Supabase URL format");
     }
 
+    // Validate project ID format
     if (!/^[a-zA-Z0-9-_]+$/.test(projectId)) {
       throw new Error("Invalid Project ID format");
     }
 
-    if (!supabaseKey.includes('.') || !serviceRoleKey.includes('.')) {
-      throw new Error("Invalid key format");
+    // Validate key format (basic check)
+    if (!supabaseKey.includes('.')) {
+      throw new Error("Invalid Supabase Key format");
     }
   };
 
@@ -217,13 +159,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     setIsConnecting(true);
 
     try {
+      // Validate inputs first
       validateInputs();
 
-      // Create a new Supabase client with the provided credentials
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
       // Test the connection
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const { data, error } = await supabase.auth.getSession();
+      
       if (error) {
         throw new Error("Could not connect to Supabase. Please check your credentials.");
       }
@@ -234,11 +176,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
 
-      // Initialize the database using service role
-      await setupDatabase();
-      
-      // Create the admin user using public client
-      await createAdminUser(supabase);
+      // Initialize the database
+      await setupDatabase(supabase);
 
       toast.success("Successfully connected to Supabase!");
       onNext();
@@ -291,18 +230,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             onChange={(e) => setSupabaseKey(e.target.value)}
             placeholder="Enter your Supabase anon key"
             className="rounded-full h-12"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="serviceRoleKey">Service Role Key</Label>
-          <Input
-            id="serviceRoleKey"
-            value={serviceRoleKey}
-            onChange={(e) => setServiceRoleKey(e.target.value)}
-            placeholder="Enter your Supabase service role key"
-            className="rounded-full h-12"
-            type="password"
           />
         </div>
       </div>
