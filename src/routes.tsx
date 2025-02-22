@@ -33,8 +33,9 @@ import Setup from "@/pages/Setup";
 const MainLayout = () => {
   const location = useLocation();
   
-  // Redirect to setup if Supabase is not configured
+  // Only redirect to setup if we're not already on the setup page
   if (!isSupabaseConfigured() && location.pathname !== '/setup') {
+    console.log('Redirecting to setup because Supabase is not configured');
     return <Navigate to="/setup" replace />;
   }
 
@@ -50,8 +51,9 @@ const MainLayout = () => {
 };
 
 const SetupRoute = () => {
-  // Redirect to home if Supabase is already configured
+  // Don't redirect if Supabase is not configured
   if (isSupabaseConfigured()) {
+    console.log('Redirecting to home because Supabase is configured');
     return <Navigate to="/" replace />;
   }
   return <Setup />;
@@ -60,7 +62,9 @@ const SetupRoute = () => {
 export function Routes() {
   return (
     <RouterRoutes>
+      {/* Place the setup route before MainLayout */}
       <Route path="/setup" element={<SetupRoute />} />
+      
       <Route element={<MainLayout />}>
         <Route path="/" element={<Index />} />
         <Route path="/about" element={<About />} />
