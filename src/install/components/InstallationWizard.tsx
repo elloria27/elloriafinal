@@ -18,11 +18,12 @@ export const InstallationWizard = () => {
 
   const checkInstallation = async () => {
     try {
-      // Try to connect to Supabase
-      const { data, error } = await supabase.from('site_settings').select('*');
+      // Try to connect to Supabase and check if site_settings table exists
+      const { error } = await supabase.from('site_settings').select('*', { count: 'exact', head: true });
       
       if (!error) {
         // If we can connect and the table exists, redirect to home
+        console.log('Already installed, redirecting to home');
         navigate('/');
       }
     } catch (error) {

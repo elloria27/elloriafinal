@@ -28,8 +28,7 @@ import type { Database } from './types';
 const SUPABASE_URL = "${supabaseUrl}";
 const SUPABASE_PUBLISHABLE_KEY = "${supabaseKey}";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-`;
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);`;
       
       const configContent = `project_id = "${projectId}"`;
       
