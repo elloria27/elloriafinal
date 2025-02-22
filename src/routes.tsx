@@ -1,6 +1,8 @@
-import { Routes as RouterRoutes, Route } from "react-router-dom";
+
+import { Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { isSupabaseConfigured } from "@/utils/supabase-helpers";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
@@ -29,16 +31,17 @@ import Certificates from "@/pages/Certificates";
 import Setup from "@/pages/Setup";
 
 export function Routes() {
+  const isConfigured = isSupabaseConfigured();
+
   return (
     <>
       <RouterRoutes>
-        <Route 
-          path="/setup" 
-          element={<Setup />} 
-        />
-        <Route element={
-          <>
-            <Header />
+        {!isConfigured ? (
+          <Route path="*" element={<Setup />} />
+        ) : (
+          <Route element={
+            <>
+              <Header />
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
@@ -65,9 +68,10 @@ export function Routes() {
               <Route path="/certificates" element={<Certificates />} />
               <Route path="/:slug" element={<DynamicPage />} />
               <Route path="*" element={<NotFound />} />
-            <Footer />
-          </>
-        } />
+              <Footer />
+            </>
+          } />
+        )}
       </RouterRoutes>
     </>
   );

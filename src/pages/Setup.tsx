@@ -1,9 +1,19 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { InstallationWizard } from "@/install/components/InstallationWizard";
+import { isSupabaseConfigured } from "@/utils/supabase-helpers";
 
 export default function Setup() {
-  console.log("Setup page rendered");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   return (
     <>
       <SEOHead
