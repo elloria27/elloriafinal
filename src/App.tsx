@@ -6,10 +6,13 @@ import { Routes } from "@/routes";
 import { Toaster } from "sonner";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { isSupabaseConfigured } from "@/integrations/supabase/client";
-import { useLocation } from "react-router-dom";
+import type { Location } from 'react-router-dom';
 
-function App() {
-  const location = useLocation();
+interface AppProps {
+  location: Location;
+}
+
+function App({ location }: AppProps) {
   const isSetupRoute = location.pathname === '/setup';
   
   // Only render providers if Supabase is configured or we're on the setup route
