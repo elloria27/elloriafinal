@@ -1,24 +1,38 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { BenefitsStep } from "./steps/BenefitsStep";
 import { AdminProfileStep } from "./steps/AdminProfileStep";
 import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
-import { isSupabaseConfigured } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 export const InstallationWizard = () => {
+  const [isOpen, setIsOpen] = useState(true); // Changed to true by default
   const [currentStep, setCurrentStep] = useState(0);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // If Supabase is configured, redirect to home
-    if (isSupabaseConfigured()) {
-      console.log('Redirecting to home from InstallationWizard');
-      navigate('/');
+    console.log("Installation Wizard mounted");
+    checkInstallation();
+  }, []);
+
+  const checkInstallation = async () => {
+    try {
+      console.log("Checking installation...");
+      // Try to connect to Supabase
+      const { data, error } = await supabase.from('profiles').select('count');
+      
+      console.log("Supabase check result:", { data, error });
+      
+      // If we can't connect, show the wizard
+      if (error) {
+        setIsOpen(true);
+      }
+    } catch (error) {
+      console.error("Installation check error:", error);
+      setIsOpen(true);
     }
-  }, [navigate]);
+  };
 
   const handleNext = () => {
     setCurrentStep((prev) => prev + 1);
@@ -29,8 +43,11 @@ export const InstallationWizard = () => {
   };
 
   const handleComplete = () => {
+    setIsOpen(false);
     window.location.reload();
   };
+
+  console.log("Installation Wizard rendering with state:", { isOpen, currentStep });
 
   const renderStep = () => {
     switch (currentStep) {
@@ -47,9 +64,8 @@ export const InstallationWizard = () => {
     }
   };
 
-  // Always show the dialog when on the setup page and Supabase is not configured
   return (
-    <Dialog open={true} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[500px]">
         {renderStep()}
       </DialogContent>

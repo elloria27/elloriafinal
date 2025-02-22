@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { CartItem, CartContextType } from '@/types/cart';
 import { PromoCode } from '@/types/promo-code';
 import { toast } from 'sonner';
@@ -23,11 +22,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   
   const [activePromoCode, setActivePromoCode] = useState<PromoCode | null>(() => {
     const savedPromoCode = localStorage.getItem('activePromoCode');
-    if (!savedPromoCode || !isSupabaseConfigured()) return null;
+    if (!savedPromoCode) return null;
     
     // We'll fetch the full promo code details from the database
     const fetchPromoCode = async () => {
-      const { data, error } = await supabase!
+      const { data, error } = await supabase
         .from('promo_codes')
         .select('*')
         .eq('code', savedPromoCode)
@@ -55,13 +54,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('cartItems', JSON.stringify(items));
   }, [items]);
 
-  // Listen for cart clear messages only if Supabase is configured
+  // Listen for cart clear messages
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-
     console.log('Setting up cart clear listener');
     
-    const channel = supabase!
+    const channel = supabase
       .channel('cart_clear')
       .on(
         'postgres_changes',
@@ -81,7 +78,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       console.log('Cleaning up cart clear listener');
-      supabase!.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -124,13 +121,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
   const applyPromoCode = async (code: string) => {
-    if (!isSupabaseConfigured()) {
-      toast.error('System is not properly configured');
-      return;
-    }
-
     try {
-      const { data: promoCode, error } = await supabase!
+      const { data: promoCode, error } = await supabase
         .from('promo_codes')
         .select('*')
         .eq('code', code)
