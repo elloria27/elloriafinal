@@ -11,6 +11,8 @@ export const Footer = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!supabase) return;
+      
       console.log('Fetching products for footer...');
       const { data, error } = await supabase
         .from('products')
@@ -29,8 +31,8 @@ export const Footer = () => {
     fetchProducts();
   }, []);
 
-  // Don't render footer on admin pages
-  if (location.pathname.startsWith('/admin')) {
+  // Don't render footer on admin pages or setup page
+  if (location.pathname.startsWith('/admin') || location.pathname === '/setup') {
     return null;
   }
 
