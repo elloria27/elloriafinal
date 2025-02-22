@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       const configContent = `project_id = "${projectId}"`;
       
-      // Save the configuration files
       const response = await window.fetch('/lovable/api/save', {
         method: 'POST',
         headers: {
@@ -68,10 +66,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     try {
       console.log('Setting up database schema...');
       
-      // Execute each type creation command separately to ensure proper order
       for (const typeCommand of initialSetup.types) {
         try {
-          // Execute raw SQL for type creation
           const { error } = await supabase.rpc('create_table', { 
             sql: typeCommand 
           });
@@ -81,14 +77,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
             throw error;
           }
         } catch (error: any) {
-          // Only rethrow if it's not an "already exists" error
           if (!error.message.includes('already exists')) {
             throw error;
           }
         }
       }
 
-      // Now create tables after all types are created
       for (const tableCommand of initialSetup.tables) {
         try {
           const { error } = await supabase.rpc('create_table', { 
@@ -106,7 +100,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         }
       }
 
-      // Finally create triggers
       for (const triggerCommand of initialSetup.triggers) {
         try {
           const { error } = await supabase.rpc('create_table', { 
@@ -131,24 +124,67 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
+  const createAdminUser = async (supabase: any) => {
+    try {
+      const adminSetupStr = localStorage.getItem('admin_setup');
+      if (!adminSetupStr) {
+        throw new Error('Admin profile data not found');
+      }
+
+      const adminSetup = JSON.parse(adminSetupStr);
+      
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: adminSetup.email,
+        password: adminSetup.password,
+        options: {
+          data: {
+            full_name: adminSetup.fullName
+          }
+        }
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (authData.user) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: authData.user.id,
+            role: 'admin'
+          });
+
+        if (roleError) {
+          console.error('Error setting admin role:', roleError);
+          throw roleError;
+        }
+      }
+
+      localStorage.removeItem('admin_setup');
+
+      return true;
+    } catch (error: any) {
+      console.error('Failed to create admin user:', error);
+      throw new Error(`Failed to create admin user: ${error.message}`);
+    }
+  };
+
   const validateInputs = () => {
     if (!projectId.trim()) throw new Error("Project ID is required");
     if (!supabaseUrl.trim()) throw new Error("Supabase URL is required");
     if (!supabaseKey.trim()) throw new Error("Supabase Key is required");
     
-    // Validate URL format
     try {
       new URL(supabaseUrl);
     } catch {
       throw new Error("Invalid Supabase URL format");
     }
 
-    // Validate project ID format
     if (!/^[a-zA-Z0-9-_]+$/.test(projectId)) {
       throw new Error("Invalid Project ID format");
     }
 
-    // Validate key format (basic check)
     if (!supabaseKey.includes('.')) {
       throw new Error("Invalid Supabase Key format");
     }
@@ -159,10 +195,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     setIsConnecting(true);
 
     try {
-      // Validate inputs first
       validateInputs();
 
-      // Test the connection
       const supabase = createClient(supabaseUrl, supabaseKey);
       const { data, error } = await supabase.auth.getSession();
       
@@ -170,16 +204,16 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Could not connect to Supabase. Please check your credentials.");
       }
 
-      // Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
       }
 
-      // Initialize the database
       await setupDatabase(supabase);
 
-      toast.success("Successfully connected to Supabase!");
+      await createAdminUser(supabase);
+
+      toast.success("Successfully connected to Supabase and created admin user!");
       onNext();
     } catch (error: any) {
       console.error('Setup failed:', error);
