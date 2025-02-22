@@ -6,6 +6,8 @@ export function useLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!supabase) return;
+
     const fetchLogo = async () => {
       const { data, error } = await supabase
         .from('site_settings')
@@ -36,7 +38,9 @@ export function useLogo() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 

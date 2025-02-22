@@ -1,17 +1,27 @@
+
 import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLocation } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
 type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const LanguageSelector = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
+  const location = useLocation();
+
+  // Don't show on setup page
+  if (location.pathname === '/setup') {
+    return null;
+  }
 
   useEffect(() => {
+    if (!supabase) return;
+
     const fetchSiteSettings = async () => {
       try {
         const { data, error } = await supabase
@@ -54,7 +64,9 @@ export const LanguageSelector = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 

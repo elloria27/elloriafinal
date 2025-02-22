@@ -1,3 +1,4 @@
+
 import { ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCart } from "@/contexts/CartContext";
@@ -6,11 +7,18 @@ import { MobileCart } from "./cart/MobileCart";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 export const CartPopover = () => {
+  const location = useLocation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { totalItems, isCartAnimating } = useCart();
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+
+  // Don't show on setup page
+  if (location.pathname === '/setup') {
+    return null;
+  }
 
   const handleCartClick = () => {
     if (isMobile) {
