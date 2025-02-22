@@ -27,6 +27,7 @@ import BulkOrders from "@/pages/BulkOrders";
 import NotFound from "@/pages/NotFound";
 import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
+import Setup from "@/pages/Setup";
 
 export function Routes() {
   return (
@@ -34,6 +35,7 @@ export function Routes() {
       <Header />
       <RouterRoutes>
         <Route path="/" element={<Index />} />
+        <Route path="/setup" element={<Setup />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/shop" element={<Shop />} />
