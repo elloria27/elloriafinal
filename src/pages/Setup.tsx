@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { InstallationWizard } from '@/install/components/InstallationWizard';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 
 export default function Setup() {
   const [needsSetup, setNeedsSetup] = useState(true);
@@ -10,8 +10,15 @@ export default function Setup() {
   useEffect(() => {
     const checkSetup = async () => {
       try {
-        // Try to connect to Supabase
-        const { data, error } = await supabase.from('site_settings').select('*').limit(1);
+        // First check if Supabase is configured
+        if (!isSupabaseConfigured) {
+          setNeedsSetup(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // If Supabase is configured, try to connect
+        const { data, error } = await supabase!.from('site_settings').select('*').limit(1);
         
         if (error) {
           setNeedsSetup(true);
