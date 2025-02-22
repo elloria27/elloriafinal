@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -76,7 +75,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       for (const command of allCommands) {
         try {
-          const { data, error } = await supabase.sql(command);
+          // Use create_table RPC function for executing SQL
+          const { error } = await supabase.rpc('create_table', {
+            sql: command
+          });
           
           if (error && !error.message?.includes('already exists')) {
             console.error('SQL execution failed:', command, error);
