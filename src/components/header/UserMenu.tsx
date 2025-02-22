@@ -1,11 +1,10 @@
-
 import { User, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/use-mobile";
 
@@ -21,17 +20,12 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
-
-    supabase!.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase!.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
@@ -39,10 +33,8 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   }, []);
 
   const handleSignOut = async () => {
-    if (!isSupabaseConfigured) return;
-    
     try {
-      await supabase!.auth.signOut();
+      await supabase.auth.signOut();
       toast.success("Signed out successfully");
       if (onClose) {
         onClose();
@@ -72,10 +64,6 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   };
 
   if (loading) {
-    return null;
-  }
-
-  if (!isSupabaseConfigured) {
     return null;
   }
 

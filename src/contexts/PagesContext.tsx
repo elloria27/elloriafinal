@@ -1,6 +1,5 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 type Page = {
   id: string;
@@ -29,14 +28,9 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setIsLoading(false);
-      return;
-    }
-
     const fetchPages = async () => {
       try {
-        const { data: pages, error } = await supabase!
+        const { data: pages, error } = await supabase
           .from('pages')
           .select('id, slug, title, is_published, show_in_header, show_in_footer, parent_id, menu_order, menu_type')
           .order('menu_order');
@@ -46,7 +40,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        console.log('Fetched pages:', pages);
+        console.log('Fetched pages:', pages); // Debug log
         setPublishedPages(pages || []);
       } catch (error) {
         console.error('Error:', error);
@@ -58,7 +52,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
     fetchPages();
 
     // Subscribe to realtime changes
-    const channel = supabase!
+    const channel = supabase
       .channel('schema-db-changes')
       .on(
         'postgres_changes',
@@ -70,9 +64,7 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
       .subscribe();
 
     return () => {
-      if (isSupabaseConfigured) {
-        supabase!.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 

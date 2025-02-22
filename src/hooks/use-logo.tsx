@@ -1,15 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export function useLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
-
     const fetchLogo = async () => {
-      const { data, error } = await supabase!
+      const { data, error } = await supabase
         .from('site_settings')
         .select('logo_url')
         .single();
@@ -22,7 +20,7 @@ export function useLogo() {
     fetchLogo();
 
     // Subscribe to changes
-    const channel = supabase!
+    const channel = supabase
       .channel('site_settings_changes')
       .on(
         'postgres_changes',
@@ -38,9 +36,7 @@ export function useLogo() {
       .subscribe();
 
     return () => {
-      if (isSupabaseConfigured) {
-        supabase!.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 

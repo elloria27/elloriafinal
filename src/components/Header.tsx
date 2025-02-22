@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
