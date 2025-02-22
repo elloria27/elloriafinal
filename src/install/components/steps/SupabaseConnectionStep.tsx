@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
+import { createClient } from '@supabase/supabase-js';
 import initialSetup from '@/install/migrations/initial-setup.json';
-import { supabase } from "@/integrations/supabase/client";
 
 interface SupabaseConnectionStepProps {
   onNext: () => void;
@@ -33,6 +33,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       const configContent = `project_id = "${projectId}"`;
       
+      // Save the configuration files
       const response = await window.fetch('/lovable/api/save', {
         method: 'POST',
         headers: {
@@ -63,49 +64,61 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const setupDatabase = async () => {
+  const setupDatabase = async (supabase: any) => {
     try {
       console.log('Setting up database schema...');
       
-      // Execute all SQL commands in sequence
-      const allCommands = [
-        ...initialSetup.types,
-        ...initialSetup.tables,
-        ...initialSetup.triggers
-      ];
-
-      for (const command of allCommands) {
+      // Execute each type creation command separately to ensure proper order
+      for (const typeCommand of initialSetup.types) {
         try {
-          // We use create_types for type definitions
-          if (command.toLowerCase().includes('create type')) {
-            const { error } = await supabase.rpc('create_types', {
-              sql: command
-            });
-            if (error && !error.message?.includes('already exists')) {
-              throw error;
-            }
-          }
-          // We use create_table for table creation
-          else if (command.toLowerCase().includes('create table')) {
-            const { error } = await supabase.rpc('create_table', {
-              sql: command
-            });
-            if (error && !error.message?.includes('already exists')) {
-              throw error;
-            }
-          }
-          // We use create_trigger for triggers
-          else if (command.toLowerCase().includes('create trigger')) {
-            const { error } = await supabase.rpc('create_trigger', {
-              sql: command
-            });
-            if (error && !error.message?.includes('already exists')) {
-              throw error;
-            }
+          // Execute raw SQL for type creation
+          const { error } = await supabase.rpc('create_table', { 
+            sql: typeCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Type creation failed:', typeCommand, error);
+            throw error;
           }
         } catch (error: any) {
-          // Only throw if it's not an "already exists" error
-          if (!error.message?.includes('already exists')) {
+          // Only rethrow if it's not an "already exists" error
+          if (!error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Now create tables after all types are created
+      for (const tableCommand of initialSetup.tables) {
+        try {
+          const { error } = await supabase.rpc('create_table', { 
+            sql: tableCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Table creation failed:', tableCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message.includes('already exists')) {
+            throw error;
+          }
+        }
+      }
+
+      // Finally create triggers
+      for (const triggerCommand of initialSetup.triggers) {
+        try {
+          const { error } = await supabase.rpc('create_table', { 
+            sql: triggerCommand 
+          });
+          
+          if (error && !error.message.includes('already exists')) {
+            console.error('Trigger creation failed:', triggerCommand, error);
+            throw error;
+          }
+        } catch (error: any) {
+          if (!error.message.includes('already exists')) {
             throw error;
           }
         }
@@ -118,67 +131,24 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const createAdminUser = async () => {
-    try {
-      const adminSetupStr = localStorage.getItem('admin_setup');
-      if (!adminSetupStr) {
-        throw new Error('Admin profile data not found');
-      }
-
-      const adminSetup = JSON.parse(adminSetupStr);
-      
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: adminSetup.email,
-        password: adminSetup.password,
-        options: {
-          data: {
-            full_name: adminSetup.fullName
-          }
-        }
-      });
-
-      if (signUpError) {
-        throw signUpError;
-      }
-
-      if (authData.user) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .upsert({
-            user_id: authData.user.id,
-            role: 'admin'
-          });
-
-        if (roleError) {
-          console.error('Error setting admin role:', roleError);
-          throw roleError;
-        }
-      }
-
-      localStorage.removeItem('admin_setup');
-
-      return true;
-    } catch (error: any) {
-      console.error('Failed to create admin user:', error);
-      throw new Error(`Failed to create admin user: ${error.message}`);
-    }
-  };
-
   const validateInputs = () => {
     if (!projectId.trim()) throw new Error("Project ID is required");
     if (!supabaseUrl.trim()) throw new Error("Supabase URL is required");
     if (!supabaseKey.trim()) throw new Error("Supabase Key is required");
     
+    // Validate URL format
     try {
       new URL(supabaseUrl);
     } catch {
       throw new Error("Invalid Supabase URL format");
     }
 
+    // Validate project ID format
     if (!/^[a-zA-Z0-9-_]+$/.test(projectId)) {
       throw new Error("Invalid Project ID format");
     }
 
+    // Validate key format (basic check)
     if (!supabaseKey.includes('.')) {
       throw new Error("Invalid Supabase Key format");
     }
@@ -189,23 +159,27 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     setIsConnecting(true);
 
     try {
+      // Validate inputs first
       validateInputs();
 
+      // Test the connection
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
         throw new Error("Could not connect to Supabase. Please check your credentials.");
       }
 
+      // Update configuration files
       const configUpdated = await updateConfig();
       if (!configUpdated) {
         throw new Error("Failed to update configuration files");
       }
 
-      await setupDatabase();
-      await createAdminUser();
+      // Initialize the database
+      await setupDatabase(supabase);
 
-      toast.success("Successfully connected to Supabase and created admin user!");
+      toast.success("Successfully connected to Supabase!");
       onNext();
     } catch (error: any) {
       console.error('Setup failed:', error);
