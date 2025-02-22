@@ -32,7 +32,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       const configContent = `project_id = "${projectId}"`;
       
-      const clientResponse = await window.fetch('/api/lovable/save', {
+      // Updated the save endpoint path
+      const clientResponse = await window.fetch('/lovable/api/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
