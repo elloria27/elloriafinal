@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem, CartContextType } from '@/types/cart';
@@ -26,6 +27,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     
     // We'll fetch the full promo code details from the database
     const fetchPromoCode = async () => {
+      if (!supabase) return null;
+      
       const { data, error } = await supabase
         .from('promo_codes')
         .select('*')
@@ -56,6 +59,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Listen for cart clear messages
   useEffect(() => {
+    if (!supabase) return;
+
     console.log('Setting up cart clear listener');
     
     const channel = supabase
@@ -77,8 +82,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up cart clear listener');
-      supabase.removeChannel(channel);
+      if (supabase) {
+        console.log('Cleaning up cart clear listener');
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
@@ -121,6 +128,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
   const applyPromoCode = async (code: string) => {
+    if (!supabase) {
+      toast.error('Cannot apply promo code at this time');
+      return;
+    }
+
     try {
       const { data: promoCode, error } = await supabase
         .from('promo_codes')
