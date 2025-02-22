@@ -59,30 +59,32 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Listen for cart clear messages
   useEffect(() => {
-    if (!supabase) return;
+    let channel: any = null;
 
-    console.log('Setting up cart clear listener');
-    
-    const channel = supabase
-      .channel('cart_clear')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'broadcast',
-          filter: `type=eq.CLEAR_CART`,
-        },
-        (payload) => {
-          console.log('Received cart clear message:', payload);
-          clearCart();
-          toast.success("Thank you for your purchase! Your cart has been cleared.");
-        }
-      )
-      .subscribe();
+    if (supabase) {
+      console.log('Setting up cart clear listener');
+      
+      channel = supabase
+        .channel('cart_clear')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'broadcast',
+            filter: `type=eq.CLEAR_CART`,
+          },
+          (payload) => {
+            console.log('Received cart clear message:', payload);
+            clearCart();
+            toast.success("Thank you for your purchase! Your cart has been cleared.");
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      if (supabase) {
+      if (channel && supabase) {
         console.log('Cleaning up cart clear listener');
         supabase.removeChannel(channel);
       }
