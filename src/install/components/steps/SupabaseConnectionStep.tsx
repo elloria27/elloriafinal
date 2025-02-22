@@ -32,7 +32,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       
       const configContent = `project_id = "${projectId}"`;
       
-      // Updated the save endpoint path
       const clientResponse = await window.fetch('/lovable/api/save', {
         method: 'POST',
         headers: {
@@ -76,31 +75,55 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      // Fetch SQL content from the correct path
-      const response = await fetch('/src/install/migrations/initial-setup.sql');
+      // Fetch the JSON setup file
+      const response = await fetch('/src/install/migrations/initial-setup.json');
       if (!response.ok) {
-        throw new Error('Failed to load SQL file');
+        throw new Error('Failed to load setup configuration');
       }
-      const sqlContent = await response.text();
+      const setupConfig = await response.json();
       
-      // Split the SQL content into individual commands
-      const commands = sqlContent
-        .split(';')
-        .map(cmd => cmd.trim())
-        .filter(cmd => cmd.length > 0);
-
-      // Execute each command separately
-      for (const command of commands) {
+      // Execute types first
+      for (const typeCommand of setupConfig.types) {
         try {
-          const { error } = await supabase.rpc('create_table', { sql: command });
+          const { error } = await supabase.rpc('create_types', { sql: typeCommand });
           if (error) {
-            console.error('SQL command failed:', command);
+            console.error('Type creation failed:', typeCommand);
             throw error;
           }
         } catch (error) {
-          // Log the error but continue with other commands
-          console.error('Error executing SQL command:', error);
-          // Only throw if it's a critical error
+          console.error('Error creating type:', error);
+          if (error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
+      }
+
+      // Then create tables
+      for (const tableCommand of setupConfig.tables) {
+        try {
+          const { error } = await supabase.rpc('create_table', { sql: tableCommand });
+          if (error) {
+            console.error('Table creation failed:', tableCommand);
+            throw error;
+          }
+        } catch (error) {
+          console.error('Error creating table:', error);
+          if (error.message.includes('permission denied')) {
+            throw error;
+          }
+        }
+      }
+
+      // Finally create triggers
+      for (const triggerCommand of setupConfig.triggers) {
+        try {
+          const { error } = await supabase.rpc('create_trigger', { sql: triggerCommand });
+          if (error) {
+            console.error('Trigger creation failed:', triggerCommand);
+            throw error;
+          }
+        } catch (error) {
+          console.error('Error creating trigger:', error);
           if (error.message.includes('permission denied')) {
             throw error;
           }
