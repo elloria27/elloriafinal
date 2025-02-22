@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -76,7 +75,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       for (const command of allCommands) {
         try {
-          const { error } = await supabase.auth.admin.executeRaw(command);
+          const { error } = await supabase
+            .from('_schema')
+            .insert({ sql: command });
           
           if (error && !error.message?.includes('already exists')) {
             console.error('SQL execution failed:', command, error);
