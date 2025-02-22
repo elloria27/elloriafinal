@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { BenefitsStep } from "./steps/BenefitsStep";
@@ -8,30 +9,26 @@ import { SupabaseConnectionStep } from "./steps/SupabaseConnectionStep";
 import { supabase } from "@/integrations/supabase/client";
 
 export const InstallationWizard = () => {
-  const [isOpen, setIsOpen] = useState(true); // Changed to true by default
+  const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Installation Wizard mounted");
     checkInstallation();
   }, []);
 
   const checkInstallation = async () => {
-    try {
-      console.log("Checking installation...");
-      // Try to connect to Supabase
-      const { data, error } = await supabase.from('profiles').select('count');
-      
-      console.log("Supabase check result:", { data, error });
-      
-      // If we can't connect, show the wizard
-      if (error) {
-        setIsOpen(true);
-      }
-    } catch (error) {
-      console.error("Installation check error:", error);
-      setIsOpen(true);
+    const SUPABASE_URL = "https://euexcsqvsbkxiwdieepu.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZXhjc3F2c2JreGl3ZGllZXB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1OTE0ODYsImV4cCI6MjA1MzE2NzQ4Nn0.SA8nsT8fEf2Igd91FNUNFYxT0WQb9qmYblrxxE7eV4U";
+
+    // Check if Supabase is configured
+    if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+      navigate('/');
+      return;
     }
+
+    // If not configured, show the wizard
+    setIsOpen(true);
   };
 
   const handleNext = () => {
@@ -46,8 +43,6 @@ export const InstallationWizard = () => {
     setIsOpen(false);
     window.location.reload();
   };
-
-  console.log("Installation Wizard rendering with state:", { isOpen, currentStep });
 
   const renderStep = () => {
     switch (currentStep) {
