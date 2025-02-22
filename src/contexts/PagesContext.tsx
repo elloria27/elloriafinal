@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,6 +31,12 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
+        if (!supabase) {
+          console.log('Supabase client not configured yet');
+          setIsLoading(false);
+          return;
+        }
+
         const { data: pages, error } = await supabase
           .from('pages')
           .select('id, slug, title, is_published, show_in_header, show_in_footer, parent_id, menu_order, menu_type')
@@ -51,20 +58,26 @@ export const PagesProvider = ({ children }: { children: React.ReactNode }) => {
 
     fetchPages();
 
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'pages' },
-        () => {
-          fetchPages();
-        }
-      )
-      .subscribe();
+    // Only set up realtime subscription if supabase is configured
+    let channel: any;
+    
+    if (supabase) {
+      channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'pages' },
+          () => {
+            fetchPages();
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel && supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
