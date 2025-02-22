@@ -75,7 +75,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
   const setupDatabase = async (supabase: any) => {
     try {
-      const response = await fetch('/initial-setup.sql');
+      // Fetch SQL content from the correct path
+      const response = await fetch('/src/install/migrations/initial-setup.sql');
+      if (!response.ok) {
+        throw new Error('Failed to load SQL file');
+      }
       const sqlContent = await response.text();
       
       // Split the SQL content into individual commands
@@ -84,7 +88,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         .map(cmd => cmd.trim())
         .filter(cmd => cmd.length > 0);
 
-      // Execute each command separately using RPC
+      // Execute each command separately
       for (const command of commands) {
         try {
           const { error } = await supabase.rpc('create_table', { sql: command });
