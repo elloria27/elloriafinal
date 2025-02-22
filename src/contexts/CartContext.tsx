@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem, CartContextType } from '@/types/cart';
@@ -26,6 +27,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     
     // We'll fetch the full promo code details from the database
     const fetchPromoCode = async () => {
+      if (!supabase) return null;
+      
       const { data, error } = await supabase
         .from('promo_codes')
         .select('*')
@@ -58,27 +61,34 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('Setting up cart clear listener');
     
-    const channel = supabase
-      .channel('cart_clear')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'broadcast',
-          filter: `type=eq.CLEAR_CART`,
-        },
-        (payload) => {
-          console.log('Received cart clear message:', payload);
-          clearCart();
-          toast.success("Thank you for your purchase! Your cart has been cleared.");
-        }
-      )
-      .subscribe();
+    // Only set up realtime subscription if supabase is configured
+    let channel: any;
+    
+    if (supabase) {
+      channel = supabase
+        .channel('cart_clear')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'broadcast',
+            filter: `type=eq.CLEAR_CART`,
+          },
+          (payload) => {
+            console.log('Received cart clear message:', payload);
+            clearCart();
+            toast.success("Thank you for your purchase! Your cart has been cleared.");
+          }
+        )
+        .subscribe();
+    }
 
     return () => {
-      console.log('Cleaning up cart clear listener');
-      supabase.removeChannel(channel);
+      if (channel && supabase) {
+        console.log('Cleaning up cart clear listener');
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
@@ -122,6 +132,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const applyPromoCode = async (code: string) => {
     try {
+      if (!supabase) {
+        toast.error('System is not configured yet');
+        return;
+      }
+
       const { data: promoCode, error } = await supabase
         .from('promo_codes')
         .select('*')
