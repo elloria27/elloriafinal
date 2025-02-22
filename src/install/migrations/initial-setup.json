@@ -21,11 +21,11 @@
     "CREATE TYPE reminder_recurrence AS ENUM ('none', 'daily', 'weekly', 'monthly');"
   ],
   "tables": [
-    // ... All table creation SQL statements will go here
-    // I'll provide these in the next message due to length
+    "CREATE TABLE IF NOT EXISTS pages (\n  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n  title TEXT NOT NULL,\n  slug TEXT NOT NULL,\n  content JSONB NOT NULL DEFAULT '[]'::jsonb,\n  is_published BOOLEAN DEFAULT false,\n  show_in_header BOOLEAN DEFAULT false,\n  show_in_footer BOOLEAN DEFAULT false,\n  content_blocks JSONB[] DEFAULT '{}'::jsonb[],\n  parent_id UUID REFERENCES pages(id),\n  menu_order INTEGER DEFAULT 0,\n  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()),\n  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())\n);",
+    "CREATE TABLE IF NOT EXISTS site_settings (\n  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n  logo_url TEXT,\n  site_title TEXT NOT NULL DEFAULT 'My Website',\n  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())\n);"
   ],
   "triggers": [
-    // ... All trigger creation SQL statements will go here
-    // I'll provide these in the next message due to length
+    "CREATE TRIGGER update_pages_updated_at BEFORE UPDATE ON pages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();",
+    "CREATE TRIGGER update_site_settings_updated_at BEFORE UPDATE ON site_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();"
   ]
 }
