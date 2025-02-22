@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -75,13 +76,32 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       for (const command of allCommands) {
         try {
-          const { error } = await supabase.rpc('execute_sql', {
-            sql_command: command
-          });
-          
-          if (error && !error.message?.includes('already exists')) {
-            console.error('SQL execution failed:', command, error);
-            throw error;
+          // We use create_types for type definitions
+          if (command.toLowerCase().includes('create type')) {
+            const { error } = await supabase.rpc('create_types', {
+              sql: command
+            });
+            if (error && !error.message?.includes('already exists')) {
+              throw error;
+            }
+          }
+          // We use create_table for table creation
+          else if (command.toLowerCase().includes('create table')) {
+            const { error } = await supabase.rpc('create_table', {
+              sql: command
+            });
+            if (error && !error.message?.includes('already exists')) {
+              throw error;
+            }
+          }
+          // We use create_trigger for triggers
+          else if (command.toLowerCase().includes('create trigger')) {
+            const { error } = await supabase.rpc('create_trigger', {
+              sql: command
+            });
+            if (error && !error.message?.includes('already exists')) {
+              throw error;
+            }
           }
         } catch (error: any) {
           // Only throw if it's not an "already exists" error
