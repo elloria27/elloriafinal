@@ -1,11 +1,12 @@
+
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
-import { createClient } from '@supabase/supabase-js';
 import initialSetup from '@/install/migrations/initial-setup.json';
+import { supabase } from "@/integrations/supabase/client";
 
 interface SupabaseConnectionStepProps {
   onNext: () => void;
@@ -62,7 +63,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const setupDatabase = async (supabase: any) => {
+  const setupDatabase = async () => {
     try {
       console.log('Setting up database schema...');
       
@@ -75,9 +76,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       for (const command of allCommands) {
         try {
-          const { error } = await supabase
-            .from('_schema')
-            .insert({ sql: command });
+          const { data, error } = await supabase.sql(command);
           
           if (error && !error.message?.includes('already exists')) {
             console.error('SQL execution failed:', command, error);
@@ -98,7 +97,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   };
 
-  const createAdminUser = async (supabase: any) => {
+  const createAdminUser = async () => {
     try {
       const adminSetupStr = localStorage.getItem('admin_setup');
       if (!adminSetupStr) {
@@ -171,7 +170,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     try {
       validateInputs();
 
-      const supabase = createClient(supabaseUrl, supabaseKey);
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
@@ -183,9 +181,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
 
-      await setupDatabase(supabase);
-
-      await createAdminUser(supabase);
+      await setupDatabase();
+      await createAdminUser();
 
       toast.success("Successfully connected to Supabase and created admin user!");
       onNext();
