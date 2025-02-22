@@ -149,8 +149,14 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         throw new Error("Failed to update configuration files");
       }
 
-      // Force reload the page to use the new Supabase configuration
-      window.location.reload();
+      // Use the temporary client to set up the database
+      const setupComplete = await setupDatabase(tempSupabase);
+      if (!setupComplete) {
+        throw new Error("Failed to set up database schema");
+      }
+
+      // Don't reload the page, just update the global Supabase client
+      (window as any).supabaseClient = tempSupabase;
 
       toast.success("Successfully connected to Supabase!");
       onNext();
