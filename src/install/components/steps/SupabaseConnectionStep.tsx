@@ -77,14 +77,44 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating types...');
       for (const sql of initialSetup.types) {
         try {
-          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
+          const { error } = await adminClient.rpc('execute_sql', { sql });
           if (error && !error.message?.includes('already exists')) {
             console.error('Type creation failed:', sql, error);
             throw error;
           }
         } catch (error: any) {
           if (!error.message?.includes('already exists')) {
-            throw error;
+            // First, try to create the execute_sql function if it doesn't exist
+            if (error.message?.includes('function "execute_sql" does not exist')) {
+              const createFunctionSQL = `
+                CREATE OR REPLACE FUNCTION execute_sql(sql text) 
+                RETURNS void AS $$
+                BEGIN
+                  EXECUTE sql;
+                END;
+                $$ LANGUAGE plpgsql SECURITY DEFINER;
+              `;
+              
+              const { error: functionError } = await adminClient.rpc('execute_sql', { 
+                sql: createFunctionSQL 
+              });
+              
+              if (!functionError) {
+                // Retry the original SQL after creating the function
+                const { error: retryError } = await adminClient.rpc('execute_sql', { sql });
+                if (retryError && !retryError.message?.includes('already exists')) {
+                  throw retryError;
+                }
+              } else {
+                // If we can't create the function, try direct SQL execution
+                const { error: directError } = await adminClient.from('rest/v1/sql').select('*').eq('query', sql);
+                if (directError && !directError.message?.includes('already exists')) {
+                  throw directError;
+                }
+              }
+            } else {
+              throw error;
+            }
           }
         }
       }
@@ -93,7 +123,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating tables...');
       for (const sql of initialSetup.tables) {
         try {
-          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
+          const { error } = await adminClient.rpc('execute_sql', { sql });
           if (error && !error.message?.includes('already exists')) {
             console.error('Table creation failed:', sql, error);
             throw error;
@@ -109,7 +139,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       console.log('Creating triggers...');
       for (const sql of initialSetup.triggers) {
         try {
-          const { error } = await adminClient.from('_sql').select('*').eq('query', sql);
+          const { error } = await adminClient.rpc('execute_sql', { sql });
           if (error && !error.message?.includes('already exists')) {
             console.error('Trigger creation failed:', sql, error);
             throw error;
