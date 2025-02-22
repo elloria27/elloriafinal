@@ -1,0 +1,32 @@
+
+{
+  "types": [
+    "CREATE TYPE user_role AS ENUM ('admin', 'client', 'moderator')",
+    "CREATE TYPE form_status AS ENUM ('new', 'in_progress', 'completed', 'cancelled')",
+    "CREATE TYPE form_type AS ENUM ('business', 'consultation', 'custom_solution')",
+    "CREATE TYPE invoice_status AS ENUM ('draft', 'pending', 'paid', 'overdue', 'cancelled')",
+    "CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded')",
+    "CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived')",
+    "CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'done', 'cancelled')",
+    "CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high')",
+    "CREATE TYPE task_category AS ENUM ('development', 'design', 'marketing', 'other')",
+    "CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived')",
+    "CREATE TYPE notification_type AS ENUM ('assignment', 'mention', 'due_date', 'status_change')",
+    "CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected')",
+    "CREATE TYPE expense_category AS ENUM ('office', 'travel', 'software', 'hardware', 'other')",
+    "CREATE TYPE expense_payment_method AS ENUM ('cash', 'credit_card', 'bank_transfer')",
+    "CREATE TYPE flow_intensity AS ENUM ('light', 'medium', 'heavy')",
+    "CREATE TYPE block_type AS ENUM ('heading', 'text', 'image', 'video', 'button')",
+    "CREATE TYPE page_view_type AS ENUM ('page_view', 'article_view', 'product_view')",
+    "CREATE TYPE referral_status AS ENUM ('pending', 'completed', 'expired')",
+    "CREATE TYPE reminder_recurrence AS ENUM ('none', 'daily', 'weekly', 'monthly')",
+    "CREATE TYPE supported_currency AS ENUM ('USD', 'EUR', 'GBP', 'CAD')",
+    "CREATE TYPE supported_language AS ENUM ('en', 'es', 'fr', 'de')"
+  ],
+  "tables": [
+    "... keep existing code (all table creation SQL statements)"
+  ],
+  "triggers": [
+    "... keep existing code (all trigger creation SQL statements)"
+  ]
+}
