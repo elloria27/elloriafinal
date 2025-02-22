@@ -75,9 +75,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
       for (const command of allCommands) {
         try {
-          // Use create_table RPC function for executing SQL
-          const { error } = await supabase.rpc('create_table', {
-            sql: command
+          const { error } = await supabase.rpc('execute_sql', {
+            sql_command: command
           });
           
           if (error && !error.message?.includes('already exists')) {
