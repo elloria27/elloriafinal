@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AuthUser } from '../lib/auth/AuthService';
+import { AuthUser } from '../lib/auth/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getFullUserProfile } from '@/lib/models/profiles';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -23,19 +24,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*, user_roles(role)')
-            .eq('id', session.user.id)
-            .single();
-
+          const profile = await getFullUserProfile(session.user.id);
           if (profile) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email!,
-              full_name: profile.full_name,
-              role: profile.user_roles?.role || 'user'
-            });
+            setUser(profile);
           }
         }
       } catch (error) {
@@ -49,19 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*, user_roles(role)')
-          .eq('id', session.user.id)
-          .single();
-
+        const profile = await getFullUserProfile(session.user.id);
         if (profile) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            full_name: profile.full_name,
-            role: profile.user_roles?.role || 'user'
-          });
+          setUser(profile);
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
@@ -82,19 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*, user_roles(role)')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profile) {
-        setUser({
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: profile.full_name,
-          role: profile.user_roles?.role || 'user'
-        });
+      if (data.user) {
+        const profile = await getFullUserProfile(data.user.id);
+        if (profile) {
+          setUser(profile);
+        }
       }
 
       toast.success('Successfully signed in');
