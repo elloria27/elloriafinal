@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +31,9 @@ export default function Setup() {
   const handleSupabaseConfig = async () => {
     setLoading(true);
     try {
+      // Initialize Supabase client first
+      initializeSupabase(config.supabaseUrl, config.supabaseKey);
+
       const response = await fetch('/api/setup/configure-supabase', {
         method: 'POST',
         headers: {
@@ -50,7 +52,10 @@ export default function Setup() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(config),
+        body: JSON.stringify({
+          supabaseUrl: config.supabaseUrl,
+          supabaseKey: config.supabaseKey
+        }),
       });
 
       if (!migrateResponse.ok) {
