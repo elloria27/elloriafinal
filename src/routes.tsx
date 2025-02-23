@@ -1,7 +1,7 @@
+
 import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import Setup from "@/pages/Setup";
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
@@ -29,21 +29,10 @@ import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
 
 export function Routes() {
-  const isSetupRoute = window.location.pathname === '/setup';
-  
-  if (isSetupRoute) {
-    return (
-      <RouterRoutes>
-        <Route path="/setup" element={<Setup />} />
-      </RouterRoutes>
-    );
-  }
-
   return (
     <>
       <Header />
       <RouterRoutes>
-        <Route path="/setup" element={<Setup />} />
         <Route path="/" element={<Index />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
@@ -68,6 +57,7 @@ export function Routes() {
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
         <Route path="/certificates" element={<Certificates />} />
+        {/* Add dynamic page route before the 404 route */}
         <Route path="/:slug" element={<DynamicPage />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>

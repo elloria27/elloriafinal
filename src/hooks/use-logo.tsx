@@ -6,9 +6,6 @@ export function useLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only run if supabase is configured
-    if (!supabase) return;
-
     const fetchLogo = async () => {
       const { data, error } = await supabase
         .from('site_settings')
@@ -22,7 +19,7 @@ export function useLogo() {
 
     fetchLogo();
 
-    // Subscribe to changes only if supabase is configured
+    // Subscribe to changes
     const channel = supabase
       .channel('site_settings_changes')
       .on(
@@ -39,9 +36,7 @@ export function useLogo() {
       .subscribe();
 
     return () => {
-      if (supabase) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 
