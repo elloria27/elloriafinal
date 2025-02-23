@@ -1,6 +1,7 @@
 
-import { serve } from 'https://deno.fresh.dev/std@v1.0/http/server.ts'
-import { writeFileStr } from 'https://deno.fresh.dev/std@v1.0/fs/write_file_string.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { writeAll } from "https://deno.land/std@0.168.0/streams/write_all.ts";
+import { join } from "https://deno.land/std@0.168.0/path/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +23,12 @@ serve(async (req) => {
 
     // Update config.toml
     const configContent = `project_id = "${projectId}"\n`
-    await writeFileStr('../config.toml', configContent)
+    const encoder = new TextEncoder();
+    const data = encoder.encode(configContent);
+    
+    const configFile = await Deno.open('../config.toml', { write: true, create: true, truncate: true });
+    await writeAll(configFile, data);
+    configFile.close();
 
     // Update client.ts
     const clientContent = `import { createClient } from '@supabase/supabase-js'
@@ -40,7 +46,10 @@ export function initializeSupabase(url: string, key: string) {
   return supabase
 }
 `
-    await writeFileStr('../../src/integrations/supabase/client.ts', clientContent)
+    const clientData = encoder.encode(clientContent);
+    const clientFile = await Deno.open('../../src/integrations/supabase/client.ts', { write: true, create: true, truncate: true });
+    await writeAll(clientFile, clientData);
+    clientFile.close();
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
