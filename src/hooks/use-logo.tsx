@@ -6,10 +6,6 @@ export function useLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!supabase) {
-      return; // Exit early if Supabase is not initialized
-    }
-
     const fetchLogo = async () => {
       const { data, error } = await supabase
         .from('site_settings')
@@ -23,7 +19,7 @@ export function useLogo() {
 
     fetchLogo();
 
-    // Subscribe to changes only if Supabase is initialized
+    // Subscribe to changes
     const channel = supabase
       .channel('site_settings_changes')
       .on(
@@ -40,9 +36,7 @@ export function useLogo() {
       .subscribe();
 
     return () => {
-      if (supabase && channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 
