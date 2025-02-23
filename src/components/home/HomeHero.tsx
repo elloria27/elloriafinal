@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, Heart, Shield, Sparkles } from "lucide-react";
+import { Heart, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { HeroContent } from "@/types/content-blocks";
@@ -11,44 +11,72 @@ interface HomeHeroProps {
 }
 
 export const HomeHero = ({ content }: HomeHeroProps) => {
-  console.log('HomeHero content received:', content);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
-  
-  const floatingIcons = [
-    { Icon: Leaf, delay: 0, position: { top: "20%", left: "10%" } },
-    { Icon: Heart, delay: 0.2, position: { top: "50%", left: "15%" } },
-    { Icon: Shield, delay: 0.4, position: { top: "30%", left: "80%" } },
-    { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
-  ];
+
+  // Create floating hearts with different sizes and delays
+  const floatingHearts = Array.from({ length: 16 }, (_, i) => ({
+    delay: i * 0.2,
+    size: Math.random() * 0.5 + 0.5,
+    position: {
+      top: `${Math.random() * 80 + 10}%`,
+      left: `${Math.random() * 80 + 10}%`,
+    },
+    duration: Math.random() * 2 + 3,
+    opacity: Math.random() * 0.4 + 0.2,
+  }));
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-[#FFDEE2] via-white to-[#E5DEFF] overflow-hidden">
+      {/* Animated background gradient */}
+      <motion.div 
+        className="absolute inset-0"
+        animate={{
+          background: [
+            "linear-gradient(109.6deg,rgba(253,222,226,0.4) 11.2%,rgba(255,255,255,0.4) 55%,rgba(229,222,255,0.4) 91.1%)",
+            "linear-gradient(109.6deg,rgba(229,222,255,0.4) 11.2%,rgba(253,222,226,0.4) 55%,rgba(255,255,255,0.4) 91.1%)",
+            "linear-gradient(109.6deg,rgba(255,255,255,0.4) 11.2%,rgba(229,222,255,0.4) 55%,rgba(253,222,226,0.4) 91.1%)",
+          ]
+        }}
+        transition={{
+          duration: 15,
+          repeat: Infinity,
+          repeatType: "reverse",
+          ease: "linear"
+        }}
+      />
       
+      {/* Floating hearts animation */}
+      {floatingHearts.map((heart, index) => (
+        <motion.div
+          key={index}
+          className="absolute hidden lg:block"
+          style={heart.position}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{
+            y: [-20, -40, -20],
+            x: [0, 10, -10, 0],
+            rotate: [0, 10, -10, 0],
+            scale: [0, heart.size, heart.size],
+            opacity: [0, heart.opacity, 0]
+          }}
+          transition={{
+            duration: heart.duration,
+            delay: heart.delay,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <Heart 
+            className="w-6 h-6 text-[#D946EF]" 
+            fill={index % 2 === 0 ? "#FDE1D3" : "#E5DEFF"}
+          />
+        </motion.div>
+      ))}
+      
+      {/* Main content */}
       <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
-        {floatingIcons.map(({ Icon, delay, position }, index) => (
-          <motion.div
-            key={index}
-            className="absolute hidden lg:block"
-            style={position}
-            animate={{
-              y: [0, -20, 0],
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{
-              duration: 4,
-              delay: delay,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <Icon className="w-8 h-8 text-primary/40" />
-          </motion.div>
-        ))}
-        
         <div className="flex-1 text-center lg:text-left z-10 space-y-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -56,9 +84,19 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
+              <motion.span 
+                className="bg-gradient-to-r from-[#D946EF] via-[#9b87f5] to-[#7E69AB] bg-clip-text text-transparent inline-block"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              >
                 {content?.title || "Redefining Comfort, Confidence, and Sustainability"}
-              </span>
+              </motion.span>
             </h1>
           </motion.div>
           
@@ -71,6 +109,111 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             {content?.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
           </motion.p>
           
+          {/* New Promo Code Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mb-8 relative"
+          >
+            <motion.div
+              className="bg-gradient-to-r from-[#D946EF]/20 via-[#9b87f5]/20 to-[#E5DEFF]/20 p-4 rounded-2xl relative overflow-hidden"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-[#D946EF]/0 via-white/30 to-[#D946EF]/0"
+                animate={{
+                  x: ["-200%", "200%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+              <p className="text-gray-600 mb-2">Use promo code:</p>
+              <div className="flex items-center justify-center gap-4">
+                <motion.div
+                  className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#D946EF] via-[#9b87f5] to-[#7E69AB] bg-clip-text text-transparent"
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  Elloria14
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    navigator.clipboard.writeText("Elloria14");
+                    // You might want to add a toast notification here
+                  }}
+                >
+                  <motion.div
+                    className="flex items-center gap-1 text-sm bg-[#D946EF] text-white px-3 py-1 rounded-full"
+                    whileHover={{
+                      backgroundColor: "#c935de",
+                    }}
+                  >
+                    Copy
+                    <motion.div
+                      animate={{
+                        rotate: [0, 10, -10, 0],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Heart className="w-3 h-3" />
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              </div>
+              <p className="text-[#D946EF] mt-2">Save 35% on your Valentine's Day order!</p>
+            </motion.div>
+            
+            {/* Decorative hearts around promo code */}
+            <motion.div
+              className="absolute -top-2 -right-2"
+              animate={{
+                y: [-2, 2, -2],
+                rotate: [-5, 5, -5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Heart className="w-4 h-4 text-[#D946EF]" fill="#D946EF" />
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-2 -left-2"
+              animate={{
+                y: [2, -2, 2],
+                rotate: [5, -5, 5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 0.5,
+              }}
+            >
+              <Heart className="w-4 h-4 text-[#9b87f5]" fill="#9b87f5" />
+            </motion.div>
+          </motion.div>
+          
+          {/* Continue with existing buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -79,18 +222,60 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
           >
             <Button 
               size="lg" 
-              className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              className="group relative bg-[#D946EF] hover:bg-[#D946EF]/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
               asChild
             >
-              <Link to="/shop">{content?.shopNowText || "Shop Now"}</Link>
+              <Link to="/shop">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-[#D946EF]/0 via-white/20 to-[#D946EF]/0"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    repeatDelay: 3,
+                  }}
+                />
+                {content?.shopNowText || "Shop Now"}
+                <motion.span
+                  className="ml-2 inline-block"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{ 
+                    duration: 1.2, 
+                    repeat: Infinity,
+                  }}
+                >
+                  <Heart className="w-5 h-5" />
+                </motion.span>
+              </Link>
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
+              className="relative border-2 border-[#D946EF] text-[#D946EF] hover:bg-[#D946EF]/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
               asChild
             >
-              <Link to="/about">{content?.learnMoreText || "Learn More"}</Link>
+              <Link to="/about">
+                {content?.learnMoreText || "Learn More"}
+                <motion.span
+                  animate={{
+                    rotate: [0, 360],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                  className="ml-2 inline-block"
+                >
+                  <Sparkles className="w-5 h-5" />
+                </motion.span>
+              </Link>
             </Button>
           </motion.div>
         </div>
@@ -103,7 +288,53 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
+          {/* Decorative heart shapes with more dynamic animations */}
+          <motion.div
+            className="absolute -top-4 -right-4 z-20"
+            animate={{ 
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.1, 0.9, 1],
+              y: [-4, 4, -4]
+            }}
+            transition={{ 
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Heart className="w-8 h-8 text-[#D946EF]" fill="#D946EF" />
+          </motion.div>
+          <motion.div
+            className="absolute -bottom-4 -left-4 z-20"
+            animate={{ 
+              rotate: [0, -10, 10, 0],
+              scale: [1, 0.9, 1.1, 1],
+              x: [-4, 4, -4]
+            }}
+            transition={{ 
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          >
+            <Heart className="w-8 h-8 text-[#9b87f5]" fill="#9b87f5" />
+          </motion.div>
+
+          {/* Glowing background effect */}
+          <motion.div 
+            className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D946EF]/30 via-[#FDE1D3]/20 to-[#E5DEFF]/20 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.5, 0.7, 0.5]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+
           <motion.div 
             className="relative z-10 w-full h-full rounded-lg overflow-hidden shadow-xl"
             whileHover={{ scale: 1.02 }}
@@ -143,7 +374,15 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
                   exit={{ opacity: 0 }}
                 >
                   <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    <motion.div 
+                      className="w-8 h-8 border-4 border-[#D946EF] border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                    />
                   </div>
                 </motion.div>
               )}
