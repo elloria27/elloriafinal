@@ -20,6 +20,11 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -33,6 +38,10 @@ export const UserMenu = ({ onClose }: UserMenuProps) => {
   }, []);
 
   const handleSignOut = async () => {
+    if (!supabase) {
+      return;
+    }
+
     try {
       await supabase.auth.signOut();
       toast.success("Signed out successfully");
