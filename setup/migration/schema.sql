@@ -6,43 +6,157 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create custom types
-CREATE TYPE flow_intensity AS ENUM ('light', 'medium', 'heavy');
-CREATE TYPE task_category AS ENUM ('project', 'meeting', 'deadline', 'other');
-CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high');
-CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'review', 'done');
-CREATE TYPE notification_type AS ENUM ('assignment', 'mention', 'due_date', 'status_change');
-CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
-CREATE TYPE content_block_type AS ENUM (
-    'hero',
-    'features',
-    'testimonials',
-    'product_gallery',
-    'cta',
-    'about',
-    'contact',
-    'newsletter',
-    'blog_preview',
-    'sustainability'
-);
-CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected');
-CREATE TYPE expense_payment_method AS ENUM ('cash', 'credit_card', 'bank_transfer', 'other');
-CREATE TYPE expense_category AS ENUM ('office_supplies', 'travel', 'utilities', 'marketing', 'other');
-CREATE TYPE form_status AS ENUM ('new', 'in_progress', 'completed', 'cancelled');
-CREATE TYPE form_type AS ENUM ('business', 'consultation', 'bulk_order');
-CREATE TYPE invoice_status AS ENUM ('draft', 'pending', 'paid', 'overdue', 'cancelled');
-CREATE TYPE page_view_type AS ENUM ('page_view', 'product_view', 'cart_view');
-CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
-CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
-CREATE TYPE promo_code_type AS ENUM ('percentage', 'fixed');
-CREATE TYPE referral_status AS ENUM ('pending', 'completed', 'expired');
-CREATE TYPE reminder_recurrence AS ENUM ('none', 'daily', 'weekly', 'monthly');
-CREATE TYPE severity_level AS ENUM ('mild', 'moderate', 'severe');
-CREATE TYPE supported_currency AS ENUM ('USD', 'CAD', 'EUR', 'GBP');
-CREATE TYPE supported_language AS ENUM ('en', 'fr', 'es');
-CREATE TYPE user_role AS ENUM ('admin', 'client', 'guest');
+DO $$ BEGIN
+    CREATE TYPE flow_intensity AS ENUM ('light', 'medium', 'heavy');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_category AS ENUM ('project', 'meeting', 'deadline', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_priority AS ENUM ('low', 'medium', 'high');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE task_status AS ENUM ('todo', 'in_progress', 'review', 'done');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE notification_type AS ENUM ('assignment', 'mention', 'due_date', 'status_change');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE component_status AS ENUM ('draft', 'published', 'archived');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE content_block_type AS ENUM (
+        'hero',
+        'features',
+        'testimonials',
+        'product_gallery',
+        'cta',
+        'about',
+        'contact',
+        'newsletter',
+        'blog_preview',
+        'sustainability'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE expense_status AS ENUM ('pending', 'approved', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE expense_payment_method AS ENUM ('cash', 'credit_card', 'bank_transfer', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE expense_category AS ENUM ('office_supplies', 'travel', 'utilities', 'marketing', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE form_status AS ENUM ('new', 'in_progress', 'completed', 'cancelled');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE form_type AS ENUM ('business', 'consultation', 'bulk_order');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE invoice_status AS ENUM ('draft', 'pending', 'paid', 'overdue', 'cancelled');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE page_view_type AS ENUM ('page_view', 'product_view', 'cart_view');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE promo_code_type AS ENUM ('percentage', 'fixed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE referral_status AS ENUM ('pending', 'completed', 'expired');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE reminder_recurrence AS ENUM ('none', 'daily', 'weekly', 'monthly');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE severity_level AS ENUM ('mild', 'moderate', 'severe');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE supported_currency AS ENUM ('USD', 'CAD', 'EUR', 'GBP');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE supported_language AS ENUM ('en', 'fr', 'es');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('admin', 'client', 'guest');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create tables
-CREATE TABLE blog_categories (
+CREATE TABLE IF NOT EXISTS blog_categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
@@ -51,7 +165,7 @@ CREATE TABLE blog_categories (
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
-CREATE TABLE blog_comments (
+CREATE TABLE IF NOT EXISTS blog_comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     content TEXT NOT NULL,
     user_id UUID,
@@ -60,7 +174,7 @@ CREATE TABLE blog_comments (
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
--- Continue with ALL other tables...
+-- ... Continue with all other tables...
 
 -- Create functions
 CREATE OR REPLACE FUNCTION public.migrate_sustainability_content()
@@ -100,6 +214,7 @@ $function$;
 -- Continue with ALL other functions...
 
 -- Create triggers
+DROP TRIGGER IF EXISTS update_content_blocks_updated_at ON content_blocks;
 CREATE TRIGGER update_content_blocks_updated_at
     BEFORE UPDATE ON content_blocks
     FOR EACH ROW
