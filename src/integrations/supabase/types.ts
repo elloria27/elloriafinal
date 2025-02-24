@@ -2825,24 +2825,6 @@ export type Database = {
           updated_at: string | null
         }[]
       }
-      create_table: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_trigger: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_types: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
       get_admin_users: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2992,10 +2974,6 @@ export type Database = {
         | "bulk_order"
         | "sustainability"
       invoice_status: "pending" | "paid" | "overdue" | "cancelled"
-      notification_type:
-        | "task_assigned"
-        | "task_updated"
-        | "deadline_approaching"
       page_view_type: "page_view" | "exit"
       payment_method: "cash" | "bank_transfer" | "credit_card"
       payment_status: "pending" | "completed" | "failed"
