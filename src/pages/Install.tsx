@@ -31,8 +31,21 @@ const Install = () => {
     // Check if Supabase is already properly connected and database is set up
     const checkInstallation = async () => {
       try {
+        // Set a timeout to prevent the check from hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Connection timeout")), 5000);
+        });
+
         // Try to query a basic table to check connection
-        const { data, error } = await supabase.from('site_settings').select('*').limit(1);
+        const queryPromise = supabase.from('site_settings').select('*').limit(1);
+        
+        // Race between the timeout and the query
+        const result = await Promise.race([
+          queryPromise,
+          timeoutPromise.then(() => ({ data: null, error: new Error("Connection timeout") }))
+        ]) as any;
+        
+        const { data, error } = result;
         
         if (!error && data) {
           console.log("Supabase already connected and initialized");

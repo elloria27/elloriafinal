@@ -1,3 +1,4 @@
+
 import { CartProvider } from "@/contexts/CartContext";
 import { PagesProvider } from "@/contexts/PagesContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -16,13 +17,25 @@ function App() {
   useEffect(() => {
     const checkInstallation = async () => {
       try {
-        const { data, error } = await supabase.from('site_settings').select('id').limit(1);
+        // Set a short timeout for the Supabase query to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Connection timeout")), 5000);
+        });
+
+        // Try to query a basic table to check connection
+        const queryPromise = supabase.from('site_settings').select('id').limit(1);
+        
+        // Race between the timeout and the query
+        const { data, error } = await Promise.race([
+          queryPromise,
+          timeoutPromise.then(() => ({ data: null, error: new Error("Connection timeout") }))
+        ]) as any;
         
         if (!error && data && data.length > 0) {
           console.log("System is installed");
           setIsInstalled(true);
         } else {
-          console.log("System needs installation");
+          console.log("System needs installation:", error);
           setIsInstalled(false);
         }
       } catch (err) {
