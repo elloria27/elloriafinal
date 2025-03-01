@@ -1,22 +1,46 @@
 
-import { CartProvider } from "@/contexts/CartContext";
-import { PagesProvider } from "@/contexts/PagesContext";
+import { useEffect, useState } from "react";
+import { Routes } from "./routes";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { Routes } from "@/routes";
-import { Toaster } from "sonner";
-import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { checkInstallationStatus } from "@/utils/installationCheck";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function App() {
-  console.log('App rendering');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isCheckingInstallation, setIsCheckingInstallation] = useState(true);
+
+  useEffect(() => {
+    const checkInstallation = async () => {
+      // Only check if we're not already on the install page
+      if (location.pathname !== "/install") {
+        const isInstalled = await checkInstallationStatus();
+        
+        if (!isInstalled) {
+          navigate("/install");
+        }
+      }
+      
+      setIsCheckingInstallation(false);
+    };
+
+    checkInstallation();
+  }, [navigate, location.pathname]);
+
+  if (isCheckingInstallation && location.pathname !== "/install") {
+    // You could add a loading state here if needed
+    return null;
+  }
+
   return (
-    <CartProvider>
-      <PagesProvider>
-        <ScrollToTop />
-        <PageViewTracker />
-        <Routes />
-        <Toaster position="top-right" expand={false} richColors />
-      </PagesProvider>
-    </CartProvider>
+    <>
+      <SonnerToaster position="top-right" />
+      <Toaster />
+      <ScrollToTop />
+      <Routes />
+    </>
   );
 }
 
