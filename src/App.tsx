@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { PagesProvider } from './contexts/PagesContext';
-import { CartProvider } from './contexts/CartContext'; // Add this import
+import { CartProvider } from './contexts/CartContext';
 import { Toaster } from './components/ui/toaster';
-import ScrollToTop from './components/ScrollToTop';
-import routes from './routes';
+import { ScrollToTop } from './components/ScrollToTop'; // Fixed: Use named import
+import { Routes as AppRoutes } from './routes'; // Fixed: Import Routes as AppRoutes
 import './App.css';
 
 // Create a client
@@ -17,23 +17,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
-        <CartProvider> {/* Add CartProvider here */}
+        <CartProvider>
           <PagesProvider>
             <Router>
               <ScrollToTop />
-              <Routes>
-                {routes.map((route) => (
-                  <Route
-                    key={route.path}
-                    path={route.path}
-                    element={route.element}
-                  />
-                ))}
-              </Routes>
+              <AppRoutes /> {/* Use the imported AppRoutes component */}
               <Toaster />
             </Router>
           </PagesProvider>
-        </CartProvider> {/* Close CartProvider */}
+        </CartProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );
