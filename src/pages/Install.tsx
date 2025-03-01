@@ -36,7 +36,12 @@ export default function Install() {
   const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
 
   useEffect(() => {
-    checkInstallationStatus();
+    // Set a short timeout to avoid flash of loading state when there's no Supabase connection
+    const timer = setTimeout(() => {
+      checkInstallationStatus();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const checkInstallationStatus = async () => {
@@ -233,11 +238,9 @@ export default function Install() {
     );
   }
 
-  if (!isInstallationRequired) {
-    navigate("/");
-    return null;
-  }
-
+  // Don't redirect if installation needed - this ensures we show the install page
+  // even without a valid Supabase connection
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-muted pb-10">
       <div className="container mx-auto max-w-5xl pt-10">

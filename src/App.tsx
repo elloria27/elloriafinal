@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { PagesProvider } from './contexts/PagesContext';
@@ -8,7 +8,6 @@ import { CartProvider } from './contexts/CartContext';
 import { Toaster } from './components/ui/toaster';
 import { ScrollToTop } from './components/ScrollToTop';
 import Install from './pages/Install';
-import { Routes as AppRoutes } from './routes';
 import './App.css';
 
 // Create a client
@@ -31,24 +30,18 @@ const AppContent = () => {
   const location = useLocation();
   const isInstallPage = location.pathname === '/install';
 
+  // Always render the Install page when on the install route, regardless of Supabase connection
   if (isInstallPage) {
-    return (
-      <>
-        <Install />
-        <Toaster />
-      </>
-    );
+    return <Install />;
   }
 
+  // For all other routes, wrap in the providers
   return (
     <PagesProvider>
       <CartProvider>
         <ScrollToTop />
         <Routes>
-          {/* We need to include the install route here as well to handle direct navigation */}
-          <Route path="/install" element={<Install />} />
-          
-          {/* Include all other routes */}
+          {/* Redirect to install page from root when needed */}
           <Route path="/" element={<Index />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetail />} />
