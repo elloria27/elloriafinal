@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
 import { runMigrations } from "@/utils/migration";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { updateSupabaseConfig } from "@/integrations/supabase/client";
 
 interface DatabaseConnectionStepProps {
   onNext: () => void;
@@ -56,6 +57,9 @@ const DatabaseConnectionStep = ({
       setIsConnected(true);
       updateStatus({ connected: true, migrated: false });
       onConfigUpdate({ url, key });
+      
+      // Save credentials to localStorage for future use
+      updateSupabaseConfig(url, key);
     } catch (err) {
       console.error("Connection error:", err);
       setError(err instanceof Error ? err.message : "Failed to connect to Supabase");
@@ -85,7 +89,7 @@ const DatabaseConnectionStep = ({
       
       setSuccess("Database migrations completed successfully!");
       setIsMigrated(true);
-      // Fix: Pass both required properties to updateStatus
+      // Update both connected and migrated status
       updateStatus({ connected: true, migrated: true });
       
       // Continue to next step
