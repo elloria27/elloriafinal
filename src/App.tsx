@@ -1,46 +1,41 @@
 
-import { useEffect, useState } from "react";
-import { Routes } from "./routes";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "sonner";
-import { ScrollToTop } from "@/components/ScrollToTop";
-import { checkInstallationStatus } from "@/utils/installationCheck";
-import { useNavigate, useLocation } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
+import { PagesProvider } from './contexts/PagesContext';
+import { CartProvider } from './contexts/CartContext'; // Add this import
+import { Toaster } from './components/ui/toaster';
+import ScrollToTop from './components/ScrollToTop';
+import routes from './routes';
+import './App.css';
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isCheckingInstallation, setIsCheckingInstallation] = useState(true);
-
-  useEffect(() => {
-    const checkInstallation = async () => {
-      // Only check if we're not already on the install page
-      if (location.pathname !== "/install") {
-        const isInstalled = await checkInstallationStatus();
-        
-        if (!isInstalled) {
-          navigate("/install");
-        }
-      }
-      
-      setIsCheckingInstallation(false);
-    };
-
-    checkInstallation();
-  }, [navigate, location.pathname]);
-
-  if (isCheckingInstallation && location.pathname !== "/install") {
-    // You could add a loading state here if needed
-    return null;
-  }
-
   return (
-    <>
-      <SonnerToaster position="top-right" />
-      <Toaster />
-      <ScrollToTop />
-      <Routes />
-    </>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <CartProvider> {/* Add CartProvider here */}
+          <PagesProvider>
+            <Router>
+              <ScrollToTop />
+              <Routes>
+                {routes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  />
+                ))}
+              </Routes>
+              <Toaster />
+            </Router>
+          </PagesProvider>
+        </CartProvider> {/* Close CartProvider */}
+      </HelmetProvider>
+    </QueryClientProvider>
   );
 }
 
