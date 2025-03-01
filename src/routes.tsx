@@ -27,7 +27,6 @@ import BulkOrders from "@/pages/BulkOrders";
 import NotFound from "@/pages/NotFound";
 import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
-import Install from "@/pages/Install";
 
 export function Routes() {
   return (
@@ -58,7 +57,6 @@ export function Routes() {
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
         <Route path="/certificates" element={<Certificates />} />
-        <Route path="/install" element={<Install />} />
         {/* Add dynamic page route before the 404 route */}
         <Route path="/:slug" element={<DynamicPage />} />
         <Route path="*" element={<NotFound />} />
