@@ -1,3 +1,4 @@
+
 #root {
   text-align: center;
   min-height: 100vh;
@@ -18,6 +19,21 @@ main {
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Add text color to ensure contrast on white backgrounds */
+body {
+  color: #333;
+}
+
+/* Improve page content visibility on white backgrounds */
+.bg-white {
+  color: #333;
+}
+
+/* Add subtle border to cards on white backgrounds */
+.bg-white .card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Add responsive padding adjustments */

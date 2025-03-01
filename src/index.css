@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,15 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Add this to ensure text is visible on white backgrounds */
+  .bg-white, .bg-card {
+    @apply text-gray-800;
+  }
+  
+  /* Ensure links are visible on white backgrounds */
+  .bg-white a:not(.btn), .bg-card a:not(.btn) {
+    @apply text-primary hover:text-primary/80;
   }
 }
