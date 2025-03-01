@@ -30,7 +30,7 @@ import Admin from './pages/Admin';
 
 export const Routes = () => {
   return (
-    <RouterRoutes>
+    <>
       <Route path="/" element={<Index />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/product/:id" element={<ProductDetail />} />
@@ -57,6 +57,6 @@ export const Routes = () => {
       <Route path="/flow" element={<Flow />} />
       <Route path="/admin/*" element={<Admin />} />
       <Route path="*" element={<NotFound />} />
-    </RouterRoutes>
+    </>
   );
 };

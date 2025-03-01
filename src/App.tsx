@@ -7,24 +7,34 @@ import { PagesProvider } from './contexts/PagesContext';
 import { CartProvider } from './contexts/CartContext';
 import { Toaster } from './components/ui/toaster';
 import { ScrollToTop } from './components/ScrollToTop';
-import { Routes as AppRoutes } from './routes';
 import Install from './pages/Install';
+import { Routes as AppRoutes } from './routes';
 import './App.css';
 
 // Create a client
 const queryClient = new QueryClient();
 
-// Custom router component that conditionally renders Install or Main App
-const AppRouter = () => {
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </HelmetProvider>
+    </QueryClientProvider>
+  );
+}
+
+// Separate component to access location
+const AppContent = () => {
   const location = useLocation();
   const isInstallPage = location.pathname === '/install';
 
   if (isInstallPage) {
     return (
       <>
-        <Routes>
-          <Route path="/install" element={<Install />} />
-        </Routes>
+        <Install />
         <Toaster />
       </>
     );
@@ -34,23 +44,16 @@ const AppRouter = () => {
     <PagesProvider>
       <CartProvider>
         <ScrollToTop />
-        <AppRoutes />
+        <Routes>
+          {/* We need to include the install route here as well to handle direct navigation */}
+          <Route path="/install" element={<Install />} />
+          {/* Include all other routes */}
+          <AppRoutes />
+        </Routes>
         <Toaster />
       </CartProvider>
     </PagesProvider>
   );
 };
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <Router>
-          <AppRouter />
-        </Router>
-      </HelmetProvider>
-    </QueryClientProvider>
-  );
-}
 
 export default App;
