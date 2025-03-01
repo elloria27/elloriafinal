@@ -85,7 +85,8 @@ const DatabaseConnectionStep = ({
       
       setSuccess("Database migrations completed successfully!");
       setIsMigrated(true);
-      updateStatus({ migrated: true });
+      // Fix: Pass both required properties to updateStatus
+      updateStatus({ connected: true, migrated: true });
       
       // Continue to next step
       setTimeout(() => {
