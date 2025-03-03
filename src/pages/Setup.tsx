@@ -18,6 +18,17 @@ const steps = [
   { id: "complete", title: "Завершення" }
 ];
 
+// Define types based on the actual structure of database_export.json
+type TableData = Record<string, any[]>;
+
+interface DatabaseSchema {
+  products: any[];
+  orders: any[];
+  profiles: any[];
+  pages: any[];
+  [key: string]: any[];
+}
+
 export default function Setup() {
   const [currentStep, setCurrentStep] = useState("connect");
   const [loading, setLoading] = useState(false);
@@ -100,103 +111,133 @@ export default function Setup() {
       // Update progress to show we've started
       setProgress(5);
       
-      // Let's try to create tables directly using the target client
-      const schema = databaseExportData;
+      // Get database schema from the exported data
+      const schema: DatabaseSchema = databaseExportData;
+      console.log("Database schema:", schema);
+      
       let currentProgress = 10;
       setProgress(currentProgress);
       
-      // Create tables based on the schema
-      // This is a simplified example, you would need to expand this for your real schema
-      if (schema.tables && Array.isArray(schema.tables)) {
-        const totalTables = schema.tables.length;
+      // Get all table names from the schema
+      const tableNames = Object.keys(schema);
+      const totalTables = tableNames.length;
+      console.log("Tables to create:", tableNames);
+      
+      // Create tables for each table in the schema
+      for (let i = 0; i < totalTables; i++) {
+        const tableName = tableNames[i];
+        console.log(`Creating table: ${tableName}`);
         
-        for (let i = 0; i < totalTables; i++) {
-          const table = schema.tables[i];
-          console.log(`Creating table: ${table.name}`);
+        // Check if the table has any data to determine structure
+        if (schema[tableName].length > 0) {
+          const sampleRow = schema[tableName][0];
+          const columns = Object.keys(sampleRow)
+            .filter(col => col !== 'id' && col !== 'created_at') // Skip id and created_at as they will be handled separately
+            .map(col => {
+              // Determine column type based on value
+              const value = sampleRow[col];
+              let type = 'TEXT';
+              
+              if (typeof value === 'number') {
+                type = 'NUMERIC';
+              } else if (typeof value === 'boolean') {
+                type = 'BOOLEAN';
+              } else if (value && typeof value === 'object') {
+                type = 'JSONB';
+              }
+              
+              return `${col} ${type}`;
+            });
           
-          // Create the table using raw SQL (would require real SQL matching your schema)
+          // Create the table with all columns
           const { error: tableError } = await targetSupabaseClient.rpc(
             'execute_sql', 
             { 
-              sql: `CREATE TABLE IF NOT EXISTS ${table.name} (
+              sql: `CREATE TABLE IF NOT EXISTS ${tableName} (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                ${table.columns.map(col => `${col.name} ${col.type}`).join(',\n')}
+                ${columns.join(',\n')}
               )` 
             }
           );
           
           if (tableError) {
-            console.error(`Error creating table ${table.name}:`, tableError);
-            throw new Error(`Помилка створення таблиці ${table.name}: ${tableError.message}`);
+            console.error(`Error creating table ${tableName}:`, tableError);
+            toast.error(`Помилка створення таблиці ${tableName}: ${tableError.message}`);
+            // Continue with other tables despite error
           }
-          
-          // Update progress for each table
-          currentProgress = 10 + Math.floor((i + 1) / totalTables * 50);
-          setProgress(currentProgress);
-        }
-      }
-      
-      // Insert data if available
-      if (schema.data && typeof schema.data === 'object') {
-        const tables = Object.keys(schema.data);
-        const totalDataTables = tables.length;
-        
-        for (let i = 0; i < totalDataTables; i++) {
-          const tableName = tables[i];
-          const tableData = schema.data[tableName];
-          
-          if (Array.isArray(tableData) && tableData.length > 0) {
-            console.log(`Inserting data into table: ${tableName}`);
-            
-            // Insert data in batches to avoid overwhelming the API
-            const batchSize = 20;
-            for (let j = 0; j < tableData.length; j += batchSize) {
-              const batch = tableData.slice(j, j + batchSize);
-              
-              const { error: insertError } = await targetSupabaseClient
-                .from(tableName)
-                .insert(batch);
-              
-              if (insertError) {
-                console.error(`Error inserting data into ${tableName}:`, insertError);
-                // Continue despite errors to try to insert as much as possible
-                toast.error(`Помилка вставки даних у таблицю ${tableName}: ${insertError.message}`);
-              }
-            }
-          }
-          
-          // Update progress for data insertion
-          currentProgress = 60 + Math.floor((i + 1) / totalDataTables * 30);
-          setProgress(currentProgress);
-        }
-      }
-      
-      // Set RLS policies if present in the schema
-      if (schema.policies && Array.isArray(schema.policies)) {
-        for (const policy of schema.policies) {
-          console.log(`Setting RLS policy: ${policy.name} on table ${policy.table}`);
-          
-          const { error: policyError } = await targetSupabaseClient.rpc(
+        } else {
+          // If no data, create a basic table structure
+          const { error: tableError } = await targetSupabaseClient.rpc(
             'execute_sql', 
             { 
-              sql: `
-                ALTER TABLE ${policy.table} ENABLE ROW LEVEL SECURITY;
-                CREATE POLICY IF NOT EXISTS "${policy.name}" 
-                ON ${policy.table} 
-                FOR ${policy.operation || 'ALL'} 
-                TO ${policy.role || 'authenticated'} 
-                USING (${policy.using || 'true'})
-                ${policy.with ? `WITH CHECK (${policy.with})` : ''};
-              ` 
+              sql: `CREATE TABLE IF NOT EXISTS ${tableName} (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+              )` 
             }
           );
           
-          if (policyError) {
-            console.error(`Error setting policy on ${policy.table}:`, policyError);
-            // Continue despite errors
-            toast.error(`Помилка встановлення політики для таблиці ${policy.table}: ${policyError.message}`);
+          if (tableError) {
+            console.error(`Error creating table ${tableName}:`, tableError);
+            toast.error(`Помилка створення таблиці ${tableName}: ${tableError.message}`);
+            // Continue with other tables despite error
           }
+        }
+        
+        // Update progress for each table
+        currentProgress = 10 + Math.floor((i + 1) / totalTables * 50);
+        setProgress(currentProgress);
+      }
+      
+      // Insert data into each table
+      for (let i = 0; i < totalTables; i++) {
+        const tableName = tableNames[i];
+        const tableData = schema[tableName];
+        
+        if (Array.isArray(tableData) && tableData.length > 0) {
+          console.log(`Inserting data into table: ${tableName}`);
+          
+          // Insert data in batches to avoid overwhelming the API
+          const batchSize = 20;
+          for (let j = 0; j < tableData.length; j += batchSize) {
+            const batch = tableData.slice(j, j + batchSize);
+            
+            const { error: insertError } = await targetSupabaseClient
+              .from(tableName)
+              .insert(batch);
+            
+            if (insertError) {
+              console.error(`Error inserting data into ${tableName}:`, insertError);
+              // Continue despite errors to try to insert as much as possible
+              toast.error(`Помилка вставки даних у таблицю ${tableName}: ${insertError.message}`);
+            }
+          }
+        }
+        
+        // Update progress for data insertion
+        currentProgress = 60 + Math.floor((i + 1) / totalTables * 30);
+        setProgress(currentProgress);
+        
+        // Set basic RLS policy for each table
+        const { error: policyError } = await targetSupabaseClient.rpc(
+          'execute_sql', 
+          { 
+            sql: `
+              ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;
+              CREATE POLICY IF NOT EXISTS "${tableName}_policy" 
+              ON ${tableName} 
+              FOR ALL 
+              TO authenticated 
+              USING (true);
+            ` 
+          }
+        );
+        
+        if (policyError) {
+          console.error(`Error setting policy on ${tableName}:`, policyError);
+          // Continue despite errors
+          toast.error(`Помилка встановлення політики для таблиці ${tableName}: ${policyError.message}`);
         }
       }
       
