@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
-import { CheckCircle, XCircle, Loader2, Download, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Download, AlertTriangle, ExternalLink } from "lucide-react";
 import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
 
 interface MigrationStepProps {
@@ -43,6 +43,7 @@ export function MigrationStep({
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" | "warning" }>>([]);
   const [sqlDownloadUrl, setSqlDownloadUrl] = useState<string | null>(null);
   const [manualModeActive, setManualModeActive] = useState(false);
+  const [manualSteps, setManualSteps] = useState<string[]>([]);
 
   // Generate SQL script URL on component mount
   useEffect(() => {
@@ -51,13 +52,24 @@ export function MigrationStep({
     const url = URL.createObjectURL(blob);
     setSqlDownloadUrl(url);
     
+    // Prepare manual steps
+    setManualSteps([
+      "Login to your Supabase dashboard at https://supabase.com/dashboard",
+      `Open your project "${config.projectId}"`,
+      "Go to the SQL Editor section from the left sidebar",
+      "Click 'New Query' to create a blank query",
+      "Paste the entire contents of the downloaded SQL file",
+      "Click 'Run' to execute the SQL script",
+      "Once completed, return here and click 'I've completed the manual migration'"
+    ]);
+    
     // Clean up URL on unmount
     return () => {
       if (sqlDownloadUrl) {
         URL.revokeObjectURL(sqlDownloadUrl);
       }
     };
-  }, []);
+  }, [config.projectId]);
 
   const startMigration = async () => {
     if (isRunning) return;
@@ -114,11 +126,15 @@ export function MigrationStep({
           message: `Connection test error: ${errorMessage}`, 
           type: "error" 
         }]);
-        // Continue anyway as the connection might still work for migrations
+        
+        // Show manual migration option immediately if connection fails
         setLog(prev => [...prev, { 
-          message: "Attempting migration despite connection test failure", 
+          message: "Automatic connection failed. Please use manual SQL execution instead.", 
           type: "warning" 
         }]);
+        setManualModeActive(true);
+        setIsRunning(false);
+        return;
       }
       
       // Store configuration for future use
@@ -230,6 +246,11 @@ export function MigrationStep({
     }]);
   };
 
+  const openSupabaseDashboard = () => {
+    const dashboardUrl = `https://supabase.com/dashboard/project/${config.projectId}/sql`;
+    window.open(dashboardUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -276,35 +297,34 @@ export function MigrationStep({
               Start Database Migration
             </Button>
             
-            {sqlDownloadUrl && (
-              <div className="flex justify-center">
-                <a 
-                  href={sqlDownloadUrl} 
-                  download="supabase_cms_migration.sql"
-                  className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Download SQL Script (for manual execution)
-                </a>
-              </div>
-            )}
+            <div className="flex justify-center">
+              <p className="text-sm text-gray-500">
+                If you prefer, you can also run the migration manually
+              </p>
+            </div>
+            
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setManualModeActive(true)}
+            >
+              Show Manual Migration Instructions
+            </Button>
           </div>
         )}
         
-        {/* Manual migration button */}
+        {/* Manual migration section */}
         {manualModeActive && !migrationState.completed && !isRunning && (
           <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-medium text-blue-800">Manual Migration Option</h3>
+            <h3 className="font-medium text-blue-800">Manual Migration Instructions</h3>
             <p className="text-blue-700 text-sm">
-              If automatic migration failed, you can manually run the SQL script in the Supabase SQL Editor:
+              Follow these steps to manually run the SQL script in the Supabase SQL Editor:
             </p>
             
             <ol className="list-decimal pl-5 text-sm text-blue-700 space-y-2">
-              <li>Download the SQL script using the button below</li>
-              <li>Go to your Supabase project dashboard</li>
-              <li>Navigate to the SQL Editor</li>
-              <li>Paste the script content and run it</li>
-              <li>Click "I've completed the manual migration" below when done</li>
+              {manualSteps.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))}
             </ol>
             
             <div className="flex flex-col space-y-3">
@@ -318,6 +338,15 @@ export function MigrationStep({
                   Download SQL Script
                 </a>
               )}
+              
+              <Button 
+                variant="outline"
+                className="flex items-center justify-center text-blue-700 border-blue-300"
+                onClick={openSupabaseDashboard}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Supabase SQL Editor
+              </Button>
               
               <Button 
                 onClick={handleManualMigrationSuccess}
@@ -375,19 +404,28 @@ export function MigrationStep({
                   <li key={idx}>{error}</li>
                 ))}
               </ul>
-              {sqlDownloadUrl && (
+              {sqlDownloadUrl && !manualModeActive && (
                 <div className="mt-4">
                   <p className="text-sm text-red-800 mb-2">
                     Automatic migration failed. You can manually run the SQL script in the Supabase SQL Editor:
                   </p>
-                  <a 
-                    href={sqlDownloadUrl} 
-                    download="supabase_cms_migration.sql"
-                    className="flex items-center text-sm font-medium text-red-800 hover:text-red-700 bg-red-50 py-2 px-3 rounded-md inline-block"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download SQL Script
-                  </a>
+                  <div className="flex space-x-3">
+                    <a 
+                      href={sqlDownloadUrl} 
+                      download="supabase_cms_migration.sql"
+                      className="flex items-center text-sm font-medium text-red-800 hover:text-red-700 bg-red-50 py-2 px-3 rounded-md inline-block"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download SQL Script
+                    </a>
+                    <Button 
+                      variant="outline"
+                      className="text-red-800 border-red-300"
+                      onClick={() => setManualModeActive(true)}
+                    >
+                      Show Manual Instructions
+                    </Button>
+                  </div>
                 </div>
               )}
             </AlertDescription>

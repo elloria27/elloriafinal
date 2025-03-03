@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -206,7 +205,7 @@ SELECT 'My CMS', 'A powerful headless CMS', '#4338ca', '#60a5fa'
 WHERE NOT EXISTS (SELECT 1 FROM site_settings);`;
 };
 
-// Complete SQL migration script - making it export to address module error
+// Complete SQL migration script
 export const generateCompleteMigrationSql = () => {
   return `
 BEGIN;
@@ -220,74 +219,97 @@ COMMIT;
 };
 
 /**
- * Execute SQL directly using the Supabase client
+ * Execute SQL directly using the Supabase client with improved error handling
+ * This version fixes issues with authorization and endpoint access
  */
 async function executeSql(
   client: SupabaseClient,
   sql: string,
   retries: number = 3
 ): Promise<{ success: boolean; error?: string }> {
+  // Get the base URL and API key from the client
+  const supabaseUrl = (client as any).supabaseUrl;
+  const supabaseKey = (client as any).supabaseKey;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    return { 
+      success: false, 
+      error: 'Missing Supabase URL or key in client' 
+    };
+  }
+
   for (let i = 0; i < retries; i++) {
     try {
-      console.log("Executing SQL with method attempt", i + 1);
+      console.log(`Executing SQL with method attempt ${i + 1}`);
       
+      // Method 1: Try using the SQL API directly through the SQL editor endpoint
       if (i === 0) {
-        // First try: Use REST API direct SQL execution
-        const { error } = await client
-          .from('_')
-          .select('*')
-          .csv();
+        try {
+          // Use the SQL editor API endpoint
+          const response = await fetch(`${supabaseUrl}/rest/v1/sql`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ query: sql })
+          });
           
-        // This won't actually execute our SQL, but it tests if authentication is working
-        if (!error) {
-          console.log("Connection test successful");
-        } else {
-          console.warn("Connection test failed:", error.message);
-        }
-      }
-      
-      // Try to execute SQL using direct REST API call if possible
-      try {
-        const response = await fetch(`${(client as any).supabaseUrl}/rest/v1/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': (client as any).supabaseKey,
-            'Authorization': `Bearer ${(client as any).supabaseKey}`
-          },
-          body: JSON.stringify({ query: sql })
-        });
-        
-        if (response.ok) {
-          return { success: true };
-        }
-      } catch (err) {
-        console.warn("Direct REST API call failed:", err);
-      }
-      
-      // Try using pg_query function if it exists
-      try {
-        const { error: pgQueryError } = await client.rpc('pg_query', { query_text: sql });
-        if (!pgQueryError) {
-          return { success: true };
-        }
-      } catch (err) {
-        console.warn("pg_query RPC failed:", err);
-      }
-      
-      // Try using an insert to a nonexistent table as a last resort
-      // Some Supabase instances allow this as a way to execute raw SQL
-      try {
-        const { error: insertError } = await client
-          .from('_sql_runner')
-          .insert([{ sql }]);
+          if (response.ok) {
+            console.log('SQL execution successful via SQL editor API');
+            return { success: true };
+          }
           
-        if (!insertError || insertError.message.includes("does not exist")) {
-          // If the error is just that the table doesn't exist, the SQL might have executed
-          return { success: true };
+          console.warn('SQL editor API failed:', await response.text());
+        } catch (err) {
+          console.warn('Error using SQL editor API:', err);
         }
-      } catch (err) {
-        console.warn("SQL insert attempt failed:", err);
+      }
+      
+      // Method 2: Try using a direct table operation to test connection
+      if (i <= 1) {
+        try {
+          // This won't execute our SQL but will test if auth is working
+          const { error } = await client
+            .from('profiles')
+            .select('id')
+            .limit(1);
+            
+          if (error) {
+            console.warn('Connection test failed:', error.message);
+          } else {
+            console.log('Connection test successful, but SQL execution method unavailable');
+          }
+        } catch (err) {
+          console.warn('Connection test error:', err);
+        }
+      }
+      
+      // Method 3: Use fetch with correct authorization to try Supabase Management API
+      if (i <= 2) {
+        try {
+          // Try the database API endpoint with proper authorization
+          const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+            method: 'POST', 
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`
+            },
+            body: JSON.stringify({ query: sql })
+          });
+          
+          if (response.ok) {
+            console.log('SQL execution successful via direct API');
+            return { success: true };
+          }
+          
+          console.warn('Direct API execution failed:', await response.text());
+        } catch (err) {
+          console.warn('Error using direct API:', err);
+        }
       }
       
       // If all methods fail, split the SQL into individual statements and try again
@@ -299,49 +321,65 @@ async function executeSql(
         console.log(`Attempting to execute ${statements.length} individual statements`);
         
         let successCount = 0;
-        let lastError = '';
+        let failedStatements = [];
         
         for (const stmt of statements) {
+          let executed = false;
+          let errorMessage = '';
+          
+          // Try each statement with multiple methods
           try {
-            // Try direct REST API call first
-            const response = await fetch(`${(client as any).supabaseUrl}/rest/v1/`, {
+            // Method 1: SQL editor API
+            const response = await fetch(`${supabaseUrl}/rest/v1/sql`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'apikey': (client as any).supabaseKey,
-                'Authorization': `Bearer ${(client as any).supabaseKey}`
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Prefer': 'return=minimal'
               },
               body: JSON.stringify({ query: stmt + ';' })
             });
             
             if (response.ok) {
               successCount++;
+              executed = true;
               continue;
             }
             
-            // Try using pg_query function if it exists
-            const { error: pgQueryError } = await client.rpc('pg_query', { query_text: stmt + ';' });
-            if (!pgQueryError) {
-              successCount++;
-              continue;
-            }
-            
-            // Try using an insert to a nonexistent table as a last resort
-            const { error: insertError } = await client
-              .from('_sql_runner')
-              .insert([{ sql: stmt + ';' }]);
-              
-            if (!insertError || insertError.message.includes("does not exist")) {
-              successCount++;
-              continue;
-            }
-            
-            lastError = insertError?.message || pgQueryError?.message || 'Unknown error';
-            
+            errorMessage = await response.text();
           } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : String(err);
-            lastError = errorMsg;
-            console.warn(`Failed to execute statement: ${stmt}`, errorMsg);
+            errorMessage = err instanceof Error ? err.message : String(err);
+          }
+          
+          // If not executed yet, try method 2
+          if (!executed) {
+            try {
+              const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': supabaseKey,
+                  'Authorization': `Bearer ${supabaseKey}`
+                },
+                body: JSON.stringify({ query: stmt + ';' })
+              });
+              
+              if (response.ok) {
+                successCount++;
+                executed = true;
+                continue;
+              }
+              
+              errorMessage = await response.text();
+            } catch (err) {
+              errorMessage = err instanceof Error ? err.message : String(err);
+            }
+          }
+          
+          if (!executed) {
+            console.warn(`Failed to execute statement: ${stmt.substring(0, 50)}...`, errorMessage);
+            failedStatements.push(stmt);
           }
         }
         
@@ -350,7 +388,7 @@ async function executeSql(
         } else {
           return { 
             success: false, 
-            error: `Executed ${successCount}/${statements.length} statements. Last error: ${lastError}`
+            error: `Executed ${successCount}/${statements.length} statements. Some SQL statements failed: ${failedStatements.length > 0 ? failedStatements[0].substring(0, 30) + '...' : 'Unknown error'}. Migration may be incomplete.`
           };
         }
       }
@@ -490,13 +528,15 @@ export const runMigration = async (
       // Try to verify if the tables were created
       const { data: profilesData, error: profilesError } = await client
         .from('profiles')
-        .select('count(*)', { count: 'exact', head: true });
+        .select('id')
+        .limit(1);
       
       const { data: pagesData, error: pagesError } = await client
         .from('pages')
-        .select('count(*)', { count: 'exact', head: true });
+        .select('id')
+        .limit(1);
       
-      if (profilesError && pagesError) {
+      if ((profilesError || !profilesData) && (pagesError || !pagesData)) {
         console.warn("Verification queries failed:", profilesError, pagesError);
         if (migrationSuccess) {
           onProgress(100, "Migration completed with limited verification!");
@@ -528,6 +568,7 @@ export const runMigration = async (
 };
 
 // Functions below are kept for backwards compatibility
+
 export const saveSupabaseConfig = async (newConfig: {
   url: string;
   key: string;
