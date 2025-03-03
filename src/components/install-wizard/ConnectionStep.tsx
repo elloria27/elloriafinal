@@ -74,7 +74,10 @@ export function ConnectionStep({
     setTestResult(null);
     
     try {
-      const supabase = createClient(config.url, config.key);
+      // Create a client with the provided config
+      // Make sure URL and key are properly formatted
+      const url = config.url.startsWith('https://') ? config.url : `https://${config.url}`;
+      const supabase = createClient(url, config.key);
       
       // Test basic connection with a simpler query that doesn't require tables to exist
       const { data, error } = await supabase.auth.getSession();

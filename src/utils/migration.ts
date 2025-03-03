@@ -4,11 +4,22 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // Create a default supabase client for DB operations
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-export const defaultSupabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Only create the client if we have both URL and key
+export const defaultSupabase = (SUPABASE_URL && SUPABASE_KEY) 
+  ? createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 
 // Helper function to verify database tables exist
 export const verifyDatabaseSetup = async (customClient?: SupabaseClient): Promise<boolean> => {
+  // Use provided client or default, but ensure we have a client
   const supabase = customClient || defaultSupabase;
+  
+  // If we don't have a client, we can't verify
+  if (!supabase) {
+    console.error('No Supabase client available');
+    return false;
+  }
   
   try {
     // Try to use a direct query first - this works even with limited permissions
@@ -79,6 +90,11 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
     }
     
     // Then check if database is properly set up
+    // Ensure defaultSupabase exists before trying to verify
+    if (!defaultSupabase) {
+      return true;
+    }
+    
     const isDbSetup = await verifyDatabaseSetup();
     
     // If database is not set up, we need installation
