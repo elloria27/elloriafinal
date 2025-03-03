@@ -212,55 +212,67 @@ export default function Setup() {
         throw new Error("Необхідно спочатку встановити з'єднання");
       }
 
-      console.log("Importing site settings using JSON data");
+      console.log("Importing site settings using SQL");
       setProgress(10);
       
       const createTableSQL = `
-        CREATE TABLE IF NOT EXISTS public.site_settings (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          site_title TEXT NOT NULL DEFAULT 'Elloria',
-          default_language TEXT NOT NULL DEFAULT 'en',
-          enable_registration BOOLEAN NOT NULL DEFAULT true,
-          enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
-          meta_description TEXT,
-          meta_keywords TEXT,
-          custom_scripts JSONB DEFAULT '[]',
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-          homepage_slug TEXT DEFAULT 'index',
-          favicon_url TEXT,
-          maintenance_mode BOOLEAN DEFAULT false,
-          contact_email TEXT,
-          google_analytics_id TEXT,
-          enable_cookie_consent BOOLEAN DEFAULT false,
-          enable_https_redirect BOOLEAN DEFAULT false,
-          max_upload_size INTEGER DEFAULT 10,
-          enable_user_avatars BOOLEAN DEFAULT false,
-          logo_url TEXT
+        CREATE TABLE IF NOT EXISTS "public"."site_settings" (
+          "id" UUID PRIMARY KEY,
+          "site_title" VARCHAR(255),
+          "default_language" VARCHAR(10),
+          "enable_registration" BOOLEAN,
+          "enable_search_indexing" BOOLEAN,
+          "meta_description" TEXT,
+          "meta_keywords" TEXT,
+          "custom_scripts" JSONB,
+          "created_at" TIMESTAMPTZ,
+          "updated_at" TIMESTAMPTZ,
+          "homepage_slug" VARCHAR(255),
+          "favicon_url" TEXT,
+          "maintenance_mode" BOOLEAN,
+          "contact_email" VARCHAR(255),
+          "google_analytics_id" VARCHAR(255),
+          "enable_cookie_consent" BOOLEAN,
+          "enable_https_redirect" BOOLEAN,
+          "max_upload_size" INTEGER,
+          "enable_user_avatars" BOOLEAN,
+          "logo_url" TEXT
         );
       `;
       
-      setProgress(30);
+      console.log("Executing CREATE TABLE SQL...");
+      const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
       
-      const { error: createTableError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
-      
-      if (createTableError) {
-        console.error("Error creating table:", createTableError);
+      if (createError) {
+        console.warn("Error creating table:", createError);
         // Continue anyway as the table might already exist
       } else {
         console.log("Table created successfully");
       }
 
-      setProgress(60);
+      setProgress(50);
       
-      const { data: siteSettingsData, error: insertError } = 
-        await createSiteSettingsFromJSON(siteSettingsJSON, targetSupabaseClient);
+      const insertSQL = `
+        INSERT INTO "public"."site_settings" 
+        ("id", "site_title", "default_language", "enable_registration", "enable_search_indexing", 
+         "meta_description", "meta_keywords", "custom_scripts", "created_at", "updated_at", 
+         "homepage_slug", "favicon_url", "maintenance_mode", "contact_email", "google_analytics_id", 
+         "enable_cookie_consent", "enable_https_redirect", "max_upload_size", "enable_user_avatars", "logo_url")
+        VALUES 
+        ('c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec', 'Elloria', 'en', true, true, 
+         null, null, '[]', '2025-01-26 16:59:44.940264-06', '2025-02-13 06:02:08.844257-06', 
+         'index', null, false, 'sales@elloria.ca', null, 
+         false, false, 10, false, null);
+      `;
+      
+      console.log("Executing INSERT SQL...");
+      const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
       
       if (insertError) {
         console.error("Error inserting data:", insertError);
         throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
       } else {
-        console.log("Settings inserted via JSON import:", siteSettingsData);
+        console.log("Site settings inserted successfully");
       }
       
       setProgress(100);
