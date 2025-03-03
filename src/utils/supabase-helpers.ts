@@ -187,40 +187,78 @@ export const createDefaultSiteSettings = async () => {
 };
 
 // Helper function to check if a table exists
-// This version works with TypeScript by using a more generic approach
 export const tableExists = async (tableName: string) => {
   try {
-    // Use a direct query to the system catalog instead
-    // This avoids TypeScript errors with dynamic table names
-    const { error } = await supabase
-      .rpc('check_table_exists', { table_name: tableName })
-      .single();
+    // We need a more type-safe approach to check table existence
+    // Let's simply check for site_settings and handle other tables carefully
+    if (tableName === 'site_settings') {
+      const { error } = await supabase
+        .from('site_settings')
+        .select('id')
+        .limit(1);
       
-    if (error) {
-      // If the RPC function doesn't exist, fall back to error code checking
-      console.log(`check_table_exists RPC not available: ${error.message}`);
-      
-      // Make any query to the table and check if we get a '42P01' error
-      // We use 'site_settings' as a safe default to check first
-      if (tableName === 'site_settings') {
-        const { error: tableError } = await supabase
-          .from('site_settings')
-          .select('count(*)', { count: 'exact', head: true });
-          
-        return !tableError || tableError.code !== '42P01';
-      } else {
-        // For any other table, we have to use a type assertion to bypass TypeScript's type checking
-        // This is not ideal but necessary for dynamic table checking
-        // @ts-ignore: Bypassing TypeScript's type checking for dynamic table names
-        const { error: tableError } = await supabase
-          .from(tableName)
-          .select('count(*)', { count: 'exact', head: true });
-          
-        return !tableError || tableError.code !== '42P01';
-      }
+      return !error || error.code !== '42P01';
     }
     
-    return true;
+    // For tables that are part of the schema, try a simple metadata approach
+    // This won't use dynamic table names, which is safer from TypeScript's perspective
+    console.log(`Checking if table ${tableName} exists`);
+    
+    // We'll handle a few common tables here
+    switch (tableName) {
+      case 'profiles':
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .select('id')
+          .limit(1);
+        return !profilesError || profilesError.code !== '42P01';
+      
+      case 'products':
+        const { error: productsError } = await supabase
+          .from('products')
+          .select('id')
+          .limit(1);
+        return !productsError || productsError.code !== '42P01';
+      
+      case 'orders':
+        const { error: ordersError } = await supabase
+          .from('orders')
+          .select('id')
+          .limit(1);
+        return !ordersError || ordersError.code !== '42P01';
+      
+      case 'pages':
+        const { error: pagesError } = await supabase
+          .from('pages')
+          .select('id')
+          .limit(1);
+        return !pagesError || pagesError.code !== '42P01';
+      
+      case 'blog_posts':
+        const { error: blogError } = await supabase
+          .from('blog_posts')
+          .select('id')
+          .limit(1);
+        return !blogError || blogError.code !== '42P01';
+      
+      default:
+        // For other tables, we'll use a more generic approach
+        // This won't be type-safe but is necessary for dynamic table checking
+        console.warn(`Table "${tableName}" not included in static type checks. Using fallback approach.`);
+        
+        try {
+          // We're intentionally using any type here to bypass TypeScript's static checking
+          // for tables not explicitly defined in the schema
+          const result = await (supabase as any)
+            .from(tableName)
+            .select('count(*)', { count: 'exact', head: true });
+          
+          return !result.error || result.error.code !== '42P01';
+        } catch (err) {
+          console.error(`Error checking table ${tableName}:`, err);
+          return false;
+        }
+    }
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
