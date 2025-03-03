@@ -376,18 +376,32 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
 // Helper function to verify database tables exist
 const verifyDatabaseSetup = async (): Promise<boolean> => {
   try {
-    // Use raw query to check if the profiles table exists in a way that
-    // works even if the table doesn't exist yet
+    // Use a simpler query to check if the profiles table exists
+    // that doesn't rely on direct pg_catalog access
     const { data, error } = await defaultSupabase
-      .from('pg_catalog.pg_tables')
-      .select('tablename')
-      .eq('schemaname', 'public')
-      .eq('tablename', 'profiles')
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_name', 'profiles')
       .maybeSingle();
     
     if (error) {
       console.error('Error checking table existence:', error);
-      return false;
+      
+      // If there's an error querying information_schema, try a different approach
+      try {
+        // Try to select from the profiles table directly with limit 0
+        // This will error only if the table doesn't exist, not if it's empty
+        const { error: tableError } = await defaultSupabase
+          .from('profiles')
+          .select('id')
+          .limit(0);
+        
+        // If we don't get an error, the table exists
+        return !tableError;
+      } catch {
+        return false;
+      }
     }
     
     // If data is not null, the table exists
