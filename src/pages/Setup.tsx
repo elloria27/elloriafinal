@@ -786,13 +786,114 @@ export default function Setup() {
         const { error: rpcError } = await targetSupabaseClient.rpc('pgrest_exec', { sql: seoQuery });
         
         if (rpcError) {
-          console.warn("pgrest_exec not available, trying direct SQL execution:", rpcError);
+          console.warn("pgrest_exec not available:", rpcError);
           
-          // Try using direct SQL execution method (this depends on service role permissions)
-          const { error: sqlError } = await targetSupabaseClient.auth.admin.executeSql(seoQuery);
+          // Try with an alternative approach - execute multiple simple statements
+          // Since we can't use executeSql directly, we'll try to create tables one by one
+          console.log("Trying alternative approach for SEO setup...");
           
-          if (sqlError) {
-            throw sqlError;
+          // 1. Add columns to pages table
+          try {
+            const columnsToAdd = [
+              { name: 'allow_indexing', type: 'boolean', default: 'true' },
+              { name: 'custom_canonical_url', type: 'text' },
+              { name: 'redirect_url', type: 'text' },
+              { name: 'meta_robots', type: 'text' }
+            ];
+            
+            for (const column of columnsToAdd) {
+              const defaultClause = column.default ? ` DEFAULT ${column.default}` : '';
+              const alterQuery = `ALTER TABLE pages ADD COLUMN IF NOT EXISTS ${column.name} ${column.type}${defaultClause}`;
+              
+              console.log(`Adding column ${column.name} to pages table...`);
+              const { error } = await targetSupabaseClient.rpc('pgrest_exec', { 
+                sql: alterQuery 
+              });
+              
+              if (error) {
+                console.warn(`Error adding column ${column.name}:`, error);
+              }
+            }
+          } catch (err) {
+            console.warn("Error adding columns to pages table:", err);
+          }
+          
+          // 2. Create seo_settings table
+          try {
+            console.log("Creating seo_settings table...");
+            const createTableResult = await targetSupabaseClient.rpc('pgrest_exec', {
+              sql: `
+                CREATE TABLE IF NOT EXISTS seo_settings (
+                  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+                  robots_txt text,
+                  default_title_template text,
+                  default_meta_description text,
+                  default_meta_keywords text,
+                  google_site_verification text,
+                  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+                  updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+                );
+              `
+            });
+            
+            if (createTableResult.error) {
+              console.warn("Error creating seo_settings table:", createTableResult.error);
+              
+              // Try to insert a sample record to create the table
+              try {
+                const { error: insertError } = await targetSupabaseClient
+                  .from('seo_settings')
+                  .insert({
+                    robots_txt: 'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/',
+                    default_title_template: '${page_title} | Elloria Eco Products',
+                    default_meta_description: 'Sustainable and eco-friendly products for a better future',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  });
+                  
+                if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
+                  console.warn("Error inserting into seo_settings:", insertError);
+                }
+              } catch (err) {
+                console.warn("Error with fallback seo_settings creation:", err);
+              }
+            }
+          } catch (err) {
+            console.warn("Error creating seo_settings table:", err);
+          }
+          
+          // 3. Create trigger function
+          try {
+            console.log("Creating trigger function...");
+            await targetSupabaseClient.rpc('pgrest_exec', {
+              sql: `
+                CREATE OR REPLACE FUNCTION update_updated_at_column()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.updated_at = timezone('utc'::text, now());
+                    RETURN NEW;
+                END;
+                $$ language 'plpgsql';
+              `
+            });
+          } catch (err) {
+            console.warn("Error creating trigger function:", err);
+          }
+          
+          // 4. Create trigger on table
+          try {
+            console.log("Creating trigger on seo_settings table...");
+            await targetSupabaseClient.rpc('pgrest_exec', {
+              sql: `
+                DROP TRIGGER IF EXISTS update_seo_settings_updated_at ON seo_settings;
+                CREATE TRIGGER update_seo_settings_updated_at
+                    BEFORE UPDATE ON seo_settings
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column();
+              `
+            });
+          } catch (err) {
+            console.warn("Error creating trigger:", err);
           }
         }
         
