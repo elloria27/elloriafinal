@@ -153,39 +153,12 @@ export default function SetupWizard() {
     setImportingSettings(true);
     
     try {
-      // In a real app, this would execute a predefined SQL script or call an Edge Function
-      // Here we're simulating by inserting some default values
-      
-      const defaultSettings = {
-        id: 'default',
-        site_title: siteForm.getValues('siteTitle'),
-        default_language: siteForm.getValues('defaultLanguage'),
-        enable_registration: true,
-        enable_search_indexing: true,
-        custom_scripts: '[]',
-        logo_url: null,
-        favicon_url: null,
-        footer_text: 'Copyright © 2023 ' + siteForm.getValues('siteTitle'),
-        social_links: JSON.stringify({
-          facebook: 'https://facebook.com',
-          twitter: 'https://twitter.com',
-          instagram: 'https://instagram.com'
-        }),
-        navbar_links: JSON.stringify([
-          { text: 'Home', url: '/' },
-          { text: 'About', url: '/about' },
-          { text: 'Contact', url: '/contact' }
-        ]),
-        theme_colors: JSON.stringify({
-          primary: '#3b82f6',
-          secondary: '#10b981'
-        })
-      };
-      
-      // Upsert default settings
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert(defaultSettings);
+      const { error } = await supabase.functions.invoke('import-default-data', {
+        body: { 
+          siteTitle: siteForm.getValues('siteTitle'),
+          defaultLanguage: siteForm.getValues('defaultLanguage')
+        }
+      });
       
       if (error) throw error;
       
@@ -522,7 +495,7 @@ export default function SetupWizard() {
                             type="checkbox"
                             className="h-4 w-4 mt-1"
                             checked={field.value}
-                            onChange={field.onChange}
+                            onChange={(e) => field.onChange(e.target.checked)}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
