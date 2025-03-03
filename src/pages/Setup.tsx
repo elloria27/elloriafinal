@@ -10,6 +10,7 @@ import { CheckCircle, Database, AlertCircle, ArrowRight, Copy, Import } from "lu
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
+import { createClient } from "@supabase/supabase-js";
 
 const steps = [
   { id: "connect", title: "Підключення" },
@@ -27,6 +28,7 @@ export default function Setup() {
     key: ""
   });
   const [setupComplete, setSetupComplete] = useState(false);
+  const [targetSupabaseClient, setTargetSupabaseClient] = useState<any>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,8 +61,21 @@ export default function Setup() {
       if (formData.key.length < 30) {
         throw new Error("Ключ API виглядає занадто коротким для service_role ключа");
       }
+
+      // Create actual Supabase client with the provided credentials
+      const targetClient = createClient(formData.url, formData.key);
+      setTargetSupabaseClient(targetClient);
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Try to make an actual API call to verify connection
+      const { data, error: apiError } = await targetClient.auth.getUser();
+      
+      if (apiError) {
+        console.error("Connection error:", apiError);
+        throw new Error(`Помилка підключення: ${apiError.message}`);
+      }
+      
+      // If we get here, connection is successful
+      console.log("Connection successful, auth data:", data);
       
       toast.success("З'єднання успішно встановлено");
       setCurrentStep("database");
@@ -78,45 +93,115 @@ export default function Setup() {
     setProgress(0);
     
     try {
-      // Simulate initial progress
-      setProgress(10);
+      if (!targetSupabaseClient) {
+        throw new Error("Необхідно спочатку встановити з'єднання");
+      }
+
+      // Update progress to show we've started
+      setProgress(5);
       
-      // Prepare data for the Edge Function
-      const requestData = { 
-        targetUrl: formData.url,
-        targetKey: formData.key,
-        databaseSchema: databaseExportData
-      };
+      // Let's try to create tables directly using the target client
+      const schema = databaseExportData;
+      let currentProgress = 10;
+      setProgress(currentProgress);
       
-      // Log request details for debugging
-      console.log("Sending request to import-database-schema with target:", formData.url);
-      
-      // First, show progress to indicate request is being sent
-      setProgress(20);
-      
-      // Call the Edge Function to import the database schema
-      const { data, error: importError } = await supabase.functions.invoke('import-database-schema', {
-        method: 'POST',
-        body: requestData
-      });
-      
-      if (importError) {
-        console.error("Function error:", importError);
-        throw new Error(`Помилка функції: ${importError.message}`);
+      // Create tables based on the schema
+      // This is a simplified example, you would need to expand this for your real schema
+      if (schema.tables && Array.isArray(schema.tables)) {
+        const totalTables = schema.tables.length;
+        
+        for (let i = 0; i < totalTables; i++) {
+          const table = schema.tables[i];
+          console.log(`Creating table: ${table.name}`);
+          
+          // Create the table using raw SQL (would require real SQL matching your schema)
+          const { error: tableError } = await targetSupabaseClient.rpc(
+            'execute_sql', 
+            { 
+              sql: `CREATE TABLE IF NOT EXISTS ${table.name} (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                ${table.columns.map(col => `${col.name} ${col.type}`).join(',\n')}
+              )` 
+            }
+          );
+          
+          if (tableError) {
+            console.error(`Error creating table ${table.name}:`, tableError);
+            throw new Error(`Помилка створення таблиці ${table.name}: ${tableError.message}`);
+          }
+          
+          // Update progress for each table
+          currentProgress = 10 + Math.floor((i + 1) / totalTables * 50);
+          setProgress(currentProgress);
+        }
       }
       
-      if (!data) {
-        throw new Error("Не отримано відповіді від серверної функції");
+      // Insert data if available
+      if (schema.data && typeof schema.data === 'object') {
+        const tables = Object.keys(schema.data);
+        const totalDataTables = tables.length;
+        
+        for (let i = 0; i < totalDataTables; i++) {
+          const tableName = tables[i];
+          const tableData = schema.data[tableName];
+          
+          if (Array.isArray(tableData) && tableData.length > 0) {
+            console.log(`Inserting data into table: ${tableName}`);
+            
+            // Insert data in batches to avoid overwhelming the API
+            const batchSize = 20;
+            for (let j = 0; j < tableData.length; j += batchSize) {
+              const batch = tableData.slice(j, j + batchSize);
+              
+              const { error: insertError } = await targetSupabaseClient
+                .from(tableName)
+                .insert(batch);
+              
+              if (insertError) {
+                console.error(`Error inserting data into ${tableName}:`, insertError);
+                // Continue despite errors to try to insert as much as possible
+                toast.error(`Помилка вставки даних у таблицю ${tableName}: ${insertError.message}`);
+              }
+            }
+          }
+          
+          // Update progress for data insertion
+          currentProgress = 60 + Math.floor((i + 1) / totalDataTables * 30);
+          setProgress(currentProgress);
+        }
       }
       
-      console.log("Function response:", data);
-      
-      // Visualize progress with animation
-      for (let i = 3; i <= 10; i++) {
-        await new Promise(resolve => setTimeout(resolve, 400));
-        setProgress(i * 10);
+      // Set RLS policies if present in the schema
+      if (schema.policies && Array.isArray(schema.policies)) {
+        for (const policy of schema.policies) {
+          console.log(`Setting RLS policy: ${policy.name} on table ${policy.table}`);
+          
+          const { error: policyError } = await targetSupabaseClient.rpc(
+            'execute_sql', 
+            { 
+              sql: `
+                ALTER TABLE ${policy.table} ENABLE ROW LEVEL SECURITY;
+                CREATE POLICY IF NOT EXISTS "${policy.name}" 
+                ON ${policy.table} 
+                FOR ${policy.operation || 'ALL'} 
+                TO ${policy.role || 'authenticated'} 
+                USING (${policy.using || 'true'})
+                ${policy.with ? `WITH CHECK (${policy.with})` : ''};
+              ` 
+            }
+          );
+          
+          if (policyError) {
+            console.error(`Error setting policy on ${policy.table}:`, policyError);
+            // Continue despite errors
+            toast.error(`Помилка встановлення політики для таблиці ${policy.table}: ${policyError.message}`);
+          }
+        }
       }
       
+      // Final progress update
+      setProgress(100);
       toast.success("Базу даних успішно імпортовано");
       setSetupComplete(true);
       setCurrentStep("complete");
