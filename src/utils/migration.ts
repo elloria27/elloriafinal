@@ -376,7 +376,7 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
 // Helper function to verify database tables exist
 const verifyDatabaseSetup = async (): Promise<boolean> => {
   try {
-    // Try to use a direct SQL query first - this works even with limited permissions
+    // Try to use a direct query first - this works even with limited permissions
     try {
       // Try to select from the profiles table directly with limit 0
       // This will error only if the table doesn't exist, not if it's empty
@@ -393,17 +393,20 @@ const verifyDatabaseSetup = async (): Promise<boolean> => {
       // If direct query fails, continue to other methods
     }
     
-    // Try a raw SQL query as a fallback method
+    // Try a different approach using an EXISTS query
     try {
-      const { data, error } = await defaultSupabase.rpc('execute_sql', {
-        sql_query: "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles')"
-      });
+      // Use a direct query with FROM to check if the table exists
+      // This avoids using RPC which might not be available
+      const { data, error } = await defaultSupabase
+        .from('profiles')
+        .select('count(*)', { count: 'exact', head: true });
       
-      if (!error && data && data[0] && data[0].exists) {
+      // If we can query the table (even if empty), it exists
+      if (!error) {
         return true;
       }
     } catch {
-      // If RPC method fails, continue to other fallbacks
+      // If that also fails, continue to other fallbacks
     }
     
     // Final fallback - check if we can authenticate, if yes, assume tables are set up
