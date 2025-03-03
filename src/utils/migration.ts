@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -11,40 +10,9 @@ interface MigrationCallbacks {
 }
 
 // Function to create SQL for all required enum types
+// NOTE: This is no longer needed when using database backup import
 const generateEnumTypesSql = () => {
-  return `
--- Create enum types
-DO $$
-BEGIN
-  -- Create content_block_type enum if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'content_block_type') THEN
-    CREATE TYPE content_block_type AS ENUM (
-      'hero', 'text', 'image', 'gallery', 'video', 'products', 
-      'testimonials', 'features', 'cta', 'contact_form', 'faq'
-    );
-  END IF;
-
-  -- Create user_role enum if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
-    CREATE TYPE user_role AS ENUM ('admin', 'client');
-  END IF;
-
-  -- Create post_status enum if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'post_status') THEN
-    CREATE TYPE post_status AS ENUM ('draft', 'published');
-  END IF;
-
-  -- Create supported_currency enum if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'supported_currency') THEN
-    CREATE TYPE supported_currency AS ENUM ('USD', 'EUR', 'UAH', 'CAD');
-  END IF;
-
-  -- Create supported_language enum if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'supported_language') THEN
-    CREATE TYPE supported_language AS ENUM ('en', 'fr', 'uk');
-  END IF;
-END
-$$;`;
+  return `-- Skipping enum types creation as they're included in the database backup`;
 };
 
 // Function to create SQL for all required tables with proper auth references
@@ -247,7 +215,7 @@ export const generateCompleteMigrationSql = () => {
   return `
 BEGIN;
   ${generateClearStatisticsSql()}
-  ${generateEnumTypesSql()}
+  -- Skipping enum types creation as they're included in the database backup
   ${generateTablesSql()}
   ${generateRlsSql()}
   ${generatePoliciesSql()}
@@ -292,10 +260,10 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
       if (error) {
         // Safely handle error with type guards
         let errorMessage = 'Unknown error';
-        if (error && typeof error === 'object') {
-          // Use optional chaining for safer property access
-          const messageText = error?.message ? String(error.message) : '';
-          const codeText = error?.code ? ` (${String(error.code)})` : '';
+        if (error && typeof error === 'object' && error !== null) {
+          // Use optional chaining and safe property access
+          const messageText = 'message' in error ? String(error.message) : '';
+          const codeText = 'code' in error ? ` (${String(error.code)})` : '';
           errorMessage = messageText + codeText || JSON.stringify(error);
         } else if (error !== undefined) {
           errorMessage = String(error);
@@ -323,10 +291,10 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
           if (directError) {
             // Safely handle error with type guards
             let errorMessage = 'Unknown error';
-            if (directError && typeof directError === 'object') {
-              // Use optional chaining for safer property access
-              const messageText = directError?.message ? String(directError.message) : '';
-              const codeText = directError?.code ? ` (${String(directError.code)})` : '';
+            if (directError && typeof directError === 'object' && directError !== null) {
+              // Use optional chaining and safe property access
+              const messageText = 'message' in directError ? String(directError.message) : '';
+              const codeText = 'code' in directError ? ` (${String(directError.code)})` : '';
               errorMessage = messageText + codeText || JSON.stringify(directError);
             } else if (directError !== undefined) {
               errorMessage = String(directError);
@@ -345,10 +313,10 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
           if (funcError) {
             // Safely handle error with type guards
             let errorMessage = 'Unknown error';
-            if (funcError && typeof funcError === 'object') {
-              // Use optional chaining for safer property access
-              const messageText = funcError?.message ? String(funcError.message) : '';
-              const codeText = funcError?.code ? ` (${String(funcError.code)})` : '';
+            if (funcError && typeof funcError === 'object' && funcError !== null) {
+              // Use optional chaining and safe property access
+              const messageText = 'message' in funcError ? String(funcError.message) : '';
+              const codeText = 'code' in funcError ? ` (${String(funcError.code)})` : '';
               errorMessage = messageText + codeText || JSON.stringify(funcError);
             } else if (funcError !== undefined) {
               errorMessage = String(funcError);
@@ -418,10 +386,10 @@ async function executeSql(
           if (error) {
             // Safely handle error with type guards
             let errorMessage = 'Unknown error';
-            if (error && typeof error === 'object') {
-              // Use optional chaining for safer property access
-              const messageText = error?.message ? String(error.message) : '';
-              const codeText = error?.code ? ` (${String(error.code)})` : '';
+            if (error && typeof error === 'object' && error !== null) {
+              // Use optional chaining and safe property access
+              const messageText = 'message' in error ? String(error.message) : '';
+              const codeText = 'code' in error ? ` (${String(error.code)})` : '';
               errorMessage = messageText + codeText || JSON.stringify(error);
             } else if (error !== undefined) {
               errorMessage = String(error);
@@ -546,17 +514,8 @@ export const runMigration = async (
     
     // Step 2: Execute enum creation
     currentStep++;
-    onProgress((currentStep / totalSteps) * 100, "Creating enum types...");
-    
-    const enumSql = generateEnumTypesSql();
-    const { success: enumSuccess, error: enumError } = await executeSql(client, enumSql);
-    
-    if (!enumSuccess) {
-      onError(`Error creating enum types: ${enumError}`);
-      migrationSuccess = false;
-    } else {
-      onSuccess("Enum types created successfully");
-    }
+    onProgress((currentStep / totalSteps) * 100, "Skipping enum types creation (using backup)...");
+    onSuccess("Enum types skipped - using database backup");
     
     // Step 3: Create tables
     currentStep++;
@@ -627,10 +586,10 @@ export const runMigration = async (
       if (pagesError) {
         // Safely handle error with type guards
         let errorMessage = 'Unknown error';
-        if (pagesError && typeof pagesError === 'object') {
-          // Use optional chaining for safer property access
-          const messageText = pagesError?.message ? String(pagesError.message) : '';
-          const codeText = pagesError?.code ? ` (${String(pagesError.code)})` : '';
+        if (pagesError && typeof pagesError === 'object' && pagesError !== null) {
+          // Use optional chaining and safe property access
+          const messageText = 'message' in pagesError ? String(pagesError.message) : '';
+          const codeText = 'code' in pagesError ? ` (${String(pagesError.code)})` : '';
           errorMessage = messageText + codeText || JSON.stringify(pagesError);
         } else if (pagesError !== undefined) {
           errorMessage = String(pagesError);
@@ -654,11 +613,10 @@ export const runMigration = async (
     } catch (error) {
       // Safely handle error with type guards
       let errorMessage = 'Unknown error';
-      if (error && typeof error === 'object') {
-        // Use optional chaining for safer property access
-        const messageText = error instanceof Error ? error.message : 
-                           (error as any)?.message ? String((error as any).message) : '';
-        const codeText = (error as any)?.code ? ` (${String((error as any).code)})` : '';
+      if (error && typeof error === 'object' && error !== null) {
+        // Use optional chaining and safe property access
+        const messageText = 'message' in error ? String(error.message) : '';
+        const codeText = 'code' in error ? ` (${String(error.code)})` : '';
         errorMessage = messageText + codeText || JSON.stringify(error);
       } else if (error !== undefined) {
         errorMessage = String(error);

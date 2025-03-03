@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -175,7 +174,7 @@ export function MigrationStep({
     setMigrationState(prev => ({
       ...prev,
       progress: 10,
-      currentTask: "Starting database import..."
+      currentTask: "Starting database import using backup..."
     }));
 
     try {
@@ -184,18 +183,18 @@ export function MigrationStep({
         throw new Error("Failed to prepare storage bucket for upload");
       }
 
-      setLog(prev => [...prev, { message: "Preparing database import...", type: "info" }]);
+      setLog(prev => [...prev, { message: "Preparing database import from backup...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
         progress: 20,
-        currentTask: "Preparing database import..."
+        currentTask: "Preparing database import from backup..."
       }));
 
-      setLog(prev => [...prev, { message: "Attempting direct database import via SQL...", type: "info" }]);
+      setLog(prev => [...prev, { message: "Using database backup for import (skipping enum creation)...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
         progress: 30,
-        currentTask: "Attempting direct database import via SQL..."
+        currentTask: "Using database backup for import..."
       }));
 
       // Prepare database by clearing statistics
