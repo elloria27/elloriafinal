@@ -43,6 +43,21 @@ export function MigrationStep({
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
   const [sqlDownloadUrl, setSqlDownloadUrl] = useState<string | null>(null);
 
+  // Generate SQL script URL on component mount
+  useEffect(() => {
+    const sqlScript = generateCompleteMigrationSql();
+    const blob = new Blob([sqlScript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    setSqlDownloadUrl(url);
+    
+    // Clean up URL on unmount
+    return () => {
+      if (sqlDownloadUrl) {
+        URL.revokeObjectURL(sqlDownloadUrl);
+      }
+    };
+  }, []);
+
   const startMigration = async () => {
     if (isRunning) return;
     
@@ -142,21 +157,6 @@ export function MigrationStep({
       setIsRunning(false);
     }
   };
-
-  // Generate SQL script URL on component mount
-  useEffect(() => {
-    const sqlScript = generateCompleteMigrationSql();
-    const blob = new Blob([sqlScript], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    setSqlDownloadUrl(url);
-    
-    // Clean up URL on unmount
-    return () => {
-      if (sqlDownloadUrl) {
-        URL.revokeObjectURL(sqlDownloadUrl);
-      }
-    };
-  }, []);
 
   return (
     <div className="space-y-6">

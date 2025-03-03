@@ -206,7 +206,7 @@ SELECT 'My CMS', 'A powerful headless CMS', '#4338ca', '#60a5fa'
 WHERE NOT EXISTS (SELECT 1 FROM site_settings);`;
 };
 
-// Complete SQL migration script
+// Complete SQL migration script - making it export to address module error
 export const generateCompleteMigrationSql = () => {
   return `
 BEGIN;
@@ -229,36 +229,33 @@ async function executeSql(
 ): Promise<{ success: boolean; error?: string }> {
   for (let i = 0; i < retries; i++) {
     try {
-      // Execute SQL directly with the Supabase client 
-      // This uses the REST API and the service role key
+      // Try direct RPC call first
       const { error } = await client.rpc('_utils_sql', { sql });
       
-      // Using direct SQL execution via REST API
       if (!error) {
         return { success: true };
       }
       
-      // Try alternative approach if first method fails
+      // Try alternative direct SQL execution approach
+      // Use .eq() instead of .execute() since execute() isn't available
       const { error: sqlError } = await client
-        .from('_utils')
-        .select('*')
-        .execute(sql);
+        .from('_sql')
+        .insert({ query: sql });
       
       if (!sqlError) {
         return { success: true };
       }
       
-      // If both methods fail, try another fallback
-      const { error: restError } = await client
-        .from('_rpc_query')
-        .insert({ query: sql });
+      // Try SQL query via rpc
+      const { error: rpcError } = await client
+        .rpc('exec_sql', { sql_query: sql });
       
-      if (!restError) {
+      if (!rpcError) {
         return { success: true };
       }
       
       // Log the error and retry
-      console.warn(`SQL execution failed, retry ${i+1}/${retries}:`, error?.message || sqlError?.message || restError?.message);
+      console.warn(`SQL execution failed, retry ${i+1}/${retries}:`, error?.message || sqlError?.message || rpcError?.message);
       
       // If this is the last retry, try splitting the SQL
       if (i === retries - 1) {
@@ -275,16 +272,32 @@ async function executeSql(
           if (statement.length < 5) continue; // Skip empty statements
           
           try {
-            const { error: stmtError } = await client
-              .from('_utils')
-              .select('*')
-              .execute(statement);
+            // Try all methods for each statement
+            const { error: stmtError } = await client.rpc('_utils_sql', { sql: statement });
             
-            if (stmtError) {
-              allSuccess = false;
-              lastError = stmtError.message;
-              console.error('Statement execution failed:', statement, lastError);
+            if (!stmtError) {
+              continue; // Statement succeeded
             }
+            
+            const { error: sqlStmtError } = await client
+              .from('_sql')
+              .insert({ query: statement });
+            
+            if (!sqlStmtError) {
+              continue; // Statement succeeded
+            }
+            
+            const { error: rpcStmtError } = await client
+              .rpc('exec_sql', { sql_query: statement });
+            
+            if (!rpcStmtError) {
+              continue; // Statement succeeded
+            }
+            
+            // If all methods failed for this statement
+            allSuccess = false;
+            lastError = stmtError?.message || sqlStmtError?.message || rpcStmtError?.message || 'Unknown error';
+            console.error('Statement execution failed:', statement, lastError);
           } catch (err) {
             allSuccess = false;
             lastError = err instanceof Error ? err.message : String(err);
