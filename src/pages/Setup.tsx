@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
 import siteSettingsSQL from "@/utils/site_settings_rows.sql?raw";
+import { executeRawSQL } from "@/utils/supabase-helpers";
 
 const steps = [
   { id: "connect", title: "Підключення" },
@@ -193,99 +194,75 @@ export default function Setup() {
       
       setProgress(30);
       
-      const { error: createTableError } = await targetSupabaseClient.auth.fetchSession();
+      const { error: createTableError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
       
       if (createTableError) {
-        console.error("Session error:", createTableError);
-        throw new Error("Помилка сесії. Будь ласка, перепідключіться.");
-      }
-      
-      try {
-        const { error: rawError } = await targetSupabaseClient.rpc('exec_sql', { sql: createTableSQL });
-        
-        if (rawError) {
-          console.error("Error executing CREATE TABLE:", rawError);
-          // Continue anyway, as the table might already exist
-        } else {
-          console.log("Table created successfully via RPC");
-        }
-      } catch (execError) {
-        console.warn("Could not use RPC method exec_sql:", execError);
-        // We'll try direct SQL insert below instead
+        console.error("Error creating table:", createTableError);
+        // Continue anyway as the table might already exist
+      } else {
+        console.log("Table created successfully");
       }
 
       setProgress(60);
       
-      const insertMatch = siteSettingsSQL.match(/INSERT\s+INTO.*VALUES\s*\((.*)\)/i);
+      const { error: insertError } = await executeRawSQL(siteSettingsSQL, targetSupabaseClient);
       
-      if (!insertMatch || !insertMatch[1]) {
-        throw new Error("Не вдалося розібрати SQL файл");
-      }
-      
-      const values = insertMatch[1].split(',').map(v => v.trim());
-
-      const siteSettings = {
-        id: values[0].replace(/['"]/g, ""),
-        site_title: values[1].replace(/['"]/g, ""),
-        default_language: values[2].replace(/['"]/g, ""),
-        enable_registration: values[3].toLowerCase() === "'true'" || values[3].toLowerCase() === "true",
-        enable_search_indexing: values[4].toLowerCase() === "'true'" || values[4].toLowerCase() === "true",
-        meta_description: values[5] !== "null" ? values[5].replace(/['"]/g, "") : null,
-        meta_keywords: values[6] !== "null" ? values[6].replace(/['"]/g, "") : null,
-        custom_scripts: values[7] !== "null" ? JSON.parse(values[7]) : [],
-        created_at: values[8].replace(/['"]/g, ""),
-        updated_at: values[9].replace(/['"]/g, ""),
-        homepage_slug: values[10].replace(/['"]/g, ""),
-        favicon_url: values[11] !== "null" ? values[11].replace(/['"]/g, "") : null,
-        maintenance_mode: values[12].toLowerCase() === "'true'" || values[12].toLowerCase() === "true",
-        contact_email: values[13] !== "null" ? values[13].replace(/['"]/g, "") : null,
-        google_analytics_id: values[14] !== "null" ? values[14].replace(/['"]/g, "") : null,
-        enable_cookie_consent: values[15].toLowerCase() === "'true'" || values[15].toLowerCase() === "true",
-        enable_https_redirect: values[16].toLowerCase() === "'true'" || values[16].toLowerCase() === "true",
-        max_upload_size: parseInt(values[17].replace(/['"]/g, "")),
-        enable_user_avatars: values[18].toLowerCase() === "'true'" || values[18].toLowerCase() === "true",
-        logo_url: values[19] !== "null" ? values[19].replace(/['"]/g, "") : null
-      };
-
-      console.log("Parsed site settings:", siteSettings);
-      
-      setProgress(80);
-      
-      try {
-        try {
-          const { error: insertRpcError } = await targetSupabaseClient.rpc('exec_sql', { 
-            sql: siteSettingsSQL 
-          });
-          
-          if (insertRpcError) {
-            console.warn("Could not insert via RPC:", insertRpcError);
-            throw new Error("RPC insert failed");
-          } else {
-            console.log("Settings inserted via RPC");
-          }
-        } catch (rpcError) {
-          console.warn("Will try direct insert:", rpcError);
-          
-          const { error: insertError } = await targetSupabaseClient
-            .from('site_settings')
-            .upsert(siteSettings);
-          
-          if (insertError) {
-            console.error("Error inserting site settings:", insertError);
-            throw new Error("Не вдалося вставити налаштування сайту");
-          }
-          
-          console.log("Settings inserted via API");
+      if (insertError) {
+        console.error("Error inserting data:", insertError);
+        
+        // Try manual parsing and insertion if raw SQL fails
+        const insertMatch = siteSettingsSQL.match(/INSERT\s+INTO.*VALUES\s*\((.*)\)/i);
+        
+        if (!insertMatch || !insertMatch[1]) {
+          throw new Error("Не вдалося розібрати SQL файл");
         }
         
-        setProgress(100);
-        toast.success("Налаштування сайту успішно імпортовано");
-        setSetupComplete(true);
-        setCurrentStep("complete");
-      } catch (insertError) {
-        console.error("All insert methods failed:", insertError);
-        throw new Error("Не вдалося вставити налаштування сайту");
+        const values = insertMatch[1].split(',').map(v => v.trim());
+
+        const siteSettings = {
+          id: values[0].replace(/['"]/g, ""),
+          site_title: values[1].replace(/['"]/g, ""),
+          default_language: values[2].replace(/['"]/g, ""),
+          enable_registration: values[3].toLowerCase() === "'true'" || values[3].toLowerCase() === "true",
+          enable_search_indexing: values[4].toLowerCase() === "'true'" || values[4].toLowerCase() === "true",
+          meta_description: values[5] !== "null" ? values[5].replace(/['"]/g, "") : null,
+          meta_keywords: values[6] !== "null" ? values[6].replace(/['"]/g, "") : null,
+          custom_scripts: values[7] !== "null" ? JSON.parse(values[7]) : [],
+          created_at: values[8].replace(/['"]/g, ""),
+          updated_at: values[9].replace(/['"]/g, ""),
+          homepage_slug: values[10].replace(/['"]/g, ""),
+          favicon_url: values[11] !== "null" ? values[11].replace(/['"]/g, "") : null,
+          maintenance_mode: values[12].toLowerCase() === "'true'" || values[12].toLowerCase() === "true",
+          contact_email: values[13] !== "null" ? values[13].replace(/['"]/g, "") : null,
+          google_analytics_id: values[14] !== "null" ? values[14].replace(/['"]/g, "") : null,
+          enable_cookie_consent: values[15].toLowerCase() === "'true'" || values[15].toLowerCase() === "true",
+          enable_https_redirect: values[16].toLowerCase() === "'true'" || values[16].toLowerCase() === "true",
+          max_upload_size: parseInt(values[17].replace(/['"]/g, "")),
+          enable_user_avatars: values[18].toLowerCase() === "'true'" || values[18].toLowerCase() === "true",
+          logo_url: values[19] !== "null" ? values[19].replace(/['"]/g, "") : null
+        };
+
+        console.log("Parsed site settings:", siteSettings);
+        
+        // Try direct API insertion
+        const { error: apiInsertError } = await targetSupabaseClient
+          .from('site_settings')
+          .upsert(siteSettings);
+        
+        if (apiInsertError) {
+          console.error("Error inserting via API:", apiInsertError);
+          throw new Error("Не вдалося вставити налаштування сайту");
+        }
+        
+        console.log("Settings inserted via API");
+      } else {
+        console.log("Settings inserted via SQL");
       }
+      
+      setProgress(100);
+      toast.success("Налаштування сайту успішно імпортовано");
+      setSetupComplete(true);
+      setCurrentStep("complete");
     } catch (err) {
       console.error("Помилка імпорту налаштувань сайту:", err);
       setError(err instanceof Error 

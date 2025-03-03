@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -255,6 +256,8 @@ export const tableExists = async (tableName: string) => {
 export const executeRawSQL = async (sql: string, client = supabase) => {
   try {
     try {
+      // First attempt with rpc function - we use a generic "exec_sql" name as the function
+      // could be named differently in different Supabase projects
       const { data, error } = await client.rpc('exec_sql', { sql });
       if (error) {
         throw error;
@@ -263,6 +266,18 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
       return { data, error: null };
     } catch (rpcError) {
       console.warn('RPC execution failed:', rpcError);
+      
+      // Try alternative function name
+      try {
+        const { data, error } = await client.rpc('pgrest_exec', { sql });
+        if (error) {
+          throw error;
+        }
+        console.log('SQL executed successfully via pgrest_exec RPC');
+        return { data, error: null };
+      } catch (pgrestError) {
+        console.warn('pgrest_exec RPC failed:', pgrestError);
+      }
       
       if (sql.toLowerCase().includes('create table')) {
         console.log('Attempting to create table via API...');
