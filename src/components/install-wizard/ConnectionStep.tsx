@@ -72,29 +72,52 @@ export function ConnectionStep({
     try {
       const supabase = createClient(config.url, config.key);
       
-      // Test connection by trying to fetch something simple
-      const { data, error } = await supabase.from("profiles").select("count").limit(1);
+      // Test basic connection with a simpler query that doesn't require tables to exist
+      const { data, error } = await supabase.auth.getSession();
       
       if (error) {
         setTestResult({
           success: false, 
           message: "Connection failed: " + error.message
         });
-      } else {
-        // Test if we have permissions to create tables
-        const { error: tableError } = await supabase.rpc("get_schema_permissions");
+        return;
+      }
+      
+      // Check if we have proper permissions by checking if we can access system tables
+      try {
+        // Use system views to check permissions 
+        // (this works even if our app tables don't exist yet)
+        const { error: schemaError } = await supabase
+          .from('pg_catalog.pg_tables')
+          .select('schemaname, tablename')
+          .limit(1);
         
-        if (tableError) {
-          setTestResult({
-            success: false, 
-            message: "Connected, but insufficient permissions: " + tableError.message
-          });
-        } else {
-          setTestResult({
-            success: true, 
-            message: "Connection successful! You have proper permissions."
-          });
+        if (schemaError) {
+          // If we can't access system views, check if we're using service role key
+          if (schemaError.message.includes("permission denied")) {
+            setTestResult({
+              success: false, 
+              message: "Connection successful, but insufficient permissions. Make sure you're using the service_role key."
+            });
+          } else {
+            setTestResult({
+              success: false, 
+              message: "Connection successful, but couldn't verify permissions: " + schemaError.message
+            });
+          }
+          return;
         }
+        
+        // Connection successful with proper permissions
+        setTestResult({
+          success: true, 
+          message: "Connection successful! Ready to set up the database."
+        });
+      } catch (permError) {
+        setTestResult({
+          success: false, 
+          message: "Connection successful, but couldn't verify permissions: " + String(permError)
+        });
       }
     } catch (error) {
       setTestResult({

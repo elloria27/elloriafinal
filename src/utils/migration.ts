@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -375,12 +376,13 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
 // Helper function to verify database tables exist
 const verifyDatabaseSetup = async (): Promise<boolean> => {
   try {
-    // Use Postgres information_schema to check if key tables exist
+    // Use raw query to check if the profiles table exists in a way that
+    // works even if the table doesn't exist yet
     const { data, error } = await defaultSupabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'profiles')
+      .from('pg_catalog.pg_tables')
+      .select('tablename')
+      .eq('schemaname', 'public')
+      .eq('tablename', 'profiles')
       .maybeSingle();
     
     if (error) {
