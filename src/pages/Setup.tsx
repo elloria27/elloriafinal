@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
-import postgres from 'postgres';
 
 const steps = [
   { id: "connect", title: "Підключення" },
@@ -49,7 +48,6 @@ export default function Setup() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [targetSupabaseClient, setTargetSupabaseClient] = useState<any>(null);
   const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
-  const [postgresClient, setPostgresClient] = useState<any>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,88 +80,60 @@ export default function Setup() {
 
       const targetClient = createClient(formData.url, formData.key);
       
-      // Extract the host and connection string for Postgres
-      const host = formData.url.replace('https://', '');
-      const connectionString = `postgres://postgres.${host}:5432/postgres?user=postgres.${host}&password=${formData.key}`;
+      let connectionSuccess = false;
       
       try {
-        // Create postgres client with secure connection
-        const sql = postgres(connectionString, { 
-          ssl: 'require',
-          max: 1 // Limit pool size
-        });
-        
-        // Test the connection with a simple query
-        const result = await sql`SELECT current_database()`;
-        console.log("Postgres connection test succeeded:", result);
-        
-        setPostgresClient(sql);
-        setTargetSupabaseClient(targetClient);
-        toast.success("З'єднання успішно встановлено");
-        setCurrentStep("database");
-      } catch (pgErr) {
-        console.error("Postgres connection failed:", pgErr);
-        
-        // Fallback to testing Supabase REST API connection
-        let connectionSuccess = false;
-        
+        const { data: tableData, error: tableError } = await targetClient
+          .from('pg_catalog.pg_tables')
+          .select('schemaname, tablename')
+          .eq('schemaname', 'public')
+          .limit(5);
+          
+        if (!tableError) {
+          console.log("Connection test via pg_tables succeeded");
+          connectionSuccess = true;
+        }
+      } catch (err) {
+        console.warn("Connection test via pg_tables failed:", err);
+      }
+      
+      if (!connectionSuccess) {
         try {
-          const { data: tableData, error: tableError } = await targetClient
-            .from('pg_catalog.pg_tables')
-            .select('schemaname, tablename')
-            .eq('schemaname', 'public')
-            .limit(5);
+          const { data: authSettings, error: authError } = await targetClient
+            .from('auth.identities')
+            .select('id')
+            .limit(1);
             
-          if (!tableError) {
-            console.log("Connection test via pg_tables succeeded");
+          if (!authError) {
+            console.log("Connection test via auth.identities succeeded");
             connectionSuccess = true;
           }
         } catch (err) {
-          console.warn("Connection test via pg_tables failed:", err);
+          console.warn("Auth test failed:", err);
         }
-        
-        if (!connectionSuccess) {
-          try {
-            const { data: authSettings, error: authError } = await targetClient
-              .from('auth.identities')
-              .select('id')
-              .limit(1);
-              
-            if (!authError) {
-              console.log("Connection test via auth.identities succeeded");
-              connectionSuccess = true;
-            }
-          } catch (err) {
-            console.warn("Auth test failed:", err);
+      }
+      
+      if (!connectionSuccess) {
+        try {
+          const { data: storageBuckets, error: storageError } = await targetClient
+            .storage
+            .listBuckets();
+            
+          if (!storageError) {
+            console.log("Connection test via storage buckets succeeded");
+            connectionSuccess = true;
+          } else {
+            throw new Error(`Не вдалося підключитися до Supabase: ${storageError.message}`);
           }
-        }
-        
-        if (!connectionSuccess) {
-          try {
-            const { data: storageBuckets, error: storageError } = await targetClient
-              .storage
-              .listBuckets();
-              
-            if (!storageError) {
-              console.log("Connection test via storage buckets succeeded");
-              connectionSuccess = true;
-            } else {
-              throw new Error(`Не вдалося підключитися до Supabase: ${storageError.message}`);
-            }
-          } catch (err) {
-            console.error("Storage test failed:", err);
-            throw new Error("Не вдалося встановити з'єднання з проектом Supabase. Перевірте URL та API ключ.");
-          }
-        }
-        
-        if (connectionSuccess) {
-          setTargetSupabaseClient(targetClient);
-          toast.success("З'єднання успішно встановлено (REST API)");
-          setCurrentStep("database");
-        } else {
+        } catch (err) {
+          console.error("Storage test failed:", err);
           throw new Error("Не вдалося встановити з'єднання з проектом Supabase. Перевірте URL та API ключ.");
         }
       }
+      
+      setTargetSupabaseClient(targetClient);
+      toast.success("З'єднання успішно встановлено");
+      setCurrentStep("database");
     } catch (err) {
       console.error("Помилка підключення:", err);
       setError(err instanceof Error ? err.message : "Не вдалося підключитися до Supabase проекту. Перевірте URL та ключ доступу.");
@@ -197,45 +167,24 @@ export default function Setup() {
       console.log(`Creating table: ${tableName}`);
       
       // First check if table exists
-      let tableExists = false;
-      
-      if (postgresClient) {
-        try {
-          const result = await postgresClient`
-            SELECT EXISTS (
-              SELECT FROM information_schema.tables 
-              WHERE table_schema = 'public'
-              AND table_name = ${tableName}
-            );
-          `;
-          tableExists = result[0].exists;
-        } catch (pgErr) {
-          console.error(`Error checking if table ${tableName} exists:`, pgErr);
+      try {
+        const { error: checkError } = await targetSupabaseClient
+          .from(tableName)
+          .select('id')
+          .limit(1);
+          
+        if (!checkError) {
+          console.log(`Table ${tableName} already exists. Skipping creation.`);
+          logMigrationStep({
+            table: tableName,
+            operation: 'create',
+            status: 'success',
+            details: 'Table already exists'
+          });
+          return true;
         }
-      } else {
-        try {
-          const { error: checkError } = await targetSupabaseClient
-            .from(tableName)
-            .select('id')
-            .limit(1);
-            
-          if (!checkError) {
-            tableExists = true;
-          }
-        } catch (error) {
-          console.log(`Table ${tableName} doesn't exist. Will create it.`);
-        }
-      }
-      
-      if (tableExists) {
-        console.log(`Table ${tableName} already exists. Skipping creation.`);
-        logMigrationStep({
-          table: tableName,
-          operation: 'create',
-          status: 'success',
-          details: 'Table already exists'
-        });
-        return true;
+      } catch (error) {
+        console.log(`Table ${tableName} doesn't exist. Will create it.`);
       }
       
       const sampleItem = schema && schema.length > 0 ? schema[0] : null;
@@ -243,87 +192,75 @@ export default function Setup() {
         throw new Error(`No sample data provided for table ${tableName}`);
       }
       
-      // Try to create the table with postgres.js if available
-      if (postgresClient) {
-        try {
-          let createTableQuery = `
-            CREATE TABLE IF NOT EXISTS ${tableName} (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-          `;
-          
-          Object.entries(sampleItem).forEach(([key, value]) => {
+      // Create table with a direct SQL query
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+          ${Object.entries(sampleItem).map(([key, value]) => {
             if (key !== 'id' && key !== 'created_at') {
-              if (typeof value === 'number') createTableQuery += `, ${key} NUMERIC`;
-              else if (typeof value === 'boolean') createTableQuery += `, ${key} BOOLEAN`;
-              else if (Array.isArray(value)) createTableQuery += `, ${key} JSONB`;
-              else if (value !== null && typeof value === 'object') createTableQuery += `, ${key} JSONB`;
-              else createTableQuery += `, ${key} TEXT`;
+              if (typeof value === 'number') return `, ${key} NUMERIC`;
+              if (typeof value === 'boolean') return `, ${key} BOOLEAN`;
+              if (Array.isArray(value)) return `, ${key} JSONB`;
+              if (value !== null && typeof value === 'object') return `, ${key} JSONB`;
+              return `, ${key} TEXT`;
             }
-          });
-          
-          createTableQuery += `);`;
-          
-          await postgresClient.unsafe(createTableQuery);
-          
-          logMigrationStep({
-            table: tableName,
-            operation: 'create',
-            status: 'success',
-            details: 'Created with postgres.js'
-          });
-          
-          return true;
-        } catch (pgErr) {
-          console.error(`Error creating table ${tableName} with postgres.js:`, pgErr);
-          // Continue to fallback method
-        }
-      }
+            return '';
+          }).join('')}
+        );
+      `;
       
-      // Fallback: Create table by inserting and then deleting a sample row
       try {
-        const initialItem = {
-          id: crypto.randomUUID(),
-          created_at: new Date().toISOString()
-        };
-        
-        Object.keys(sampleItem).forEach(key => {
-          if (key !== 'id' && key !== 'created_at') {
-            const value = sampleItem[key];
-            if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-              initialItem[key] = null;
-            } else {
-              initialItem[key] = value;
-            }
-          }
+        const { error: sqlError } = await targetSupabaseClient.rpc('execute_sql', {
+          query: createTableQuery
         });
         
-        const { error: insertError } = await targetSupabaseClient
-          .from(tableName)
-          .insert([initialItem]);
+        if (sqlError) {
+          console.warn("RPC execute_sql failed, trying alternative method:", sqlError);
           
-        if (insertError) {
-          console.error(`Error creating table ${tableName} via insert:`, insertError);
-          throw insertError;
+          // Alternative: Create table by inserting and then deleting a sample row
+          const initialItem = {
+            id: crypto.randomUUID(),
+            created_at: new Date().toISOString()
+          };
+          
+          Object.keys(sampleItem).forEach(key => {
+            if (key !== 'id' && key !== 'created_at') {
+              const value = sampleItem[key];
+              if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+                initialItem[key] = null;
+              } else {
+                initialItem[key] = value;
+              }
+            }
+          });
+          
+          const { error: insertError } = await targetSupabaseClient
+            .from(tableName)
+            .insert([initialItem]);
+            
+          if (insertError) {
+            console.error(`Error creating table ${tableName} via insert:`, insertError);
+            throw insertError;
+          }
+          
+          // Delete the sample row after table creation
+          await targetSupabaseClient
+            .from(tableName)
+            .delete()
+            .eq('id', initialItem.id);
         }
-        
-        // Delete the sample row after table creation
-        await targetSupabaseClient
-          .from(tableName)
-          .delete()
-          .eq('id', initialItem.id);
         
         logMigrationStep({
           table: tableName,
           operation: 'create',
-          status: 'success',
-          details: 'Created via REST API'
+          status: 'success'
         });
         
         return true;
-      } catch (err) {
-        console.error(`Error creating table ${tableName}:`, err);
-        throw err;
+      } catch (sqlErr) {
+        console.error(`Error executing SQL query for ${tableName}:`, sqlErr);
+        throw sqlErr;
       }
     } catch (err) {
       console.error(`Error creating table ${tableName}:`, err);
@@ -354,7 +291,7 @@ export default function Setup() {
           cleanItem.created_at = new Date().toISOString();
         }
         
-        // Convert object values to strings or proper JSON for postgres.js
+        // Convert object values to strings
         Object.entries(cleanItem).forEach(([key, value]) => {
           if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
             cleanItem[key] = JSON.stringify(value);
@@ -368,59 +305,6 @@ export default function Setup() {
       const batchSize = 3;
       const totalItems = cleanData.length;
       let successCount = 0;
-      
-      // Try to use postgres.js for insertion if available
-      if (postgresClient && totalItems > 0) {
-        try {
-          for (let i = 0; i < totalItems; i += batchSize) {
-            const batch = cleanData.slice(i, i + batchSize);
-            console.log(`Processing batch ${i/batchSize + 1}/${Math.ceil(totalItems/batchSize)} for ${tableName}`);
-            
-            try {
-              for (const item of batch) {
-                // Use parameterized query to safely insert objects
-                const columns = Object.keys(item).join(', ');
-                const placeholders = Object.keys(item).map((_, i) => `$${i + 1}`).join(', ');
-                const values = Object.values(item);
-                
-                const query = `
-                  INSERT INTO ${tableName} (${columns})
-                  VALUES (${placeholders})
-                  ON CONFLICT (id) DO UPDATE SET
-                  ${Object.keys(item).map((col, i) => `${col} = $${i + 1}`).join(', ')}
-                `;
-                
-                await postgresClient.unsafe(query, ...values);
-                successCount++;
-              }
-              
-              setProgress(prev => Math.min(prev + 2, 95));
-            } catch (batchError) {
-              console.error(`Postgres error inserting batch for ${tableName}:`, batchError);
-              // Continue with other batches
-            }
-            
-            // Add a small delay between batches to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-          
-          const insertResult = successCount > 0;
-          logMigrationStep({
-            table: tableName,
-            operation: 'data_insert',
-            status: insertResult ? 'success' : 'error',
-            details: `${successCount}/${totalItems} records inserted via postgres.js`
-          });
-          
-          return insertResult;
-        } catch (pgErr) {
-          console.error(`Error using postgres.js for inserting data into ${tableName}:`, pgErr);
-          // Fall back to REST API method
-        }
-      }
-      
-      // Fallback to REST API method
-      successCount = 0;
       
       for (let i = 0; i < totalItems; i += batchSize) {
         const batch = cleanData.slice(i, i + batchSize);
@@ -468,7 +352,7 @@ export default function Setup() {
         table: tableName,
         operation: 'data_insert',
         status: insertResult ? 'success' : 'error',
-        details: `${successCount}/${totalItems} records inserted via REST API`
+        details: `${successCount}/${totalItems} records inserted`
       });
       
       return insertResult;
@@ -567,28 +451,12 @@ export default function Setup() {
       toast.success("Базу даних успішно імпортовано");
       setSetupComplete(true);
       setCurrentStep("complete");
-      
-      // Close postgres client if it exists
-      if (postgresClient) {
-        await postgresClient.end();
-        console.log("Postgres client connection closed");
-      }
     } catch (err) {
       console.error("Помилка міграції:", err);
       setError(err instanceof Error 
         ? err.message 
         : "Не вдалося виконати міграцію бази даних. Перевірте налаштування та спробуйте знову.");
       setProgress(0);
-      
-      // Clean up postgres client on error
-      if (postgresClient) {
-        try {
-          await postgresClient.end();
-          console.log("Postgres client connection closed after error");
-        } catch (endErr) {
-          console.error("Error closing postgres client:", endErr);
-        }
-      }
     } finally {
       setLoading(false);
     }
