@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,21 @@ export default function Setup() {
     setProgress(0);
     
     try {
+      // Тут експортуємо database_export.json в новий проект Supabase
+      const { data, error: importError } = await supabase.functions.invoke('import-database-schema', {
+        method: 'POST',
+        body: { 
+          targetUrl: formData.url,
+          targetKey: formData.key,
+          databaseSchema: databaseExportData
+        }
+      });
+      
+      if (importError) {
+        throw importError;
+      }
+      
+      // Візуалізуємо прогрес імпорту
       for (let i = 1; i <= 10; i++) {
         await new Promise(resolve => setTimeout(resolve, 600));
         setProgress(i * 10);
