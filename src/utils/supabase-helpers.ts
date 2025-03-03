@@ -185,66 +185,19 @@ export const createDefaultSiteSettings = async () => {
 
 export const tableExists = async (tableName: string) => {
   try {
-    if (tableName === 'site_settings') {
-      const { error } = await supabase
-        .from('site_settings')
+    console.log(`Checking if table ${tableName} exists`);
+    
+    // Use type assertion to bypass TypeScript's strict typing for dynamic table access
+    try {
+      const { error } = await (supabase as any)
+        .from(tableName)
         .select('id')
         .limit(1);
       
       return !error || error.code !== '42P01';
-    }
-    
-    console.log(`Checking if table ${tableName} exists`);
-    
-    switch (tableName) {
-      case 'profiles':
-        const { error: profilesError } = await supabase
-          .from('profiles')
-          .select('id')
-          .limit(1);
-        return !profilesError || profilesError.code !== '42P01';
-      
-      case 'products':
-        const { error: productsError } = await supabase
-          .from('products')
-          .select('id')
-          .limit(1);
-        return !productsError || productsError.code !== '42P01';
-      
-      case 'orders':
-        const { error: ordersError } = await supabase
-          .from('orders')
-          .select('id')
-          .limit(1);
-        return !ordersError || ordersError.code !== '42P01';
-      
-      case 'pages':
-        const { error: pagesError } = await supabase
-          .from('pages')
-          .select('id')
-          .limit(1);
-        return !pagesError || pagesError.code !== '42P01';
-      
-      case 'blog_posts':
-        const { error: blogError } = await supabase
-          .from('blog_posts')
-          .select('id')
-          .limit(1);
-        return !blogError || blogError.code !== '42P01';
-      
-      default:
-        console.warn(`Table "${tableName}" not included in static type checks. Using fallback approach.`);
-        
-        try {
-          const result = await (supabase as any)
-            .from(tableName)
-            .select('count(*)', { count: 'exact', head: true });
-          
-          return !result.error || result.error.code !== '42P01';
-        } catch (err) {
-          console.error(`Error checking table ${tableName}:`, err);
-          return false;
-        }
+    } catch (err) {
+      console.error(`Error checking if table ${tableName} exists:`, err);
+      return false;
     }
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
@@ -283,7 +236,8 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
           
           try {
             // Here we just let the call go through, even if it fails we'll try other methods
-            await client.from(tableName).select('count(*)', { head: true, count: 'exact' });
+            // Use type assertion to bypass TypeScript checking
+            await (client as any).from(tableName).select('count(*)', { head: true, count: 'exact' });
           } catch (e) {
             console.log(`Table ${tableName} might not exist yet, which is expected`);
           }
@@ -375,8 +329,8 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
                 }
               }
               
-              // Use the upsert method to insert/update
-              const { data: upsertData, error: upsertError } = await client
+              // Use the upsert method to insert/update with type assertion
+              const { data: upsertData, error: upsertError } = await (client as any)
                 .from(tableName)
                 .upsert([dataObj]);
                 
@@ -533,7 +487,8 @@ export const createSiteSettingsFromJSON = async (jsonData: any, client = supabas
     
     // Try to insert the site settings - first convert to array for upsert
     console.log('Inserting site settings data...');
-    const { error: upsertError } = await client
+    // Use type assertion to bypass TypeScript checking
+    const { error: upsertError } = await (client as any)
       .from('site_settings')
       .upsert([siteSettingsData]);
       
@@ -604,7 +559,8 @@ export const createSiteSettingsFromJSON = async (jsonData: any, client = supabas
  */
 const tableExistsWithClient = async (tableName: string, client: any) => {
   try {
-    const { error } = await client
+    // Use type assertion to bypass TypeScript checking
+    const { error } = await (client as any)
       .from(tableName)
       .select('id')
       .limit(1);
