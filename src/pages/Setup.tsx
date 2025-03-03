@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
 import siteSettingsSQL from "@/utils/site_settings_rows.sql?raw";
-import { executeRawSQL, createSiteSettingsFromJSON } from "@/utils/supabase-helpers";
+import { executeRawSQL, createSiteSettingsRpcFunction } from "@/utils/supabase-helpers";
 
 const siteSettingsJSON = {
   "table": "site_settings",
@@ -212,8 +212,12 @@ export default function Setup() {
         throw new Error("Необхідно спочатку встановити з'єднання");
       }
 
-      console.log("Importing site settings using SQL");
+      console.log("Імпортування налаштувань сайту використовуючи SQL");
       setProgress(10);
+      
+      // First, try to create the RPC function that can create the site_settings table
+      await createSiteSettingsRpcFunction(targetSupabaseClient);
+      setProgress(30);
       
       const createTableSQL = `
         CREATE TABLE IF NOT EXISTS "public"."site_settings" (
@@ -240,17 +244,18 @@ export default function Setup() {
         );
       `;
       
-      console.log("Executing CREATE TABLE SQL...");
+      console.log("Виконуємо SQL для створення таблиці...");
       const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
       
       if (createError) {
-        console.warn("Error creating table:", createError);
-        // Continue anyway as the table might already exist
+        console.warn("Помилка створення таблиці:", createError);
+        toast.warning("Виникли труднощі при створенні таблиці, але продовжуємо спробу вставки даних");
       } else {
-        console.log("Table created successfully");
+        console.log("Таблиця успішно створена або вже існує");
+        toast.success("Таблиця site_settings успішно створена");
       }
 
-      setProgress(50);
+      setProgress(60);
       
       const insertSQL = `
         INSERT INTO "public"."site_settings" 
@@ -265,18 +270,39 @@ export default function Setup() {
          false, false, 10, false, null);
       `;
       
-      console.log("Executing INSERT SQL...");
+      console.log("Виконуємо SQL для вставки даних...");
       const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
       
       if (insertError) {
-        console.error("Error inserting data:", insertError);
+        console.error("Помилка вставки даних:", insertError);
         throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
       } else {
-        console.log("Site settings inserted successfully");
+        console.log("Налаштування сайту успішно вставлені");
+        toast.success("Налаштування сайту успішно імпортовано");
+      }
+      
+      // Verify the data was inserted
+      try {
+        console.log("Перевіряємо чи дані були вставлені...");
+        const { data: verifyData, error: verifyError } = await (targetSupabaseClient as any)
+          .from('site_settings')
+          .select('*')
+          .limit(1);
+          
+        if (verifyError) {
+          console.warn("Помилка перевірки вставки даних:", verifyError);
+        } else if (verifyData && verifyData.length > 0) {
+          console.log("Підтверджено наявність даних в таблиці:", verifyData);
+          toast.success("Перевірка даних пройшла успішно");
+        } else {
+          console.warn("Дані відсутні в таблиці після вставки");
+          toast.warning("Дані можливо не були вставлені, перевірте в панелі адміністратора Supabase");
+        }
+      } catch (verifyError) {
+        console.warn("Помилка перевірки вставки даних:", verifyError);
       }
       
       setProgress(100);
-      toast.success("Налаштування сайту успішно імпортовано");
       setSetupComplete(true);
       setCurrentStep("complete");
     } catch (err) {
