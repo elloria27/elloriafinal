@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,8 +48,7 @@ export default function Setup() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [targetSupabaseClient, setTargetSupabaseClient] = useState<any>(null);
   const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
-  const [executingSEOQuery, setExecutingSEOQuery] = useState(false);
-
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -165,38 +165,119 @@ export default function Setup() {
       }
 
       console.log("Executing site settings SQL:", siteSettingsSQL);
+      setProgress(20);
       
+      // Try the pgrest_exec RPC method first
       try {
-        const { error: rpcError } = await targetSupabaseClient.rpc('pgrest_exec', { sql: siteSettingsSQL });
+        const { error: rpcError } = await targetSupabaseClient.rpc('pgrest_exec', { 
+          sql: siteSettingsSQL 
+        });
         
         if (rpcError) {
           console.warn("pgrest_exec not available:", rpcError);
+          throw new Error("RPC method not available");
+        } else {
+          // If successful, we're done
+          toast.success("Налаштування сайту успішно імпортовано через RPC");
+          setProgress(100);
+          setSetupComplete(true);
+          return;
+        }
+      } catch (rpcErr) {
+        console.log("RPC method failed, trying alternative approach:", rpcErr);
+        setProgress(30);
+      }
+      
+      // If RPC didn't work, create the table first
+      try {
+        const createTableSQL = `
+          CREATE TABLE IF NOT EXISTS public.site_settings (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            site_title TEXT NOT NULL DEFAULT 'Elloria',
+            default_language TEXT NOT NULL DEFAULT 'en',
+            enable_registration BOOLEAN NOT NULL DEFAULT true,
+            enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
+            meta_description TEXT,
+            meta_keywords TEXT,
+            custom_scripts JSONB DEFAULT '[]',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+            homepage_slug TEXT DEFAULT 'index',
+            favicon_url TEXT,
+            maintenance_mode BOOLEAN DEFAULT false,
+            contact_email TEXT,
+            google_analytics_id TEXT,
+            enable_cookie_consent BOOLEAN DEFAULT false,
+            enable_https_redirect BOOLEAN DEFAULT false,
+            max_upload_size INTEGER DEFAULT 10,
+            enable_user_avatars BOOLEAN DEFAULT false,
+            logo_url TEXT
+          );
+        `;
+        
+        try {
+          await targetSupabaseClient.rpc('pgrest_exec', { sql: createTableSQL });
+          console.log("Created site_settings table via RPC");
+        } catch (createTableRpcError) {
+          console.warn("Could not create table via RPC, will try direct SQL insert later");
+        }
+        
+        setProgress(50);
+        
+        // Extract values from the SQL insert statement
+        const match = siteSettingsSQL.match(/VALUES\s*\(([^)]+)\)/i);
+        if (!match) {
+          throw new Error("Неможливо розібрати SQL файл"); 
+        }
+        
+        const values = match[1].split(',').map(v => v.trim());
+        
+        // Create the record to insert
+        const siteSettingsData = {
+          id: values[0].replace(/'/g, "").replace(/"/g, ""),
+          site_title: values[1].replace(/'/g, "").replace(/"/g, ""),
+          default_language: values[2].replace(/'/g, "").replace(/"/g, ""),
+          enable_registration: values[3] === "'true'" || values[3] === '"true"',
+          enable_search_indexing: values[4] === "'true'" || values[4] === '"true"',
+          meta_description: values[5] !== "null" ? values[5].replace(/'/g, "").replace(/"/g, "") : null,
+          meta_keywords: values[6] !== "null" ? values[6].replace(/'/g, "").replace(/"/g, "") : null,
+          custom_scripts: values[7] !== "null" ? JSON.parse(values[7]) : [],
+          created_at: values[8].replace(/'/g, "").replace(/"/g, ""),
+          updated_at: values[9].replace(/'/g, "").replace(/"/g, ""),
+          homepage_slug: values[10].replace(/'/g, "").replace(/"/g, ""),
+          favicon_url: values[11] !== "null" ? values[11].replace(/'/g, "").replace(/"/g, "") : null,
+          maintenance_mode: values[12] === "'true'" || values[12] === '"true"',
+          contact_email: values[13] !== "null" ? values[13].replace(/'/g, "").replace(/"/g, "") : null,
+          google_analytics_id: values[14] !== "null" ? values[14].replace(/'/g, "").replace(/"/g, "") : null,
+          enable_cookie_consent: values[15] === "'true'" || values[15] === '"true"',
+          enable_https_redirect: values[16] === "'true'" || values[16] === '"true"',
+          max_upload_size: parseInt(values[17]),
+          enable_user_avatars: values[18] === "'true'" || values[18] === '"true"',
+          logo_url: values[19] !== "null" ? values[19].replace(/'/g, "").replace(/"/g, "") : null
+        };
+        
+        setProgress(70);
+        
+        // Try to insert using the from API
+        const { error: insertError } = await targetSupabaseClient
+          .from('site_settings')
+          .insert(siteSettingsData);
+        
+        if (insertError) {
+          console.error("Error inserting site settings:", insertError);
           
-          const { error: insertError } = await targetSupabaseClient
+          // Try to update if record already exists
+          const { error: upsertError } = await targetSupabaseClient
             .from('site_settings')
-            .insert({
-              id: 'c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec',
-              site_title: 'Elloria',
-              default_language: 'en',
-              enable_registration: true,
-              enable_search_indexing: true,
-              homepage_slug: 'index',
-              maintenance_mode: false,
-              contact_email: 'sales@elloria.ca',
-              max_upload_size: 10,
-              enable_user_avatars: false,
-              created_at: '2025-01-26 16:59:44.940264-06',
-              updated_at: '2025-02-13 06:02:08.844257-06'
-            });
-          
-          if (insertError) {
-            console.error("Error inserting site settings:", insertError);
-            throw new Error("Не вдалося вставити налаштування сайту");
+            .upsert(siteSettingsData, { onConflict: 'id' });
+            
+          if (upsertError) {
+            throw new Error("Не вдалося вставити або оновити налаштування сайту");
           }
         }
         
-        toast.success("Налаштування сайту успішно імпортовано");
         setProgress(100);
+        toast.success("Налаштування сайту успішно імпортовано");
         setSetupComplete(true);
       } catch (error) {
         console.error("Error executing site settings SQL:", error);
