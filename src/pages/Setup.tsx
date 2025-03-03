@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,33 +84,58 @@ export default function Setup() {
       // Create actual Supabase client with the provided credentials
       const targetClient = createClient(formData.url, formData.key);
       
-      // Test connection by trying to fetch a list of tables
-      const { data: tableData, error: tableError } = await targetClient
-        .from('pg_catalog.pg_tables')
-        .select('schemaname, tablename')
-        .eq('schemaname', 'public')
-        .limit(5);
-        
-      if (tableError) {
-        console.error("Connection test via pg_tables failed:", tableError);
-        
-        // Try another approach - check for basic auth
-        const { data: authSettings, error: authError } = await targetClient
-          .from('auth.identities')
-          .select('id')
-          .limit(1);
+      // Test connection using multiple methods for better reliability
+      let connectionSuccess = false;
+      
+      // Method 1: Try to fetch table list from pg_catalog
+      try {
+        const { data: tableData, error: tableError } = await targetClient
+          .from('pg_catalog.pg_tables')
+          .select('schemaname, tablename')
+          .eq('schemaname', 'public')
+          .limit(5);
           
-        if (authError) {
-          console.error("Auth test failed:", authError);
-          
-          // Try basic storage check as final fallback
+        if (!tableError) {
+          console.log("Connection test via pg_tables succeeded");
+          connectionSuccess = true;
+        }
+      } catch (err) {
+        console.warn("Connection test via pg_tables failed:", err);
+      }
+      
+      // Method 2: Try to access auth settings
+      if (!connectionSuccess) {
+        try {
+          const { data: authSettings, error: authError } = await targetClient
+            .from('auth.identities')
+            .select('id')
+            .limit(1);
+            
+          if (!authError) {
+            console.log("Connection test via auth.identities succeeded");
+            connectionSuccess = true;
+          }
+        } catch (err) {
+          console.warn("Auth test failed:", err);
+        }
+      }
+      
+      // Method 3: Try storage as final fallback
+      if (!connectionSuccess) {
+        try {
           const { data: storageBuckets, error: storageError } = await targetClient
             .storage
             .listBuckets();
             
-          if (storageError) {
+          if (!storageError) {
+            console.log("Connection test via storage buckets succeeded");
+            connectionSuccess = true;
+          } else {
             throw new Error(`Не вдалося підключитися до Supabase: ${storageError.message}`);
           }
+        } catch (err) {
+          console.error("Storage test failed:", err);
+          throw new Error("Не вдалося встановити з'єднання з проектом Supabase. Перевірте URL та API ключ.");
         }
       }
       
