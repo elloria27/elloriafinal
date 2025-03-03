@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +61,6 @@ export default function Setup() {
     setError(null);
     
     try {
-      // Validate input values
       if (!formData.url.trim()) {
         throw new Error("URL проекту не може бути порожнім");
       }
@@ -71,23 +69,18 @@ export default function Setup() {
         throw new Error("Ключ API не може бути порожнім");
       }
       
-      // Simple URL validation
       if (!formData.url.startsWith('https://')) {
         throw new Error("URL проекту повинен починатися з 'https://'");
       }
       
-      // Simple service role key validation (they tend to be long)
       if (formData.key.length < 30) {
         throw new Error("Ключ API виглядає занадто коротким для service_role ключа");
       }
 
-      // Create actual Supabase client with the provided credentials
       const targetClient = createClient(formData.url, formData.key);
       
-      // Test connection using multiple methods for better reliability
       let connectionSuccess = false;
       
-      // Method 1: Try to fetch table list from pg_catalog
       try {
         const { data: tableData, error: tableError } = await targetClient
           .from('pg_catalog.pg_tables')
@@ -103,7 +96,6 @@ export default function Setup() {
         console.warn("Connection test via pg_tables failed:", err);
       }
       
-      // Method 2: Try to access auth settings
       if (!connectionSuccess) {
         try {
           const { data: authSettings, error: authError } = await targetClient
@@ -120,7 +112,6 @@ export default function Setup() {
         }
       }
       
-      // Method 3: Try storage as final fallback
       if (!connectionSuccess) {
         try {
           const { data: storageBuckets, error: storageError } = await targetClient
@@ -139,7 +130,6 @@ export default function Setup() {
         }
       }
       
-      // If we reach here, one of our tests succeeded
       setTargetSupabaseClient(targetClient);
       toast.success("З'єднання успішно встановлено");
       setCurrentStep("database");
@@ -155,10 +145,8 @@ export default function Setup() {
     const newLog = { ...log, timestamp: new Date().toISOString() };
     setMigrationLogs(prev => [...prev, newLog]);
     
-    // Also console log for debugging
     console.log(`[Migration ${log.operation}] ${log.table}: ${log.status}`, log.details || '');
     
-    // Show toast for errors
     if (log.status === 'error') {
       toast.error(`Помилка при ${getOperationName(log.operation)} таблиці ${log.table}: ${log.details}`);
     }
@@ -177,87 +165,67 @@ export default function Setup() {
     try {
       console.log(`Creating table: ${tableName}`);
       
-      // Check if table already exists
-      const { data: existingTable, error: checkError } = await targetSupabaseClient
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_name', tableName)
-        .eq('table_schema', 'public')
-        .maybeSingle();
-      
-      if (checkError) {
-        console.warn("Error checking table existence:", checkError);
-        // Continue anyway - we'll try to create the table
+      try {
+        const { error: checkError } = await targetSupabaseClient
+          .from(tableName)
+          .select('id')
+          .limit(1);
+          
+        if (!checkError) {
+          console.log(`Table ${tableName} already exists. Skipping creation.`);
+          logMigrationStep({
+            table: tableName,
+            operation: 'create',
+            status: 'success',
+            details: 'Table already exists'
+          });
+          return true;
+        }
+      } catch (error) {
+        console.log(`Table ${tableName} doesn't exist. Will create it.`);
       }
       
-      if (existingTable) {
-        console.log(`Table ${tableName} already exists. Skipping creation.`);
-        logMigrationStep({
-          table: tableName,
-          operation: 'create',
-          status: 'success',
-          details: 'Table already exists'
-        });
-        return true;
-      }
-      
-      // Determine columns from the first item in the schema (if available)
       const sampleItem = schema && schema.length > 0 ? schema[0] : null;
+      if (!sampleItem) {
+        throw new Error(`No sample data provided for table ${tableName}`);
+      }
       
-      // Create our table directly via REST API
-      // We need to insert at least one row to create the table structure
-      const initialObject: Record<string, any> = {
-        id: crypto.randomUUID()
+      const initialItem = {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString()
       };
       
-      // Add basic columns based on the sample data
-      if (sampleItem) {
-        Object.keys(sampleItem).forEach(key => {
-          if (key !== 'id' && key !== 'created_at' && key !== 'updated_at') {
-            // Only include simple properties to avoid JSON parsing issues
-            const value = sampleItem[key];
-            if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-              initialObject[key] = value;
-            } else {
-              initialObject[key] = null; // Set complex objects to null for initial insert
-            }
+      Object.keys(sampleItem).forEach(key => {
+        if (key !== 'id' && key !== 'created_at') {
+          const value = sampleItem[key];
+          if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            initialItem[key] = null;
+          } else {
+            initialItem[key] = value;
           }
-        });
-      }
+        }
+      });
       
-      // Add created_at if not present
-      if (!initialObject.created_at) {
-        initialObject.created_at = new Date().toISOString();
-      }
-      
-      // Create table by inserting first row
-      const { error: insertError } = await targetSupabaseClient
+      const { error } = await targetSupabaseClient
         .from(tableName)
-        .insert([initialObject]);
+        .insert([initialItem]);
         
-      // If the table didn't exist, this would create it with the structure we need
-      if (insertError) {
-        console.error(`Error creating table ${tableName}:`, insertError);
+      if (error) {
+        console.error(`Error creating table ${tableName}:`, error);
         logMigrationStep({
           table: tableName,
           operation: 'create',
           status: 'error',
-          details: insertError.message
+          details: error.message
         });
         return false;
       }
       
-      // Now delete the dummy row we inserted (we'll add real data later)
-      const { error: deleteError } = await targetSupabaseClient
+      await targetSupabaseClient
         .from(tableName)
         .delete()
-        .eq('id', initialObject.id);
+        .eq('id', initialItem.id);
         
-      if (deleteError) {
-        console.warn(`Warning: Could not delete initial row in ${tableName}:`, deleteError);
-        // Not critical, so continue
-      }
-      
       logMigrationStep({
         table: tableName,
         operation: 'create',
@@ -281,34 +249,27 @@ export default function Setup() {
     if (!Array.isArray(tableData) || tableData.length === 0) return true;
     
     try {
-      // Prepare the data by ensuring IDs and handling complex objects
       const cleanData = tableData.map(item => {
-        // Create a copy to avoid modifying the original
-        const cleanItem: Record<string, any> = {};
+        const cleanItem: Record<string, any> = { ...item };
         
-        // Ensure ID is present
-        cleanItem.id = item.id || crypto.randomUUID();
+        if (!cleanItem.id) {
+          cleanItem.id = crypto.randomUUID();
+        }
         
-        // Add created_at if not present
-        cleanItem.created_at = item.created_at || new Date().toISOString();
+        if (!cleanItem.created_at) {
+          cleanItem.created_at = new Date().toISOString();
+        }
         
-        // Process other fields, handling complex objects
-        Object.entries(item).forEach(([key, value]) => {
-          if (key !== 'id' && key !== 'created_at') {
-            if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-              cleanItem[key] = value;
-            } else {
-              // Convert objects to JSON string
-              cleanItem[key] = JSON.stringify(value);
-            }
+        Object.entries(cleanItem).forEach(([key, value]) => {
+          if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            cleanItem[key] = JSON.stringify(value);
           }
         });
         
         return cleanItem;
       });
       
-      // Insert data in smaller batches to reduce API load
-      const batchSize = 5; // Smaller batch size to avoid timeouts
+      const batchSize = 5;
       const totalItems = cleanData.length;
       let successCount = 0;
       
@@ -316,18 +277,13 @@ export default function Setup() {
         const batch = cleanData.slice(i, i + batchSize);
         
         try {
-          // Try inserting the batch
           const { error } = await targetSupabaseClient
             .from(tableName)
-            .upsert(batch, { 
-              onConflict: 'id',
-              ignoreDuplicates: false 
-            });
-          
+            .upsert(batch, { onConflict: 'id' });
+            
           if (error) {
             console.warn(`Batch insert error for ${tableName}:`, error);
             
-            // Try individual inserts if batch fails
             for (const item of batch) {
               try {
                 const { error: singleError } = await targetSupabaseClient
@@ -347,7 +303,6 @@ export default function Setup() {
             successCount += batch.length;
           }
           
-          // Update progress after each batch for better UX
           setProgress(prev => Math.min(prev + 2, 95));
         } catch (batchError) {
           console.error(`Error processing batch for ${tableName}:`, batchError);
@@ -376,47 +331,14 @@ export default function Setup() {
   };
 
   const setupRlsPolicy = async (tableName: string) => {
-    try {
-      // For RLS, we'll use a more compatible approach
-      // First try to query the table to see if it exists
-      const { data, error } = await targetSupabaseClient
-        .from(tableName)
-        .select('id')
-        .limit(1);
-        
-      if (error) {
-        console.warn(`Could not access table ${tableName} for RLS policy:`, error);
-        logMigrationStep({
-          table: tableName,
-          operation: 'policy',
-          status: 'success', // Not failing the whole migration for policy errors
-          details: 'Skipped (table access error)'
-        });
-        return true;
-      }
-      
-      // For setting RLS policies, we'd typically use SQL, but since we can't use
-      // execute_sql, we'll skip this step and note that manual RLS setup will be needed
-      logMigrationStep({
-        table: tableName,
-        operation: 'policy',
-        status: 'success',
-        details: 'Skipped (RLS policies need to be set up manually)'
-      });
-      
-      return true;
-    } catch (err) {
-      console.warn(`Error setting up RLS for ${tableName}:`, err);
-      logMigrationStep({
-        table: tableName,
-        operation: 'policy',
-        status: 'success', // Still marking as success to not fail migration
-        details: 'Skipped due to error - manual setup required'
-      });
-      
-      // Not failing the whole migration for policy errors
-      return true;
-    }
+    logMigrationStep({
+      table: tableName,
+      operation: 'policy',
+      status: 'success',
+      details: 'Skipped (RLS policies need to be set up manually in the Supabase dashboard)'
+    });
+    
+    return true;
   };
 
   const runDatabaseMigration = async () => {
@@ -430,17 +352,14 @@ export default function Setup() {
         throw new Error("Необхідно спочатку встановити з'єднання");
       }
 
-      // Update progress to show we've started
       setProgress(5);
       
-      // Get database schema from the exported data
       const schema: DatabaseSchema = databaseExportData;
       console.log("Database schema to import:", schema);
       
       let currentProgress = 10;
       setProgress(currentProgress);
       
-      // Create a logs table first to track our progress
       try {
         await createTable('migration_logs', [
           {
@@ -456,47 +375,39 @@ export default function Setup() {
         console.warn("Could not create migration logs table:", logErr);
       }
       
-      // Get all table names from the schema
       const tableNames = Object.keys(schema);
       const totalTables = tableNames.length;
       console.log("Tables to create:", tableNames);
       
-      // First, create all tables
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         const tableData = schema[tableName];
         
         await createTable(tableName, tableData);
         
-        // Update progress for each table
         currentProgress = 10 + Math.floor((i + 1) / totalTables * 30);
         setProgress(currentProgress);
       }
       
-      // Now insert data into all tables
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         const tableData = schema[tableName];
         
         await insertDataWithBatching(tableName, tableData);
         
-        // Update progress for data insertion
         currentProgress = 40 + Math.floor((i + 1) / totalTables * 30);
         setProgress(currentProgress);
       }
       
-      // Finally, note about RLS policies
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         
         await setupRlsPolicy(tableName);
         
-        // Update progress for policies
         currentProgress = 70 + Math.floor((i + 1) / totalTables * 25);
         setProgress(currentProgress);
       }
       
-      // Final progress update
       setProgress(100);
       
       toast.success("Базу даних успішно імпортовано");
