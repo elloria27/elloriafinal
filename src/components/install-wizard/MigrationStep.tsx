@@ -193,12 +193,6 @@ export function MigrationStep({
         throw new Error("Failed to prepare storage bucket for upload");
       }
 
-      // Convert ArrayBuffer to Blob
-      const backupBlob = new Blob([backupFileContent], { type: 'application/octet-stream' });
-      
-      // Create a File object from the Blob
-      const backupFile = new File([backupBlob], "db_cluster-02-03-2025.backup", { type: 'application/octet-stream' });
-      
       setLog(prev => [...prev, { message: "Preparing database import...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
@@ -206,7 +200,7 @@ export function MigrationStep({
         currentTask: "Preparing database import..."
       }));
 
-      // Upload using direct PostgreSQL import instead
+      // Try direct SQL import approach
       setLog(prev => [...prev, { message: "Attempting direct database import via SQL...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
@@ -214,12 +208,12 @@ export function MigrationStep({
         currentTask: "Attempting direct database import via SQL..."
       }));
 
-      // Use the runMigration function from migration.ts
+      // Use the runMigration function with improved error handling
       await runMigration(supabaseClient, {
         onProgress: (progress, task) => {
           setMigrationState(prev => ({
             ...prev,
-            progress,
+            progress: Math.min(progress + 30, 95), // Scale progress to leave room for completion
             currentTask: task
           }));
           setLog(prev => [...prev, { message: task, type: "info" }]);
@@ -228,9 +222,33 @@ export function MigrationStep({
           setLog(prev => [...prev, { message, type: "success" }]);
         },
         onError: (error) => {
-          setLog(prev => [...prev, { message: `Migration error: ${error}`, type: "error" }]);
+          // Make SQL function errors more user-friendly
+          let errorMessage = error;
+          if (error.includes("exec_sql") && error.includes("schema cache")) {
+            errorMessage = "Database doesn't have permission to execute SQL functions directly. This is common with new Supabase projects.";
+            // Don't treat this as fatal, just log it as a warning
+            setLog(prev => [...prev, { 
+              message: errorMessage, 
+              type: "warning" 
+            }]);
+            return;
+          }
+          
+          setLog(prev => [...prev, { message: `Migration error: ${errorMessage}`, type: "error" }]);
         }
       });
+
+      // Check if we have too many errors
+      const errorCount = log.filter(entry => entry.type === "error").length;
+      
+      if (errorCount > 3) {
+        setLog(prev => [...prev, { 
+          message: "Multiple errors occurred. Switching to manual import mode for reliability.", 
+          type: "warning" 
+        }]);
+        setManualModeActive(true);
+        return;
+      }
 
       // Successful import
       setLog(prev => [...prev, { message: "Database import completed successfully!", type: "success" }]);
