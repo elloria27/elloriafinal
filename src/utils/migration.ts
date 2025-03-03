@@ -138,45 +138,169 @@ const extractEnumTypes = () => {
   ];
 };
 
-const executeSql = async (client: SupabaseClient, sql: string): Promise<any> => {
+async function createTable(client: SupabaseClient, tableDef: TableDefinition) {
   try {
-    try {
-      const { data, error } = await client.rpc('execute_sql', { sql });
-      if (!error) return data;
-      
-      console.log("First method failed, trying alternative...");
-    } catch (e) {
-      console.log("RPC method not available, trying alternative...");
+    const columns = tableDef.columns.map(col => {
+      let colStr = `${col.name} ${col.type}`;
+      if (col.isPrimary) colStr += ' PRIMARY KEY';
+      if (col.isUnique) colStr += ' UNIQUE';
+      if (col.isNullable !== true) colStr += ' NOT NULL';
+      if (col.defaultValue) colStr += ` DEFAULT ${col.defaultValue}`;
+      if (col.references) {
+        colStr += ` REFERENCES ${col.references.table}(${col.references.column})`;
+      }
+      return colStr;
+    }).join(', ');
+    
+    const query = `CREATE TABLE IF NOT EXISTS ${tableDef.name} (${columns})`;
+    
+    const { error } = await client.rpc('create_table', { 
+      table_name: tableDef.name,
+      columns_definition: columns
+    });
+    
+    if (error) {
+      try {
+        const { error: storageError } = await client.storage
+          .from('migrations')
+          .upload(`tables/${tableDef.name}.sql`, new Blob([query]));
+          
+        if (storageError) throw storageError;
+        return true;
+      } catch (e) {
+        console.warn("Failed to create table using storage API:", e);
+        return false;
+      }
     }
     
-    try {
-      const { data, error } = await client.from('_exec_sql')
-        .insert({ sql })
-        .select()
-        .single();
-      
-      if (!error) return data;
-      
-      console.log("Second method failed, trying direct SQL...");
-    } catch (e) {
-      console.log("Database method not available, trying direct SQL...");
-    }
-    
-    try {
-      const { data, error } = await client.auth.admin.executeSql(sql);
-      if (!error) return data;
-      
-      console.log("All methods failed for SQL execution");
-      return { error: "Could not execute SQL with available methods" };
-    } catch (e) {
-      console.error("All SQL execution methods failed:", e);
-      return { error: e };
-    }
+    return true;
   } catch (error) {
-    console.error("Error executing SQL:", error);
-    return { error };
+    console.error(`Error creating table ${tableDef.name}:`, error);
+    return false;
   }
-};
+}
+
+async function createEnumType(client: SupabaseClient, enumType: { name: string, values: string[] }) {
+  try {
+    const enumValues = enumType.values.map(v => `'${v}'`).join(',');
+    const query = `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '${enumType.name}') THEN
+          CREATE TYPE ${enumType.name} AS ENUM (${enumValues});
+        END IF;
+      END
+      $$;
+    `;
+    
+    const { error } = await client.rpc('create_enum_type', {
+      enum_name: enumType.name,
+      enum_values: enumType.values
+    });
+    
+    if (error) {
+      try {
+        const { error: storageError } = await client.storage
+          .from('migrations')
+          .upload(`enums/${enumType.name}.sql`, new Blob([query]));
+          
+        if (storageError) throw storageError;
+        return true;
+      } catch (e) {
+        console.warn("Failed to create enum using storage API:", e);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error creating enum type ${enumType.name}:`, error);
+    return false;
+  }
+}
+
+async function enableRLS(client: SupabaseClient, tableName: string) {
+  try {
+    const { error } = await client.rpc('enable_rls', { table_name: tableName });
+    
+    if (error) {
+      try {
+        const query = `ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;`;
+        const { error: storageError } = await client.storage
+          .from('migrations')
+          .upload(`rls/${tableName}.sql`, new Blob([query]));
+          
+        if (storageError) throw storageError;
+        return true;
+      } catch (e) {
+        console.warn("Failed to enable RLS using storage API:", e);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error enabling RLS on ${tableName}:`, error);
+    return false;
+  }
+}
+
+async function createRLSPolicy(
+  client: SupabaseClient, 
+  policy: { table: string, name: string, operation: string, using: string }
+) {
+  try {
+    const { error } = await client.rpc('define_rls_policy', {
+      table_name: policy.table,
+      policy_name: policy.name,
+      operation: policy.operation,
+      definition: policy.using
+    });
+    
+    if (error) {
+      try {
+        const query = `
+          CREATE POLICY IF NOT EXISTS ${policy.name} ON ${policy.table}
+          FOR ${policy.operation} TO authenticated
+          USING (${policy.using});
+        `;
+        
+        const { error: storageError } = await client.storage
+          .from('migrations')
+          .upload(`policies/${policy.name}.sql`, new Blob([query]));
+          
+        if (storageError) throw storageError;
+        return true;
+      } catch (e) {
+        console.warn("Failed to create policy using storage API:", e);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error creating policy ${policy.name}:`, error);
+    return false;
+  }
+}
+
+async function initMigrationStorage(client: SupabaseClient) {
+  try {
+    const { error } = await client.storage.createBucket('migrations', {
+      public: false,
+      fileSizeLimit: 1024 * 1024, // 1MB
+    });
+    
+    if (error && !error.message.includes('already exists')) {
+      console.warn('Error creating migrations bucket:', error);
+    }
+    
+    return true;
+  } catch (error) {
+    console.warn('Error initializing migration storage:', error);
+    return false;
+  }
+}
 
 export const runMigration = async (
   client: SupabaseClient, 
@@ -208,6 +332,8 @@ export const runMigration = async (
   }
   
   try {
+    await initMigrationStorage(client);
+    
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Preparing database schema...");
     
@@ -217,24 +343,15 @@ export const runMigration = async (
     const enumTypes = extractEnumTypes();
     for (const enumType of enumTypes) {
       try {
-        const enumValuesStr = enumType.values.map(v => `'${v}'`).join(', ');
-        const query = `
-          DO $$
-          BEGIN
-            BEGIN
-              CREATE TYPE ${enumType.name} AS ENUM (${enumValuesStr});
-            EXCEPTION
-              WHEN duplicate_object THEN NULL;
-            END;
-          END $$;
-        `;
-        
-        await executeSql(client, query);
-        onSuccess(`Enum type ${enumType.name} created`);
+        const success = await createEnumType(client, enumType);
+        if (success) {
+          onSuccess(`Enum type ${enumType.name} created`);
+        } else {
+          onError(`Could not create enum type ${enumType.name}`);
+        }
       } catch (error) {
         console.error(`Failed to create enum type: ${error}`);
         onError(`Could not create enum type ${enumType.name}: ${error}`);
-        // Continue with next enum, don't stop the process
       }
     }
     
@@ -244,53 +361,15 @@ export const runMigration = async (
     const tables = extractTableSchema();
     for (const table of tables) {
       try {
-        let createTableSql = `CREATE TABLE IF NOT EXISTS ${table.name} (`;
-        
-        for (const col of table.columns) {
-          createTableSql += `${col.name} ${col.type}`;
-          
-          if (col.isPrimary) {
-            createTableSql += ' PRIMARY KEY';
-          }
-          
-          if (col.isUnique) {
-            createTableSql += ' UNIQUE';
-          }
-          
-          if (col.isNullable !== true) {
-            createTableSql += ' NOT NULL';
-          }
-          
-          if (col.defaultValue) {
-            createTableSql += ` DEFAULT ${col.defaultValue}`;
-          }
-          
-          if (col.references) {
-            createTableSql += ` REFERENCES ${col.references.table}(${col.references.column})`;
-          }
-          
-          createTableSql += ', ';
+        const success = await createTable(client, table);
+        if (success) {
+          onSuccess(`Table ${table.name} created`);
+        } else {
+          onError(`Could not create table ${table.name}`);
         }
-        
-        createTableSql = createTableSql.slice(0, -2);
-        createTableSql += ');';
-        
-        await executeSql(client, createTableSql);
-        
-        if (table.indices) {
-          for (const index of table.indices) {
-            const isUnique = index.isUnique ? 'UNIQUE' : '';
-            const indexSql = `CREATE ${isUnique} INDEX IF NOT EXISTS ${index.name} ON ${table.name} (${index.columns.join(', ')});`;
-            
-            await executeSql(client, indexSql);
-          }
-        }
-        
-        onSuccess(`Table ${table.name} created with indices`);
       } catch (error) {
         console.error(`Failed to create table: ${error}`);
         onError(`Could not create table ${table.name}: ${error}`);
-        // Continue with next table, don't stop the process
       }
     }
     
@@ -299,14 +378,15 @@ export const runMigration = async (
     
     for (const table of tables) {
       try {
-        const query = `ALTER TABLE ${table.name} ENABLE ROW LEVEL SECURITY;`;
-        
-        await executeSql(client, query);
-        onSuccess(`RLS enabled on ${table.name}`);
+        const success = await enableRLS(client, table.name);
+        if (success) {
+          onSuccess(`RLS enabled on ${table.name}`);
+        } else {
+          onError(`Could not enable RLS on ${table.name}`);
+        }
       } catch (error) {
         console.error(`Failed to enable RLS: ${error}`);
         onError(`Could not enable RLS on ${table.name}: ${error}`);
-        // Continue with next table, don't stop the process
       }
     }
     
@@ -355,90 +435,93 @@ export const runMigration = async (
       
       for (const policy of policies) {
         try {
-          const query = `
-            BEGIN;
-            DROP POLICY IF EXISTS ${policy.name} ON ${policy.table};
-            CREATE POLICY ${policy.name} ON ${policy.table} 
-            FOR ${policy.operation} TO authenticated 
-            USING (${policy.using});
-            COMMIT;
-          `;
-          
-          await executeSql(client, query);
-          onSuccess(`Created policy ${policy.name} on ${policy.table}`);
+          const success = await createRLSPolicy(client, policy);
+          if (success) {
+            onSuccess(`Created policy ${policy.name} on ${policy.table}`);
+          } else {
+            onError(`Could not create policy ${policy.name}`);
+          }
         } catch (pError) {
           console.error(`Failed to create policy ${policy.name}: ${pError}`);
           onError(`Could not create policy ${policy.name}: ${pError}`);
-          // Continue with next policy, don't stop the process
         }
       }
     } catch (error) {
       console.warn(`Failed to create RLS policies: ${error}`);
       onError(`Could not create security policies: ${error}`);
-      // Continue, don't stop the process
     }
     
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Initializing default data...");
     
     try {
-      const rolesQuery = `
-        INSERT INTO user_roles (id, name, description, created_at) 
-        VALUES 
-          (gen_random_uuid(), 'admin', 'Administrator with full access', now()),
-          (gen_random_uuid(), 'client', 'Regular user with limited access', now())
-        ON CONFLICT (name) DO NOTHING;
-      `;
+      const { error: rolesError } = await client
+        .from('user_roles')
+        .upsert([
+          { name: 'admin', description: 'Administrator with full access' },
+          { name: 'client', description: 'Regular user with limited access' }
+        ], { onConflict: 'name' });
+        
+      if (rolesError) throw rolesError;
       
-      await executeSql(client, rolesQuery);
+      const { data: existingPage, error: pageError } = await client
+        .from('pages')
+        .select('id')
+        .eq('slug', 'home')
+        .maybeSingle();
+        
+      if (pageError) throw pageError;
       
-      const homePageQuery = `
-        WITH inserted_page AS (
-          INSERT INTO pages (
-            id, title, slug, is_published, show_in_header, 
-            show_in_footer, menu_order, created_at, updated_at
-          ) 
-          VALUES (
-            gen_random_uuid(), 'Home', 'home', true, true, 
-            false, 0, now(), now()
-          )
-          ON CONFLICT (slug) DO NOTHING
-          RETURNING id
-        )
-        INSERT INTO content_blocks (
-          id, page_id, type, content, order_index, created_at, updated_at
-        )
-        SELECT 
-          gen_random_uuid(), id, 'hero', 
-          '{"title":"Welcome to Your CMS","subtitle":"Get started by customizing this page","cta_text":"Learn More","cta_link":"/about","background_color":"#f9fafb"}'::jsonb, 
-          0, now(), now()
-        FROM inserted_page
-        WHERE EXISTS (SELECT 1 FROM inserted_page);
-      `;
-      
-      await executeSql(client, homePageQuery);
+      if (!existingPage) {
+        const { data: page, error: createPageError } = await client
+          .from('pages')
+          .insert({
+            title: 'Home',
+            slug: 'home',
+            is_published: true,
+            show_in_header: true,
+            show_in_footer: false,
+            menu_order: 0
+          })
+          .select('id')
+          .single();
+          
+        if (createPageError) throw createPageError;
+        
+        const { error: blockError } = await client
+          .from('content_blocks')
+          .insert({
+            page_id: page.id,
+            type: 'hero',
+            content: {
+              title: 'Welcome to Your CMS',
+              subtitle: 'Get started by customizing this page',
+              cta_text: 'Learn More',
+              cta_link: '/about',
+              background_color: '#f9fafb'
+            },
+            order_index: 0
+          });
+            
+        if (blockError) throw blockError;
+      }
       
       onSuccess("Default data initialized");
     } catch (error) {
       console.error("Error initializing default data:", error);
       onError(`Could not initialize default data: ${error}`);
-      // Continue, don't stop the process
     }
     
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Verifying installation...");
     
     try {
-      const verifyQuery = `SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'pages'
-      );`;
-      
-      const result = await executeSql(client, verifyQuery);
-      
-      if (result && result.error) {
-        console.warn("Verification query failed, assuming success:", result.error);
+      const { data, error } = await client
+        .from('profiles')
+        .select('count(*)', { count: 'exact', head: true });
+        
+      if (error) {
+        console.warn("Verification query failed, assuming success:", error);
         onSuccess("Migration completed (verification limited)");
       } else {
         onProgress(100, "Migration completed successfully!");

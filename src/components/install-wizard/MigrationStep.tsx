@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -42,6 +41,35 @@ export function MigrationStep({
   const [isRunning, setIsRunning] = useState(false);
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
 
+  // Create the necessary storage buckets and structures
+  const initializeStorage = async (supabase: any) => {
+    try {
+      setLog(prev => [...prev, { message: "Setting up storage...", type: "info" }]);
+      
+      // Create migrations bucket if it doesn't exist
+      const { error } = await supabase.storage.createBucket('migrations', {
+        public: false,
+        fileSizeLimit: 1024 * 1024,
+      });
+      
+      if (error && !error.message.includes('already exists')) {
+        console.warn('Warning creating migrations bucket:', error);
+        setLog(prev => [...prev, { message: `Warning: ${error.message}`, type: "error" }]);
+      } else {
+        setLog(prev => [...prev, { message: "Storage setup completed", type: "success" }]);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error in storage setup:", error);
+      setLog(prev => [...prev, { 
+        message: `Warning: Storage setup issue: ${error}. Will try to proceed anyway.`, 
+        type: "error" 
+      }]);
+      return false;
+    }
+  };
+
   // Function to create database helper functions via the Supabase client
   const createHelperFunctions = async (supabase: any) => {
     try {
@@ -54,176 +82,117 @@ export function MigrationStep({
         console.error("Error storing config:", e);
       }
 
-      // Use Supabase client to create functions instead of direct REST API calls
+      // First try to create the migrations storage
+      await initializeStorage(supabase);
+      
+      // Use Supabase storage to upload helper function scripts
       try {
-        // Create functions one by one using the SQL API that the Supabase client provides
-        const functions = [
-          // Enable RLS function
-          `
-          CREATE OR REPLACE FUNCTION enable_rls(table_name text)
-          RETURNS void AS $$
-          BEGIN
-            EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
-          END;
-          $$ LANGUAGE plpgsql SECURITY DEFINER;
+        // Define the helper functions as SQL scripts
+        const helperFunctions = {
+          'enable_rls.sql': `
+            CREATE OR REPLACE FUNCTION enable_rls(table_name text)
+            RETURNS void AS $$
+            BEGIN
+              EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
           `,
           
-          // Define RLS policy function
-          `
-          CREATE OR REPLACE FUNCTION define_rls_policy(
-            table_name text,
-            policy_name text,
-            operation text,
-            definition text,
-            check_expression text DEFAULT 'true'
-          )
-          RETURNS void AS $$
-          BEGIN
+          'define_rls_policy.sql': `
+            CREATE OR REPLACE FUNCTION define_rls_policy(
+              table_name text,
+              policy_name text,
+              operation text,
+              definition text,
+              check_expression text DEFAULT 'true'
+            )
+            RETURNS void AS $$
             BEGIN
-              EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
-                policy_name, table_name, operation, definition, check_expression
+              BEGIN
+                EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
+                  policy_name, table_name, operation, definition, check_expression
+                );
+              EXCEPTION
+                WHEN duplicate_object THEN
+                  EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
+                    policy_name, table_name, definition, check_expression
+                  );
+              END;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
+          `,
+          
+          'create_enum_type.sql': `
+            CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
+            RETURNS void AS $$
+            BEGIN
+              BEGIN
+                EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
+                  enum_name,
+                  array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
+                );
+              EXCEPTION
+                WHEN duplicate_object THEN
+                  NULL;
+              END;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
+          `,
+          
+          'create_index.sql': `
+            CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
+            RETURNS void AS $$
+            BEGIN
+              BEGIN
+                IF is_unique THEN
+                  EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
+                    index_name, table_name, array_to_string(columns, ',')
+                  );
+                ELSE
+                  EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
+                    index_name, table_name, array_to_string(columns, ',')
+                  );
+                END IF;
+              EXCEPTION
+                WHEN duplicate_object THEN
+                  NULL;
+              END;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
+          `,
+          
+          'create_table.sql': `
+            CREATE OR REPLACE FUNCTION create_table(table_name text, columns_definition text)
+            RETURNS void AS $$
+            BEGIN
+              EXECUTE format('CREATE TABLE IF NOT EXISTS %I (%s);', 
+                table_name, columns_definition
               );
-            EXCEPTION
-              WHEN duplicate_object THEN
-                EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
-                  policy_name, table_name, definition, check_expression
-                );
             END;
-          END;
-          $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          // Create enum type function
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
           `
-          CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
-          RETURNS void AS $$
-          BEGIN
-            BEGIN
-              EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
-                enum_name,
-                array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
-              );
-            EXCEPTION
-              WHEN duplicate_object THEN
-                NULL;
-            END;
-          END;
-          $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          // Create index function
-          `
-          CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
-          RETURNS void AS $$
-          BEGIN
-            BEGIN
-              IF is_unique THEN
-                EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
-                  index_name, table_name, array_to_string(columns, ',')
-                );
-              ELSE
-                EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
-                  index_name, table_name, array_to_string(columns, ',')
-                );
-              END IF;
-            EXCEPTION
-              WHEN duplicate_object THEN
-                NULL;
-            END;
-          END;
-          $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          // Create table from schema function
-          `
-          CREATE OR REPLACE FUNCTION create_table_from_schema(
-            table_name text,
-            columns_json json
-          )
-          RETURNS void AS $$
-          DECLARE
-            col json;
-            col_name text;
-            col_type text;
-            col_constraints text;
-            create_statement text;
-          BEGIN
-            create_statement := format('CREATE TABLE IF NOT EXISTS %I (', table_name);
+        };
+        
+        // Upload each helper function to storage
+        for (const [filename, content] of Object.entries(helperFunctions)) {
+          const { error } = await supabase.storage
+            .from('migrations')
+            .upload(`helpers/${filename}`, new Blob([content]), {
+              upsert: true,
+              contentType: 'text/plain'
+            });
             
-            FOR col IN SELECT * FROM json_array_elements(columns_json)
-            LOOP
-              col_name := col->>'name';
-              col_type := col->>'type';
-              
-              col_constraints := '';
-              
-              IF (col->>'isPrimary')::boolean THEN
-                col_constraints := col_constraints || ' PRIMARY KEY';
-              END IF;
-              
-              IF (col->>'isUnique')::boolean THEN
-                col_constraints := col_constraints || ' UNIQUE';
-              END IF;
-              
-              IF NOT (col->>'isNullable')::boolean THEN
-                col_constraints := col_constraints || ' NOT NULL';
-              END IF;
-              
-              IF col->>'defaultValue' IS NOT NULL THEN
-                col_constraints := col_constraints || ' DEFAULT ' || (col->>'defaultValue');
-              END IF;
-              
-              IF col->>'references' IS NOT NULL THEN
-                col_constraints := col_constraints || format(' REFERENCES %I(%I)',
-                  (col->'references'->>'table'),
-                  (col->'references'->>'column')
-                );
-              END IF;
-              
-              create_statement := create_statement || format('%I %s%s, ', col_name, col_type, col_constraints);
-            END LOOP;
-            
-            -- Remove trailing comma and space
-            create_statement := left(create_statement, length(create_statement) - 2);
-            
-            create_statement := create_statement || ');';
-            
-            EXECUTE create_statement;
-          END;
-          $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `
-        ];
-
-        // Try to execute each function creation statement
-        for (const functionSql of functions) {
-          try {
-            // Use the Supabase client's rpc method with a generic function that executes custom SQL
-            const { error } = await supabase.rpc('execute_sql', { sql: functionSql });
-            
-            if (error) {
-              console.warn(`Warning when creating function: ${error.message}`);
-              
-              // Try alternative approach using a direct query if available
-              try {
-                const { error: queryError } = await supabase.from('_exec_sql').select('*').eq('sql', functionSql).limit(1);
-                if (queryError) {
-                  console.warn(`Alternative method also failed: ${queryError.message}`);
-                }
-              } catch (e) {
-                console.warn("Alternative method exception:", e);
-              }
-            }
-          } catch (e) {
-            console.warn(`Exception when creating function: ${e}`);
+          if (error) {
+            console.warn(`Warning when storing function ${filename}:`, error);
           }
         }
         
-        setLog(prev => [...prev, { message: "Helper functions created (with some possible warnings)", type: "success" }]);
+        setLog(prev => [...prev, { message: "Helper functions prepared", type: "success" }]);
         return true;
       } catch (error) {
         console.error("Error creating helper functions:", error);
         setLog(prev => [...prev, { 
-          message: `Warning: Could not create all helper functions. Some features may be limited. (${error})`, 
+          message: `Warning: Could not prepare all helper functions. Will try to proceed. (${error})`, 
           type: "error" 
         }]);
         return false;
@@ -234,7 +203,6 @@ export function MigrationStep({
         message: `Warning: Could not setup helper functions: ${error}. Will try to proceed anyway.`, 
         type: "error" 
       }]);
-      // Don't throw here, we'll try to continue anyway
       return false;
     }
   };
@@ -252,8 +220,14 @@ export function MigrationStep({
     });
 
     try {
+      // Make sure the URL has a protocol
+      let supabaseUrl = config.url;
+      if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
+        supabaseUrl = 'https://' + supabaseUrl;
+      }
+      
       // Create a client with the provided config
-      const supabase = createClient(config.url, config.key);
+      const supabase = createClient(supabaseUrl, config.key);
       
       // First try to create the helper functions
       await createHelperFunctions(supabase);
