@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,12 +14,10 @@ import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 
-type SupportedLanguage = Database['public']['Enums']['supported_language'];
-
 type SiteSettings = {
   id: string;
   site_title: string;
-  default_language: SupportedLanguage;
+  default_language: Database['public']['Enums']['supported_language'];
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
@@ -30,15 +27,7 @@ type SiteSettings = {
   updated_at: string;
   homepage_slug: string;
   logo_url: string | null;
-  max_upload_size: number | null;
-  enable_cookie_consent: boolean | null;
-  enable_https_redirect: boolean | null;
-  enable_user_avatars: boolean | null;
-  contact_email: string | null;
-  google_analytics_id: string | null;
-  favicon_url: string | null;
-  maintenance_mode: boolean | null;
-};
+}
 
 export default function SiteSettings() {
   const navigate = useNavigate();
@@ -95,35 +84,19 @@ export default function SiteSettings() {
       const { data, error } = await supabase
         .from('site_settings')
         .select('*')
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
 
       console.log('Settings loaded:', data);
       
-      if (data) {
-        // Transform the data to match our expected types
-        setSettings({
-          ...data,
-          default_language: (data.default_language as SupportedLanguage) || "en",
-          custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
-          homepage_slug: data.homepage_slug || '',
-          logo_url: data.logo_url || null
-        });
-      } else {
-        // Create default settings if none exist
-        const defaultSettings: Partial<SiteSettings> = {
-          site_title: 'My Website',
-          default_language: "en",
-          enable_registration: true,
-          enable_search_indexing: true,
-          custom_scripts: [],
-          homepage_slug: '',
-          logo_url: null
-        };
-        
-        setSettings(defaultSettings as SiteSettings);
-      }
+      // Transform the data to match our expected types
+      setSettings({
+        ...data,
+        custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
+        homepage_slug: data.homepage_slug || '',
+        logo_url: data.logo_url || null
+      });
     } catch (error) {
       console.error('Error loading settings:', error);
       toast.error("Error loading site settings");
@@ -155,73 +128,24 @@ export default function SiteSettings() {
       setSaving(true);
       console.log('Saving settings:', settings);
 
-      // Check if settings record already exists
-      const { data: existingSettings, error: checkError } = await supabase
+      const { error } = await supabase
         .from('site_settings')
-        .select('id')
-        .maybeSingle();
+        .update({
+          site_title: settings.site_title,
+          default_language: settings.default_language,
+          enable_registration: settings.enable_registration,
+          enable_search_indexing: settings.enable_search_indexing,
+          meta_description: settings.meta_description,
+          meta_keywords: settings.meta_keywords,
+          custom_scripts: settings.custom_scripts,
+          homepage_slug: settings.homepage_slug
+        })
+        .eq('id', settings.id);
 
-      if (checkError) throw checkError;
-
-      let saveError;
-      
-      if (existingSettings) {
-        // Update existing settings
-        const { error } = await supabase
-          .from('site_settings')
-          .update({
-            site_title: settings.site_title,
-            default_language: settings.default_language,
-            enable_registration: settings.enable_registration,
-            enable_search_indexing: settings.enable_search_indexing,
-            meta_description: settings.meta_description,
-            meta_keywords: settings.meta_keywords,
-            custom_scripts: settings.custom_scripts,
-            homepage_slug: settings.homepage_slug,
-            contact_email: settings.contact_email,
-            google_analytics_id: settings.google_analytics_id,
-            max_upload_size: settings.max_upload_size ? Number(settings.max_upload_size) : null,
-            enable_cookie_consent: settings.enable_cookie_consent,
-            enable_https_redirect: settings.enable_https_redirect,
-            enable_user_avatars: settings.enable_user_avatars,
-            maintenance_mode: settings.maintenance_mode
-          })
-          .eq('id', existingSettings.id);
-          
-        saveError = error;
-      } else {
-        // Insert new settings
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({
-            site_title: settings.site_title,
-            default_language: settings.default_language,
-            enable_registration: settings.enable_registration,
-            enable_search_indexing: settings.enable_search_indexing,
-            meta_description: settings.meta_description,
-            meta_keywords: settings.meta_keywords,
-            custom_scripts: settings.custom_scripts,
-            homepage_slug: settings.homepage_slug,
-            logo_url: settings.logo_url,
-            contact_email: settings.contact_email,
-            google_analytics_id: settings.google_analytics_id,
-            max_upload_size: settings.max_upload_size ? Number(settings.max_upload_size) : null,
-            enable_cookie_consent: settings.enable_cookie_consent,
-            enable_https_redirect: settings.enable_https_redirect,
-            enable_user_avatars: settings.enable_user_avatars,
-            maintenance_mode: settings.maintenance_mode
-          });
-          
-        saveError = error;
-      }
-
-      if (saveError) throw saveError;
+      if (error) throw error;
 
       toast.success("Settings saved successfully");
       console.log('Settings saved successfully');
-      
-      // Reload settings to ensure we have the latest data
-      await loadSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
       toast.error("Error saving settings");
@@ -502,7 +426,7 @@ export default function SiteSettings() {
                 <Label htmlFor="default_language" className="text-base font-medium">Default Language</Label>
                 <Select 
                   value={settings.default_language}
-                  onValueChange={(value: SupportedLanguage) => setSettings({ ...settings, default_language: value })}
+                  onValueChange={(value: 'en' | 'fr' | 'uk') => setSettings({ ...settings, default_language: value })}
                 >
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Select language" />

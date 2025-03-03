@@ -197,8 +197,7 @@ export const PreviewPane = ({
               return <BusinessContact content={block.content} />;
 
             case 'hero':
-              const previewContent = block.content as unknown as HeroContent;
-              return <HomeHero content={previewContent} />;
+              return <HomeHero content={block.content} />;
 
             case 'features':
               return <Features content={block.content} />;
