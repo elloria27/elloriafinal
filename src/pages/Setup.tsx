@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Database, AlertCircle, ArrowRight, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import databaseExportData from "@/utils/database_export.json";
 
 const steps = [
   { id: "connect", title: "Підключення" },
@@ -47,7 +47,6 @@ export default function Setup() {
     setError(null);
     
     try {
-      // В реальному випадку тут буде логіка перевірки підключення
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success("З'єднання успішно встановлено");
@@ -66,7 +65,6 @@ export default function Setup() {
     setProgress(0);
     
     try {
-      // Імітація процесу міграції бази даних
       for (let i = 1; i <= 10; i++) {
         await new Promise(resolve => setTimeout(resolve, 600));
         setProgress(i * 10);
@@ -88,19 +86,8 @@ export default function Setup() {
     try {
       setLoading(true);
       
-      // Використовуємо Edge Function для отримання схеми бази даних
-      const { data: schemaData, error: schemaError } = await supabase.functions.invoke('get-database-schema', {
-        method: 'POST',
-        body: { sourceUrl: databaseUrl }
-      });
-      
-      if (schemaError) throw schemaError;
-      
-      // Створюємо файл для завантаження
       const databaseSchema = {
-        tables: schemaData?.tables || [],
-        functions: schemaData?.functions || [],
-        policies: schemaData?.policies || [],
+        ...databaseExportData,
         timestamp: new Date().toISOString()
       };
       
