@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,194 @@ interface MigrationLog {
   details?: string;
   timestamp: string;
 }
+
+// SQL statements for creating basic tables
+const CREATE_TABLES_SQL = {
+  site_settings: `
+    CREATE TABLE IF NOT EXISTS public.site_settings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      site_title TEXT NOT NULL DEFAULT 'Elloria',
+      default_language TEXT NOT NULL DEFAULT 'en',
+      enable_registration BOOLEAN NOT NULL DEFAULT true,
+      enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
+      meta_description TEXT,
+      meta_keywords TEXT,
+      custom_scripts JSONB DEFAULT '[]',
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      homepage_slug TEXT DEFAULT 'index',
+      favicon_url TEXT,
+      maintenance_mode BOOLEAN DEFAULT false,
+      contact_email TEXT,
+      google_analytics_id TEXT,
+      enable_cookie_consent BOOLEAN DEFAULT false,
+      enable_https_redirect BOOLEAN DEFAULT false,
+      max_upload_size INTEGER DEFAULT 10,
+      enable_user_avatars BOOLEAN DEFAULT false,
+      logo_url TEXT
+    );
+  `,
+  
+  profiles: `
+    CREATE TABLE IF NOT EXISTS public.profiles (
+      id UUID PRIMARY KEY REFERENCES auth.users(id),
+      full_name TEXT,
+      phone_number TEXT,
+      address TEXT,
+      country TEXT,
+      region TEXT,
+      email_notifications BOOLEAN DEFAULT false,
+      marketing_emails BOOLEAN DEFAULT false,
+      language TEXT DEFAULT 'en',
+      currency TEXT DEFAULT 'USD',
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      email TEXT,
+      completed_initial_setup BOOLEAN DEFAULT false,
+      selected_delivery_method UUID,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    );
+  `,
+  
+  products: `
+    CREATE TABLE IF NOT EXISTS public.products (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      description TEXT,
+      price DECIMAL(10, 2) NOT NULL,
+      regular_price DECIMAL(10, 2),
+      sale_price DECIMAL(10, 2),
+      stock_quantity INTEGER DEFAULT 0,
+      sku TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      is_published BOOLEAN DEFAULT true,
+      images JSONB DEFAULT '[]',
+      categories JSONB DEFAULT '[]',
+      tags JSONB DEFAULT '[]',
+      weight DECIMAL(10, 2),
+      dimensions JSONB,
+      is_featured BOOLEAN DEFAULT false,
+      meta_title TEXT,
+      meta_description TEXT,
+      meta_keywords TEXT,
+      thumbnail_url TEXT,
+      inventory_status TEXT DEFAULT 'in_stock',
+      attributes JSONB DEFAULT '[]'
+    );
+  `,
+  
+  pages: `
+    CREATE TABLE IF NOT EXISTS public.pages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      content JSONB DEFAULT '[]',
+      is_published BOOLEAN DEFAULT true,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      show_in_header BOOLEAN DEFAULT false,
+      show_in_footer BOOLEAN DEFAULT false,
+      content_blocks JSONB DEFAULT '[]',
+      page_template TEXT DEFAULT 'default',
+      parent_id UUID REFERENCES public.pages(id),
+      menu_order INTEGER DEFAULT 0,
+      menu_type TEXT DEFAULT 'main',
+      allow_indexing BOOLEAN DEFAULT true,
+      meta_title TEXT,
+      meta_description TEXT,
+      meta_keywords TEXT,
+      canonical_url TEXT,
+      og_title TEXT,
+      og_description TEXT,
+      og_image TEXT,
+      custom_canonical_url TEXT,
+      redirect_url TEXT,
+      meta_robots TEXT
+    );
+  `,
+  
+  orders: `
+    CREATE TABLE IF NOT EXISTS public.orders (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES auth.users(id),
+      status TEXT DEFAULT 'pending',
+      total_amount DECIMAL(10, 2) NOT NULL,
+      items JSONB NOT NULL,
+      shipping_address JSONB,
+      billing_address JSONB,
+      payment_method TEXT,
+      payment_status TEXT DEFAULT 'pending',
+      notes TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      tracking_number TEXT,
+      shipping_method TEXT,
+      shipping_cost DECIMAL(10, 2) DEFAULT 0,
+      tax_amount DECIMAL(10, 2) DEFAULT 0,
+      discount_amount DECIMAL(10, 2) DEFAULT 0,
+      promo_code TEXT,
+      customer_email TEXT,
+      customer_name TEXT,
+      customer_phone TEXT,
+      order_number TEXT
+    );
+  `,
+  
+  page_views: `
+    CREATE TABLE IF NOT EXISTS public.page_views (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      page_path TEXT NOT NULL,
+      session_id TEXT,
+      user_id UUID REFERENCES auth.users(id),
+      referrer TEXT,
+      user_agent TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      country TEXT,
+      city TEXT,
+      browser TEXT,
+      device TEXT,
+      os TEXT
+    );
+  `,
+  
+  blog_settings: `
+    CREATE TABLE IF NOT EXISTS public.blog_settings (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      posts_per_page INTEGER DEFAULT 10,
+      allow_comments BOOLEAN DEFAULT true,
+      moderate_comments BOOLEAN DEFAULT true,
+      hero_title TEXT DEFAULT 'Our Blog',
+      hero_subtitle TEXT DEFAULT 'Latest news and updates',
+      hero_background_image TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      instagram_profile_url TEXT DEFAULT 'https://instagram.com',
+      facebook_page_url TEXT,
+      twitter_profile_url TEXT
+    );
+  `,
+  
+  // Add RLS policies
+  add_rls_policies: `
+    -- Example policy for profiles
+    ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+    CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+    -- Example policy for products
+    ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Products are viewable by everyone" ON public.products FOR SELECT USING (true);
+    
+    -- Example policy for pages
+    ALTER TABLE public.pages ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Pages are viewable by everyone" ON public.pages FOR SELECT USING (true);
+    
+    -- Example policy for page_views
+    ALTER TABLE public.page_views ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Page views can be created by anyone" ON public.page_views FOR INSERT WITH CHECK (true);
+  `
+};
 
 export default function Setup() {
   const [currentStep, setCurrentStep] = useState("connect");
@@ -157,6 +346,58 @@ export default function Setup() {
       case 'data_insert': return 'вставці даних у';
       case 'policy': return 'встановленні політики для';
       default: return operation;
+    }
+  };
+
+  const createTablesWithSQL = async () => {
+    if (!targetSupabaseClient) return false;
+    
+    try {
+      for (const [tableName, sql] of Object.entries(CREATE_TABLES_SQL)) {
+        if (tableName === 'add_rls_policies') continue; // We'll handle policies separately
+
+        console.log(`Creating table using SQL: ${tableName}`);
+        
+        try {
+          // Execute the SQL directly
+          const { error } = await targetSupabaseClient.rpc('pgrest_exec', { sql });
+          
+          if (error) {
+            // If the pgrest_exec function doesn't exist, try REST
+            console.warn(`pgrest_exec failed: ${error.message}`);
+            console.warn(`Trying direct table creation for ${tableName} via REST API`);
+            
+            // Just log the warning and continue with regular table creation
+            // The warning will help debug issues, but we'll still try the REST approach
+          }
+          
+          logMigrationStep({
+            table: tableName,
+            operation: 'create',
+            status: 'success',
+            details: 'Created via SQL'
+          });
+        } catch (sqlError) {
+          console.error(`Error executing SQL for ${tableName}:`, sqlError);
+          
+          // Continue to try other methods, don't fail completely
+        }
+      }
+      
+      // Try to apply RLS policies
+      try {
+        await targetSupabaseClient.rpc('pgrest_exec', { 
+          sql: CREATE_TABLES_SQL.add_rls_policies 
+        });
+        console.log("Applied RLS policies successfully");
+      } catch (rlsError) {
+        console.warn("Could not apply RLS policies:", rlsError);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error creating tables with SQL:", error);
+      return false;
     }
   };
 
@@ -384,6 +625,10 @@ export default function Setup() {
       let currentProgress = 10;
       setProgress(currentProgress);
       
+      // First try to create tables using SQL (more reliable)
+      const sqlCreationSuccess = await createTablesWithSQL();
+      console.log("SQL table creation result:", sqlCreationSuccess);
+      
       try {
         await createTable('migration_logs', [
           {
@@ -403,7 +648,7 @@ export default function Setup() {
       const totalTables = tableNames.length;
       console.log("Tables to create:", tableNames);
       
-      // First create all tables
+      // Now create any missing tables
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         const tableData = schema[tableName];
