@@ -28,6 +28,7 @@ import NotFound from "@/pages/NotFound";
 import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
 import SiteSettings from "@/pages/admin/SiteSettings";
+import SetupWizard from "@/pages/admin/SetupWizard";
 
 export function Routes() {
   return (
@@ -54,6 +55,7 @@ export function Routes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/thanks" element={<Thanks />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/setup-wizard" element={<SetupWizard />} />
         <Route path="/shared/:token" element={<SharedFile />} />
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
