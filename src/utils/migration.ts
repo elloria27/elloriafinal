@@ -221,7 +221,8 @@ export const runMigration = async (
             index_name: index.name,
             table_name: table.name,
             columns: index.columns,
-            is_unique: index.isUnique ?? false // Add null coalescing operator to provide a default value
+            // Check if isUnique exists in the object before accessing it
+            is_unique: 'isUnique' in index ? !!index.isUnique : false
           });
         }
       }
