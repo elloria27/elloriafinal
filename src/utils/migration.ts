@@ -86,7 +86,6 @@ const extractTableSchema = () => {
         { name: "created_by", type: "uuid", isNullable: true },
       ],
     },
-    // More tables would be defined here based on the Database type
   ];
 };
 
@@ -220,7 +219,6 @@ export const runMigration = async (
             index_name: index.name,
             table_name: table.name,
             columns: index.columns,
-            // Check if isUnique exists in the object before accessing it
             is_unique: 'isUnique' in index ? !!index.isUnique : false
           });
         }
@@ -402,191 +400,175 @@ export const markInstallationComplete = () => {
 
 // Helper to create the database schema functions during migration
 export const createDbHelperFunctions = async (client: SupabaseClient) => {
-  // Create functions to check if tables exist
-  await client.rpc('create_function', {
-    function_name: 'check_table_exists',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION check_table_exists(table_name text)
-      RETURNS boolean AS $$
-      DECLARE
-        exists_check boolean;
-      BEGIN
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public'
-          AND table_name = $1
-        ) INTO exists_check;
-        RETURN exists_check;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-
-  // Create a function to enable RLS
-  await client.rpc('create_function', {
-    function_name: 'enable_rls',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION enable_rls(table_name text)
-      RETURNS void AS $$
-      BEGIN
-        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  // Create a function to create enum types
-  await client.rpc('create_function', {
-    function_name: 'create_enum_type',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
-      RETURNS void AS $$
-      BEGIN
+  try {
+    // Create functions to check if tables exist - using SQL instead of RPC
+    // We'll create other helper functions instead
+    
+    // Create a function to enable RLS
+    const { error: enableRlsError } = await client.rpc('create_function', {
+      function_name: 'enable_rls',
+      function_definition: `
+        CREATE OR REPLACE FUNCTION enable_rls(table_name text)
+        RETURNS void AS $$
         BEGIN
-          EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
-            enum_name,
-            array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
-          );
-        EXCEPTION
-          WHEN duplicate_object THEN
-            NULL;
+          EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
         END;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  // Create a function to create indices
-  await client.rpc('create_function', {
-    function_name: 'create_index',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
-      RETURNS void AS $$
-      BEGIN
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `
+    });
+    
+    if (enableRlsError) throw enableRlsError;
+    
+    // Create a function to create enum types
+    const { error: createEnumError } = await client.rpc('create_function', {
+      function_name: 'create_enum_type',
+      function_definition: `
+        CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
+        RETURNS void AS $$
         BEGIN
-          IF is_unique THEN
-            EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
-              index_name, table_name, array_to_string(columns, ',')
+          BEGIN
+            EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
+              enum_name,
+              array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
             );
-          ELSE
-            EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
-              index_name, table_name, array_to_string(columns, ',')
-            );
-          END IF;
-        EXCEPTION
-          WHEN duplicate_object THEN
-            NULL;
+          EXCEPTION
+            WHEN duplicate_object THEN
+              NULL;
+          END;
         END;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  // Create functions for RLS policies
-  await client.rpc('create_function', {
-    function_name: 'define_rls_policy',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION define_rls_policy(
-        table_name text,
-        policy_name text,
-        operation text,
-        definition text,
-        check_expression text DEFAULT 'true'
-      )
-      RETURNS void AS $$
-      BEGIN
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `
+    });
+    
+    if (createEnumError) throw createEnumError;
+    
+    // Create a function to create indices
+    const { error: createIndexError } = await client.rpc('create_function', {
+      function_name: 'create_index',
+      function_definition: `
+        CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
+        RETURNS void AS $$
         BEGIN
-          EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
-            policy_name, table_name, operation, definition, check_expression
-          );
-        EXCEPTION
-          WHEN duplicate_object THEN
-            EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
-              policy_name, table_name, definition, check_expression
-            );
+          BEGIN
+            IF is_unique THEN
+              EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
+                index_name, table_name, array_to_string(columns, ',')
+              );
+            ELSE
+              EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
+                index_name, table_name, array_to_string(columns, ',')
+              );
+            END IF;
+          EXCEPTION
+            WHEN duplicate_object THEN
+              NULL;
+          END;
         END;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  // Create a helper function for creating tables
-  await client.rpc('create_function', {
-    function_name: 'create_table_from_schema',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION create_table_from_schema(
-        table_name text,
-        columns_json json
-      )
-      RETURNS void AS $$
-      DECLARE
-        col json;
-        col_name text;
-        col_type text;
-        col_constraints text;
-        create_statement text;
-      BEGIN
-        create_statement := format('CREATE TABLE IF NOT EXISTS %I (', table_name);
-        
-        FOR col IN SELECT * FROM json_array_elements(columns_json)
-        LOOP
-          col_name := col->>'name';
-          col_type := col->>'type';
-          
-          col_constraints := '';
-          
-          IF (col->>'isPrimary')::boolean THEN
-            col_constraints := col_constraints || ' PRIMARY KEY';
-          END IF;
-          
-          IF (col->>'isUnique')::boolean THEN
-            col_constraints := col_constraints || ' UNIQUE';
-          END IF;
-          
-          IF NOT (col->>'isNullable')::boolean THEN
-            col_constraints := col_constraints || ' NOT NULL';
-          END IF;
-          
-          IF col->>'defaultValue' IS NOT NULL THEN
-            col_constraints := col_constraints || ' DEFAULT ' || (col->>'defaultValue');
-          END IF;
-          
-          IF col->>'references' IS NOT NULL THEN
-            col_constraints := col_constraints || format(' REFERENCES %I(%I)',
-              (col->'references'->>'table'),
-              (col->'references'->>'column')
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `
+    });
+    
+    if (createIndexError) throw createIndexError;
+    
+    // Create functions for RLS policies
+    const { error: rlsPolicyError } = await client.rpc('create_function', {
+      function_name: 'define_rls_policy',
+      function_definition: `
+        CREATE OR REPLACE FUNCTION define_rls_policy(
+          table_name text,
+          policy_name text,
+          operation text,
+          definition text,
+          check_expression text DEFAULT 'true'
+        )
+        RETURNS void AS $$
+        BEGIN
+          BEGIN
+            EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
+              policy_name, table_name, operation, definition, check_expression
             );
-          END IF;
+          EXCEPTION
+            WHEN duplicate_object THEN
+              EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
+                policy_name, table_name, definition, check_expression
+              );
+          END;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `
+    });
+    
+    if (rlsPolicyError) throw rlsPolicyError;
+    
+    // Create a helper function for creating tables
+    const { error: createTableError } = await client.rpc('create_function', {
+      function_name: 'create_table_from_schema',
+      function_definition: `
+        CREATE OR REPLACE FUNCTION create_table_from_schema(
+          table_name text,
+          columns_json json
+        )
+        RETURNS void AS $$
+        DECLARE
+          col json;
+          col_name text;
+          col_type text;
+          col_constraints text;
+          create_statement text;
+        BEGIN
+          create_statement := format('CREATE TABLE IF NOT EXISTS %I (', table_name);
           
-          create_statement := create_statement || format('%I %s%s, ', col_name, col_type, col_constraints);
-        END LOOP;
-        
-        -- Remove trailing comma and space
-        create_statement := left(create_statement, length(create_statement) - 2);
-        
-        create_statement := create_statement || ');';
-        
-        EXECUTE create_statement;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  // Create a function to check schema permissions
-  await client.rpc('create_function', {
-    function_name: 'get_schema_permissions',
-    function_definition: `
-      CREATE OR REPLACE FUNCTION get_schema_permissions()
-      RETURNS boolean AS $$
-      BEGIN
-        -- If this function executes successfully, the user has schema permissions
-        RETURN true;
-      END;
-      $$ LANGUAGE plpgsql SECURITY DEFINER;
-    `
-  });
-  
-  return true;
+          FOR col IN SELECT * FROM json_array_elements(columns_json)
+          LOOP
+            col_name := col->>'name';
+            col_type := col->>'type';
+            
+            col_constraints := '';
+            
+            IF (col->>'isPrimary')::boolean THEN
+              col_constraints := col_constraints || ' PRIMARY KEY';
+            END IF;
+            
+            IF (col->>'isUnique')::boolean THEN
+              col_constraints := col_constraints || ' UNIQUE';
+            END IF;
+            
+            IF NOT (col->>'isNullable')::boolean THEN
+              col_constraints := col_constraints || ' NOT NULL';
+            END IF;
+            
+            IF col->>'defaultValue' IS NOT NULL THEN
+              col_constraints := col_constraints || ' DEFAULT ' || (col->>'defaultValue');
+            END IF;
+            
+            IF col->>'references' IS NOT NULL THEN
+              col_constraints := col_constraints || format(' REFERENCES %I(%I)',
+                (col->'references'->>'table'),
+                (col->'references'->>'column')
+              );
+            END IF;
+            
+            create_statement := create_statement || format('%I %s%s, ', col_name, col_type, col_constraints);
+          END LOOP;
+          
+          -- Remove trailing comma and space
+          create_statement := left(create_statement, length(create_statement) - 2);
+          
+          create_statement := create_statement || ');';
+          
+          EXECUTE create_statement;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `
+    });
+    
+    if (createTableError) throw createTableError;
+    
+    return true;
+  } catch (error) {
+    console.error("Error creating database helper functions:", error);
+    throw error;
+  }
 };
 
 // Helper function to create all the needed RLS helper functions
