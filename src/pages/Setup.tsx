@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,123 +164,127 @@ export default function Setup() {
       }
 
       console.log("Executing site settings SQL:", siteSettingsSQL);
-      setProgress(20);
+      setProgress(10);
       
-      // Try the pgrest_exec RPC method first
-      try {
-        const { error: rpcError } = await targetSupabaseClient.rpc('pgrest_exec', { 
-          sql: siteSettingsSQL 
-        });
-        
-        if (rpcError) {
-          console.warn("pgrest_exec not available:", rpcError);
-          throw new Error("RPC method not available");
-        } else {
-          // If successful, we're done
-          toast.success("Налаштування сайту успішно імпортовано через RPC");
-          setProgress(100);
-          setSetupComplete(true);
-          return;
-        }
-      } catch (rpcErr) {
-        console.log("RPC method failed, trying alternative approach:", rpcErr);
-        setProgress(30);
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS public.site_settings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          site_title TEXT NOT NULL DEFAULT 'Elloria',
+          default_language TEXT NOT NULL DEFAULT 'en',
+          enable_registration BOOLEAN NOT NULL DEFAULT true,
+          enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
+          meta_description TEXT,
+          meta_keywords TEXT,
+          custom_scripts JSONB DEFAULT '[]',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+          homepage_slug TEXT DEFAULT 'index',
+          favicon_url TEXT,
+          maintenance_mode BOOLEAN DEFAULT false,
+          contact_email TEXT,
+          google_analytics_id TEXT,
+          enable_cookie_consent BOOLEAN DEFAULT false,
+          enable_https_redirect BOOLEAN DEFAULT false,
+          max_upload_size INTEGER DEFAULT 10,
+          enable_user_avatars BOOLEAN DEFAULT false,
+          logo_url TEXT
+        );
+      `;
+      
+      setProgress(30);
+      
+      const { error: createTableError } = await targetSupabaseClient.auth.fetchSession();
+      
+      if (createTableError) {
+        console.error("Session error:", createTableError);
+        throw new Error("Помилка сесії. Будь ласка, перепідключіться.");
       }
       
-      // If RPC didn't work, create the table first
       try {
-        const createTableSQL = `
-          CREATE TABLE IF NOT EXISTS public.site_settings (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            site_title TEXT NOT NULL DEFAULT 'Elloria',
-            default_language TEXT NOT NULL DEFAULT 'en',
-            enable_registration BOOLEAN NOT NULL DEFAULT true,
-            enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
-            meta_description TEXT,
-            meta_keywords TEXT,
-            custom_scripts JSONB DEFAULT '[]',
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-            homepage_slug TEXT DEFAULT 'index',
-            favicon_url TEXT,
-            maintenance_mode BOOLEAN DEFAULT false,
-            contact_email TEXT,
-            google_analytics_id TEXT,
-            enable_cookie_consent BOOLEAN DEFAULT false,
-            enable_https_redirect BOOLEAN DEFAULT false,
-            max_upload_size INTEGER DEFAULT 10,
-            enable_user_avatars BOOLEAN DEFAULT false,
-            logo_url TEXT
-          );
-        `;
+        const { error: rawError } = await targetSupabaseClient.rpc('exec_sql', { sql: createTableSQL });
         
+        if (rawError) {
+          console.error("Error executing CREATE TABLE:", rawError);
+          // Continue anyway, as the table might already exist
+        } else {
+          console.log("Table created successfully via RPC");
+        }
+      } catch (execError) {
+        console.warn("Could not use RPC method exec_sql:", execError);
+        // We'll try direct SQL insert below instead
+      }
+
+      setProgress(60);
+      
+      const insertMatch = siteSettingsSQL.match(/INSERT\s+INTO.*VALUES\s*\((.*)\)/i);
+      
+      if (!insertMatch || !insertMatch[1]) {
+        throw new Error("Не вдалося розібрати SQL файл");
+      }
+      
+      const values = insertMatch[1].split(',').map(v => v.trim());
+
+      const siteSettings = {
+        id: values[0].replace(/['"]/g, ""),
+        site_title: values[1].replace(/['"]/g, ""),
+        default_language: values[2].replace(/['"]/g, ""),
+        enable_registration: values[3].toLowerCase() === "'true'" || values[3].toLowerCase() === "true",
+        enable_search_indexing: values[4].toLowerCase() === "'true'" || values[4].toLowerCase() === "true",
+        meta_description: values[5] !== "null" ? values[5].replace(/['"]/g, "") : null,
+        meta_keywords: values[6] !== "null" ? values[6].replace(/['"]/g, "") : null,
+        custom_scripts: values[7] !== "null" ? JSON.parse(values[7]) : [],
+        created_at: values[8].replace(/['"]/g, ""),
+        updated_at: values[9].replace(/['"]/g, ""),
+        homepage_slug: values[10].replace(/['"]/g, ""),
+        favicon_url: values[11] !== "null" ? values[11].replace(/['"]/g, "") : null,
+        maintenance_mode: values[12].toLowerCase() === "'true'" || values[12].toLowerCase() === "true",
+        contact_email: values[13] !== "null" ? values[13].replace(/['"]/g, "") : null,
+        google_analytics_id: values[14] !== "null" ? values[14].replace(/['"]/g, "") : null,
+        enable_cookie_consent: values[15].toLowerCase() === "'true'" || values[15].toLowerCase() === "true",
+        enable_https_redirect: values[16].toLowerCase() === "'true'" || values[16].toLowerCase() === "true",
+        max_upload_size: parseInt(values[17].replace(/['"]/g, "")),
+        enable_user_avatars: values[18].toLowerCase() === "'true'" || values[18].toLowerCase() === "true",
+        logo_url: values[19] !== "null" ? values[19].replace(/['"]/g, "") : null
+      };
+
+      console.log("Parsed site settings:", siteSettings);
+      
+      setProgress(80);
+      
+      try {
         try {
-          await targetSupabaseClient.rpc('pgrest_exec', { sql: createTableSQL });
-          console.log("Created site_settings table via RPC");
-        } catch (createTableRpcError) {
-          console.warn("Could not create table via RPC, will try direct SQL insert later");
-        }
-        
-        setProgress(50);
-        
-        // Extract values from the SQL insert statement
-        const match = siteSettingsSQL.match(/VALUES\s*\(([^)]+)\)/i);
-        if (!match) {
-          throw new Error("Неможливо розібрати SQL файл"); 
-        }
-        
-        const values = match[1].split(',').map(v => v.trim());
-        
-        // Create the record to insert
-        const siteSettingsData = {
-          id: values[0].replace(/'/g, "").replace(/"/g, ""),
-          site_title: values[1].replace(/'/g, "").replace(/"/g, ""),
-          default_language: values[2].replace(/'/g, "").replace(/"/g, ""),
-          enable_registration: values[3] === "'true'" || values[3] === '"true"',
-          enable_search_indexing: values[4] === "'true'" || values[4] === '"true"',
-          meta_description: values[5] !== "null" ? values[5].replace(/'/g, "").replace(/"/g, "") : null,
-          meta_keywords: values[6] !== "null" ? values[6].replace(/'/g, "").replace(/"/g, "") : null,
-          custom_scripts: values[7] !== "null" ? JSON.parse(values[7]) : [],
-          created_at: values[8].replace(/'/g, "").replace(/"/g, ""),
-          updated_at: values[9].replace(/'/g, "").replace(/"/g, ""),
-          homepage_slug: values[10].replace(/'/g, "").replace(/"/g, ""),
-          favicon_url: values[11] !== "null" ? values[11].replace(/'/g, "").replace(/"/g, "") : null,
-          maintenance_mode: values[12] === "'true'" || values[12] === '"true"',
-          contact_email: values[13] !== "null" ? values[13].replace(/'/g, "").replace(/"/g, "") : null,
-          google_analytics_id: values[14] !== "null" ? values[14].replace(/'/g, "").replace(/"/g, "") : null,
-          enable_cookie_consent: values[15] === "'true'" || values[15] === '"true"',
-          enable_https_redirect: values[16] === "'true'" || values[16] === '"true"',
-          max_upload_size: parseInt(values[17]),
-          enable_user_avatars: values[18] === "'true'" || values[18] === '"true"',
-          logo_url: values[19] !== "null" ? values[19].replace(/'/g, "").replace(/"/g, "") : null
-        };
-        
-        setProgress(70);
-        
-        // Try to insert using the from API
-        const { error: insertError } = await targetSupabaseClient
-          .from('site_settings')
-          .insert(siteSettingsData);
-        
-        if (insertError) {
-          console.error("Error inserting site settings:", insertError);
+          const { error: insertRpcError } = await targetSupabaseClient.rpc('exec_sql', { 
+            sql: siteSettingsSQL 
+          });
           
-          // Try to update if record already exists
-          const { error: upsertError } = await targetSupabaseClient
-            .from('site_settings')
-            .upsert(siteSettingsData, { onConflict: 'id' });
-            
-          if (upsertError) {
-            throw new Error("Не вдалося вставити або оновити налаштування сайту");
+          if (insertRpcError) {
+            console.warn("Could not insert via RPC:", insertRpcError);
+            throw new Error("RPC insert failed");
+          } else {
+            console.log("Settings inserted via RPC");
           }
+        } catch (rpcError) {
+          console.warn("Will try direct insert:", rpcError);
+          
+          const { error: insertError } = await targetSupabaseClient
+            .from('site_settings')
+            .upsert(siteSettings);
+          
+          if (insertError) {
+            console.error("Error inserting site settings:", insertError);
+            throw new Error("Не вдалося вставити налаштування сайту");
+          }
+          
+          console.log("Settings inserted via API");
         }
         
         setProgress(100);
         toast.success("Налаштування сайту успішно імпортовано");
         setSetupComplete(true);
-      } catch (error) {
-        console.error("Error executing site settings SQL:", error);
-        throw new Error("Не вдалося виконати SQL запит для налаштувань сайту");
+        setCurrentStep("complete");
+      } catch (insertError) {
+        console.error("All insert methods failed:", insertError);
+        throw new Error("Не вдалося вставити налаштування сайту");
       }
     } catch (err) {
       console.error("Помилка імпорту налаштувань сайту:", err);
@@ -471,13 +474,14 @@ export default function Setup() {
                 </div>
               )}
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col sm:flex-row gap-2">
               <Button 
                 className="w-full" 
-                onClick={() => window.location.href = "/"} 
+                onClick={() => setCurrentStep("complete")} 
                 disabled={!setupComplete}
+                variant="default"
               >
-                Перейти на головну сторінку
+                Завершити налаштування
               </Button>
             </CardFooter>
           </Card>
