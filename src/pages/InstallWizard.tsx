@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,8 @@ import { ConnectionStep } from "@/components/install-wizard/ConnectionStep";
 import { MigrationStep } from "@/components/install-wizard/MigrationStep";
 import { AdminSetupStep } from "@/components/install-wizard/AdminSetupStep";
 import { CompleteStep } from "@/components/install-wizard/CompleteStep";
+import { isInstallationNeeded } from "@/utils/migration";
+import { useNavigate } from "react-router-dom";
 
 export default function InstallWizard() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -28,6 +30,29 @@ export default function InstallWizard() {
     password: "",
     fullName: "",
   });
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if installation is needed when component mounts
+    const checkInstallation = async () => {
+      try {
+        setLoading(true);
+        const needed = await isInstallationNeeded();
+        if (!needed) {
+          // If installation is not needed, redirect to home page
+          navigate('/');
+        }
+      } catch (error) {
+        console.error("Error checking installation status:", error);
+        // If there's an error, assume installation is needed
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkInstallation();
+  }, [navigate]);
 
   const nextStep = () => {
     setCurrentStep((prev) => (prev < 4 ? prev + 1 : prev));
@@ -84,6 +109,14 @@ export default function InstallWizard() {
         return <WelcomeStep onNext={nextStep} />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">

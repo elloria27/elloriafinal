@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -6,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { runMigration } from "@/utils/migration";
+import { runMigration, createDbHelperFunctions } from "@/utils/migration";
 
 interface MigrationStepProps {
   config: {
@@ -56,6 +55,10 @@ export function MigrationStep({
 
     try {
       const supabase = createClient(config.url, config.key);
+      
+      // First create the helper functions including the table check function
+      setLog(prev => [...prev, { message: "Creating database helper functions...", type: "info" }]);
+      await createDbHelperFunctions(supabase);
       
       // Create migration instance
       await runMigration(supabase, {

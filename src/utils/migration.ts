@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -353,22 +352,47 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 };
 
 // Function to check if install wizard is needed
-export const isInstallationNeeded = (): boolean => {
-  // Check if any tables exist in the database
-  const testConnection = async () => {
-    try {
-      const { data, error } = await defaultSupabase.from('profiles').select('count').limit(1);
-      // If profiles table doesn't exist, we need installation
-      return !!error;
-    } catch (error) {
-      return true;
+export const isInstallationNeeded = async (): Promise<boolean> => {
+  try {
+    // First check localStorage for quick response
+    const installed = localStorage.getItem('cms_installed');
+    if (installed === 'true') {
+      // Even if localStorage says it's installed, verify with the database
+      const dbVerified = await verifyDatabaseSetup();
+      if (dbVerified) {
+        return false; // Installation not needed, DB is verified
+      }
+      // If DB verification failed but localStorage says installed,
+      // clear the localStorage value as it's incorrect
+      localStorage.removeItem('cms_installed');
     }
-  };
-  
-  // For demo purposes, we'll use localStorage to determine if installation is needed
-  const installed = localStorage.getItem('cms_installed');
-  
-  return !installed || installed !== 'true';
+    
+    return true; // Installation is needed
+  } catch (error) {
+    console.error('Error checking installation status:', error);
+    return true; // Default to needing installation if there's an error
+  }
+};
+
+// Helper function to verify database tables exist
+const verifyDatabaseSetup = async (): Promise<boolean> => {
+  try {
+    // Use Postgres system catalog to check if our tables exist
+    // This avoids the error from querying non-existent tables directly
+    const { data, error } = await defaultSupabase
+      .rpc('check_table_exists', { table_name: 'profiles' });
+    
+    if (error) {
+      console.error('Error checking table existence:', error);
+      return false;
+    }
+    
+    // If data is true, the table exists
+    return !!data;
+  } catch (error) {
+    console.error('Error in database verification:', error);
+    return false;
+  }
 };
 
 // Function to mark installation as complete
@@ -378,6 +402,26 @@ export const markInstallationComplete = () => {
 
 // Helper to create the database schema functions during migration
 export const createDbHelperFunctions = async (client: SupabaseClient) => {
+  // Create functions to check if tables exist
+  await client.rpc('create_function', {
+    function_name: 'check_table_exists',
+    function_definition: `
+      CREATE OR REPLACE FUNCTION check_table_exists(table_name text)
+      RETURNS boolean AS $$
+      DECLARE
+        exists_check boolean;
+      BEGIN
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public'
+          AND table_name = $1
+        ) INTO exists_check;
+        RETURN exists_check;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+    `
+  });
+
   // Create a function to enable RLS
   await client.rpc('create_function', {
     function_name: 'enable_rls',
