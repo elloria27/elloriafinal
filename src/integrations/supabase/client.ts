@@ -34,14 +34,17 @@ const config = getStoredConfig() || {
   key: SUPABASE_ANON_KEY 
 };
 
-// Create the Supabase client with retry logic
-export const createSupabaseClient = () => {
+// Create the Supabase client with proper headers and options
+export const createSupabaseClient = (useServiceRole = false) => {
   const { url, key } = config;
+  
+  // Determine if the key is a service role key
+  const isServiceRole = key.includes('service_role') || useServiceRole;
   
   // Log configuration for debugging
   console.log('Creating Supabase client with:', { 
     url, 
-    keyType: key.includes('service_role') ? 'service_role' : 'anon' 
+    keyType: isServiceRole ? 'service_role' : 'anon' 
   });
   
   const options = {
@@ -50,17 +53,22 @@ export const createSupabaseClient = () => {
       persistSession: true,
     },
     global: {
-      fetch: (url: string, options: RequestInit) => {
+      fetch: (fetchUrl: string, fetchOptions: RequestInit) => {
+        // Add proper headers for all requests
+        const headers = {
+          ...fetchOptions.headers,
+          'apikey': key,
+          'Authorization': `Bearer ${key}`
+        };
+        
         // Set timeout to 60 seconds
         const timeoutId = setTimeout(() => {
           console.error('Supabase request timeout');
         }, 60000);
         
-        return fetch(url, {
-          ...options,
-          headers: {
-            ...options.headers,
-          }
+        return fetch(fetchUrl, {
+          ...fetchOptions,
+          headers
         }).finally(() => {
           clearTimeout(timeoutId);
         });
@@ -71,6 +79,8 @@ export const createSupabaseClient = () => {
   return createClient<Database>(url, key, options);
 };
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Regular client for front-end use
 export const supabase = createSupabaseClient();
+
+// Service role client for admin operations
+export const adminSupabase = createSupabaseClient(true);

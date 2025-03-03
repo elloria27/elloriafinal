@@ -96,12 +96,26 @@ export function MigrationStep({
         type: "info" 
       }]);
       
-      // Create a client with the provided config
-      // This is important - we need to create a new client with the service role key
+      // Create a client with the service role key and proper headers
       const supabase = createClient(supabaseUrl, config.key, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
+        },
+        global: {
+          fetch: (url, options) => {
+            // Ensure proper headers for all requests
+            const headers = {
+              ...options.headers,
+              'apikey': config.key,
+              'Authorization': `Bearer ${config.key}`
+            };
+            
+            return fetch(url, {
+              ...options,
+              headers
+            });
+          }
         }
       });
       
@@ -143,12 +157,6 @@ export function MigrationStep({
       } catch (e) {
         console.error("Error storing config:", e);
       }
-      
-      // Create SQL script download option
-      const sqlScript = generateCompleteMigrationSql();
-      const blob = new Blob([sqlScript], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      setSqlDownloadUrl(url);
       
       // Run the migration with the Supabase client
       await runMigration(supabase, {
