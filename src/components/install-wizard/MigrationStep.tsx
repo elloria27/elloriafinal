@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader2, Download, AlertTriangle, ExternalLink } from "lucide-react";
 import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
 import { createClient } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 interface MigrationStepProps {
   config: {
@@ -99,8 +100,8 @@ export function MigrationStep({
       // Create a client with the service role key and proper headers
       const supabase = createClient(supabaseUrl, config.key, {
         auth: {
-          autoRefreshToken: true,
-          persistSession: true,
+          autoRefreshToken: false, // Changed to false to avoid token refresh issues
+          persistSession: false,   // Changed to false for simpler auth flow
         },
         global: {
           headers: {
@@ -113,17 +114,30 @@ export function MigrationStep({
       // Test the connection first
       try {
         const { data: userResponse, error: userError } = await supabase.auth.getUser();
+        
         if (userError) {
-          throw new Error(`Auth test failed: ${userError.message}`);
+          // Check if this is an authentication or permission error
+          if (userError.message.includes("invalid claim") || 
+              userError.message.includes("JWT")) {
+            throw new Error(`Auth test failed: ${userError.message}. This may indicate an issue with the service role key or permissions.`);
+          } else {
+            throw new Error(`Auth test failed: ${userError.message}`);
+          }
         }
         
         // Check if we can access the database (simple query)
-        // Fixed: Use try-catch instead of .catch()
         try {
           const { error: queryError } = await supabase
             .from('_dummy_table_check')
             .select()
             .limit(1);
+            
+          // Specific error for non-existent table is expected
+          if (queryError && 
+              !queryError.message.includes("relation") && 
+              !queryError.message.includes("does not exist")) {
+            console.warn("Database access error:", queryError);
+          }
         } catch (err) {
           // Ignore this specific error - table might not exist
           console.log("Table check error (expected):", err);
@@ -148,6 +162,12 @@ export function MigrationStep({
         }]);
         setManualModeActive(true);
         setIsRunning(false);
+        
+        // Show notification to user
+        toast.error("Connection to Supabase failed", {
+          description: "Please use the manual SQL migration method instead."
+        });
+        
         return;
       }
       
@@ -202,6 +222,8 @@ export function MigrationStep({
           message: "Migration completed successfully!", 
           type: "success" 
         }]);
+        
+        toast.success("Migration completed successfully");
       } else {
         setMigrationState(prev => ({
           ...prev,
@@ -215,6 +237,10 @@ export function MigrationStep({
           type: "warning" 
         }]);
         setManualModeActive(true);
+        
+        toast.warning("Migration completed with errors", {
+          description: "Check the logs and consider manual migration."
+        });
       }
       
     } catch (error) {
@@ -235,6 +261,10 @@ export function MigrationStep({
         type: "warning" 
       }]);
       setManualModeActive(true);
+      
+      toast.error("Migration failed", {
+        description: "Please try the manual migration option."
+      });
     } finally {
       setIsRunning(false);
     }
@@ -252,6 +282,8 @@ export function MigrationStep({
       message: "Manual migration reported as successful", 
       type: "success" 
     }]);
+    
+    toast.success("Manual migration reported as successful");
   };
 
   const openSupabaseDashboard = () => {
@@ -297,27 +329,29 @@ export function MigrationStep({
       <div className="space-y-4">
         {!migrationState.completed && !isRunning && !manualModeActive && (
           <div className="space-y-4">
-            <Button 
-              onClick={startMigration} 
-              className="w-full"
-              disabled={isRunning}
-            >
-              Start Database Migration
-            </Button>
-            
-            <div className="flex justify-center">
-              <p className="text-sm text-gray-500">
-                If you prefer, you can also run the migration manually
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                onClick={startMigration} 
+                className="w-full"
+                disabled={isRunning}
+              >
+                Start Automatic Migration
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setManualModeActive(true)}
+              >
+                Use Manual Migration
+              </Button>
             </div>
             
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setManualModeActive(true)}
-            >
-              Show Manual Migration Instructions
-            </Button>
+            <div className="text-center">
+              <p className="text-sm text-gray-500">
+                If you encounter connection issues, the manual option is recommended
+              </p>
+            </div>
           </div>
         )}
         

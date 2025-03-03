@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -45,7 +44,6 @@ BEGIN
   END IF;
 END
 $$;`;
-};
 
 // Function to create SQL for all required tables with proper auth references
 const generateTablesSql = () => {
@@ -257,7 +255,6 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
     `;
     
     // Use a direct query to create the function
-    // Fixed: Use try-catch instead of chaining .catch()
     try {
       const { error } = await client.from('_dummy_table_for_query')
         .select()
@@ -311,7 +308,6 @@ async function executeSql(
         console.log(`Executing statement ${i+1}/${statements.length}, attempt ${attempt+1}`);
         
         // First try to use the exec_sql RPC function
-        // Fixed: Use try-catch instead of .catch()
         try {
           const { error } = await client.rpc('exec_sql', { sql: stmt });
           
