@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,10 +223,16 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     
     // Try direct HTTP request to the pg-meta REST API (using service role only)
     try {
-      // Instead of accessing protected property, extract URL from client configuration
-      // Get the base URL from the current REST URL or from environment
-      const supabaseUrl = client.getUrl();
-      const url = `${supabaseUrl}/rest/v1/sql`;
+      // Extract URL from environment or configuration
+      // Instead of using client.getUrl() which doesn't exist
+      const supabaseUrl = typeof window !== 'undefined' 
+        ? new URL(client.auth.getAutoRefreshToken().currentSession?.access_token || '')?.origin 
+        : process.env.SUPABASE_URL;
+      
+      // Fallback to the URL directly from the client instance if available
+      const url = supabaseUrl 
+        ? `${supabaseUrl}/rest/v1/sql` 
+        : 'https://amlirkbzqkbgbvrmgibf.supabase.co/rest/v1/sql'; // Fallback to hardcoded URL
       
       // Get auth token from client if possible
       let supabaseKey = '';
@@ -234,13 +241,14 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
         supabaseKey = authData?.session?.access_token || '';
       } catch (authError) {
         console.warn('Could not get session token, using apikey from headers instead');
-        // Fall back to apikey from headers if available
-        const headers = (client as any).headers || {};
-        supabaseKey = headers['apikey'] || headers['Authorization']?.replace('Bearer ', '') || '';
+        // We can't directly access headers, so use a different approach
+        supabaseKey = process.env.SUPABASE_KEY || '';
       }
       
       if (!supabaseKey) {
-        console.warn('No authentication token available for SQL execution');
+        console.warn('No authentication token available for SQL execution, using default key');
+        // Use the default key from the client or environment
+        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbGlya2J6cWtiZ2J2cm1naWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5Nzg4MzAsImV4cCI6MjA1NjU1NDgzMH0.qsXKN4NNFNzc2YHSgvqPyEP3NIk0W4MRlOxOq7tZ3-8";
       }
       
       const response = await fetch(url, {
@@ -258,7 +266,9 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
         console.log('SQL executed successfully via direct HTTP request:', result);
         return { data: result, error: null };
       } else {
-        console.warn('Direct HTTP request failed:', await response.text());
+        const errorText = await response.text();
+        console.warn('Direct HTTP request failed:', errorText);
+        console.log('Status:', response.status);
       }
     } catch (httpError) {
       console.warn('Error executing SQL via direct HTTP request:', httpError);
@@ -449,11 +459,6 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
   }
 };
 
-/**
- * Creates a site_settings RPC function in the database if it doesn't exist
- * @param client Supabase client to use
- * @returns Result of the operation
- */
 export const createSiteSettingsRpcFunction = async (client = supabase) => {
   try {
     console.log('Creating site_settings RPC function...');

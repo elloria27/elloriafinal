@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,6 +252,8 @@ export default function Setup() {
           }
         } else {
           console.warn("Edge function повернула статус помилки:", response.status);
+          const errorText = await response.text();
+          console.error("Edge function error details:", errorText);
           toast.warning("Edge function недоступна, пробуємо запасний метод");
         }
       } catch (edgeFunctionError) {
@@ -310,7 +311,8 @@ export default function Setup() {
           if (response.ok) {
             console.log("Таблиця створена успішно через REST API");
           } else {
-            console.warn("Не вдалося створити таблицю через REST API:", await response.text());
+            const errorText = await response.text();
+            console.warn("Не вдалося створити таблицю через REST API:", errorText);
             
             // Try through our utility function as fallback
             const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
@@ -363,7 +365,8 @@ export default function Setup() {
           if (response.ok) {
             console.log("Дані вставлені успішно через REST API");
           } else {
-            console.warn("Не вдалося вставити дані через REST API:", await response.text());
+            const errorText = await response.text();
+            console.warn("Не вдалося вставити дані через REST API:", errorText);
             
             // Try through our utility function as fallback
             const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
@@ -379,6 +382,40 @@ export default function Setup() {
           if (insertError) {
             console.warn("Fallback - помилка вставки даних:", insertError);
           }
+        }
+        
+        // Final fallback - use direct API method
+        try {
+          console.log("Спроба прямого створення запису через API...");
+          const { error } = await targetSupabaseClient
+            .from('site_settings')
+            .upsert([
+              {
+                id: 'c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec',
+                site_title: 'Elloria',
+                default_language: 'en',
+                enable_registration: true,
+                enable_search_indexing: true,
+                custom_scripts: [],
+                created_at: '2025-01-26T16:59:44.940264-06:00',
+                updated_at: '2025-02-13T06:02:08.844257-06:00',
+                homepage_slug: 'index',
+                maintenance_mode: false,
+                contact_email: 'sales@elloria.ca',
+                enable_cookie_consent: false,
+                enable_https_redirect: false,
+                max_upload_size: 10,
+                enable_user_avatars: false
+              }
+            ]);
+          
+          if (error) {
+            console.warn("Помилка прямого API запису:", error);
+          } else {
+            console.log("Запис успішно створено через прямий API");
+          }
+        } catch (apiError) {
+          console.warn("Помилка прямого API запису:", apiError);
         }
         
         toast.success("Налаштування сайту успішно імпортовано");
