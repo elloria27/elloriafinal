@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -165,6 +166,7 @@ export default function Setup() {
     try {
       console.log(`Creating table: ${tableName}`);
       
+      // First check if table exists
       try {
         const { error: checkError } = await targetSupabaseClient
           .from(tableName)
@@ -190,49 +192,76 @@ export default function Setup() {
         throw new Error(`No sample data provided for table ${tableName}`);
       }
       
-      const initialItem = {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString()
-      };
+      // Create table with a direct SQL query
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS ${tableName} (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+          ${Object.entries(sampleItem).map(([key, value]) => {
+            if (key !== 'id' && key !== 'created_at') {
+              if (typeof value === 'number') return `, ${key} NUMERIC`;
+              if (typeof value === 'boolean') return `, ${key} BOOLEAN`;
+              if (Array.isArray(value)) return `, ${key} JSONB`;
+              if (value !== null && typeof value === 'object') return `, ${key} JSONB`;
+              return `, ${key} TEXT`;
+            }
+            return '';
+          }).join('')}
+        );
+      `;
       
-      Object.keys(sampleItem).forEach(key => {
-        if (key !== 'id' && key !== 'created_at') {
-          const value = sampleItem[key];
-          if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-            initialItem[key] = null;
-          } else {
-            initialItem[key] = value;
-          }
-        }
-      });
-      
-      const { error } = await targetSupabaseClient
-        .from(tableName)
-        .insert([initialItem]);
+      try {
+        const { error: sqlError } = await targetSupabaseClient.rpc('execute_sql', {
+          query: createTableQuery
+        });
         
-      if (error) {
-        console.error(`Error creating table ${tableName}:`, error);
+        if (sqlError) {
+          console.warn("RPC execute_sql failed, trying alternative method:", sqlError);
+          
+          // Alternative: Create table by inserting and then deleting a sample row
+          const initialItem = {
+            id: crypto.randomUUID(),
+            created_at: new Date().toISOString()
+          };
+          
+          Object.keys(sampleItem).forEach(key => {
+            if (key !== 'id' && key !== 'created_at') {
+              const value = sampleItem[key];
+              if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+                initialItem[key] = null;
+              } else {
+                initialItem[key] = value;
+              }
+            }
+          });
+          
+          const { error: insertError } = await targetSupabaseClient
+            .from(tableName)
+            .insert([initialItem]);
+            
+          if (insertError) {
+            console.error(`Error creating table ${tableName} via insert:`, insertError);
+            throw insertError;
+          }
+          
+          // Delete the sample row after table creation
+          await targetSupabaseClient
+            .from(tableName)
+            .delete()
+            .eq('id', initialItem.id);
+        }
+        
         logMigrationStep({
           table: tableName,
           operation: 'create',
-          status: 'error',
-          details: error.message
+          status: 'success'
         });
-        return false;
-      }
-      
-      await targetSupabaseClient
-        .from(tableName)
-        .delete()
-        .eq('id', initialItem.id);
         
-      logMigrationStep({
-        table: tableName,
-        operation: 'create',
-        status: 'success'
-      });
-      
-      return true;
+        return true;
+      } catch (sqlErr) {
+        console.error(`Error executing SQL query for ${tableName}:`, sqlErr);
+        throw sqlErr;
+      }
     } catch (err) {
       console.error(`Error creating table ${tableName}:`, err);
       logMigrationStep({
@@ -249,6 +278,8 @@ export default function Setup() {
     if (!Array.isArray(tableData) || tableData.length === 0) return true;
     
     try {
+      console.log(`Inserting data into ${tableName}:`, tableData.length, "records");
+      
       const cleanData = tableData.map(item => {
         const cleanItem: Record<string, any> = { ...item };
         
@@ -260,6 +291,7 @@ export default function Setup() {
           cleanItem.created_at = new Date().toISOString();
         }
         
+        // Convert object values to strings
         Object.entries(cleanItem).forEach(([key, value]) => {
           if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
             cleanItem[key] = JSON.stringify(value);
@@ -269,12 +301,14 @@ export default function Setup() {
         return cleanItem;
       });
       
-      const batchSize = 5;
+      // Use smaller batch size to avoid payload size limits
+      const batchSize = 3;
       const totalItems = cleanData.length;
       let successCount = 0;
       
       for (let i = 0; i < totalItems; i += batchSize) {
         const batch = cleanData.slice(i, i + batchSize);
+        console.log(`Processing batch ${i/batchSize + 1}/${Math.ceil(totalItems/batchSize)} for ${tableName}`);
         
         try {
           const { error } = await targetSupabaseClient
@@ -284,6 +318,7 @@ export default function Setup() {
           if (error) {
             console.warn(`Batch insert error for ${tableName}:`, error);
             
+            // Try inserting records one by one
             for (const item of batch) {
               try {
                 const { error: singleError } = await targetSupabaseClient
@@ -293,7 +328,7 @@ export default function Setup() {
                 if (!singleError) {
                   successCount++;
                 } else {
-                  console.error(`Error inserting item in ${tableName}:`, singleError);
+                  console.error(`Error inserting item in ${tableName}:`, singleError, item);
                 }
               } catch (itemErr) {
                 console.error(`Exception inserting item in ${tableName}:`, itemErr);
@@ -307,6 +342,9 @@ export default function Setup() {
         } catch (batchError) {
           console.error(`Error processing batch for ${tableName}:`, batchError);
         }
+        
+        // Add a small delay between batches to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
       
       const insertResult = successCount > 0;
