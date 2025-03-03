@@ -88,18 +88,22 @@ export default function Setup() {
     try {
       setLoading(true);
       
-      // Тут буде код для отримання схеми бази даних
-      // У реальному застосунку тут буде запит до відповідного API Supabase
+      // Використовуємо Edge Function для отримання схеми бази даних
+      const { data: schemaData, error: schemaError } = await supabase.functions.invoke('get-database-schema', {
+        method: 'POST',
+        body: { sourceUrl: databaseUrl }
+      });
       
-      // Для прикладу створюємо об'єкт з макетними даними
+      if (schemaError) throw schemaError;
+      
+      // Створюємо файл для завантаження
       const databaseSchema = {
-        tables: await fetchDatabaseTables(),
-        functions: await fetchDatabaseFunctions(),
-        policies: await fetchRLSPolicies(),
+        tables: schemaData?.tables || [],
+        functions: schemaData?.functions || [],
+        policies: schemaData?.policies || [],
         timestamp: new Date().toISOString()
       };
       
-      // Створюємо файл для завантаження
       const blob = new Blob([JSON.stringify(databaseSchema, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -115,39 +119,6 @@ export default function Setup() {
       toast.error("Не вдалося експортувати схему бази даних");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchDatabaseTables = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_tables');
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Помилка при отриманні таблиць:', error);
-      return [];
-    }
-  };
-
-  const fetchDatabaseFunctions = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_functions');
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Помилка при отриманні функцій:', error);
-      return [];
-    }
-  };
-
-  const fetchRLSPolicies = async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_policies');
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Помилка при отриманні політик:', error);
-      return [];
     }
   };
 
