@@ -222,8 +222,9 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     
     // Try direct HTTP request to the pg-meta REST API (using service role only)
     try {
-      // Use configured URLs instead of protected properties
-      const supabaseUrl = client.supabaseUrl;
+      // Instead of accessing protected property, extract URL from client configuration
+      // Get the base URL from the current REST URL or from environment
+      const supabaseUrl = client.getUrl();
       const url = `${supabaseUrl}/rest/v1/sql`;
       
       // Get auth token from client if possible
