@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,11 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Download, Upload, Image, Trash2, Import } from "lucide-react";
+import { Loader2, Download, Upload, Image, Trash2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
-import { importDefaultSiteSettings } from "@/utils/supabase-helpers";
-import type { Database } from "@/integrations/supabase/types";
 
 type SiteSettings = {
   id: string;
@@ -35,7 +33,6 @@ export default function SiteSettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -157,26 +154,6 @@ export default function SiteSettings() {
     }
   };
 
-  const handleImportDefaultSettings = async () => {
-    try {
-      setImporting(true);
-      const result = await importDefaultSiteSettings();
-      
-      if (result.success) {
-        toast.success(result.message);
-        // Reload settings to reflect the changes
-        await loadSettings();
-      } else {
-        toast.error(result.message);
-      }
-    } catch (error) {
-      console.error('Error importing default settings:', error);
-      toast.error(`Error importing default settings: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      setImporting(false);
-    }
-  };
-
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -279,31 +256,9 @@ export default function SiteSettings() {
   }
 
   if (!settings) {
-    // If no settings exist, show an import button
     return (
-      <div className="container max-w-5xl mx-auto px-4 py-10">
-        <div className="flex flex-col items-center justify-center space-y-6 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Site Settings</h1>
-          <p className="text-lg text-gray-500">No site settings found. Would you like to import the default settings?</p>
-          <Button 
-            onClick={handleImportDefaultSettings}
-            disabled={importing}
-            size="lg"
-            className="mt-4"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <Import className="mr-2 h-5 w-5" />
-                Import Default Settings
-              </>
-            )}
-          </Button>
-        </div>
+      <div className="p-4">
+        <p className="text-red-500">Error: Could not load site settings</p>
       </div>
     );
   }
@@ -312,41 +267,21 @@ export default function SiteSettings() {
     <div className="container max-w-5xl mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <h1 className="text-4xl font-bold tracking-tight">Site Settings</h1>
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <Button 
-            onClick={handleImportDefaultSettings} 
-            disabled={importing || saving}
-            variant="outline"
-            className="w-full md:w-auto"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <Import className="mr-2 h-4 w-4" />
-                Import Default Settings
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={saving || importing}
-            size="lg"
-            className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 md:px-8 py-6 rounded-xl"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
-          </Button>
-        </div>
+        <Button 
+          onClick={handleSave} 
+          disabled={saving}
+          size="lg"
+          className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 md:px-8 py-6 rounded-xl"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
+        </Button>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
