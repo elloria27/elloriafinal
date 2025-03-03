@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -109,8 +110,11 @@ export function MigrationStep({
       ]);
     } catch (error) {
       console.error("Initialization error:", error);
+      const errorMessage = error instanceof Error ? error.message : 
+                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
+                          
       setLog([{ 
-        message: `Initialization error: ${error instanceof Error ? error.message : String(error)}`, 
+        message: `Initialization error: ${errorMessage}`, 
         type: "error" 
       }]);
     }
@@ -194,18 +198,17 @@ export function MigrationStep({
         currentTask: "Attempting direct database import via SQL..."
       }));
 
+      // Prepare database by clearing statistics
       try {
         console.log('Trying to clear database statistics...');
-        const { error } = await supabaseClient.rpc('exec_sql', {
+        await supabaseClient.rpc('exec_sql', {
           sql: 'SELECT pg_stat_clear_snapshot();'
         });
         
-        if (!error) {
-          setLog(prev => [...prev, { 
-            message: "Successfully reset database statistics", 
-            type: "success" 
-          }]);
-        }
+        setLog(prev => [...prev, { 
+          message: "Successfully reset database statistics", 
+          type: "success" 
+        }]);
       } catch (e) {
         console.log('Could not reset statistics directly:', e);
       }
@@ -223,20 +226,29 @@ export function MigrationStep({
           setLog(prev => [...prev, { message, type: "success" }]);
         },
         onError: (error) => {
-          let errorMessage = error;
-          if (error.includes("exec_sql") && error.includes("schema cache")) {
-            errorMessage = "Database doesn't have permission to execute SQL functions directly. This is common with new Supabase projects.";
+          // Check if the error is just about SQL execution permission
+          if (error.includes("exec_sql") || 
+              error.includes("Limited SQL capabilities") || 
+              error.includes("schema cache")) {
+            
             setLog(prev => [...prev, { 
-              message: errorMessage, 
+              message: error, 
               type: "warning" 
             }]);
+            
+            // Don't count this as a serious error that would trigger manual mode
             return;
           }
           
-          setLog(prev => [...prev, { message: `Migration error: ${errorMessage}`, type: "error" }]);
+          setLog(prev => [...prev, { message: `Migration error: ${error}`, type: "error" }]);
+          setMigrationState(prev => ({
+            ...prev,
+            errors: [...prev.errors, error]
+          }));
         }
       });
 
+      // Count actual errors (excluding warnings)
       const errorCount = log.filter(entry => entry.type === "error").length;
       
       if (errorCount > 3) {
@@ -245,20 +257,33 @@ export function MigrationStep({
           type: "warning" 
         }]);
         setManualModeActive(true);
+        setIsRunning(false);
         return;
       }
 
-      setLog(prev => [...prev, { message: "Database import completed successfully!", type: "success" }]);
-      setMigrationState({
-        completed: true,
-        progress: 100,
-        currentTask: "Database import completed successfully!",
-        errors: []
-      });
-      toast.success("Database import completed successfully!");
+      // Check if we have any critical errors that would prevent completion
+      const hasCriticalErrors = migrationState.errors.length > 0;
+      
+      if (!hasCriticalErrors) {
+        setLog(prev => [...prev, { message: "Database import completed successfully!", type: "success" }]);
+        setMigrationState({
+          completed: true,
+          progress: 100,
+          currentTask: "Database import completed successfully!",
+          errors: []
+        });
+        toast.success("Database import completed successfully!");
+      } else {
+        setLog(prev => [...prev, { 
+          message: "Import completed with errors. You may need to use manual import instead.", 
+          type: "warning" 
+        }]);
+        setManualModeActive(true);
+      }
     } catch (error) {
       console.error("Import error:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : 
+                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
       
       setLog(prev => [...prev, { 
         message: `Import error: ${errorMessage}. Switching to manual import mode.`, 

@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -283,26 +282,44 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
     }
     
     // Use a direct query to create the function
-    // Fixed: Use try-catch instead of chaining .catch()
     try {
       const { error } = await client.from('_dummy_table_for_query')
         .select()
         .limit(1);
       
+      if (error && typeof error === 'object') {
+        return { 
+          success: false, 
+          error: error.message || error.code || JSON.stringify(error) 
+        };
+      }
+      
       return { success: !error, error: error ? String(error) : undefined };
-    } catch (_) {
+    } catch (err) {
       // Try alternative approach with rpc
       try {
         // Try with rpc - this is more likely to work if the user has the right permissions
         const { error } = await client.rpc('exec_sql', { sql: createFunctionSql });
+        
+        if (error && typeof error === 'object') {
+          return { 
+            success: false, 
+            error: error.message || error.code || JSON.stringify(error) 
+          };
+        }
+        
         return { success: !error, error: error ? String(error) : undefined };
       } catch (e) {
-        return { success: false, error: String(e) };
+        const errorMessage = e instanceof Error ? e.message : 
+                            (typeof e === 'object' ? JSON.stringify(e) : String(e));
+        return { success: false, error: errorMessage };
       }
     }
   } catch (error) {
     console.error('Error creating exec_sql function:', error);
-    return { success: false, error: String(error) };
+    const errorMessage = error instanceof Error ? error.message : 
+                        (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -345,17 +362,16 @@ async function executeSql(
         console.log(`Executing statement ${i+1}/${statements.length}, attempt ${attempt+1}`);
         
         // First try to use the exec_sql RPC function
-        // Fixed: Use try-catch instead of .catch()
         try {
           const { error } = await client.rpc('exec_sql', { sql: stmt });
           
-          if (!error) {
-            success = true;
-            successCount++;
-            console.log(`Statement ${i+1} executed successfully`);
-            break;
-          } else {
-            console.warn(`Failed to execute statement ${i+1} via RPC, attempt ${attempt+1}: ${error.message}`);
+          if (error) {
+            const errorMessage = error instanceof Error ? error.message : 
+                                (typeof error === 'object' ? 
+                                  (error.message || error.code || JSON.stringify(error)) : 
+                                  String(error));
+            
+            console.warn(`Failed to execute statement ${i+1} via RPC, attempt ${attempt+1}: ${errorMessage}`);
             
             // If RPC fails, try alternative method for simple queries
             if (stmt.toLowerCase().startsWith('select') || 
@@ -383,25 +399,35 @@ async function executeSql(
             
             // If it's the last attempt, record the error
             if (attempt === retries - 1) {
-              errorMessages.push(`Statement ${i+1}: ${error.message}`);
+              errorMessages.push(`Statement ${i+1}: ${errorMessage}`);
             }
             
             // Wait before retry with exponential backoff
             await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+          } else {
+            success = true;
+            successCount++;
+            console.log(`Statement ${i+1} executed successfully`);
+            break;
           }
         } catch (rpcErr) {
-          console.warn(`RPC error for statement ${i+1}, attempt ${attempt+1}:`, rpcErr);
+          const errorMessage = rpcErr instanceof Error ? rpcErr.message : 
+                              (typeof rpcErr === 'object' ? JSON.stringify(rpcErr) : String(rpcErr));
+          
+          console.warn(`RPC error for statement ${i+1}, attempt ${attempt+1}: ${errorMessage}`);
           
           // If it's the last attempt, record the error
           if (attempt === retries - 1) {
-            errorMessages.push(`Statement ${i+1}: ${String(rpcErr)}`);
+            errorMessages.push(`Statement ${i+1}: ${errorMessage}`);
           }
           
           // Wait before retry with exponential backoff
           await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
+        const errorMessage = err instanceof Error ? err.message : 
+                            (typeof err === 'object' ? JSON.stringify(err) : String(err));
+        
         console.error(`Error executing statement ${i+1}, attempt ${attempt+1}: ${errorMessage}`);
         
         // Wait before retry
@@ -453,8 +479,8 @@ export const runMigration = async (
     const { success: funcSuccess, error: funcError } = await createExecSqlFunction(client);
     
     if (!funcSuccess) {
-      console.warn("Warning: Could not create SQL execution helper function:", funcError);
-      onError(`Warning: Limited SQL capabilities available. Migration may be incomplete: ${funcError}`);
+      console.warn(`Could not create SQL execution helper function: ${funcError}`);
+      onError(`Limited SQL capabilities available. This typically happens with new Supabase projects. You may need to use manual import: ${funcError}`);
     } else {
       onSuccess("SQL execution helper ready");
     }
@@ -540,7 +566,13 @@ export const runMigration = async (
         .limit(1);
       
       if (pagesError) {
-        console.warn("Pages verification query failed:", pagesError);
+        const errorMessage = pagesError instanceof Error ? pagesError.message : 
+                            (typeof pagesError === 'object' ? 
+                              (pagesError.message || pagesError.code || JSON.stringify(pagesError)) : 
+                              String(pagesError));
+        
+        console.warn(`Pages verification query failed: ${errorMessage}`);
+        
         if (migrationSuccess) {
           onProgress(100, "Migration completed with limited verification");
         } else {
@@ -555,7 +587,11 @@ export const runMigration = async (
         }
       }
     } catch (error) {
-      console.warn(`Verification limited:`, error);
+      const errorMessage = error instanceof Error ? error.message : 
+                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      
+      console.warn(`Verification limited: ${errorMessage}`);
+      
       if (migrationSuccess) {
         onProgress(100, "Migration completed with limited verification!");
       } else {
@@ -563,7 +599,9 @@ export const runMigration = async (
       }
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : 
+                        (typeof error === 'object' ? JSON.stringify(error) : String(error));
+                        
     onError(errorMessage);
     throw error;
   }
