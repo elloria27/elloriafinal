@@ -1,4 +1,3 @@
-
 import { Routes as RouterRoutes, Route } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -27,8 +26,36 @@ import BulkOrders from "@/pages/BulkOrders";
 import NotFound from "@/pages/NotFound";
 import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
+import InstallWizard from "@/pages/InstallWizard";
+import { isInstallationNeeded } from "@/utils/migration";
+import { useEffect, useState } from "react";
 
 export function Routes() {
+  const [needsInstall, setNeedsInstall] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if installation is needed
+    const checkInstallation = async () => {
+      const installNeeded = await isInstallationNeeded();
+      setNeedsInstall(installNeeded);
+      setLoading(false);
+    };
+
+    checkInstallation();
+  }, []);
+
+  // Show loading state while checking if install is needed
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  // If installation is needed, only render the install wizard
+  if (needsInstall) {
+    return <InstallWizard />;
+  }
+
+  // Otherwise, render the normal app routes
   return (
     <>
       <Header />
@@ -57,6 +84,7 @@ export function Routes() {
         <Route path="/shared/bulk/:token" element={<SharedFile />} />
         <Route path="/bulk-orders" element={<BulkOrders />} />
         <Route path="/certificates" element={<Certificates />} />
+        <Route path="/install" element={<InstallWizard />} />
         {/* Add dynamic page route before the 404 route */}
         <Route path="/:slug" element={<DynamicPage />} />
         <Route path="*" element={<NotFound />} />
