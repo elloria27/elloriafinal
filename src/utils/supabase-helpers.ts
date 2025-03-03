@@ -126,7 +126,7 @@ export const importDefaultSiteSettings = async (): Promise<{ success: boolean; m
         google_analytics_id: null,
         enable_cookie_consent: false,
         enable_https_redirect: false,
-        max_upload_size: '10',
+        max_upload_size: 10, // Changed from string to number
         enable_user_avatars: false,
         logo_url: null
       };
@@ -164,7 +164,7 @@ export const importDefaultSiteSettings = async (): Promise<{ success: boolean; m
         google_analytics_id: null,
         enable_cookie_consent: false,
         enable_https_redirect: false,
-        max_upload_size: '10',
+        max_upload_size: 10, // Changed from string to number
         enable_user_avatars: false,
         logo_url: null
       };
