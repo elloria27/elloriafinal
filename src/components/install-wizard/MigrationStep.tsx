@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -47,8 +46,6 @@ export function MigrationStep({
     try {
       setLog(prev => [...prev, { message: "Creating database helper functions directly...", type: "info" }]);
       
-      // We'll execute raw SQL directly without accessing protected properties
-      
       // Store configuration for building URLs in migration utilities
       try {
         localStorage.setItem('supabase_config', JSON.stringify(config));
@@ -56,7 +53,43 @@ export function MigrationStep({
         console.error("Error storing config:", e);
       }
       
-      // Create enable_rls function
+      // Execute SQL directly using fetch API
+      const executeDirectSql = async (query: string) => {
+        // Make sure the URL is valid by removing trailing slashes and properly formatting
+        const baseUrl = config.url.trim().replace(/\/+$/, '');
+        
+        // Ensure we have a complete URL with protocol
+        const apiUrl = baseUrl.includes('://') ? 
+          `${baseUrl}/rest/v1/sql` : 
+          `https://${baseUrl}/rest/v1/sql`;
+        
+        console.log("Executing SQL with URL:", apiUrl);
+        
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${config.key}`,
+              'apikey': `${config.key}`,
+            },
+            body: JSON.stringify({ query })
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`SQL execution failed: ${errorText}`);
+            return { error: { message: errorText } };
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error("Fetch error:", error);
+          return { error };
+        }
+      };
+      
+      // Define helper functions SQL
       const enableRlsQuery = `
         CREATE OR REPLACE FUNCTION enable_rls(table_name text)
         RETURNS void AS $$
@@ -191,69 +224,52 @@ export function MigrationStep({
         $$ LANGUAGE plpgsql SECURITY DEFINER;
       `;
       
-      // Try executing SQL directly
+      // Combine all functions into a single query
+      const combinedQuery = `
+        ${enableRlsQuery}
+        ${definePolicyQuery}
+        ${createEnumTypeQuery}
+        ${createIndexQuery}
+        ${createTableQuery}
+      `;
+      
       try {
-        // Helper function to execute SQL using fetch
-        const executeDirectSql = async (query: string) => {
-          const response = await fetch(`${config.url}/rest/v1/sql`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${config.key}`,
-              'apikey': `${config.key}`,
-            },
-            body: JSON.stringify({ query })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`SQL execution failed: ${await response.text()}`);
-          }
-          
-          return await response.json();
-        };
+        const result = await executeDirectSql(combinedQuery);
         
-        // Combine all functions into a single query
-        const combinedQuery = `
-          ${enableRlsQuery}
-          ${definePolicyQuery}
-          ${createEnumTypeQuery}
-          ${createIndexQuery}
-          ${createTableQuery}
-        `;
-        
-        try {
-          await executeDirectSql(combinedQuery);
-          setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
-          return true;
-        } catch (error) {
-          console.error("Error creating helper functions with combined query:", error);
+        if (result.error) {
+          console.warn("Error with combined query, trying individual queries:", result.error);
           
           // Try individually if combined query fails
-          try {
-            await executeDirectSql(enableRlsQuery);
-            await executeDirectSql(definePolicyQuery);
-            await executeDirectSql(createEnumTypeQuery);
-            await executeDirectSql(createIndexQuery);
-            await executeDirectSql(createTableQuery);
-            
-            setLog(prev => [...prev, { message: "Helper functions created individually", type: "success" }]);
-            return true;
-          } catch (individualError) {
-            console.error("Error creating helper functions individually:", individualError);
+          const results = await Promise.all([
+            executeDirectSql(enableRlsQuery),
+            executeDirectSql(definePolicyQuery),
+            executeDirectSql(createEnumTypeQuery),
+            executeDirectSql(createIndexQuery),
+            executeDirectSql(createTableQuery)
+          ]);
+          
+          const errors = results.filter(r => r.error).map(r => r.error?.message || 'Unknown error');
+          
+          if (errors.length > 0) {
+            console.warn("Some individual queries failed:", errors);
             setLog(prev => [...prev, { 
-              message: `Warning: Could not create helper functions: ${individualError}. Will try to proceed anyway.`, 
+              message: `Some helper functions couldn't be created: ${errors.join('; ')}. Will try to proceed anyway.`, 
               type: "error" 
             }]);
-            return false;
+          } else {
+            setLog(prev => [...prev, { message: "Helper functions created individually", type: "success" }]);
           }
+        } else {
+          setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
         }
+        
+        return true;
       } catch (error) {
-        console.error("Error creating helper functions directly:", error);
+        console.error("Error creating helper functions with direct SQL:", error);
         setLog(prev => [...prev, { 
           message: `Warning: Could not create helper functions: ${error}. Will try to proceed anyway.`, 
           type: "error" 
         }]);
-        // Don't throw here, we'll try to continue anyway
         return false;
       }
     } catch (error) {

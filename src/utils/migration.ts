@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -191,28 +190,59 @@ const createRlsPolicies = (client: SupabaseClient) => {
   ];
 };
 
+// Store config for URL access
+let config = {
+  url: '',
+  key: '',
+  projectId: ''
+};
+
 // Helper function to execute SQL with proper URL building
-const executeSql = async (client: SupabaseClient, query: string): Promise<any> => {
+const executeSql = async (query: string): Promise<any> => {
   try {
-    // Get the API key safely from the client
-    const apiKey = (client as any).supabaseKey;
+    // Get stored config from localStorage
+    let baseUrl = '';
+    let apiKey = '';
     
-    // Build the URL without directly accessing protected properties
-    const { data: { session } } = await client.auth.getSession();
-    const supabaseUrl = new URL(session?.access_token || '').origin || config.url;
+    try {
+      const storedConfig = localStorage.getItem('supabase_config');
+      if (storedConfig) {
+        const parsedConfig = JSON.parse(storedConfig);
+        if (parsedConfig.url && parsedConfig.key) {
+          // Make sure the URL is valid by removing trailing slashes and properly formatting
+          baseUrl = parsedConfig.url.trim().replace(/\/+$/, '');
+          apiKey = parsedConfig.key;
+          
+          // Ensure we have a complete URL with protocol
+          if (!baseUrl.includes('://')) {
+            baseUrl = `https://${baseUrl}`;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error getting stored config:", e);
+    }
     
-    const response = await fetch(`${supabaseUrl}/rest/v1/sql`, {
+    if (!baseUrl || !apiKey) {
+      throw new Error('Missing Supabase configuration');
+    }
+    
+    const apiUrl = `${baseUrl}/rest/v1/sql`;
+    console.log(`Executing SQL on: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'apikey': `${apiKey}`,
+        'apikey': apiKey,
       },
       body: JSON.stringify({ query })
     });
     
     if (!response.ok) {
-      throw new Error(`SQL execution failed: ${await response.text()}`);
+      const errorText = await response.text();
+      throw new Error(`SQL execution failed: ${errorText}`);
     }
     
     return await response.json();
@@ -220,13 +250,6 @@ const executeSql = async (client: SupabaseClient, query: string): Promise<any> =
     console.error("Error executing SQL:", error);
     throw error;
   }
-};
-
-// Store config for URL access
-let config = {
-  url: '',
-  key: '',
-  projectId: ''
 };
 
 export const runMigration = async (
@@ -237,33 +260,44 @@ export const runMigration = async (
   const totalSteps = 7; // Total number of main migration steps
   let currentStep = 0;
   
-  // Store client details for building URLs
-  config.key = (client as any).supabaseKey;
-  
-  // Get URL from config in localStorage if possible
+  // Get config from localStorage
   try {
     const storedConfig = localStorage.getItem('supabase_config');
     if (storedConfig) {
-      const parsedConfig = JSON.parse(storedConfig);
-      if (parsedConfig.url) {
-        config.url = parsedConfig.url;
-      }
+      config = JSON.parse(storedConfig);
     }
   } catch (e) {
     console.error("Error getting stored config:", e);
   }
   
-  // If we still don't have URL, try to get it from session
-  if (!config.url) {
+  // If we don't have a URL or key, try to get them from the client
+  if (!config.url || !config.key) {
+    config.key = (client as any).supabaseKey;
+    
     try {
+      // Try to get URL from session origin as fallback
       const { data: { session } } = await client.auth.getSession();
-      const origin = new URL(session?.access_token || '').origin;
-      if (origin) {
-        config.url = origin;
+      if (session?.access_token) {
+        try {
+          // Extract Supabase domain from JWT
+          const payload = JSON.parse(atob(session.access_token.split('.')[1]));
+          if (payload.iss) {
+            config.url = payload.iss.startsWith('http') ? payload.iss : `https://${payload.iss}`;
+          }
+        } catch (e) {
+          console.error("Error parsing JWT:", e);
+        }
       }
     } catch (e) {
       console.error("Error getting URL from session:", e);
     }
+  }
+  
+  // Store config for future use
+  try {
+    localStorage.setItem('supabase_config', JSON.stringify(config));
+  } catch (e) {
+    console.error("Error storing config:", e);
   }
   
   try {
@@ -288,11 +322,12 @@ export const runMigration = async (
           END $$;
         `;
         
-        await executeSql(client, query);
+        await executeSql(query);
         onSuccess(`Enum type ${enumType.name} created`);
       } catch (error) {
         console.error(`Failed to create enum type: ${error}`);
         onError(`Could not create enum type ${enumType.name}: ${error}`);
+        // Continue with next enum, don't stop the process
       }
     }
     
@@ -333,14 +368,14 @@ export const runMigration = async (
         createTableSql = createTableSql.slice(0, -2);
         createTableSql += ');';
         
-        await executeSql(client, createTableSql);
+        await executeSql(createTableSql);
         
         if (table.indices) {
           for (const index of table.indices) {
             const isUnique = index.isUnique ? 'UNIQUE' : '';
             const indexSql = `CREATE ${isUnique} INDEX IF NOT EXISTS ${index.name} ON ${table.name} (${index.columns.join(', ')});`;
             
-            await executeSql(client, indexSql);
+            await executeSql(indexSql);
           }
         }
         
@@ -348,6 +383,7 @@ export const runMigration = async (
       } catch (error) {
         console.error(`Failed to create table: ${error}`);
         onError(`Could not create table ${table.name}: ${error}`);
+        // Continue with next table, don't stop the process
       }
     }
     
@@ -358,11 +394,12 @@ export const runMigration = async (
       try {
         const query = `ALTER TABLE ${table.name} ENABLE ROW LEVEL SECURITY;`;
         
-        await executeSql(client, query);
+        await executeSql(query);
         onSuccess(`RLS enabled on ${table.name}`);
       } catch (error) {
         console.error(`Failed to enable RLS: ${error}`);
         onError(`Could not enable RLS on ${table.name}: ${error}`);
+        // Continue with next table, don't stop the process
       }
     }
     
@@ -420,75 +457,89 @@ export const runMigration = async (
             COMMIT;
           `;
           
-          await executeSql(client, query);
+          await executeSql(query);
           onSuccess(`Created policy ${policy.name} on ${policy.table}`);
         } catch (pError) {
           console.error(`Failed to create policy ${policy.name}: ${pError}`);
           onError(`Could not create policy ${policy.name}: ${pError}`);
+          // Continue with next policy, don't stop the process
         }
       }
     } catch (error) {
       console.warn(`Failed to create RLS policies: ${error}`);
       onError(`Could not create security policies: ${error}`);
+      // Continue, don't stop the process
     }
     
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Initializing default data...");
     
-    const rolesQuery = `
-      INSERT INTO user_roles (id, name, description, created_at) 
-      VALUES 
-        (gen_random_uuid(), 'admin', 'Administrator with full access', now()),
-        (gen_random_uuid(), 'client', 'Regular user with limited access', now())
-      ON CONFLICT (name) DO NOTHING;
-    `;
-    
-    await executeSql(client, rolesQuery);
-    
-    const homePageQuery = `
-      WITH inserted_page AS (
-        INSERT INTO pages (
-          id, title, slug, is_published, show_in_header, 
-          show_in_footer, menu_order, created_at, updated_at
-        ) 
-        VALUES (
-          gen_random_uuid(), 'Home', 'home', true, true, 
-          false, 0, now(), now()
+    try {
+      const rolesQuery = `
+        INSERT INTO user_roles (id, name, description, created_at) 
+        VALUES 
+          (gen_random_uuid(), 'admin', 'Administrator with full access', now()),
+          (gen_random_uuid(), 'client', 'Regular user with limited access', now())
+        ON CONFLICT (name) DO NOTHING;
+      `;
+      
+      await executeSql(rolesQuery);
+      
+      const homePageQuery = `
+        WITH inserted_page AS (
+          INSERT INTO pages (
+            id, title, slug, is_published, show_in_header, 
+            show_in_footer, menu_order, created_at, updated_at
+          ) 
+          VALUES (
+            gen_random_uuid(), 'Home', 'home', true, true, 
+            false, 0, now(), now()
+          )
+          ON CONFLICT (slug) DO NOTHING
+          RETURNING id
         )
-        ON CONFLICT (slug) DO NOTHING
-        RETURNING id
-      )
-      INSERT INTO content_blocks (
-        id, page_id, type, content, order_index, created_at, updated_at
-      )
-      SELECT 
-        gen_random_uuid(), id, 'hero', 
-        '{"title":"Welcome to Your CMS","subtitle":"Get started by customizing this page","cta_text":"Learn More","cta_link":"/about","background_color":"#f9fafb"}'::jsonb, 
-        0, now(), now()
-      FROM inserted_page
-      WHERE EXISTS (SELECT 1 FROM inserted_page);
-    `;
-    
-    await executeSql(client, homePageQuery);
-    
-    onSuccess("Default data initialized");
+        INSERT INTO content_blocks (
+          id, page_id, type, content, order_index, created_at, updated_at
+        )
+        SELECT 
+          gen_random_uuid(), id, 'hero', 
+          '{"title":"Welcome to Your CMS","subtitle":"Get started by customizing this page","cta_text":"Learn More","cta_link":"/about","background_color":"#f9fafb"}'::jsonb, 
+          0, now(), now()
+        FROM inserted_page
+        WHERE EXISTS (SELECT 1 FROM inserted_page);
+      `;
+      
+      await executeSql(homePageQuery);
+      
+      onSuccess("Default data initialized");
+    } catch (error) {
+      console.error("Error initializing default data:", error);
+      onError(`Could not initialize default data: ${error}`);
+      // Continue, don't stop the process
+    }
     
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Verifying installation...");
     
-    const verifyQuery = `SELECT EXISTS (
-      SELECT FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name = 'pages'
-    );`;
-    
-    const result = await executeSql(client, verifyQuery);
-    
-    if (result.error) {
-      throw new Error(`Verification failed: ${result.error.message}`);
+    try {
+      const verifyQuery = `SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'pages'
+      );`;
+      
+      const result = await executeSql(verifyQuery);
+      
+      if (result.error) {
+        throw new Error(`Verification failed: ${result.error.message}`);
+      }
+      
+      onProgress(100, "Migration completed successfully!");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      onError(`Verification failed: ${errorMessage}`);
+      throw error;
     }
-    
-    onProgress(100, "Migration completed successfully!");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     onError(errorMessage);
