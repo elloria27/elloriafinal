@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Card } from "@/components/ui/card";
@@ -34,18 +33,15 @@ export default function InstallWizard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if installation is needed when component mounts
     const checkInstallation = async () => {
       try {
         setLoading(true);
         const needed = await isInstallationNeeded();
         if (!needed) {
-          // If installation is not needed, redirect to home page
           navigate('/');
         }
       } catch (error) {
         console.error("Error checking installation status:", error);
-        // If there's an error, assume installation is needed
       } finally {
         setLoading(false);
       }
