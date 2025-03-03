@@ -375,18 +375,21 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
 // Helper function to verify database tables exist
 const verifyDatabaseSetup = async (): Promise<boolean> => {
   try {
-    // Use Postgres system catalog to check if our tables exist
-    // This avoids the error from querying non-existent tables directly
+    // Use Postgres information_schema to check if key tables exist
     const { data, error } = await defaultSupabase
-      .rpc('check_table_exists', { table_name: 'profiles' });
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_name', 'profiles')
+      .maybeSingle();
     
     if (error) {
       console.error('Error checking table existence:', error);
       return false;
     }
     
-    // If data is true, the table exists
-    return !!data;
+    // If data is not null, the table exists
+    return data !== null;
   } catch (error) {
     console.error('Error in database verification:', error);
     return false;
