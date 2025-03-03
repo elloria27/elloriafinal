@@ -10,7 +10,55 @@ import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
 import siteSettingsSQL from "@/utils/site_settings_rows.sql?raw";
-import { executeRawSQL } from "@/utils/supabase-helpers";
+import { executeRawSQL, createSiteSettingsFromJSON } from "@/utils/supabase-helpers";
+
+const siteSettingsJSON = {
+  "table": "site_settings",
+  "columns": [
+    "id",
+    "site_title",
+    "default_language",
+    "enable_registration",
+    "enable_search_indexing",
+    "meta_description",
+    "meta_keywords",
+    "custom_scripts",
+    "created_at",
+    "updated_at",
+    "homepage_slug",
+    "favicon_url",
+    "maintenance_mode",
+    "contact_email",
+    "google_analytics_id",
+    "enable_cookie_consent",
+    "enable_https_redirect",
+    "max_upload_size",
+    "enable_user_avatars",
+    "logo_url"
+  ],
+  "values": [
+    "c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec",
+    "Elloria",
+    "en",
+    true,
+    true,
+    null,
+    null,
+    [],
+    "2025-01-26 16:59:44.940264-06",
+    "2025-02-13 06:02:08.844257-06",
+    "index",
+    null,
+    false,
+    "sales@elloria.ca",
+    null,
+    false,
+    false,
+    10,
+    false,
+    null
+  ]
+};
 
 const steps = [
   { id: "connect", title: "Підключення" },
@@ -164,7 +212,7 @@ export default function Setup() {
         throw new Error("Необхідно спочатку встановити з'єднання");
       }
 
-      console.log("Executing site settings SQL:", siteSettingsSQL);
+      console.log("Importing site settings using JSON data");
       setProgress(10);
       
       const createTableSQL = `
@@ -205,13 +253,14 @@ export default function Setup() {
 
       setProgress(60);
       
-      const { error: insertError } = await executeRawSQL(siteSettingsSQL, targetSupabaseClient);
+      const { data: siteSettingsData, error: insertError } = 
+        await createSiteSettingsFromJSON(siteSettingsJSON, targetSupabaseClient);
       
       if (insertError) {
         console.error("Error inserting data:", insertError);
         throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
       } else {
-        console.log("Settings inserted via SQL/API");
+        console.log("Settings inserted via JSON import:", siteSettingsData);
       }
       
       setProgress(100);

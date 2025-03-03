@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -384,5 +385,140 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
       data: null, 
       error: { message: error instanceof Error ? error.message : 'Unknown error executing SQL' } 
     };
+  }
+};
+
+/**
+ * Creates or updates site settings from JSON data
+ * @param jsonData Site settings data in JSON format
+ * @param client Supabase client to use
+ * @returns Result of the operation
+ */
+export const createSiteSettingsFromJSON = async (jsonData: any, client = supabase) => {
+  try {
+    console.log('Creating site settings from JSON:', jsonData);
+    
+    if (!jsonData.table || jsonData.table !== 'site_settings' || !jsonData.columns || !jsonData.values) {
+      throw new Error('Invalid JSON data format for site settings');
+    }
+    
+    // Create an object from columns and values
+    const siteSettingsData: Record<string, any> = {};
+    jsonData.columns.forEach((column: string, index: number) => {
+      siteSettingsData[column] = jsonData.values[index];
+    });
+    
+    console.log('Parsed site settings data:', siteSettingsData);
+    
+    // Validate default_language to conform to type
+    if (siteSettingsData.default_language && 
+        !['en', 'fr', 'uk'].includes(siteSettingsData.default_language)) {
+      console.warn(`Setting default language "${siteSettingsData.default_language}" to "en" to match type definition`);
+      siteSettingsData.default_language = 'en';
+    }
+    
+    // Ensure custom_scripts is proper JSON
+    if (siteSettingsData.custom_scripts) {
+      if (typeof siteSettingsData.custom_scripts === 'string') {
+        try {
+          siteSettingsData.custom_scripts = JSON.parse(siteSettingsData.custom_scripts);
+        } catch (e) {
+          console.error('Error parsing custom_scripts JSON:', e);
+          siteSettingsData.custom_scripts = [];
+        }
+      }
+    } else {
+      siteSettingsData.custom_scripts = [];
+    }
+    
+    // First check if site_settings table exists, create it if not
+    const tableExists = await tableExistsWithClient('site_settings', client);
+    
+    if (!tableExists) {
+      console.log('Creating site_settings table...');
+      
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS public.site_settings (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          site_title TEXT NOT NULL DEFAULT 'Elloria',
+          default_language TEXT NOT NULL DEFAULT 'en',
+          enable_registration BOOLEAN NOT NULL DEFAULT true,
+          enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
+          meta_description TEXT,
+          meta_keywords TEXT,
+          custom_scripts JSONB DEFAULT '[]',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+          homepage_slug TEXT DEFAULT 'index',
+          favicon_url TEXT,
+          maintenance_mode BOOLEAN DEFAULT false,
+          contact_email TEXT,
+          google_analytics_id TEXT,
+          enable_cookie_consent BOOLEAN DEFAULT false,
+          enable_https_redirect BOOLEAN DEFAULT false,
+          max_upload_size INTEGER DEFAULT 10,
+          enable_user_avatars BOOLEAN DEFAULT false,
+          logo_url TEXT
+        );
+      `;
+      
+      const { error: createError } = await executeRawSQL(createTableSQL, client);
+      if (createError) {
+        console.warn('Error creating table, but continuing with insertion:', createError);
+      }
+    }
+    
+    // Try to insert the site settings using upsert
+    console.log('Inserting site settings data...');
+    const { error: upsertError } = await client
+      .from('site_settings')
+      .upsert([siteSettingsData]);
+      
+    if (upsertError) {
+      console.error('Error upserting site settings:', upsertError);
+      
+      // Fallback to separate insert 
+      console.log('Trying direct insert...');
+      
+      // Use insert instead of upsert as a fallback
+      const { error: insertError } = await client
+        .from('site_settings')
+        .insert([siteSettingsData]);
+        
+      if (insertError) {
+        throw new Error(`Failed to insert site settings: ${insertError.message}`);
+      }
+    }
+    
+    return { 
+      data: siteSettingsData, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error creating site settings from JSON:', error);
+    return { 
+      data: null, 
+      error: { message: error instanceof Error ? error.message : 'Unknown error creating site settings' } 
+    };
+  }
+};
+
+/**
+ * Checks if a table exists in the Supabase database using a specific client
+ * @param tableName Table name to check
+ * @param client Supabase client to use
+ * @returns true if the table exists, false otherwise
+ */
+const tableExistsWithClient = async (tableName: string, client: any) => {
+  try {
+    const { error } = await client
+      .from(tableName)
+      .select('id')
+      .limit(1);
+      
+    return !error || error.code !== '42P01';
+  } catch (err) {
+    console.error(`Error checking if table ${tableName} exists:`, err);
+    return false;
   }
 };
