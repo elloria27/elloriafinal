@@ -32,15 +32,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FileCheck2, Database, User, Settings, ArrowRight, ArrowLeft, AlertCircle, HelpCircle, CheckCircle2 } from "lucide-react";
+import { FileCheck2, Database, User, Settings, ArrowRight, ArrowLeft, AlertCircle, HelpCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Schema for database connection step
 const connectionSchema = z.object({
   supabaseUrl: z.string().url({ message: "Введіть валідний URL Supabase проекту" }),
   supabaseKey: z.string().min(20, { message: "Публічний ключ Supabase повинен бути валідним" }),
+  supabaseServiceRoleKey: z.string().min(20, { message: "Секретний ключ сервісної ролі Supabase повинен бути валідним" }),
 });
 
 // Schema for admin user step
@@ -80,10 +80,12 @@ export default function SetupWizard() {
   const [connectionValid, setConnectionValid] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
   const [supabaseConnected, setSupabaseConnected] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [setupData, setSetupData] = useState({
     connection: {
       supabaseUrl: "",
       supabaseKey: "",
+      supabaseServiceRoleKey: "",
     },
     admin: {
       email: "",
@@ -149,14 +151,29 @@ export default function SetupWizard() {
         connection: data,
       }));
       
-      // In a real implementation, we would test the connection here
-      // For now, we'll simulate success after a delay
-      setTimeout(() => {
-        setConnectionValid(true);
-        setSupabaseConnected(true);
-        toast.success("З'єднання з базою даних успішно встановлено!");
-        nextStep();
-      }, 1500);
+      // Create a Supabase client with the provided credentials
+      const { createClient } = await import('@supabase/supabase-js');
+      const testClient = createClient(data.supabaseUrl, data.supabaseKey);
+      
+      // Test the connection by making a simple query
+      const { error } = await testClient.from('_schema').select('*').limit(1);
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      // Test service role key by checking if it's valid
+      const serviceClient = createClient(data.supabaseUrl, data.supabaseServiceRoleKey);
+      const { error: serviceError } = await serviceClient.from('_schema').select('*').limit(1);
+      
+      if (serviceError && serviceError.code !== 'PGRST116') {
+        throw new Error('Помилка при перевірці ключа сервісної ролі: ' + serviceError.message);
+      }
+      
+      setConnectionValid(true);
+      setSupabaseConnected(true);
+      toast.success("З'єднання з базою даних успішно встановлено!");
+      nextStep();
     } catch (error) {
       console.error("Connection error:", error);
       toast.error("Помилка при з'єднанні з базою даних. Перевірте дані та спробуйте знову.");
@@ -196,12 +213,25 @@ export default function SetupWizard() {
       
       // If the user has chosen to import default settings
       if (data.importDefaultSettings) {
+        setIsImporting(true);
         try {
-          const { error } = await supabase.functions.invoke('import-default-data', {
+          const { createClient } = await import('@supabase/supabase-js');
+          const serviceClient = createClient(
+            setupData.connection.supabaseUrl, 
+            setupData.connection.supabaseServiceRoleKey
+          );
+          
+          // Call the edge function with the service role key
+          const { error } = await serviceClient.functions.invoke('import-default-data', {
             body: {
               siteTitle: data.siteTitle,
               siteDescription: data.siteDescription,
-              defaultLanguage: data.defaultLanguage
+              defaultLanguage: data.defaultLanguage,
+              adminUser: {
+                email: setupData.admin.email,
+                password: setupData.admin.password,
+                fullName: setupData.admin.fullName
+              }
             },
           });
           
@@ -210,6 +240,8 @@ export default function SetupWizard() {
         } catch (importError) {
           console.error("Import error:", importError);
           toast.error("Помилка при імпорті даних за замовчуванням.");
+        } finally {
+          setIsImporting(false);
         }
       }
       
@@ -313,7 +345,8 @@ export default function SetupWizard() {
                     </p>
                     <ul className="list-disc pl-6 mt-2 text-sm space-y-1">
                       <li>URL вашого проекту Supabase</li>
-                      <li>Публічний ключ API Supabase</li>
+                      <li>Публічний ключ API Supabase (anon key)</li>
+                      <li>Секретний ключ сервісної ролі Supabase (service_role key)</li>
                       <li>Доступ до електронної пошти для створення облікового запису адміністратора</li>
                     </ul>
                   </div>
@@ -388,7 +421,7 @@ export default function SetupWizard() {
                         name="supabaseKey"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Публічний ключ API</FormLabel>
+                            <FormLabel>Публічний ключ API (anon key)</FormLabel>
                             <div className="flex items-center">
                               <FormControl>
                                 <Input
@@ -419,6 +452,43 @@ export default function SetupWizard() {
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={connectionForm.control}
+                        name="supabaseServiceRoleKey"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Секретний ключ сервісної ролі (service_role key)</FormLabel>
+                            <div className="flex items-center">
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="eyJ0eXAiOiJKV1QiLCJhbGci..."
+                                  {...field}
+                                />
+                              </FormControl>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      type="button"
+                                      className="ml-2"
+                                    >
+                                      <HelpCircle className="h-5 w-5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p>Секретний ключ сервісної ролі знаходиться в налаштуваннях проекту, розділ "API", підрозділ "service_role".</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                     <CardFooter className="flex justify-between">
                       <Button
@@ -434,11 +504,14 @@ export default function SetupWizard() {
                         disabled={isCheckingConnection}
                         className="flex items-center"
                       >
-                        {isCheckingConnection
-                          ? "Перевірка з'єднання..."
-                          : "Перевірити з'єднання"}
-                        {!isCheckingConnection && (
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                        {isCheckingConnection ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Перевірка з'єднання...
+                          </>
+                        ) : (
+                          <>
+                            Перевірити з'єднання <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
                         )}
                       </Button>
                     </CardFooter>
@@ -666,8 +739,20 @@ export default function SetupWizard() {
                       >
                         <ArrowLeft className="mr-2 h-4 w-4" /> Назад
                       </Button>
-                      <Button type="submit" className="flex items-center">
-                        Завершити <CheckCircle2 className="ml-2 h-4 w-4" />
+                      <Button 
+                        type="submit" 
+                        className="flex items-center"
+                        disabled={isImporting}
+                      >
+                        {isImporting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Імпорт даних...
+                          </>
+                        ) : (
+                          <>
+                            Завершити <CheckCircle2 className="ml-2 h-4 w-4" />
+                          </>
+                        )}
                       </Button>
                     </CardFooter>
                   </form>

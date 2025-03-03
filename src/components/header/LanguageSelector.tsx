@@ -1,3 +1,4 @@
+
 import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -10,16 +11,20 @@ type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const LanguageSelector = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('site_settings')
           .select('default_language')
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
         
         if (data) {
           console.log('Fetched default language:', data.default_language);
@@ -27,7 +32,12 @@ export const LanguageSelector = () => {
         }
       } catch (error) {
         console.error('Error fetching site settings:', error);
-        toast.error("Failed to load language settings");
+        // Don't show toast during initial loading - might be part of setup
+        if (!isLoading) {
+          toast.error("Failed to load language settings");
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -56,7 +66,7 @@ export const LanguageSelector = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isLoading]);
 
   const getLanguageLabel = (code: string) => {
     switch (code) {
