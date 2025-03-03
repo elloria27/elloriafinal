@@ -1,12 +1,11 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 interface ConnectionStepProps {
   config: {
@@ -36,33 +35,29 @@ export function ConnectionStep({
     success: boolean;
     message: string;
   } | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const validateInputs = () => {
-    if (!config.url || !config.url.includes("supabase.co")) {
-      setTestResult({
-        success: false,
-        message: "Please enter a valid Supabase URL",
-      });
-      return false;
+    const errors: Record<string, string> = {};
+    
+    if (!config.url.trim()) {
+      errors.url = "Project URL is required";
+    } else if (!config.url.includes("supabase.co")) {
+      errors.url = "Invalid Supabase URL format";
     }
-
-    if (!config.key || config.key.length < 20) {
-      setTestResult({
-        success: false,
-        message: "Please enter a valid API key (service_role key recommended)",
-      });
-      return false;
+    
+    if (!config.key.trim()) {
+      errors.key = "API key is required";
+    } else if (config.key.length < 30) {
+      errors.key = "API key seems too short";
     }
-
-    // Extract project ID from URL if not entered
-    if (!config.projectId) {
-      const match = config.url.match(/([a-zA-Z0-9-]+)\.supabase\.co/);
-      if (match && match[1]) {
-        setConfig({ ...config, projectId: match[1] });
-      }
+    
+    if (!config.projectId.trim()) {
+      errors.projectId = "Project ID is required";
     }
-
-    return true;
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const testConnection = async () => {
@@ -74,10 +69,7 @@ export function ConnectionStep({
     setTestResult(null);
     
     try {
-      // Create a client with the provided config
-      // Make sure URL and key are properly formatted
-      const url = config.url.startsWith('https://') ? config.url : `https://${config.url}`;
-      const supabase = createClient(url, config.key);
+      const supabase = createClient(config.url, config.key);
       
       // Test basic connection with a simpler query that doesn't require tables to exist
       const { data, error } = await supabase.auth.getSession();
@@ -97,9 +89,9 @@ export function ConnectionStep({
         
         try {
           // Try calling a schema version RPC function (might not exist in new projects)
-          const { error: rpcError } = await supabase.rpc('get_schema_version');
-          schemaError = rpcError;
-        } catch (err) {
+          const rpcResult = await supabase.rpc('get_schema_version', {});
+          schemaError = rpcResult.error;
+        } catch (_) {
           // If the RPC call itself throws an exception (not just returns an error)
           schemaError = { message: "RPC function doesn't exist" };
         }
@@ -107,27 +99,32 @@ export function ConnectionStep({
         // If RPC failed, try direct schema access
         if (schemaError) {
           try {
-            // Try to test if we can create tables, which requires elevated permissions
-            const { error: sqlError } = await supabase
-              .from('_test_permissions')
-              .select('*')
-              .limit(1)
-              .single();
-              
-            // Handle non-existent table error separately from permission errors
-            if (sqlError && !sqlError.message.includes("relation") && sqlError.message.includes("permission denied")) {
+            // Try using a raw SQL query instead of accessing information_schema directly
+            const { error: sqlError } = await supabase.rpc('execute_sql', {
+              sql_query: "SELECT table_schema FROM information_schema.tables LIMIT 1"
+            });
+            
+            // If SQL query works, we have good permissions
+            if (!sqlError) {
               setTestResult({
-                success: false, 
-                message: "Connection successful, but insufficient permissions. Make sure you're using the service_role key."
+                success: true, 
+                message: "Connection successful! Ready to set up the database."
               });
               return;
             }
             
-            // If we get here, we likely have good permissions
-            setTestResult({
-              success: true, 
-              message: "Connection successful! Ready to set up the database."
-            });
+            // Otherwise check the error type
+            if (sqlError.message.includes("permission denied")) {
+              setTestResult({
+                success: false, 
+                message: "Connection successful, but insufficient permissions. Make sure you're using the service_role key."
+              });
+            } else {
+              setTestResult({
+                success: false, 
+                message: "Connection successful, but couldn't verify permissions: " + sqlError.message
+              });
+            }
           } catch (err) {
             // If all else fails, assume we're good as long as we connected
             setTestResult({
@@ -159,16 +156,18 @@ export function ConnectionStep({
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfig({ ...config, url: e.target.value });
-  };
-
-  const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfig({ ...config, key: e.target.value });
-  };
-
-  const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfig({ ...config, projectId: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setConfig((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear validation error when user types
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -178,82 +177,93 @@ export function ConnectionStep({
           Connect to Supabase
         </h2>
         <p className="mt-2 text-gray-600">
-          Enter your Supabase project details to continue
+          Enter your Supabase project details to connect
         </p>
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="supabase-url">Supabase Project URL</Label>
-            <Input
-              id="supabase-url"
-              placeholder="https://your-project.supabase.co"
-              value={config.url}
-              onChange={handleUrlChange}
-            />
-            <p className="text-xs text-gray-500">
-              The URL of your Supabase project
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="supabase-key">
-              Supabase API Key <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="supabase-key"
-              type="password"
-              placeholder="your-service-role-key"
-              value={config.key}
-              onChange={handleKeyChange}
-            />
-            <p className="text-xs text-gray-500">
-              Use the <strong>service_role</strong> key for full database access
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="project-id">Project ID (Optional)</Label>
-            <Input
-              id="project-id"
-              placeholder="automatically extracted from URL"
-              value={config.projectId}
-              onChange={handleProjectIdChange}
-            />
-            <p className="text-xs text-gray-500">
-              This will be extracted automatically from the URL if not provided
-            </p>
-          </div>
+        <div className="space-y-1">
+          <Label htmlFor="url">Supabase Project URL</Label>
+          <Input
+            id="url"
+            name="url"
+            value={config.url}
+            onChange={handleChange}
+            placeholder="https://your-project.supabase.co"
+            className={validationErrors.url ? "border-red-500" : ""}
+          />
+          {validationErrors.url && (
+            <p className="text-sm text-red-500">{validationErrors.url}</p>
+          )}
+          <p className="text-xs text-gray-500">
+            Found in your Supabase project dashboard under Settings {'>'}  API
+          </p>
         </div>
 
-        <div className="pt-2">
-          <Button 
-            onClick={testConnection} 
-            disabled={testing}
-            className="w-full"
-          >
-            {testing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Testing Connection...
-              </>
-            ) : (
-              "Test Connection"
-            )}
-          </Button>
+        <div className="space-y-1">
+          <Label htmlFor="key">Supabase API Key</Label>
+          <Input
+            id="key"
+            name="key"
+            value={config.key}
+            onChange={handleChange}
+            type="password"
+            placeholder="your-supabase-service-role-key"
+            className={validationErrors.key ? "border-red-500" : ""}
+          />
+          {validationErrors.key && (
+            <p className="text-sm text-red-500">{validationErrors.key}</p>
+          )}
+          <p className="text-xs text-gray-500">
+            Use the <strong>service_role</strong> key (not anon/public), found in Settings {'>'}  API
+          </p>
         </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="projectId">Project ID</Label>
+          <Input
+            id="projectId"
+            name="projectId"
+            value={config.projectId}
+            onChange={handleChange}
+            placeholder="abcdefghijklmnopqrst"
+            className={validationErrors.projectId ? "border-red-500" : ""}
+          />
+          {validationErrors.projectId && (
+            <p className="text-sm text-red-500">{validationErrors.projectId}</p>
+          )}
+          <p className="text-xs text-gray-500">
+            Found in the URL of your Supabase dashboard (or Settings {'>'}  General)
+          </p>
+        </div>
+
+        <Button 
+          onClick={testConnection} 
+          variant="outline" 
+          className="w-full"
+          disabled={testing}
+        >
+          {testing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Testing Connection...
+            </>
+          ) : (
+            "Test Connection"
+          )}
+        </Button>
 
         {testResult && (
           <Alert variant={testResult.success ? "default" : "destructive"}>
-            <div className="flex items-center">
-              {testResult.success ? (
-                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-              ) : (
-                <XCircle className="h-4 w-4 mr-2 text-red-500" />
-              )}
-              <AlertDescription>{testResult.message}</AlertDescription>
-            </div>
+            {testResult.success ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            <AlertTitle>
+              {testResult.success ? "Success" : "Connection Failed"}
+            </AlertTitle>
+            <AlertDescription>{testResult.message}</AlertDescription>
           </Alert>
         )}
       </div>
@@ -266,7 +276,7 @@ export function ConnectionStep({
         </Button>
         <Button 
           onClick={onNext} 
-          disabled={!testResult?.success || testing}
+          disabled={!testResult?.success}
         >
           Next: Database Setup
         </Button>
