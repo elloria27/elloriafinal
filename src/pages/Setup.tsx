@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Database, AlertCircle, ArrowRight, Copy } from "lucide-react";
+import { CheckCircle, Database, AlertCircle, ArrowRight, Copy, Import } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
@@ -24,10 +24,8 @@ export default function Setup() {
   const [progress, setProgress] = useState(0);
   const [formData, setFormData] = useState({
     url: "",
-    key: "",
-    database: "postgresql://postgres:password@db.your-project.supabase.co:5432/postgres"
+    key: ""
   });
-  const [databaseUrl, setDatabaseUrl] = useState("postgresql://postgres:[YOUR-PASSWORD]@db.euexcsqvsbkxiwdieepu.supabase.co:5432/postgres");
   const [setupComplete, setSetupComplete] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,11 +34,6 @@ export default function Setup() {
       ...formData,
       [name]: value
     });
-  };
-
-  const handleDatabaseUrlCopy = () => {
-    navigator.clipboard.writeText(databaseUrl.replace("[YOUR-PASSWORD]", "***"));
-    toast.success("URL скопійовано в буфер обміну");
   };
 
   const testConnection = async () => {
@@ -247,39 +240,37 @@ export default function Setup() {
         {currentStep === "database" && (
           <Card>
             <CardHeader>
-              <CardTitle>Міграція бази даних</CardTitle>
+              <CardTitle>Імпорт бази даних</CardTitle>
               <CardDescription>
-                Перенесіть існуючу базу даних до вашого нового проекту Supabase
+                Імпортуйте базу даних до вашого нового проекту Supabase
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Alert className="bg-blue-50 border-blue-200">
-                <Database className="h-4 w-4 text-blue-500" />
-                <AlertTitle>Джерело даних</AlertTitle>
-                <AlertDescription className="flex items-center">
-                  <code className="bg-blue-100 p-2 rounded text-sm flex-1 mr-2">
-                    {databaseUrl}
-                  </code>
-                  <Button variant="outline" size="sm" onClick={handleDatabaseUrlCopy}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </AlertDescription>
-              </Alert>
-
-              <div>
-                <label htmlFor="database" className="block text-sm font-medium mb-1">
-                  URL цільової бази даних
-                </label>
-                <Input
-                  id="database"
-                  name="database"
-                  placeholder="postgresql://postgres:password@db.your-project.supabase.co:5432/postgres"
-                  value={formData.database}
-                  onChange={handleInputChange}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  URL бази даних можна знайти в налаштуваннях Supabase проекту в розділі "Database"
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 flex flex-col items-center">
+                <Database className="h-12 w-12 text-blue-500 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Готові до імпорту бази даних</h3>
+                <p className="text-center text-gray-600 mb-4">
+                  Натисніть кнопку нижче, щоб розпочати процес імпорту бази даних. 
+                  Дані будуть імпортовані з файлу database_export.json до вашого нового проекту Supabase.
                 </p>
+                <Button 
+                  onClick={runDatabaseMigration} 
+                  disabled={loading}
+                  size="lg"
+                  className="mt-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="animate-spin mr-2">◌</span>
+                      Імпортування...
+                    </>
+                  ) : (
+                    <>
+                      <Import className="mr-2 h-4 w-4" />
+                      Почати імпорт бази даних
+                    </>
+                  )}
+                </Button>
               </div>
 
               <div className="space-y-2">
@@ -299,22 +290,6 @@ export default function Setup() {
             <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={() => setCurrentStep("connect")} disabled={loading}>
                 Назад
-              </Button>
-              <Button 
-                onClick={runDatabaseMigration} 
-                disabled={loading || !formData.database}
-              >
-                {loading ? (
-                  <>
-                    <span className="animate-spin mr-2">◌</span>
-                    Імпортування...
-                  </>
-                ) : (
-                  <>
-                    Імпортувати базу даних
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
               </Button>
             </CardFooter>
           </Card>
