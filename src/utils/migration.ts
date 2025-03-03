@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -289,14 +288,19 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
         .limit(1);
       
       if (error) {
-        const errorString = typeof error === 'object' ? 
-          (error && 'message' in error ? String(error.message) : '') + 
-          (error && 'code' in error ? ' (' + String(error.code) + ')' : '') : 
-          String(error);
+        // Fix: Safely handle the error object with type guards
+        let errorMessage = 'Unknown error';
+        if (typeof error === 'object' && error !== null) {
+          const messageText = 'message' in error && error.message ? String(error.message) : '';
+          const codeText = 'code' in error && error.code ? ` (${String(error.code)})` : '';
+          errorMessage = messageText + codeText || JSON.stringify(error);
+        } else if (error !== undefined) {
+          errorMessage = String(error);
+        }
         
         return { 
           success: false, 
-          error: errorString || 'Unknown error'
+          error: errorMessage
         };
       }
       
@@ -308,14 +312,19 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
         const { error } = await client.rpc('exec_sql', { sql: createFunctionSql });
         
         if (error) {
-          const errorString = typeof error === 'object' ? 
-            (error && 'message' in error ? String(error.message) : '') + 
-            (error && 'code' in error ? ' (' + String(error.code) + ')' : '') : 
-            String(error);
+          // Fix: Safely handle the error object with type guards
+          let errorMessage = 'Unknown error';
+          if (typeof error === 'object' && error !== null) {
+            const messageText = 'message' in error && error.message ? String(error.message) : '';
+            const codeText = 'code' in error && error.code ? ` (${String(error.code)})` : '';
+            errorMessage = messageText + codeText || JSON.stringify(error);
+          } else if (error !== undefined) {
+            errorMessage = String(error);
+          }
           
           return { 
             success: false, 
-            error: errorString || 'Unknown error'
+            error: errorMessage
           };
         }
         
@@ -577,12 +586,17 @@ export const runMigration = async (
         .limit(1);
       
       if (pagesError) {
-        const errorString = typeof pagesError === 'object' ? 
-          (pagesError && 'message' in pagesError ? String(pagesError.message) : '') + 
-          (pagesError && 'code' in pagesError ? ' (' + String(pagesError.code) + ')' : '') : 
-          String(pagesError);
+        // Fix: Safely handle the error object with type guards
+        let errorMessage = 'Unknown error';
+        if (typeof pagesError === 'object' && pagesError !== null) {
+          const messageText = 'message' in pagesError && pagesError.message ? String(pagesError.message) : '';
+          const codeText = 'code' in pagesError && pagesError.code ? ` (${String(pagesError.code)})` : '';
+          errorMessage = messageText + codeText || JSON.stringify(pagesError);
+        } else if (pagesError !== undefined) {
+          errorMessage = String(pagesError);
+        }
         
-        console.warn(`Pages verification query failed: ${errorString}`);
+        console.warn(`Pages verification query failed: ${errorMessage}`);
         
         if (migrationSuccess) {
           onProgress(100, "Migration completed with limited verification");
@@ -598,8 +612,15 @@ export const runMigration = async (
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 
-                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      // Fix: Safely handle the error object with type guards
+      let errorMessage = 'Unknown error';
+      if (typeof error === 'object' && error !== null) {
+        const messageText = 'message' in error && error.message ? String(error.message) : '';
+        const codeText = 'code' in error && error.code ? ` (${String(error.code)})` : '';
+        errorMessage = messageText + codeText || JSON.stringify(error);
+      } else if (error !== undefined) {
+        errorMessage = String(error);
+      }
       
       console.warn(`Verification limited: ${errorMessage}`);
       
