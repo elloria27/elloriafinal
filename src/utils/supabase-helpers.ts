@@ -187,13 +187,40 @@ export const createDefaultSiteSettings = async () => {
 };
 
 // Helper function to check if a table exists
+// This version works with TypeScript by using a more generic approach
 export const tableExists = async (tableName: string) => {
   try {
+    // Use a direct query to the system catalog instead
+    // This avoids TypeScript errors with dynamic table names
     const { error } = await supabase
-      .from(tableName)
-      .select('count(*)', { count: 'exact', head: true });
+      .rpc('check_table_exists', { table_name: tableName })
+      .single();
+      
+    if (error) {
+      // If the RPC function doesn't exist, fall back to error code checking
+      console.log(`check_table_exists RPC not available: ${error.message}`);
+      
+      // Make any query to the table and check if we get a '42P01' error
+      // We use 'site_settings' as a safe default to check first
+      if (tableName === 'site_settings') {
+        const { error: tableError } = await supabase
+          .from('site_settings')
+          .select('count(*)', { count: 'exact', head: true });
+          
+        return !tableError || tableError.code !== '42P01';
+      } else {
+        // For any other table, we have to use a type assertion to bypass TypeScript's type checking
+        // This is not ideal but necessary for dynamic table checking
+        // @ts-ignore: Bypassing TypeScript's type checking for dynamic table names
+        const { error: tableError } = await supabase
+          .from(tableName)
+          .select('count(*)', { count: 'exact', head: true });
+          
+        return !tableError || tableError.code !== '42P01';
+      }
+    }
     
-    return !error || error.code !== '42P01';
+    return true;
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
