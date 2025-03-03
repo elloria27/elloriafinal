@@ -1,12 +1,11 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { createClient } from "@supabase/supabase-js";
 import { CheckCircle, XCircle, Loader2, Download, AlertTriangle, ExternalLink } from "lucide-react";
 import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MigrationStepProps {
   config: {
@@ -45,14 +44,12 @@ export function MigrationStep({
   const [manualModeActive, setManualModeActive] = useState(false);
   const [manualSteps, setManualSteps] = useState<string[]>([]);
 
-  // Generate SQL script URL on component mount
   useEffect(() => {
     const sqlScript = generateCompleteMigrationSql();
     const blob = new Blob([sqlScript], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     setSqlDownloadUrl(url);
     
-    // Prepare manual steps
     setManualSteps([
       "Login to your Supabase dashboard at https://supabase.com/dashboard",
       `Open your project "${config.projectId}"`,
@@ -63,7 +60,6 @@ export function MigrationStep({
       "Once completed, return here and click 'I've completed the manual migration'"
     ]);
     
-    // Clean up URL on unmount
     return () => {
       if (sqlDownloadUrl) {
         URL.revokeObjectURL(sqlDownloadUrl);
@@ -84,42 +80,31 @@ export function MigrationStep({
     });
 
     try {
-      // Make sure the URL has a protocol
       let supabaseUrl = config.url;
       if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
         supabaseUrl = 'https://' + supabaseUrl;
       }
       
-      // Add connection test log
       setLog(prev => [...prev, { 
         message: `Connecting to Supabase at ${supabaseUrl}...`, 
         type: "info" 
       }]);
       
-      // Create a client with the service role key and proper headers
-      const supabase = createClient(supabaseUrl, config.key, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-        },
-        global: {
-          fetch: (url, options) => {
-            // Ensure proper headers for all requests
-            const headers = {
-              ...options.headers,
-              'apikey': config.key,
-              'Authorization': `Bearer ${config.key}`
-            };
-            
-            return fetch(url, {
-              ...options,
-              headers
-            });
-          }
-        }
-      });
+      try {
+        localStorage.setItem('supabase_config', JSON.stringify(config));
+        
+        setLog(prev => [...prev, { 
+          message: "Configuration saved, establishing connection...", 
+          type: "info" 
+        }]);
+      } catch (e) {
+        console.error("Error storing config:", e);
+        setLog(prev => [...prev, { 
+          message: "Warning: Could not save configuration to localStorage", 
+          type: "warning" 
+        }]);
+      }
       
-      // Test the connection first
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) {
@@ -141,7 +126,6 @@ export function MigrationStep({
           type: "error" 
         }]);
         
-        // Show manual migration option immediately if connection fails
         setLog(prev => [...prev, { 
           message: "Automatic connection failed. Please use manual SQL execution instead.", 
           type: "warning" 
@@ -151,14 +135,6 @@ export function MigrationStep({
         return;
       }
       
-      // Store configuration for future use
-      try {
-        localStorage.setItem('supabase_config', JSON.stringify(config));
-      } catch (e) {
-        console.error("Error storing config:", e);
-      }
-      
-      // Run the migration with the Supabase client
       await runMigration(supabase, {
         onProgress: (progress, task) => {
           setMigrationState(prev => ({
@@ -178,7 +154,6 @@ export function MigrationStep({
           }));
           setLog(prev => [...prev, { message: error, type: "error" }]);
           
-          // Show manual migration option when errors occur
           if (!manualModeActive) {
             setLog(prev => [...prev, { 
               message: "Automatic migration encountered errors. You can try manual SQL execution.", 
@@ -189,7 +164,6 @@ export function MigrationStep({
         }
       });
 
-      // Mark the migration as complete only if no errors occurred
       if (migrationState.errors.length === 0) {
         setMigrationState(prev => ({
           ...prev,
@@ -209,7 +183,6 @@ export function MigrationStep({
           currentTask: "Migration completed with errors. Check the logs for details."
         }));
         
-        // Recommend manual SQL execution
         setLog(prev => [...prev, { 
           message: "You can try executing the SQL script manually in the Supabase SQL Editor.", 
           type: "warning" 
@@ -229,7 +202,6 @@ export function MigrationStep({
         type: "error" 
       }]);
       
-      // Show manual migration option when errors occur
       setLog(prev => [...prev, { 
         message: "You can try executing the SQL script manually in the Supabase SQL Editor.", 
         type: "warning" 
@@ -321,7 +293,6 @@ export function MigrationStep({
           </div>
         )}
         
-        {/* Manual migration section */}
         {manualModeActive && !migrationState.completed && !isRunning && (
           <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="font-medium text-blue-800">Manual Migration Instructions</h3>

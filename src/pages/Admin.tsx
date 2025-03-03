@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isUserAdmin } from "@/integrations/supabase/client";
 import { ProductManagement } from "@/components/admin/ProductManagement";
 import { OrderManagement } from "@/components/admin/OrderManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
@@ -69,17 +68,9 @@ const Admin = () => {
           setProfile(profileData);
         }
 
-        const { data: roleData, error: roleError } = await supabase
-          .rpc('is_admin', {
-            user_id: session.user.id
-          });
+        const isAdmin = await isUserAdmin();
 
-        if (roleError) {
-          console.error('Error checking admin role:', roleError);
-          throw roleError;
-        }
-
-        if (!roleData) {
+        if (!isAdmin) {
           console.log('User is not an admin, access denied');
           toast.error("Unauthorized access - Admin privileges required");
           navigate("/");

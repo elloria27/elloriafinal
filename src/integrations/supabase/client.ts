@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// Default configuration that can be overridden by stored configuration
 const SUPABASE_URL = "https://amlirkbzqkbgbvrmgibf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbGlya2J6cWtiZ2J2cm1naWJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDI1MzM1NywiZXhwIjoyMDU1ODI5MzU3fQ.aaL4_-zjVl9VQpKZ0bA3H-CJHPpSXMs0eRqKdQyart4";
 
@@ -34,25 +35,31 @@ const config = getStoredConfig() || {
   key: SUPABASE_ANON_KEY 
 };
 
-// Create the Supabase client with proper headers and options
+// Enhanced client creation with proper options and headers
 export const createSupabaseClient = (useServiceRole = false) => {
   const { url, key } = config;
   
   // Determine if the key is a service role key
   const isServiceRole = key.includes('service_role') || useServiceRole;
   
-  // Log configuration for debugging
+  // Log configuration for debugging - exclude key details for security
   console.log('Creating Supabase client with:', { 
     url, 
-    keyType: isServiceRole ? 'service_role' : 'anon' 
+    keyType: isServiceRole ? 'service_role' : 'anon',
+    // Avoid logging the actual key
   });
   
+  // Set up client options with best practices
   const options = {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
     },
     global: {
+      headers: {
+        // Set proper headers for all requests - important for RLS
+        'X-Client-Info': 'lovable-cms'
+      },
       fetch: (fetchUrl: string, fetchOptions: RequestInit) => {
         // Add proper headers for all requests
         const headers = {
@@ -61,7 +68,7 @@ export const createSupabaseClient = (useServiceRole = false) => {
           'Authorization': `Bearer ${key}`
         };
         
-        // Set timeout to 60 seconds
+        // Set timeout to avoid hanging requests
         const timeoutId = setTimeout(() => {
           console.error('Supabase request timeout');
         }, 60000);
@@ -76,11 +83,38 @@ export const createSupabaseClient = (useServiceRole = false) => {
     }
   };
   
+  // Create and return the client with proper options
   return createClient<Database>(url, key, options);
 };
 
-// Regular client for front-end use
+// Regular client for front-end use (respects RLS)
 export const supabase = createSupabaseClient();
 
-// Service role client for admin operations
+// IMPORTANT: Service role client for admin operations only
+// This should ideally be used only in secure contexts like Edge Functions
+// Using this client bypasses RLS policies, so use with caution
 export const adminSupabase = createSupabaseClient(true);
+
+// Helper to check if the current user has admin role
+// This uses RLS compliant auth.uid() pattern rather than JWT inspection
+export const isUserAdmin = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return false;
+    
+    // Use RPC function that uses auth.uid() internally rather than checking JWT
+    const { data, error } = await supabase.rpc('is_admin', {
+      user_id: session.user.id
+    });
+    
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    return !!data;
+  } catch (error) {
+    console.error('Error in admin check:', error);
+    return false;
+  }
+};

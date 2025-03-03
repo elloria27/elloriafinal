@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isUserAdmin } from "@/integrations/supabase/client";
 import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
@@ -17,7 +17,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    // Check for stored email from order completion
     const storedEmail = localStorage.getItem('loginEmail');
     if (storedEmail) {
       setEmail(storedEmail);
@@ -36,24 +35,10 @@ const Login = () => {
       if (session) {
         console.log("Session found, checking user role");
         try {
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (roleError) {
-            console.error("Error fetching role:", roleError);
-            return;
-          }
-
-          if (!roleData) {
-            console.log("No role found for user");
-            return;
-          }
-
-          console.log("User role:", roleData.role);
-          const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+          const isAdmin = await isUserAdmin();
+          
+          console.log("User is admin:", isAdmin);
+          const redirectPath = isAdmin ? '/admin' : (redirectTo || '/profile');
           
           toast.success("Welcome back!", {
             description: "You've been successfully logged in"
@@ -88,27 +73,31 @@ const Login = () => {
       }
 
       console.log("Login successful, checking user role");
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (roleError) {
-        console.error("Error fetching role:", roleError);
-        throw roleError;
+      const isAdmin = await isUserAdmin();
+      
+      if (!isAdmin) {
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+          
+        if (roleError) {
+          console.error("Error fetching role:", roleError);
+          throw roleError;
+        }
+        
+        if (!roleData) {
+          console.log("No role found for user");
+          toast.error("Account setup incomplete", {
+            description: "Please contact support to complete your account setup"
+          });
+          return;
+        }
       }
 
-      if (!roleData) {
-        console.log("No role found for user");
-        toast.error("Account setup incomplete", {
-          description: "Please contact support to complete your account setup"
-        });
-        return;
-      }
-
-      console.log("User role:", roleData.role);
-      const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+      console.log("User role check complete");
+      const redirectPath = isAdmin ? '/admin' : (redirectTo || '/profile');
       
       toast.success("Welcome back!", {
         description: "You've been successfully logged in"
