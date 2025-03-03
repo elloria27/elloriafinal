@@ -47,8 +47,14 @@ export function MigrationStep({
     try {
       setLog(prev => [...prev, { message: "Creating database helper functions directly...", type: "info" }]);
       
-      // We'll execute raw SQL directly using the REST API instead of RPC functions
-      // that don't exist yet
+      // We'll execute raw SQL directly without accessing protected properties
+      
+      // Store configuration for building URLs in migration utilities
+      try {
+        localStorage.setItem('supabase_config', JSON.stringify(config));
+      } catch (e) {
+        console.error("Error storing config:", e);
+      }
       
       // Create enable_rls function
       const enableRlsQuery = `
@@ -185,33 +191,62 @@ export function MigrationStep({
         $$ LANGUAGE plpgsql SECURITY DEFINER;
       `;
       
-      // We need to fix the error with catch() by using a different approach
-      // Try using the SQL HTTP endpoint directly
+      // Try executing SQL directly
       try {
-        const response = await fetch(`${config.url}/rest/v1/sql`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.key}`,
-            'apikey': `${config.key}`,
-          },
-          body: JSON.stringify({
-            query: `
-              ${enableRlsQuery}
-              ${definePolicyQuery}
-              ${createEnumTypeQuery}
-              ${createIndexQuery}
-              ${createTableQuery}
-            `
-          })
-        });
+        // Helper function to execute SQL using fetch
+        const executeDirectSql = async (query: string) => {
+          const response = await fetch(`${config.url}/rest/v1/sql`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${config.key}`,
+              'apikey': `${config.key}`,
+            },
+            body: JSON.stringify({ query })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`SQL execution failed: ${await response.text()}`);
+          }
+          
+          return await response.json();
+        };
         
-        if (!response.ok) {
-          throw new Error(`SQL execution failed: ${await response.text()}`);
+        // Combine all functions into a single query
+        const combinedQuery = `
+          ${enableRlsQuery}
+          ${definePolicyQuery}
+          ${createEnumTypeQuery}
+          ${createIndexQuery}
+          ${createTableQuery}
+        `;
+        
+        try {
+          await executeDirectSql(combinedQuery);
+          setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
+          return true;
+        } catch (error) {
+          console.error("Error creating helper functions with combined query:", error);
+          
+          // Try individually if combined query fails
+          try {
+            await executeDirectSql(enableRlsQuery);
+            await executeDirectSql(definePolicyQuery);
+            await executeDirectSql(createEnumTypeQuery);
+            await executeDirectSql(createIndexQuery);
+            await executeDirectSql(createTableQuery);
+            
+            setLog(prev => [...prev, { message: "Helper functions created individually", type: "success" }]);
+            return true;
+          } catch (individualError) {
+            console.error("Error creating helper functions individually:", individualError);
+            setLog(prev => [...prev, { 
+              message: `Warning: Could not create helper functions: ${individualError}. Will try to proceed anyway.`, 
+              type: "error" 
+            }]);
+            return false;
+          }
         }
-        
-        setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
-        return true;
       } catch (error) {
         console.error("Error creating helper functions directly:", error);
         setLog(prev => [...prev, { 

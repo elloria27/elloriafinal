@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -190,14 +191,22 @@ const createRlsPolicies = (client: SupabaseClient) => {
   ];
 };
 
+// Helper function to execute SQL with proper URL building
 const executeSql = async (client: SupabaseClient, query: string): Promise<any> => {
   try {
-    const response = await fetch(`${client.auth.getSession().then(res => res.data.session?.access_token)}`, {
+    // Get the API key safely from the client
+    const apiKey = (client as any).supabaseKey;
+    
+    // Build the URL without directly accessing protected properties
+    const { data: { session } } = await client.auth.getSession();
+    const supabaseUrl = new URL(session?.access_token || '').origin || config.url;
+    
+    const response = await fetch(`${supabaseUrl}/rest/v1/sql`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(client as any).supabaseKey}`,
-        'apikey': `${(client as any).supabaseKey}`,
+        'Authorization': `Bearer ${apiKey}`,
+        'apikey': `${apiKey}`,
       },
       body: JSON.stringify({ query })
     });
@@ -213,6 +222,13 @@ const executeSql = async (client: SupabaseClient, query: string): Promise<any> =
   }
 };
 
+// Store config for URL access
+let config = {
+  url: '',
+  key: '',
+  projectId: ''
+};
+
 export const runMigration = async (
   client: SupabaseClient, 
   callbacks: MigrationCallbacks
@@ -220,6 +236,35 @@ export const runMigration = async (
   const { onProgress, onSuccess, onError } = callbacks;
   const totalSteps = 7; // Total number of main migration steps
   let currentStep = 0;
+  
+  // Store client details for building URLs
+  config.key = (client as any).supabaseKey;
+  
+  // Get URL from config in localStorage if possible
+  try {
+    const storedConfig = localStorage.getItem('supabase_config');
+    if (storedConfig) {
+      const parsedConfig = JSON.parse(storedConfig);
+      if (parsedConfig.url) {
+        config.url = parsedConfig.url;
+      }
+    }
+  } catch (e) {
+    console.error("Error getting stored config:", e);
+  }
+  
+  // If we still don't have URL, try to get it from session
+  if (!config.url) {
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      const origin = new URL(session?.access_token || '').origin;
+      if (origin) {
+        config.url = origin;
+      }
+    } catch (e) {
+      console.error("Error getting URL from session:", e);
+    }
+  }
   
   try {
     currentStep++;
@@ -243,16 +288,7 @@ export const runMigration = async (
           END $$;
         `;
         
-        const response = await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(client as any).supabaseKey}`,
-            'apikey': `${(client as any).supabaseKey}`,
-          },
-          body: JSON.stringify({ query })
-        });
-        
+        await executeSql(client, query);
         onSuccess(`Enum type ${enumType.name} created`);
       } catch (error) {
         console.error(`Failed to create enum type: ${error}`);
@@ -297,30 +333,14 @@ export const runMigration = async (
         createTableSql = createTableSql.slice(0, -2);
         createTableSql += ');';
         
-        const response = await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(client as any).supabaseKey}`,
-            'apikey': `${(client as any).supabaseKey}`,
-          },
-          body: JSON.stringify({ query: createTableSql })
-        });
+        await executeSql(client, createTableSql);
         
         if (table.indices) {
           for (const index of table.indices) {
             const isUnique = index.isUnique ? 'UNIQUE' : '';
             const indexSql = `CREATE ${isUnique} INDEX IF NOT EXISTS ${index.name} ON ${table.name} (${index.columns.join(', ')});`;
             
-            await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${(client as any).supabaseKey}`,
-                'apikey': `${(client as any).supabaseKey}`,
-              },
-              body: JSON.stringify({ query: indexSql })
-            });
+            await executeSql(client, indexSql);
           }
         }
         
@@ -338,16 +358,7 @@ export const runMigration = async (
       try {
         const query = `ALTER TABLE ${table.name} ENABLE ROW LEVEL SECURITY;`;
         
-        await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(client as any).supabaseKey}`,
-            'apikey': `${(client as any).supabaseKey}`,
-          },
-          body: JSON.stringify({ query })
-        });
-        
+        await executeSql(client, query);
         onSuccess(`RLS enabled on ${table.name}`);
       } catch (error) {
         console.error(`Failed to enable RLS: ${error}`);
@@ -409,16 +420,7 @@ export const runMigration = async (
             COMMIT;
           `;
           
-          await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${(client as any).supabaseKey}`,
-              'apikey': `${(client as any).supabaseKey}`,
-            },
-            body: JSON.stringify({ query })
-          });
-          
+          await executeSql(client, query);
           onSuccess(`Created policy ${policy.name} on ${policy.table}`);
         } catch (pError) {
           console.error(`Failed to create policy ${policy.name}: ${pError}`);
@@ -441,15 +443,7 @@ export const runMigration = async (
       ON CONFLICT (name) DO NOTHING;
     `;
     
-    await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(client as any).supabaseKey}`,
-        'apikey': `${(client as any).supabaseKey}`,
-      },
-      body: JSON.stringify({ query: rolesQuery })
-    });
+    await executeSql(client, rolesQuery);
     
     const homePageQuery = `
       WITH inserted_page AS (
@@ -475,15 +469,7 @@ export const runMigration = async (
       WHERE EXISTS (SELECT 1 FROM inserted_page);
     `;
     
-    await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(client as any).supabaseKey}`,
-        'apikey': `${(client as any).supabaseKey}`,
-      },
-      body: JSON.stringify({ query: homePageQuery })
-    });
+    await executeSql(client, homePageQuery);
     
     onSuccess("Default data initialized");
     
@@ -496,17 +482,7 @@ export const runMigration = async (
       AND table_name = 'pages'
     );`;
     
-    const response = await fetch(`${client.supabaseUrl}/rest/v1/sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(client as any).supabaseKey}`,
-        'apikey': `${(client as any).supabaseKey}`,
-      },
-      body: JSON.stringify({ query: verifyQuery })
-    });
-    
-    const result = await response.json();
+    const result = await executeSql(client, verifyQuery);
     
     if (result.error) {
       throw new Error(`Verification failed: ${result.error.message}`);
@@ -520,12 +496,15 @@ export const runMigration = async (
   }
 };
 
-export const saveSupabaseConfig = async (config: {
+export const saveSupabaseConfig = async (newConfig: {
   url: string;
   key: string;
   projectId: string;
 }) => {
   try {
+    // Update our internal config
+    config = { ...newConfig };
+    
     const configContent = `project_id = "${config.projectId}"`;
     
     const clientContent = `// This file is automatically generated. Do not edit it directly.
