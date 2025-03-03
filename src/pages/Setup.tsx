@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Database, AlertCircle, ArrowRight, Copy, Import } from "lucide-react";
@@ -77,16 +75,24 @@ export default function Setup() {
       const targetClient = createClient(formData.url, formData.key);
       setTargetSupabaseClient(targetClient);
       
-      // Try to make an actual API call to verify connection
-      const { data, error: apiError } = await targetClient.auth.getUser();
+      // Try to make an actual API call that doesn't require authentication
+      // Just query a system table to verify DB connection works
+      const { data, error: apiError } = await targetClient
+        .from('_prisma_migrations')
+        .select('*')
+        .limit(1);
       
       if (apiError) {
-        console.error("Connection error:", apiError);
-        throw new Error(`Помилка підключення: ${apiError.message}`);
+        // If the table doesn't exist, try another call that should always work
+        const { error: healthError } = await targetClient.rpc('get_server_version');
+        if (healthError) {
+          console.error("Connection error:", healthError);
+          throw new Error(`Помилка підключення: ${healthError.message}`);
+        }
       }
       
       // If we get here, connection is successful
-      console.log("Connection successful, auth data:", data);
+      console.log("Connection successful");
       
       toast.success("З'єднання успішно встановлено");
       setCurrentStep("database");
