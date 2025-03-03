@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { Loader2, Download, Upload, Image, Trash2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
+import { createDefaultSiteSettings } from "@/utils/supabase-helpers";
 
 type SiteSettings = {
   id: string;
@@ -36,6 +38,7 @@ export default function SiteSettings() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [tableExists, setTableExists] = useState(true);
 
   useEffect(() => {
     checkAdminAndLoadData();
@@ -65,16 +68,52 @@ export default function SiteSettings() {
       }
 
       console.log('Admin access confirmed, loading data...');
-      await Promise.all([
-        loadSettings(),
-        loadPages()
-      ]);
+      
+      try {
+        await Promise.all([
+          loadSettings(),
+          loadPages()
+        ]);
+      } catch (error: any) {
+        if (error.message && error.message.includes('relation "site_settings" does not exist')) {
+          setTableExists(false);
+          await setupDatabase();
+        } else {
+          throw error;
+        }
+      }
 
     } catch (error) {
       console.error('Error in admin check:', error);
       toast.error("Error checking admin access");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const setupDatabase = async () => {
+    try {
+      console.log('Setting up database...');
+      toast.info("Setting up database tables...");
+      
+      const data = await createDefaultSiteSettings();
+      
+      if (data) {
+        console.log('Database setup successful:', data);
+        setSettings({
+          ...data,
+          custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
+          homepage_slug: data.homepage_slug || '',
+          logo_url: data.logo_url || null
+        });
+        setTableExists(true);
+        toast.success("Database setup complete");
+      } else {
+        throw new Error("Failed to set up database");
+      }
+    } catch (error) {
+      console.error('Error setting up database:', error);
+      toast.error("Error setting up database");
     }
   };
 
@@ -86,7 +125,14 @@ export default function SiteSettings() {
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') { // Table doesn't exist
+          setTableExists(false);
+          throw new Error('relation "site_settings" does not exist');
+        } else {
+          throw error;
+        }
+      }
 
       console.log('Settings loaded:', data);
       
@@ -99,7 +145,7 @@ export default function SiteSettings() {
       });
     } catch (error) {
       console.error('Error loading settings:', error);
-      toast.error("Error loading site settings");
+      throw error;
     }
   };
 
@@ -111,7 +157,15 @@ export default function SiteSettings() {
         .select('id, title, slug')
         .eq('is_published', true);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P01') { // Table doesn't exist
+          console.log('Pages table does not exist yet');
+          setPages([]);
+          return;
+        } else {
+          throw error;
+        }
+      }
 
       console.log('Pages loaded:', data);
       setPages(data || []);
@@ -251,6 +305,32 @@ export default function SiteSettings() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!tableExists) {
+    return (
+      <div className="container max-w-5xl mx-auto px-4 py-6 md:py-8">
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="px-6 pt-6 pb-4">
+            <CardTitle className="text-2xl font-semibold">Database Setup Required</CardTitle>
+            <CardDescription className="text-gray-500 text-base">
+              The site_settings table does not exist in your database
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-6 space-y-6">
+            <p className="text-gray-700">
+              We need to set up the required database tables for your site to function properly.
+            </p>
+            <Button 
+              onClick={setupDatabase} 
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Set Up Database
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

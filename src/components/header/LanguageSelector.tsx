@@ -1,3 +1,4 @@
+
 import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -5,21 +6,26 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { getSiteSettings, createDefaultSiteSettings } from "@/utils/supabase-helpers";
 
 type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const LanguageSelector = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
       try {
-        const { data, error } = await supabase
-          .from('site_settings')
-          .select('default_language')
-          .single();
-
-        if (error) throw error;
+        setIsLoading(true);
+        
+        let data = await getSiteSettings();
+        
+        // If no site settings exist, try to create a default one
+        if (!data) {
+          console.log('No site settings found, attempting to create default...');
+          data = await createDefaultSiteSettings();
+        }
         
         if (data) {
           console.log('Fetched default language:', data.default_language);
@@ -28,6 +34,8 @@ export const LanguageSelector = () => {
       } catch (error) {
         console.error('Error fetching site settings:', error);
         toast.error("Failed to load language settings");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -74,6 +82,18 @@ export const LanguageSelector = () => {
   const getLanguageCode = (code: string) => {
     return code.toUpperCase();
   };
+
+  if (isLoading) {
+    return (
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        className="text-gray-600 hover:text-primary transition-colors flex items-center gap-1"
+      >
+        <Globe className="h-5 w-5" />
+        <span className="text-xs font-medium">EN</span>
+      </motion.div>
+    );
+  }
 
   return (
     <Popover>
