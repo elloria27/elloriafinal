@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -287,10 +288,15 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
         .select()
         .limit(1);
       
-      if (error && typeof error === 'object') {
+      if (error) {
+        const errorString = typeof error === 'object' ? 
+          (error && 'message' in error ? String(error.message) : '') + 
+          (error && 'code' in error ? ' (' + String(error.code) + ')' : '') : 
+          String(error);
+        
         return { 
           success: false, 
-          error: error.message || error.code || JSON.stringify(error) 
+          error: errorString || 'Unknown error'
         };
       }
       
@@ -301,10 +307,15 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
         // Try with rpc - this is more likely to work if the user has the right permissions
         const { error } = await client.rpc('exec_sql', { sql: createFunctionSql });
         
-        if (error && typeof error === 'object') {
+        if (error) {
+          const errorString = typeof error === 'object' ? 
+            (error && 'message' in error ? String(error.message) : '') + 
+            (error && 'code' in error ? ' (' + String(error.code) + ')' : '') : 
+            String(error);
+          
           return { 
             success: false, 
-            error: error.message || error.code || JSON.stringify(error) 
+            error: errorString || 'Unknown error'
           };
         }
         
@@ -566,12 +577,12 @@ export const runMigration = async (
         .limit(1);
       
       if (pagesError) {
-        const errorMessage = pagesError instanceof Error ? pagesError.message : 
-                            (typeof pagesError === 'object' ? 
-                              (pagesError.message || pagesError.code || JSON.stringify(pagesError)) : 
-                              String(pagesError));
+        const errorString = typeof pagesError === 'object' ? 
+          (pagesError && 'message' in pagesError ? String(pagesError.message) : '') + 
+          (pagesError && 'code' in pagesError ? ' (' + String(pagesError.code) + ')' : '') : 
+          String(pagesError);
         
-        console.warn(`Pages verification query failed: ${errorMessage}`);
+        console.warn(`Pages verification query failed: ${errorString}`);
         
         if (migrationSuccess) {
           onProgress(100, "Migration completed with limited verification");
