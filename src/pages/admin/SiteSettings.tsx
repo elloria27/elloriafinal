@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,16 +9,15 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Download, Upload, Image, Trash2, Database } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { Loader2, Download, Upload, Image, Trash2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
-import { createDefaultSiteSettings, importDefaultSiteSettings } from "@/utils/supabase-helpers";
 
 type SiteSettings = {
   id: string;
   site_title: string;
-  default_language: Tables<'site_settings'>['default_language'];
+  default_language: Database['public']['Enums']['supported_language'];
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
@@ -35,11 +33,9 @@ export default function SiteSettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [pages, setPages] = useState<Array<{ id: string; title: string; slug: string; }>>([]);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [tableExists, setTableExists] = useState(true);
 
   useEffect(() => {
     checkAdminAndLoadData();
@@ -69,73 +65,16 @@ export default function SiteSettings() {
       }
 
       console.log('Admin access confirmed, loading data...');
-      
-      try {
-        await Promise.all([
-          loadSettings(),
-          loadPages()
-        ]);
-      } catch (error: any) {
-        if (error.message && error.message.includes('relation "site_settings" does not exist')) {
-          setTableExists(false);
-          await setupDatabase();
-        } else {
-          throw error;
-        }
-      }
+      await Promise.all([
+        loadSettings(),
+        loadPages()
+      ]);
 
     } catch (error) {
       console.error('Error in admin check:', error);
       toast.error("Error checking admin access");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const setupDatabase = async () => {
-    try {
-      console.log('Setting up database...');
-      toast.info("Setting up database tables...");
-      
-      const data = await createDefaultSiteSettings();
-      
-      if (data) {
-        console.log('Database setup successful:', data);
-        setSettings({
-          ...data,
-          custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
-          homepage_slug: data.homepage_slug || '',
-          logo_url: data.logo_url || null
-        });
-        setTableExists(true);
-        toast.success("Database setup complete");
-      } else {
-        throw new Error("Failed to set up database");
-      }
-    } catch (error) {
-      console.error('Error setting up database:', error);
-      toast.error("Error setting up database");
-    }
-  };
-
-  const handleImportDefaultSettings = async () => {
-    try {
-      setImporting(true);
-      toast.info("Importing default site settings...");
-      
-      const result = await importDefaultSiteSettings();
-      
-      if (result.success) {
-        toast.success(result.message);
-        await loadSettings();
-      } else {
-        throw new Error(result.error || "Failed to import default settings");
-      }
-    } catch (error) {
-      console.error('Error importing default settings:', error);
-      toast.error("Failed to import default settings");
-    } finally {
-      setImporting(false);
     }
   };
 
@@ -147,17 +86,11 @@ export default function SiteSettings() {
         .select('*')
         .single();
 
-      if (error) {
-        if (error.code === '42P01') { // Table doesn't exist
-          setTableExists(false);
-          throw new Error('relation "site_settings" does not exist');
-        } else {
-          throw error;
-        }
-      }
+      if (error) throw error;
 
       console.log('Settings loaded:', data);
       
+      // Transform the data to match our expected types
       setSettings({
         ...data,
         custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
@@ -166,7 +99,7 @@ export default function SiteSettings() {
       });
     } catch (error) {
       console.error('Error loading settings:', error);
-      throw error;
+      toast.error("Error loading site settings");
     }
   };
 
@@ -178,15 +111,7 @@ export default function SiteSettings() {
         .select('id, title, slug')
         .eq('is_published', true);
 
-      if (error) {
-        if (error.code === '42P01') { // Table doesn't exist
-          console.log('Pages table does not exist yet');
-          setPages([]);
-          return;
-        } else {
-          throw error;
-        }
-      }
+      if (error) throw error;
 
       console.log('Pages loaded:', data);
       setPages(data || []);
@@ -234,6 +159,7 @@ export default function SiteSettings() {
       const file = event.target.files?.[0];
       if (!file) return;
 
+      // Check file type
       if (!file.type.startsWith('image/')) {
         toast.error('Please upload an image file');
         return;
@@ -329,32 +255,6 @@ export default function SiteSettings() {
     );
   }
 
-  if (!tableExists) {
-    return (
-      <div className="container max-w-5xl mx-auto px-4 py-6 md:py-8">
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="px-6 pt-6 pb-4">
-            <CardTitle className="text-2xl font-semibold">Database Setup Required</CardTitle>
-            <CardDescription className="text-gray-500 text-base">
-              The site_settings table does not exist in your database
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 space-y-6">
-            <p className="text-gray-700">
-              We need to set up the required database tables for your site to function properly.
-            </p>
-            <Button 
-              onClick={setupDatabase} 
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Set Up Database
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (!settings) {
     return (
       <div className="p-4">
@@ -367,42 +267,21 @@ export default function SiteSettings() {
     <div className="container max-w-5xl mx-auto px-4 py-6 md:py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <h1 className="text-4xl font-bold tracking-tight">Site Settings</h1>
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-          <Button 
-            onClick={handleImportDefaultSettings} 
-            disabled={importing}
-            size="lg"
-            variant="outline"
-            className="w-full md:w-auto"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <Database className="mr-2 h-5 w-5" />
-                Import Default Settings
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            size="lg"
-            className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 md:px-8 py-6 rounded-xl"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
-          </Button>
-        </div>
+        <Button 
+          onClick={handleSave} 
+          disabled={saving}
+          size="lg"
+          className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 md:px-8 py-6 rounded-xl"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
+        </Button>
       </div>
 
       <Tabs defaultValue="general" className="w-full">

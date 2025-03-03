@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Upload, Image, Database } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Download, Upload, Image } from "lucide-react";
 
 export const AdvancedSettings = () => {
   const [uploading, setUploading] = useState(false);
@@ -160,16 +159,6 @@ export const AdvancedSettings = () => {
                 </label>
               </Button>
             </div>
-            <Button
-              variant="default"
-              asChild
-              className="flex items-center gap-2 w-full sm:w-auto"
-            >
-              <Link to="/setup" className="text-sm">
-                <Database className="h-4 w-4" />
-                Setup Wizard
-              </Link>
-            </Button>
           </div>
         </div>
 
@@ -201,3 +190,4 @@ export const AdvancedSettings = () => {
     </Card>
   );
 };
+

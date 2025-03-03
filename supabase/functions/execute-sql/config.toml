@@ -1,5 +1,0 @@
-
-# Allow builds to hang for up to 3 minutes waiting for output
-timeout = 180
-```
-
