@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,31 +119,30 @@ export const createDefaultSiteSettings = async () => {
       .limit(1);
     
     if (tableCheckError && tableCheckError.code === '42P01') {
-      const { error: sqlError } = await supabase.rpc('exec_sql', {
-        sql: `
-          CREATE TABLE IF NOT EXISTS public.site_settings (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            site_title TEXT NOT NULL DEFAULT 'My Website',
-            default_language TEXT NOT NULL DEFAULT 'en',
-            enable_registration BOOLEAN NOT NULL DEFAULT true,
-            enable_search_indexing BOOLEAN NOT NULL DEFAULT true,
-            meta_description TEXT,
-            meta_keywords TEXT,
-            custom_scripts JSONB DEFAULT '[]'::jsonb,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-            homepage_slug TEXT DEFAULT 'index',
-            logo_url TEXT
-          );
-          
-          INSERT INTO public.site_settings (id, site_title, default_language)
-          VALUES (gen_random_uuid(), 'My Website', 'en')
-          ON CONFLICT DO NOTHING;
-        `
-      });
-      
-      if (sqlError) {
-        console.error('Error creating site_settings table:', sqlError);
+      // Instead of using exec_sql RPC which doesn't exist, we'll use direct SQL with the REST API
+      try {
+        // First try to create the table directly with an insert operation
+        const { error: insertError } = await supabase
+          .from('site_settings')
+          .insert({
+            id: crypto.randomUUID(),
+            site_title: 'My Website',
+            default_language: 'en',
+            enable_registration: true,
+            enable_search_indexing: true,
+            homepage_slug: 'index',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (insertError && insertError.code === '42P01') {
+          console.error('Cannot create site_settings table automatically:', insertError);
+          toast.error('Failed to create site_settings table. Please create it manually in Supabase dashboard.');
+          return null;
+        }
+      } catch (sqlError) {
+        console.error('Error executing table creation:', sqlError);
+        toast.error('Failed to create site_settings table');
         return null;
       }
     }
@@ -183,5 +183,19 @@ export const createDefaultSiteSettings = async () => {
     console.error('Error setting up site settings:', error);
     toast.error('Failed to set up site settings');
     return null;
+  }
+};
+
+// Helper function to check if a table exists
+export const tableExists = async (tableName: string) => {
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .select('count(*)', { count: 'exact', head: true });
+    
+    return !error || error.code !== '42P01';
+  } catch (err) {
+    console.error(`Error checking if table ${tableName} exists:`, err);
+    return false;
   }
 };
