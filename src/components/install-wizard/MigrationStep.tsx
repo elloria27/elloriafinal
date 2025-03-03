@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -42,7 +43,7 @@ export function MigrationStep({
   const [isRunning, setIsRunning] = useState(false);
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" | "warning" }>>([]);
   const [databaseBackupUrl, setDatabaseBackupUrl] = useState<string | null>(null);
-  const [manualModeActive, setManualModeActive] = useState(false);
+  const [manualModeActive, setManualModeActive] = useState(true); // Set manual mode as default now
   const [manualSteps, setManualSteps] = useState<string[]>([]);
   const [supabaseClient, setSupabaseClient] = useState<any>(null);
   const [backupFileContent, setBackupFileContent] = useState<ArrayBuffer | null>(null);
@@ -103,14 +104,18 @@ export function MigrationStep({
       
       setLog([
         { 
-          message: "Ready to import database backup. Click 'Start Import' to begin.", 
+          message: "Manual import is recommended for new Supabase projects. Please follow the steps below.", 
+          type: "info" 
+        },
+        { 
+          message: "Automatic import requires specific database functions that are often not available in new projects.", 
           type: "info" 
         }
       ]);
     } catch (error) {
       console.error("Initialization error:", error);
       const errorMessage = error instanceof Error ? error.message : 
-                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
+                          (typeof error === 'object' && error !== null ? JSON.stringify(error) : String(error));
                           
       setLog([{ 
         message: `Initialization error: ${errorMessage}`, 
@@ -178,6 +183,22 @@ export function MigrationStep({
     }));
 
     try {
+      // First check if the exec_sql function exists by trying to call it
+      try {
+        const { error: testError } = await supabaseClient.rpc('exec_sql', {
+          sql: 'SELECT version();'
+        });
+        
+        if (testError && (testError.message.includes('Could not find the function') || 
+                          testError.message.includes('not found in the schema cache'))) {
+          throw new Error(`Automatic import not supported: The required SQL execution function is not available. This is normal for new Supabase projects. Please use manual import instead.`);
+        }
+      } catch (testError) {
+        // If we catch an error here, it means the function doesn't exist
+        const errorMessage = testError instanceof Error ? testError.message : String(testError);
+        throw new Error(`Automatic import not available: ${errorMessage}`);
+      }
+      
       const bucketReady = await ensureStorageBucketExists();
       if (!bucketReady) {
         throw new Error("Failed to prepare storage bucket for upload");
@@ -282,7 +303,7 @@ export function MigrationStep({
     } catch (error) {
       console.error("Import error:", error);
       const errorMessage = error instanceof Error ? error.message : 
-                          (typeof error === 'object' ? JSON.stringify(error) : String(error));
+                          (typeof error === 'object' && error !== null ? JSON.stringify(error) : String(error));
       
       setLog(prev => [...prev, { 
         message: `Import error: ${errorMessage}. Switching to manual import mode.`, 
@@ -423,7 +444,8 @@ export function MigrationStep({
           <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="font-medium text-blue-800">Manual Database Import</h3>
             <p className="text-blue-700 text-sm">
-              Follow these steps to manually import the database backup in the Supabase dashboard:
+              For new Supabase projects, manual import is the most reliable method.
+              Follow these steps to import the database backup in the Supabase dashboard:
             </p>
             
             <ol className="list-decimal pl-5 text-sm text-blue-700 space-y-2">
