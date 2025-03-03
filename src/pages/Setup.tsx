@@ -41,13 +41,32 @@ export default function Setup() {
     setError(null);
     
     try {
+      // Validate input values
+      if (!formData.url.trim()) {
+        throw new Error("URL проекту не може бути порожнім");
+      }
+      
+      if (!formData.key.trim()) {
+        throw new Error("Ключ API не може бути порожнім");
+      }
+      
+      // Simple URL validation
+      if (!formData.url.startsWith('https://')) {
+        throw new Error("URL проекту повинен починатися з 'https://'");
+      }
+      
+      // Simple service role key validation (they tend to be long)
+      if (formData.key.length < 30) {
+        throw new Error("Ключ API виглядає занадто коротким для service_role ключа");
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success("З'єднання успішно встановлено");
       setCurrentStep("database");
     } catch (err) {
       console.error("Помилка підключення:", err);
-      setError("Не вдалося підключитися до Supabase проекту. Перевірте URL та ключ доступу.");
+      setError(err instanceof Error ? err.message : "Не вдалося підключитися до Supabase проекту. Перевірте URL та ключ доступу.");
     } finally {
       setLoading(false);
     }
@@ -59,23 +78,42 @@ export default function Setup() {
     setProgress(0);
     
     try {
-      // Тут експортуємо database_export.json в новий проект Supabase
+      // Simulate initial progress
+      setProgress(10);
+      
+      // Prepare data for the Edge Function
+      const requestData = { 
+        targetUrl: formData.url,
+        targetKey: formData.key,
+        databaseSchema: databaseExportData
+      };
+      
+      // Log request details for debugging
+      console.log("Sending request to import-database-schema with target:", formData.url);
+      
+      // First, show progress to indicate request is being sent
+      setProgress(20);
+      
+      // Call the Edge Function to import the database schema
       const { data, error: importError } = await supabase.functions.invoke('import-database-schema', {
         method: 'POST',
-        body: { 
-          targetUrl: formData.url,
-          targetKey: formData.key,
-          databaseSchema: databaseExportData
-        }
+        body: requestData
       });
       
       if (importError) {
-        throw importError;
+        console.error("Function error:", importError);
+        throw new Error(`Помилка функції: ${importError.message}`);
       }
       
-      // Візуалізуємо прогрес імпорту
-      for (let i = 1; i <= 10; i++) {
-        await new Promise(resolve => setTimeout(resolve, 600));
+      if (!data) {
+        throw new Error("Не отримано відповіді від серверної функції");
+      }
+      
+      console.log("Function response:", data);
+      
+      // Visualize progress with animation
+      for (let i = 3; i <= 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 400));
         setProgress(i * 10);
       }
       
@@ -84,7 +122,9 @@ export default function Setup() {
       setCurrentStep("complete");
     } catch (err) {
       console.error("Помилка міграції:", err);
-      setError("Не вдалося виконати міграцію бази даних. Перевірте налаштування та спробуйте знову.");
+      setError(err instanceof Error 
+        ? err.message 
+        : "Не вдалося виконати міграцію бази даних. Перевірте налаштування та спробуйте знову.");
       setProgress(0);
     } finally {
       setLoading(false);
