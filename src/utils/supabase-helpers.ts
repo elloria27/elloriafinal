@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -224,9 +223,24 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     // Try direct HTTP request to the pg-meta REST API (using service role only)
     try {
       // Use configured URLs instead of protected properties
-      const supabaseUrl = (client as any).getUrl ? (client as any).getUrl() : 'https://amlirkbzqkbgbvrmgibf.supabase.co';
+      const supabaseUrl = client.supabaseUrl;
       const url = `${supabaseUrl}/rest/v1/sql`;
-      const supabaseKey = (client as any).getKey ? (client as any).getKey() : client.auth.session()?.access_token || '';
+      
+      // Get auth token from client if possible
+      let supabaseKey = '';
+      try {
+        const { data: authData } = await client.auth.getSession();
+        supabaseKey = authData?.session?.access_token || '';
+      } catch (authError) {
+        console.warn('Could not get session token, using apikey from headers instead');
+        // Fall back to apikey from headers if available
+        const headers = (client as any).headers || {};
+        supabaseKey = headers['apikey'] || headers['Authorization']?.replace('Bearer ', '') || '';
+      }
+      
+      if (!supabaseKey) {
+        console.warn('No authentication token available for SQL execution');
+      }
       
       const response = await fetch(url, {
         method: 'POST',

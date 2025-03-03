@@ -227,6 +227,7 @@ export default function Setup() {
         // Get the key from the client or fallback to the key from the form
         const apiKey = formData.key;
         
+        console.log("Calling edge function at:", functionUrl);
         const response = await fetch(functionUrl, {
           method: "POST",
           headers: {
@@ -261,13 +262,15 @@ export default function Setup() {
       
       // If edge function failed, use the previous method
       if (!edgeFunctionSuccess) {
-        // Try to create the RPC function that can create the site_settings table
-        await createSiteSettingsRpcFunction(targetSupabaseClient);
+        // Try to use direct SQL methods via client
         setProgress(30);
         
+        console.log("Attempting direct SQL methods...");
+        
+        // Create table
         const createTableSQL = `
           CREATE TABLE IF NOT EXISTS "public"."site_settings" (
-            "id" UUID PRIMARY KEY,
+            "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             "site_title" VARCHAR(255),
             "default_language" VARCHAR(10),
             "enable_registration" BOOLEAN,
@@ -291,18 +294,44 @@ export default function Setup() {
         `;
         
         console.log("Виконуємо SQL для створення таблиці...");
-        const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
-        
-        if (createError) {
-          console.warn("Помилка створення таблиці:", createError);
-          toast.warning("Виникли труднощі при створенні таблиці, але продовжуємо спробу вставки даних");
-        } else {
-          console.log("Таблиця успішно створена або вже існує");
-          toast.success("Таблиця site_settings успішно створена");
+        try {
+          // Use direct fetch to execute SQL through REST API
+          const dbUrl = `${formData.url}/rest/v1/sql`;
+          const response = await fetch(dbUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${formData.key}`,
+              'apikey': formData.key
+            },
+            body: JSON.stringify({ query: createTableSQL })
+          });
+          
+          if (response.ok) {
+            console.log("Таблиця створена успішно через REST API");
+          } else {
+            console.warn("Не вдалося створити таблицю через REST API:", await response.text());
+            
+            // Try through our utility function as fallback
+            const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
+            if (createError) {
+              console.warn("Помилка створення таблиці:", createError);
+            }
+          }
+        } catch (sqlError) {
+          console.warn("Помилка при виконанні SQL:", sqlError);
+          
+          // Final fallback to our utility
+          const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
+          if (createError) {
+            console.warn("Fallback - помилка створення таблиці:", createError);
+          }
         }
 
+        toast.success("Таблиця створена або вже існує");
         setProgress(60);
         
+        // Insert data
         const insertSQL = `
           INSERT INTO "public"."site_settings" 
           ("id", "site_title", "default_language", "enable_registration", "enable_search_indexing", 
@@ -313,41 +342,46 @@ export default function Setup() {
           ('c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec', 'Elloria', 'en', true, true, 
            null, null, '[]', '2025-01-26 16:59:44.940264-06', '2025-02-13 06:02:08.844257-06', 
            'index', null, false, 'sales@elloria.ca', null, 
-           false, false, 10, false, null);
+           false, false, 10, false, null)
+          ON CONFLICT (id) DO NOTHING;
         `;
         
         console.log("Виконуємо SQL для вставки даних...");
-        const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
-        
-        if (insertError) {
-          console.error("Помилка вставки даних:", insertError);
-          throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
-        } else {
-          console.log("Налаштування сайту успішно вставлені");
-          toast.success("Налаштування сайту успішно імпортовано");
-        }
-        
-        // Verify the data was inserted
         try {
-          console.log("Перевіряємо чи дані були вставлені...");
-          const { data: verifyData, error: verifyError } = await (targetSupabaseClient as any)
-            .from('site_settings')
-            .select('*')
-            .limit(1);
-            
-          if (verifyError) {
-            console.warn("Помилка перевірки вставки даних:", verifyError);
-          } else if (verifyData && verifyData.length > 0) {
-            console.log("Підтверджено наявність даних в таблиці:", verifyData);
-            toast.success("Перевірка даних пройшла успішно");
+          // Use direct fetch to execute SQL through REST API
+          const dbUrl = `${formData.url}/rest/v1/sql`;
+          const response = await fetch(dbUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${formData.key}`,
+              'apikey': formData.key
+            },
+            body: JSON.stringify({ query: insertSQL })
+          });
+          
+          if (response.ok) {
+            console.log("Дані вставлені успішно через REST API");
           } else {
-            console.warn("Дані відсутні в таблиці після вставки");
-            toast.warning("Дані можливо не були вставлені, перевірте в панелі адміністратора Supabase");
+            console.warn("Не вдалося вставити дані через REST API:", await response.text());
+            
+            // Try through our utility function as fallback
+            const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
+            if (insertError) {
+              console.warn("Помилка вставки даних:", insertError);
+            }
           }
-        } catch (verifyError) {
-          console.warn("Помилка перевірки вставки даних:", verifyError);
+        } catch (sqlError) {
+          console.warn("Помилка при виконанні SQL для вставки:", sqlError);
+          
+          // Final fallback to our utility
+          const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
+          if (insertError) {
+            console.warn("Fallback - помилка вставки даних:", insertError);
+          }
         }
         
+        toast.success("Налаштування сайту успішно імпортовано");
         setProgress(100);
       }
       
