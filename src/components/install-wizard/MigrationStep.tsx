@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
-import { CheckCircle, XCircle, Loader2, Download } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Download, AlertTriangle } from "lucide-react";
 import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
 
 interface MigrationStepProps {
@@ -40,8 +40,9 @@ export function MigrationStep({
   onBack,
 }: MigrationStepProps) {
   const [isRunning, setIsRunning] = useState(false);
-  const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
+  const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" | "warning" }>>([]);
   const [sqlDownloadUrl, setSqlDownloadUrl] = useState<string | null>(null);
+  const [manualModeActive, setManualModeActive] = useState(false);
 
   // Generate SQL script URL on component mount
   useEffect(() => {
@@ -77,6 +78,12 @@ export function MigrationStep({
         supabaseUrl = 'https://' + supabaseUrl;
       }
       
+      // Add connection test log
+      setLog(prev => [...prev, { 
+        message: `Connecting to Supabase at ${supabaseUrl}...`, 
+        type: "info" 
+      }]);
+      
       // Create a client with the provided config
       // This is important - we need to create a new client with the service role key
       const supabase = createClient(supabaseUrl, config.key, {
@@ -85,6 +92,34 @@ export function MigrationStep({
           persistSession: true,
         }
       });
+      
+      // Test the connection first
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          setLog(prev => [...prev, { 
+            message: `Connection test failed: ${error.message}`, 
+            type: "error" 
+          }]);
+          throw new Error(`Connection failed: ${error.message}`);
+        } else {
+          setLog(prev => [...prev, { 
+            message: "Connection to Supabase successful", 
+            type: "success" 
+          }]);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setLog(prev => [...prev, { 
+          message: `Connection test error: ${errorMessage}`, 
+          type: "error" 
+        }]);
+        // Continue anyway as the connection might still work for migrations
+        setLog(prev => [...prev, { 
+          message: "Attempting migration despite connection test failure", 
+          type: "warning" 
+        }]);
+      }
       
       // Store configuration for future use
       try {
@@ -118,6 +153,15 @@ export function MigrationStep({
             errors: [...prev.errors, error]
           }));
           setLog(prev => [...prev, { message: error, type: "error" }]);
+          
+          // Show manual migration option when errors occur
+          if (!manualModeActive) {
+            setLog(prev => [...prev, { 
+              message: "Automatic migration encountered errors. You can try manual SQL execution.", 
+              type: "warning" 
+            }]);
+            setManualModeActive(true);
+          }
         }
       });
 
@@ -140,6 +184,13 @@ export function MigrationStep({
           progress: 100,
           currentTask: "Migration completed with errors. Check the logs for details."
         }));
+        
+        // Recommend manual SQL execution
+        setLog(prev => [...prev, { 
+          message: "You can try executing the SQL script manually in the Supabase SQL Editor.", 
+          type: "warning" 
+        }]);
+        setManualModeActive(true);
       }
       
     } catch (error) {
@@ -153,9 +204,30 @@ export function MigrationStep({
         message: `Migration failed: ${errorMessage}`, 
         type: "error" 
       }]);
+      
+      // Show manual migration option when errors occur
+      setLog(prev => [...prev, { 
+        message: "You can try executing the SQL script manually in the Supabase SQL Editor.", 
+        type: "warning" 
+      }]);
+      setManualModeActive(true);
     } finally {
       setIsRunning(false);
     }
+  };
+
+  const handleManualMigrationSuccess = () => {
+    setMigrationState({
+      completed: true,
+      progress: 100,
+      currentTask: "Manual migration reported as successful",
+      errors: []
+    });
+    
+    setLog(prev => [...prev, { 
+      message: "Manual migration reported as successful", 
+      type: "success" 
+    }]);
   };
 
   return (
@@ -184,9 +256,7 @@ export function MigrationStep({
 
       <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
         <p className="text-amber-800 flex items-start">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
+          <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
           <span>
             <strong>Warning:</strong> This will create new tables in your Supabase project. 
             If tables with the same names already exist, this might cause conflicts. 
@@ -196,7 +266,7 @@ export function MigrationStep({
       </div>
 
       <div className="space-y-4">
-        {!migrationState.completed && !isRunning && (
+        {!migrationState.completed && !isRunning && !manualModeActive && (
           <div className="space-y-4">
             <Button 
               onClick={startMigration} 
@@ -218,6 +288,45 @@ export function MigrationStep({
                 </a>
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Manual migration button */}
+        {manualModeActive && !migrationState.completed && !isRunning && (
+          <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="font-medium text-blue-800">Manual Migration Option</h3>
+            <p className="text-blue-700 text-sm">
+              If automatic migration failed, you can manually run the SQL script in the Supabase SQL Editor:
+            </p>
+            
+            <ol className="list-decimal pl-5 text-sm text-blue-700 space-y-2">
+              <li>Download the SQL script using the button below</li>
+              <li>Go to your Supabase project dashboard</li>
+              <li>Navigate to the SQL Editor</li>
+              <li>Paste the script content and run it</li>
+              <li>Click "I've completed the manual migration" below when done</li>
+            </ol>
+            
+            <div className="flex flex-col space-y-3">
+              {sqlDownloadUrl && (
+                <a 
+                  href={sqlDownloadUrl} 
+                  download="supabase_cms_migration.sql"
+                  className="flex items-center justify-center text-sm font-medium bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download SQL Script
+                </a>
+              )}
+              
+              <Button 
+                onClick={handleManualMigrationSuccess}
+                variant="outline"
+                className="text-blue-700 border-blue-300"
+              >
+                I've completed the manual migration
+              </Button>
+            </div>
           </div>
         )}
 
@@ -243,11 +352,14 @@ export function MigrationStep({
                     ? "text-red-400" 
                     : entry.type === "success" 
                       ? "text-green-400" 
-                      : "text-gray-300"
+                      : entry.type === "warning"
+                        ? "text-yellow-400"
+                        : "text-gray-300"
                 }`}
               >
                 {entry.type === "error" && <XCircle className="inline-block mr-1 h-4 w-4" />}
                 {entry.type === "success" && <CheckCircle className="inline-block mr-1 h-4 w-4" />}
+                {entry.type === "warning" && <AlertTriangle className="inline-block mr-1 h-4 w-4" />}
                 {entry.message}
               </div>
             ))
