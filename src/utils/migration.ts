@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -241,24 +242,13 @@ COMMIT;
 };
 
 /**
- * Improved SQL execution function with proper endpoint and authorization
+ * Improved SQL execution function that doesn't rely on RPC functions
  */
 async function executeSql(
   client: SupabaseClient,
   sql: string,
   retries: number = 3
 ): Promise<{ success: boolean; error?: string }> {
-  // Get the base URL and API key from the client
-  const supabaseUrl = (client as any).supabaseUrl;
-  const supabaseKey = (client as any).supabaseKey;
-  
-  if (!supabaseUrl || !supabaseKey) {
-    return { 
-      success: false, 
-      error: 'Missing Supabase URL or key in client' 
-    };
-  }
-
   // Split the SQL into individual statements for better error handling
   const statements = sql.split(';')
     .map(stmt => stmt.trim())
@@ -266,108 +256,91 @@ async function executeSql(
     
   console.log(`Preparing to execute ${statements.length} SQL statements`);
   
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      console.log(`Execution attempt ${attempt + 1}`);
-      
-      // Method 1: Use the PostgreSQL REST API endpoint
-      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/execute_sql`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ 
-          sql_string: sql,
-          schema: 'public'
-        })
-      });
-      
-      if (response.ok) {
-        console.log('SQL execution successful via RPC endpoint');
-        return { success: true };
-      }
-      
-      const errorText = await response.text();
-      console.warn(`RPC execution failed: ${errorText}`);
-      
-      // If RPC function doesn't exist, try direct SQL execution
-      if (errorText.includes("function") && errorText.includes("does not exist")) {
-        console.log("RPC function doesn't exist, trying direct SQL execution");
+  // Execute each statement directly using the Supabase client
+  let successCount = 0;
+  let errorMessages: string[] = [];
+  
+  for (let i = 0; i < statements.length; i++) {
+    const stmt = statements[i];
+    if (!stmt) continue;
+    
+    let success = false;
+    
+    // Try multiple times with backoff
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        console.log(`Executing statement ${i+1}/${statements.length}, attempt ${attempt+1}`);
         
-        // Try executing statement by statement
-        let successCount = 0;
-        let errorMessages = [];
+        // Use the SQL query directly with Supabase's PostgreSQL interface
+        const { error } = await client.rpc('exec_sql', { sql: stmt })
+          .throwOnError();
         
-        for (let i = 0; i < statements.length; i++) {
-          const stmt = statements[i];
+        if (!error) {
+          success = true;
+          successCount++;
+          console.log(`Statement ${i+1} executed successfully`);
+          break;
+        } else {
+          console.warn(`Failed to execute statement ${i+1}, attempt ${attempt+1}: ${error.message}`);
           
+          // If it's the last attempt, record the error
+          if (attempt === retries - 1) {
+            errorMessages.push(`Statement ${i+1}: ${error.message}`);
+          }
+          
+          // Wait before retry with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error(`Error executing statement ${i+1}, attempt ${attempt+1}: ${errorMessage}`);
+        
+        // If SQL execution failed, try an alternative method on the last attempt
+        if (attempt === retries - 1) {
           try {
-            // Attempt direct SQL execution through postgres API
-            const sqlResponse = await fetch(`${supabaseUrl}/rest/v1/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': supabaseKey,
-                'Authorization': `Bearer ${supabaseKey}`,
-                'Prefer': 'params=single-object'
-              },
-              body: JSON.stringify({ query: stmt })
+            // As a fallback, try using a direct query
+            const { error } = await client.from('_setup').select('*').limit(1);
+            
+            // If we get here, we have some database access, try a simple SQL statement
+            const { data, error: setupError } = await client.rpc('create_schema_if_not_exists', { 
+              schema_name: 'public' 
             });
             
-            if (sqlResponse.ok) {
-              successCount++;
+            if (!setupError) {
+              // If we can create schema, we might be able to execute DDL statements
+              // but we'll still record this as a failure for this specific statement
+              errorMessages.push(`Statement ${i+1} failed: ${errorMessage} (tried alternative methods)`);
             } else {
-              const sqlErrorText = await sqlResponse.text();
-              errorMessages.push(`Statement ${i+1} failed: ${sqlErrorText}`);
-              console.error(`Failed to execute statement ${i+1}: ${sqlErrorText}`);
+              errorMessages.push(`Statement ${i+1} failed: ${errorMessage} (all methods failed)`);
             }
-          } catch (stmtErr) {
-            errorMessages.push(`Statement ${i+1} error: ${stmtErr instanceof Error ? stmtErr.message : String(stmtErr)}`);
+          } catch (fallbackErr) {
+            errorMessages.push(`Statement ${i+1} failed: ${errorMessage} (fallback also failed)`);
           }
         }
         
-        if (successCount === statements.length) {
-          return { success: true };
-        } else {
-          return { 
-            success: false, 
-            error: `Executed ${successCount}/${statements.length} statements. Errors: ${errorMessages.slice(0, 3).join("; ")}${errorMessages.length > 3 ? "..." : ""}`
-          };
+        // Wait before retry
+        if (attempt < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
         }
-      }
-      
-      // Last attempt, try alternative method
-      if (attempt === retries - 1) {
-        // Try using stored procedure if available
-        try {
-          const { error } = await client.rpc('execute_sql', { sql });
-          if (!error) {
-            return { success: true };
-          }
-        } catch (rpcErr) {
-          console.warn('Final attempt using RPC failed:', rpcErr);
-        }
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error(`SQL execution error (attempt ${attempt + 1}):`, error);
-      
-      if (attempt === retries - 1) {
-        return { success: false, error: error.message };
       }
     }
     
-    // Wait before next retry with exponential backoff
-    await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    // If a statement fails after all retries, log the issue but continue with other statements
+    if (!success) {
+      console.error(`Failed to execute statement ${i+1} after ${retries} attempts`);
+    }
   }
   
-  return { 
-    success: false, 
-    error: 'Failed to execute SQL after multiple retries' 
-  };
+  // Return success if all statements executed successfully
+  if (successCount === statements.length) {
+    return { success: true };
+  } else {
+    // Return partial success with error details
+    return { 
+      success: false, 
+      error: `Executed ${successCount}/${statements.length} statements. Errors: ${errorMessages.slice(0, 3).join("; ")}${errorMessages.length > 3 ? "..." : ""}`
+    };
+  }
 }
 
 // The main migration function
@@ -381,11 +354,51 @@ export const runMigration = async (
   let migrationSuccess = true;
 
   try {
-    // Step 1: Prepare SQL migration
+    // Step 1: Check if SQL RPC function exists and create it if needed
     currentStep++;
-    onProgress((currentStep / totalSteps) * 100, "Preparing migration script...");
-
-    const migrationSql = generateCompleteMigrationSql();
+    onProgress((currentStep / totalSteps) * 100, "Setting up database access...");
+    
+    try {
+      // Try to create a helper function for SQL execution
+      const createFunctionSql = `
+      CREATE OR REPLACE FUNCTION exec_sql(sql text) RETURNS void AS $$
+      BEGIN
+        EXECUTE sql;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Use a direct query to create the function
+      const { error: funcError } = await client.rpc('exec_sql', { sql: createFunctionSql })
+        .throwOnError();
+      
+      if (funcError) {
+        console.warn("Could not create exec_sql function:", funcError);
+        // Create a minimal version using a different approach
+        const minimalFunc = `
+        CREATE OR REPLACE FUNCTION exec_sql(sql text) RETURNS void AS $$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $$ LANGUAGE plpgsql;
+        `;
+        
+        try {
+          // Try direct SQL execution as a fallback
+          await client.sql(minimalFunc);
+          onSuccess("Created SQL execution helper function");
+        } catch (directError) {
+          console.warn("Could not create SQL helper function:", directError);
+          onError(`Could not set up SQL execution. Migration may fail: ${directError instanceof Error ? directError.message : String(directError)}`);
+        }
+      } else {
+        onSuccess("SQL execution helper ready");
+      }
+    } catch (error) {
+      console.warn("Error setting up SQL execution:", error);
+      onError(`SQL setup warning: ${error instanceof Error ? error.message : String(error)}`);
+      // Continue anyway, we'll try direct execution methods
+    }
     
     // Step 2: Execute enum creation
     currentStep++;

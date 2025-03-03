@@ -1,12 +1,11 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { createClient } from "@supabase/supabase-js";
 import { CheckCircle, XCircle, Loader2, Download, AlertTriangle, ExternalLink } from "lucide-react";
 import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
+import { createClient } from "@supabase/supabase-js";
 
 interface MigrationStepProps {
   config: {
