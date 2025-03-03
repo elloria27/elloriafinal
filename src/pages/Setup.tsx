@@ -200,7 +200,7 @@ export default function Setup() {
               
               <div>
                 <label htmlFor="key" className="block text-sm font-medium mb-1">
-                  Ключ API (anon/public)
+                  Ключ API (service_role)
                 </label>
                 <Input
                   id="key"
@@ -211,7 +211,7 @@ export default function Setup() {
                   onChange={handleInputChange}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Публічний ключ можна знайти на сторінці налаштувань API
+                  Ключ service_role можна знайти на сторінці налаштувань API. Використовуйте цей ключ, оскільки він надає повні права для міграції бази даних.
                 </p>
               </div>
 
