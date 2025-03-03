@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
 import siteSettingsSQL from "@/utils/site_settings_rows.sql?raw";
-import { executeRawSQL, createSiteSettingsRpcFunction } from "@/utils/supabase-helpers";
+import { executeRawSQL, createSiteSettingsRpcFunction, tableExists } from "@/utils/supabase-helpers";
 
 const siteSettingsJSON = {
   "table": "site_settings",
@@ -215,94 +215,131 @@ export default function Setup() {
       console.log("Імпортування налаштувань сайту використовуючи SQL");
       setProgress(10);
       
-      // First, try to create the RPC function that can create the site_settings table
-      await createSiteSettingsRpcFunction(targetSupabaseClient);
-      setProgress(30);
-      
-      const createTableSQL = `
-        CREATE TABLE IF NOT EXISTS "public"."site_settings" (
-          "id" UUID PRIMARY KEY,
-          "site_title" VARCHAR(255),
-          "default_language" VARCHAR(10),
-          "enable_registration" BOOLEAN,
-          "enable_search_indexing" BOOLEAN,
-          "meta_description" TEXT,
-          "meta_keywords" TEXT,
-          "custom_scripts" JSONB,
-          "created_at" TIMESTAMPTZ,
-          "updated_at" TIMESTAMPTZ,
-          "homepage_slug" VARCHAR(255),
-          "favicon_url" TEXT,
-          "maintenance_mode" BOOLEAN,
-          "contact_email" VARCHAR(255),
-          "google_analytics_id" VARCHAR(255),
-          "enable_cookie_consent" BOOLEAN,
-          "enable_https_redirect" BOOLEAN,
-          "max_upload_size" INTEGER,
-          "enable_user_avatars" BOOLEAN,
-          "logo_url" TEXT
-        );
-      `;
-      
-      console.log("Виконуємо SQL для створення таблиці...");
-      const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
-      
-      if (createError) {
-        console.warn("Помилка створення таблиці:", createError);
-        toast.warning("Виникли труднощі при створенні таблиці, але продовжуємо спробу вставки даних");
-      } else {
-        console.log("Таблиця успішно створена або вже існує");
-        toast.success("Таблиця site_settings успішно створена");
-      }
-
-      setProgress(60);
-      
-      const insertSQL = `
-        INSERT INTO "public"."site_settings" 
-        ("id", "site_title", "default_language", "enable_registration", "enable_search_indexing", 
-         "meta_description", "meta_keywords", "custom_scripts", "created_at", "updated_at", 
-         "homepage_slug", "favicon_url", "maintenance_mode", "contact_email", "google_analytics_id", 
-         "enable_cookie_consent", "enable_https_redirect", "max_upload_size", "enable_user_avatars", "logo_url")
-        VALUES 
-        ('c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec', 'Elloria', 'en', true, true, 
-         null, null, '[]', '2025-01-26 16:59:44.940264-06', '2025-02-13 06:02:08.844257-06', 
-         'index', null, false, 'sales@elloria.ca', null, 
-         false, false, 10, false, null);
-      `;
-      
-      console.log("Виконуємо SQL для вставки даних...");
-      const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
-      
-      if (insertError) {
-        console.error("Помилка вставки даних:", insertError);
-        throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
-      } else {
-        console.log("Налаштування сайту успішно вставлені");
-        toast.success("Налаштування сайту успішно імпортовано");
-      }
-      
-      // Verify the data was inserted
+      // First try to use our new edge function
+      let edgeFunctionSuccess = false;
       try {
-        console.log("Перевіряємо чи дані були вставлені...");
-        const { data: verifyData, error: verifyError } = await (targetSupabaseClient as any)
-          .from('site_settings')
-          .select('*')
-          .limit(1);
-          
-        if (verifyError) {
-          console.warn("Помилка перевірки вставки даних:", verifyError);
-        } else if (verifyData && verifyData.length > 0) {
-          console.log("Підтверджено наявність даних в таблиці:", verifyData);
-          toast.success("Перевірка даних пройшла успішно");
+        console.log("Виконуємо SQL за допомогою edge function...");
+        
+        const functionUrl = `${formData.url}/functions/v1/execute-sql`;
+        const response = await fetch(functionUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${formData.key}`
+          },
+          body: JSON.stringify({ 
+            site_settings_sql: true
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log("Edge function успішно виконана:", result);
+          toast.success("Таблиця site_settings та дані успішно створені");
+          edgeFunctionSuccess = true;
+          setProgress(100);
         } else {
-          console.warn("Дані відсутні в таблиці після вставки");
-          toast.warning("Дані можливо не були вставлені, перевірте в панелі адміністратора Supabase");
+          console.warn("Edge function повернула помилку:", result.error);
+          toast.warning("Edge function не змогла виконати SQL, пробуємо запасний метод");
         }
-      } catch (verifyError) {
-        console.warn("Помилка перевірки вставки даних:", verifyError);
+      } catch (edgeFunctionError) {
+        console.warn("Помилка виклику edge function:", edgeFunctionError);
+        toast.warning("Не вдалося викликати edge function, пробуємо запасний метод");
       }
       
-      setProgress(100);
+      // If edge function failed, use the previous method
+      if (!edgeFunctionSuccess) {
+        // Try to create the RPC function that can create the site_settings table
+        await createSiteSettingsRpcFunction(targetSupabaseClient);
+        setProgress(30);
+        
+        const createTableSQL = `
+          CREATE TABLE IF NOT EXISTS "public"."site_settings" (
+            "id" UUID PRIMARY KEY,
+            "site_title" VARCHAR(255),
+            "default_language" VARCHAR(10),
+            "enable_registration" BOOLEAN,
+            "enable_search_indexing" BOOLEAN,
+            "meta_description" TEXT,
+            "meta_keywords" TEXT,
+            "custom_scripts" JSONB,
+            "created_at" TIMESTAMPTZ,
+            "updated_at" TIMESTAMPTZ,
+            "homepage_slug" VARCHAR(255),
+            "favicon_url" TEXT,
+            "maintenance_mode" BOOLEAN,
+            "contact_email" VARCHAR(255),
+            "google_analytics_id" VARCHAR(255),
+            "enable_cookie_consent" BOOLEAN,
+            "enable_https_redirect" BOOLEAN,
+            "max_upload_size" INTEGER,
+            "enable_user_avatars" BOOLEAN,
+            "logo_url" TEXT
+          );
+        `;
+        
+        console.log("Виконуємо SQL для створення таблиці...");
+        const { error: createError } = await executeRawSQL(createTableSQL, targetSupabaseClient);
+        
+        if (createError) {
+          console.warn("Помилка створення таблиці:", createError);
+          toast.warning("Виникли труднощі при створенні таблиці, але продовжуємо спробу вставки даних");
+        } else {
+          console.log("Таблиця успішно створена або вже існує");
+          toast.success("Таблиця site_settings успішно створена");
+        }
+
+        setProgress(60);
+        
+        const insertSQL = `
+          INSERT INTO "public"."site_settings" 
+          ("id", "site_title", "default_language", "enable_registration", "enable_search_indexing", 
+           "meta_description", "meta_keywords", "custom_scripts", "created_at", "updated_at", 
+           "homepage_slug", "favicon_url", "maintenance_mode", "contact_email", "google_analytics_id", 
+           "enable_cookie_consent", "enable_https_redirect", "max_upload_size", "enable_user_avatars", "logo_url")
+          VALUES 
+          ('c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec', 'Elloria', 'en', true, true, 
+           null, null, '[]', '2025-01-26 16:59:44.940264-06', '2025-02-13 06:02:08.844257-06', 
+           'index', null, false, 'sales@elloria.ca', null, 
+           false, false, 10, false, null);
+        `;
+        
+        console.log("Виконуємо SQL для вставки даних...");
+        const { error: insertError } = await executeRawSQL(insertSQL, targetSupabaseClient);
+        
+        if (insertError) {
+          console.error("Помилка вставки даних:", insertError);
+          throw new Error(`Не вдалося вставити налаштування сайту: ${insertError.message}`);
+        } else {
+          console.log("Налаштування сайту успішно вставлені");
+          toast.success("Налаштування сайту успішно імпортовано");
+        }
+        
+        // Verify the data was inserted
+        try {
+          console.log("Перевіряємо чи дані були вставлені...");
+          const { data: verifyData, error: verifyError } = await (targetSupabaseClient as any)
+            .from('site_settings')
+            .select('*')
+            .limit(1);
+            
+          if (verifyError) {
+            console.warn("Помилка перевірки вставки даних:", verifyError);
+          } else if (verifyData && verifyData.length > 0) {
+            console.log("Підтверджено наявність даних в таблиці:", verifyData);
+            toast.success("Перевірка даних пройшла успішно");
+          } else {
+            console.warn("Дані відсутні в таблиці після вставки");
+            toast.warning("Дані можливо не були вставлені, перевірте в панелі адміністратора Supabase");
+          }
+        } catch (verifyError) {
+          console.warn("Помилка перевірки вставки даних:", verifyError);
+        }
+        
+        setProgress(100);
+      }
+      
       setSetupComplete(true);
       setCurrentStep("complete");
     } catch (err) {
