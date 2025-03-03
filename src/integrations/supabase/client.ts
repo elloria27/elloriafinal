@@ -13,7 +13,12 @@ const getStoredConfig = () => {
     if (storedConfig) {
       const config = JSON.parse(storedConfig);
       if (config.url && config.key) {
-        return { url: config.url, key: config.key };
+        // Ensure URL has protocol
+        let url = config.url;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        return { url, key: config.key };
       }
     }
     return null;

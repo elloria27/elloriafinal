@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -41,172 +42,6 @@ export function MigrationStep({
   const [isRunning, setIsRunning] = useState(false);
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
 
-  // Create the necessary storage buckets and structures
-  const initializeStorage = async (supabase: any) => {
-    try {
-      setLog(prev => [...prev, { message: "Setting up storage...", type: "info" }]);
-      
-      // Create migrations bucket if it doesn't exist
-      const { error } = await supabase.storage.createBucket('migrations', {
-        public: false,
-        fileSizeLimit: 1024 * 1024,
-      });
-      
-      if (error && !error.message.includes('already exists')) {
-        console.warn('Warning creating migrations bucket:', error);
-        setLog(prev => [...prev, { message: `Warning: ${error.message}`, type: "error" }]);
-      } else {
-        setLog(prev => [...prev, { message: "Storage setup completed", type: "success" }]);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Error in storage setup:", error);
-      setLog(prev => [...prev, { 
-        message: `Warning: Storage setup issue: ${error}. Will try to proceed anyway.`, 
-        type: "error" 
-      }]);
-      return false;
-    }
-  };
-
-  // Function to create database helper functions via the Supabase client
-  const createHelperFunctions = async (supabase: any) => {
-    try {
-      setLog(prev => [...prev, { message: "Creating database helper functions...", type: "info" }]);
-      
-      // Store configuration for future use
-      try {
-        localStorage.setItem('supabase_config', JSON.stringify(config));
-      } catch (e) {
-        console.error("Error storing config:", e);
-      }
-
-      // First try to create the migrations storage
-      await initializeStorage(supabase);
-      
-      // Use Supabase storage to upload helper function scripts
-      try {
-        // Define the helper functions as SQL scripts
-        const helperFunctions = {
-          'enable_rls.sql': `
-            CREATE OR REPLACE FUNCTION enable_rls(table_name text)
-            RETURNS void AS $$
-            BEGIN
-              EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          'define_rls_policy.sql': `
-            CREATE OR REPLACE FUNCTION define_rls_policy(
-              table_name text,
-              policy_name text,
-              operation text,
-              definition text,
-              check_expression text DEFAULT 'true'
-            )
-            RETURNS void AS $$
-            BEGIN
-              BEGIN
-                EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
-                  policy_name, table_name, operation, definition, check_expression
-                );
-              EXCEPTION
-                WHEN duplicate_object THEN
-                  EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
-                    policy_name, table_name, definition, check_expression
-                  );
-              END;
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          'create_enum_type.sql': `
-            CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
-            RETURNS void AS $$
-            BEGIN
-              BEGIN
-                EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
-                  enum_name,
-                  array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
-                );
-              EXCEPTION
-                WHEN duplicate_object THEN
-                  NULL;
-              END;
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          'create_index.sql': `
-            CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
-            RETURNS void AS $$
-            BEGIN
-              BEGIN
-                IF is_unique THEN
-                  EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
-                    index_name, table_name, array_to_string(columns, ',')
-                  );
-                ELSE
-                  EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
-                    index_name, table_name, array_to_string(columns, ',')
-                  );
-                END IF;
-              EXCEPTION
-                WHEN duplicate_object THEN
-                  NULL;
-              END;
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `,
-          
-          'create_table.sql': `
-            CREATE OR REPLACE FUNCTION create_table(table_name text, columns_definition text)
-            RETURNS void AS $$
-            BEGIN
-              EXECUTE format('CREATE TABLE IF NOT EXISTS %I (%s);', 
-                table_name, columns_definition
-              );
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `
-        };
-        
-        // Upload each helper function to storage
-        for (const [filename, content] of Object.entries(helperFunctions)) {
-          const { error } = await supabase.storage
-            .from('migrations')
-            .upload(`helpers/${filename}`, new Blob([content]), {
-              upsert: true,
-              contentType: 'text/plain'
-            });
-            
-          if (error) {
-            console.warn(`Warning when storing function ${filename}:`, error);
-          }
-        }
-        
-        setLog(prev => [...prev, { message: "Helper functions prepared", type: "success" }]);
-        return true;
-      } catch (error) {
-        console.error("Error creating helper functions:", error);
-        setLog(prev => [...prev, { 
-          message: `Warning: Could not prepare all helper functions. Will try to proceed. (${error})`, 
-          type: "error" 
-        }]);
-        return false;
-      }
-    } catch (error) {
-      console.error("Error in helper function setup:", error);
-      setLog(prev => [...prev, { 
-        message: `Warning: Could not setup helper functions: ${error}. Will try to proceed anyway.`, 
-        type: "error" 
-      }]);
-      return false;
-    }
-  };
-
   const startMigration = async () => {
     if (isRunning) return;
     
@@ -229,10 +64,14 @@ export function MigrationStep({
       // Create a client with the provided config
       const supabase = createClient(supabaseUrl, config.key);
       
-      // First try to create the helper functions
-      await createHelperFunctions(supabase);
+      // Store configuration for future use
+      try {
+        localStorage.setItem('supabase_config', JSON.stringify(config));
+      } catch (e) {
+        console.error("Error storing config:", e);
+      }
       
-      // Then run the migration with the Supabase client
+      // Run the migration with the Supabase client
       await runMigration(supabase, {
         onProgress: (progress, task) => {
           setMigrationState(prev => ({
