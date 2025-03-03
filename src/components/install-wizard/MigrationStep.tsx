@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -117,11 +118,16 @@ export function MigrationStep({
         }
         
         // Check if we can access the database (simple query)
-        const { error: queryError } = await supabase
-          .from('_dummy_table_check')
-          .select()
-          .limit(1)
-          .catch(() => ({ error: null })); // Ignore this specific error
+        // Fixed: Don't use .catch() on PostgrestFilterBuilder
+        try {
+          const { error: queryError } = await supabase
+            .from('_dummy_table_check')
+            .select()
+            .limit(1);
+        } catch (err) {
+          // Ignore this specific error - table might not exist
+          console.log("Table check error (expected):", err);
+        }
           
         // If we got this far, connection is working
         setLog(prev => [...prev, { 

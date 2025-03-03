@@ -256,23 +256,23 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
     `;
     
     // Use a direct query to create the function
-    const { error } = await client.from('_dummy_table_for_query')
-      .select()
-      .limit(1)
-      .then(() => ({ error: null }))
-      .catch(async () => {
-        // Try alternative approach with rpc
-        try {
-          // Try with rpc - this is more likely to work if the user has the right permissions
-          return await client.rpc('exec_sql', { sql: createFunctionSql })
-            .then(() => ({ error: null }))
-            .catch(err => ({ error: err }));
-        } catch (e) {
-          return { error: e };
-        }
-      });
+    // Fixed: Use .then().catch() pattern instead of chaining .catch() directly
+    try {
+      const { error } = await client.from('_dummy_table_for_query')
+        .select()
+        .limit(1);
       
-    return { success: !error, error: error ? String(error) : undefined };
+      return { success: !error, error: error ? String(error) : undefined };
+    } catch (_) {
+      // Try alternative approach with rpc
+      try {
+        // Try with rpc - this is more likely to work if the user has the right permissions
+        const { error } = await client.rpc('exec_sql', { sql: createFunctionSql });
+        return { success: !error, error: error ? String(error) : undefined };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
   } catch (error) {
     console.error('Error creating exec_sql function:', error);
     return { success: false, error: String(error) };
@@ -310,44 +310,56 @@ async function executeSql(
         console.log(`Executing statement ${i+1}/${statements.length}, attempt ${attempt+1}`);
         
         // First try to use the exec_sql RPC function
-        const { error } = await client.rpc('exec_sql', { sql: stmt })
-          .catch(err => ({ error: err }));
-        
-        if (!error) {
-          success = true;
-          successCount++;
-          console.log(`Statement ${i+1} executed successfully`);
-          break;
-        } else {
-          console.warn(`Failed to execute statement ${i+1} via RPC, attempt ${attempt+1}: ${error.message}`);
+        // Fixed: Use try-catch instead of .catch()
+        try {
+          const { error } = await client.rpc('exec_sql', { sql: stmt });
           
-          // If RPC fails, try alternative method for simple queries
-          if (stmt.toLowerCase().startsWith('select') || 
-              stmt.toLowerCase().startsWith('insert') || 
-              stmt.toLowerCase().startsWith('update') || 
-              stmt.toLowerCase().startsWith('delete')) {
-            try {
-              // For simple CRUD operations, we can use the query builder
-              const { error: directError } = await client.from('_dummy_table_check')
-                .select()
-                .limit(1)
-                .maybeSingle();
-                
-              if (!directError || directError.code === 'PGRST116') {
-                // We have database access, may just be missing the table
-                success = true;
-                successCount++;
-                console.log(`Statement ${i+1} might be executable directly via the API`);
-                break;
+          if (!error) {
+            success = true;
+            successCount++;
+            console.log(`Statement ${i+1} executed successfully`);
+            break;
+          } else {
+            console.warn(`Failed to execute statement ${i+1} via RPC, attempt ${attempt+1}: ${error.message}`);
+            
+            // If RPC fails, try alternative method for simple queries
+            if (stmt.toLowerCase().startsWith('select') || 
+                stmt.toLowerCase().startsWith('insert') || 
+                stmt.toLowerCase().startsWith('update') || 
+                stmt.toLowerCase().startsWith('delete')) {
+              try {
+                // For simple CRUD operations, we can use the query builder
+                const { error: directError } = await client.from('_dummy_table_check')
+                  .select()
+                  .limit(1)
+                  .maybeSingle();
+                  
+                if (!directError || directError.code === 'PGRST116') {
+                  // We have database access, may just be missing the table
+                  success = true;
+                  successCount++;
+                  console.log(`Statement ${i+1} might be executable directly via the API`);
+                  break;
+                }
+              } catch (directErr) {
+                console.warn('Direct query check failed:', directErr);
               }
-            } catch (directErr) {
-              console.warn('Direct query check failed:', directErr);
             }
+            
+            // If it's the last attempt, record the error
+            if (attempt === retries - 1) {
+              errorMessages.push(`Statement ${i+1}: ${error.message}`);
+            }
+            
+            // Wait before retry with exponential backoff
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
           }
+        } catch (rpcErr) {
+          console.warn(`RPC error for statement ${i+1}, attempt ${attempt+1}:`, rpcErr);
           
           // If it's the last attempt, record the error
           if (attempt === retries - 1) {
-            errorMessages.push(`Statement ${i+1}: ${error.message}`);
+            errorMessages.push(`Statement ${i+1}: ${String(rpcErr)}`);
           }
           
           // Wait before retry with exponential backoff
