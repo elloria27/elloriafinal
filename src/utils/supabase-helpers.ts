@@ -1,3 +1,4 @@
+
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,13 +223,17 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     
     // Try direct HTTP request to the pg-meta REST API (using service role only)
     try {
-      const url = `${client.supabaseUrl}/rest/v1/sql`;
+      // Use configured URLs instead of protected properties
+      const supabaseUrl = (client as any).getUrl ? (client as any).getUrl() : 'https://amlirkbzqkbgbvrmgibf.supabase.co';
+      const url = `${supabaseUrl}/rest/v1/sql`;
+      const supabaseKey = (client as any).getKey ? (client as any).getKey() : client.auth.session()?.access_token || '';
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${client.supabaseKey}`,
-          'apikey': client.supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
         },
         body: JSON.stringify({ query: sql }),
       });

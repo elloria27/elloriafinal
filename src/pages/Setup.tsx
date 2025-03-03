@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -215,33 +216,43 @@ export default function Setup() {
       console.log("Імпортування налаштувань сайту використовуючи SQL");
       setProgress(10);
       
-      // First try to use our new edge function
+      // First try to use our edge function
       let edgeFunctionSuccess = false;
       try {
         console.log("Виконуємо SQL за допомогою edge function...");
         
+        // Get the URL from the client or fallback to the URL from the form
         const functionUrl = `${formData.url}/functions/v1/execute-sql`;
+        
+        // Get the key from the client or fallback to the key from the form
+        const apiKey = formData.key;
+        
         const response = await fetch(functionUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${formData.key}`
+            "Authorization": `Bearer ${apiKey}`
           },
           body: JSON.stringify({ 
             site_settings_sql: true
           })
         });
         
-        const result = await response.json();
-        
-        if (result.success) {
-          console.log("Edge function успішно виконана:", result);
-          toast.success("Таблиця site_settings та дані успішно створені");
-          edgeFunctionSuccess = true;
-          setProgress(100);
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.success) {
+            console.log("Edge function успішно виконана:", result);
+            toast.success("Таблиця site_settings та дані успішно створені");
+            edgeFunctionSuccess = true;
+            setProgress(100);
+          } else {
+            console.warn("Edge function повернула помилку:", result.error);
+            toast.warning("Edge function не змогла виконати SQL, пробуємо запасний метод");
+          }
         } else {
-          console.warn("Edge function повернула помилку:", result.error);
-          toast.warning("Edge function не змогла виконати SQL, пробуємо запасний метод");
+          console.warn("Edge function повернула статус помилки:", response.status);
+          toast.warning("Edge function недоступна, пробуємо запасний метод");
         }
       } catch (edgeFunctionError) {
         console.warn("Помилка виклику edge function:", edgeFunctionError);
