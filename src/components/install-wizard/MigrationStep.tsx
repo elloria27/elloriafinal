@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -5,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { runMigration, createDbHelperFunctions } from "@/utils/migration";
+import { runMigration } from "@/utils/migration";
 
 interface MigrationStepProps {
   config: {
@@ -41,6 +42,205 @@ export function MigrationStep({
   const [isRunning, setIsRunning] = useState(false);
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
 
+  // Function to create database helper functions via direct SQL
+  const createHelperFunctionsDirectly = async (supabase: any) => {
+    try {
+      setLog(prev => [...prev, { message: "Creating database helper functions directly...", type: "info" }]);
+      
+      // We'll execute raw SQL directly using the REST API instead of RPC functions
+      // that don't exist yet
+      
+      // Create enable_rls function
+      const enableRlsQuery = `
+        CREATE OR REPLACE FUNCTION enable_rls(table_name text)
+        RETURNS void AS $$
+        BEGIN
+          EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY;', table_name);
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Create define_rls_policy function
+      const definePolicyQuery = `
+        CREATE OR REPLACE FUNCTION define_rls_policy(
+          table_name text,
+          policy_name text,
+          operation text,
+          definition text,
+          check_expression text DEFAULT 'true'
+        )
+        RETURNS void AS $$
+        BEGIN
+          BEGIN
+            EXECUTE format('CREATE POLICY %I ON %I FOR %s TO authenticated USING (%s) WITH CHECK (%s);',
+              policy_name, table_name, operation, definition, check_expression
+            );
+          EXCEPTION
+            WHEN duplicate_object THEN
+              EXECUTE format('ALTER POLICY %I ON %I USING (%s) WITH CHECK (%s);',
+                policy_name, table_name, definition, check_expression
+              );
+          END;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Create create_enum_type function
+      const createEnumTypeQuery = `
+        CREATE OR REPLACE FUNCTION create_enum_type(enum_name text, enum_values text[])
+        RETURNS void AS $$
+        BEGIN
+          BEGIN
+            EXECUTE format('CREATE TYPE %I AS ENUM (%s);',
+              enum_name,
+              array_to_string(array(SELECT format('%L', v) FROM unnest(enum_values) AS v), ',')
+            );
+          EXCEPTION
+            WHEN duplicate_object THEN
+              NULL;
+          END;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Create create_index function
+      const createIndexQuery = `
+        CREATE OR REPLACE FUNCTION create_index(index_name text, table_name text, columns text[], is_unique boolean DEFAULT false)
+        RETURNS void AS $$
+        BEGIN
+          BEGIN
+            IF is_unique THEN
+              EXECUTE format('CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (%s);',
+                index_name, table_name, array_to_string(columns, ',')
+              );
+            ELSE
+              EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (%s);',
+                index_name, table_name, array_to_string(columns, ',')
+              );
+            END IF;
+          EXCEPTION
+            WHEN duplicate_object THEN
+              NULL;
+          END;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Create create_table_from_schema function
+      const createTableQuery = `
+        CREATE OR REPLACE FUNCTION create_table_from_schema(
+          table_name text,
+          columns_json json
+        )
+        RETURNS void AS $$
+        DECLARE
+          col json;
+          col_name text;
+          col_type text;
+          col_constraints text;
+          create_statement text;
+        BEGIN
+          create_statement := format('CREATE TABLE IF NOT EXISTS %I (', table_name);
+          
+          FOR col IN SELECT * FROM json_array_elements(columns_json)
+          LOOP
+            col_name := col->>'name';
+            col_type := col->>'type';
+            
+            col_constraints := '';
+            
+            IF (col->>'isPrimary')::boolean THEN
+              col_constraints := col_constraints || ' PRIMARY KEY';
+            END IF;
+            
+            IF (col->>'isUnique')::boolean THEN
+              col_constraints := col_constraints || ' UNIQUE';
+            END IF;
+            
+            IF NOT (col->>'isNullable')::boolean THEN
+              col_constraints := col_constraints || ' NOT NULL';
+            END IF;
+            
+            IF col->>'defaultValue' IS NOT NULL THEN
+              col_constraints := col_constraints || ' DEFAULT ' || (col->>'defaultValue');
+            END IF;
+            
+            IF col->>'references' IS NOT NULL THEN
+              col_constraints := col_constraints || format(' REFERENCES %I(%I)',
+                (col->'references'->>'table'),
+                (col->'references'->>'column')
+              );
+            END IF;
+            
+            create_statement := create_statement || format('%I %s%s, ', col_name, col_type, col_constraints);
+          END LOOP;
+          
+          -- Remove trailing comma and space
+          create_statement := left(create_statement, length(create_statement) - 2);
+          
+          create_statement := create_statement || ');';
+          
+          EXECUTE create_statement;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
+      `;
+      
+      // Execute all functions as a single SQL statement for atomicity
+      const { error } = await supabase.rpc('postgres_execute', {
+        query: `
+          ${enableRlsQuery}
+          ${definePolicyQuery}
+          ${createEnumTypeQuery}
+          ${createIndexQuery}
+          ${createTableQuery}
+        `
+      }).catch(async (err: any) => {
+        // If that fails, try with the REST API directly
+        console.log("Falling back to direct SQL API");
+        
+        // Try using the SQL HTTP endpoint directly
+        const response = await fetch(`${config.url}/rest/v1/sql`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${config.key}`,
+            'apikey': `${config.key}`,
+          },
+          body: JSON.stringify({
+            query: `
+              ${enableRlsQuery}
+              ${definePolicyQuery}
+              ${createEnumTypeQuery}
+              ${createIndexQuery}
+              ${createTableQuery}
+            `
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`SQL execution failed: ${await response.text()}`);
+        }
+        
+        return { error: null };
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
+      return true;
+    } catch (error) {
+      console.error("Error creating helper functions directly:", error);
+      setLog(prev => [...prev, { 
+        message: `Warning: Could not create helper functions: ${error}. Will try to proceed anyway.`, 
+        type: "error" 
+      }]);
+      // Don't throw here, we'll try to continue anyway
+      return false;
+    }
+  };
+
   const startMigration = async () => {
     if (isRunning) return;
     
@@ -56,9 +256,8 @@ export function MigrationStep({
     try {
       const supabase = createClient(config.url, config.key);
       
-      // First create the helper functions including the table check function
-      setLog(prev => [...prev, { message: "Creating database helper functions...", type: "info" }]);
-      await createDbHelperFunctions(supabase);
+      // First try to create the helper functions directly
+      await createHelperFunctionsDirectly(supabase);
       
       // Create migration instance
       await runMigration(supabase, {
