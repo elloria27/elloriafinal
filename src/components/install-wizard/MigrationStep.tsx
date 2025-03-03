@@ -5,8 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@supabase/supabase-js";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { runMigration } from "@/utils/migration";
+import { CheckCircle, XCircle, Loader2, Download } from "lucide-react";
+import { runMigration, generateCompleteMigrationSql } from "@/utils/migration";
 
 interface MigrationStepProps {
   config: {
@@ -41,6 +41,7 @@ export function MigrationStep({
 }: MigrationStepProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [log, setLog] = useState<Array<{ message: string; type: "info" | "success" | "error" }>>([]);
+  const [sqlDownloadUrl, setSqlDownloadUrl] = useState<string | null>(null);
 
   const startMigration = async () => {
     if (isRunning) return;
@@ -70,6 +71,12 @@ export function MigrationStep({
       } catch (e) {
         console.error("Error storing config:", e);
       }
+      
+      // Create SQL script download option
+      const sqlScript = generateCompleteMigrationSql();
+      const blob = new Blob([sqlScript], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      setSqlDownloadUrl(url);
       
       // Run the migration with the Supabase client
       await runMigration(supabase, {
@@ -121,6 +128,18 @@ export function MigrationStep({
       setIsRunning(false);
     }
   };
+
+  // Check for manual SQL script URL
+  useEffect(() => {
+    try {
+      const url = localStorage.getItem('supabase_migration_sql_url');
+      if (url) {
+        setSqlDownloadUrl(url);
+      }
+    } catch (e) {
+      console.error("Error reading SQL URL:", e);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -212,6 +231,21 @@ export function MigrationStep({
                   <li key={idx}>{error}</li>
                 ))}
               </ul>
+              {sqlDownloadUrl && (
+                <div className="mt-4">
+                  <p className="text-sm text-red-800 mb-2">
+                    Automatic migration failed. You can manually run the SQL script in Supabase SQL Editor:
+                  </p>
+                  <a 
+                    href={sqlDownloadUrl} 
+                    download="supabase_cms_migration.sql"
+                    className="flex items-center text-sm font-medium text-red-800 hover:text-red-700 bg-red-50 py-2 px-3 rounded-md inline-block"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download SQL Script
+                  </a>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -227,19 +261,33 @@ export function MigrationStep({
         >
           Back
         </Button>
-        <Button 
-          onClick={onNext} 
-          disabled={!migrationState.completed || isRunning}
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            "Next: Admin Setup"
+        
+        <div className="flex space-x-2">
+          {sqlDownloadUrl && migrationState.errors.length > 0 && (
+            <a 
+              href={sqlDownloadUrl} 
+              download="supabase_cms_migration.sql"
+              className="flex items-center text-sm font-medium bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 py-2 px-4 rounded-md"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download SQL
+            </a>
           )}
-        </Button>
+          
+          <Button 
+            onClick={onNext} 
+            disabled={!migrationState.completed || isRunning}
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Next: Admin Setup"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

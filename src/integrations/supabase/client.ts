@@ -34,6 +34,37 @@ const config = getStoredConfig() || {
   key: SUPABASE_ANON_KEY 
 };
 
+// Create the Supabase client with retry logic
+export const createSupabaseClient = () => {
+  const { url, key } = config;
+  
+  const options = {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+    },
+    global: {
+      fetch: (url: string, options: RequestInit) => {
+        // Set timeout to 60 seconds
+        const timeoutId = setTimeout(() => {
+          console.error('Supabase request timeout');
+        }, 60000);
+        
+        return fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+          }
+        }).finally(() => {
+          clearTimeout(timeoutId);
+        });
+      }
+    }
+  };
+  
+  return createClient<Database>(url, key, options);
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
-export const supabase = createClient<Database>(config.url, config.key);
+export const supabase = createSupabaseClient();

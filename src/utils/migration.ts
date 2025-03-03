@@ -1,4 +1,3 @@
-
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -46,7 +45,6 @@ BEGIN
 END
 $$;
 `;
-};
 
 // Function to create SQL for all required tables
 const generateTablesSql = () => {
@@ -212,7 +210,7 @@ WHERE NOT EXISTS (SELECT 1 FROM site_settings);
 };
 
 // Complete SQL migration script
-const generateCompleteMigrationSql = () => {
+export const generateCompleteMigrationSql = () => {
   return `
 BEGIN;
   ${generateEnumTypesSql()}
