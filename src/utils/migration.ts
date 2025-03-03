@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -43,8 +44,8 @@ BEGIN
     CREATE TYPE supported_language AS ENUM ('en', 'fr', 'uk');
   END IF;
 END
-$$;
-`;
+$$;`;
+};
 
 // Function to create SQL for all required tables
 const generateTablesSql = () => {
@@ -109,8 +110,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_by UUID
-);
-`;
+);`;
 };
 
 // Function to create SQL for enabling RLS on all tables
@@ -121,8 +121,7 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_blocks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
-`;
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;`;
 };
 
 // Function to create SQL for all RLS policies
@@ -169,8 +168,7 @@ CREATE POLICY "User roles admin crud" ON user_roles
 FOR ALL USING ((auth.jwt() ->> 'role' = 'admin'));
 
 CREATE POLICY "User roles public read" ON user_roles
-FOR SELECT USING (true);
-`;
+FOR SELECT USING (true);`;
 };
 
 // Function to create SQL for initial data
@@ -205,8 +203,7 @@ AND NOT EXISTS (
 -- Insert default site settings if they don't exist
 INSERT INTO site_settings (site_name, site_description, primary_color, secondary_color)
 SELECT 'My CMS', 'A powerful headless CMS', '#4338ca', '#60a5fa'
-WHERE NOT EXISTS (SELECT 1 FROM site_settings);
-`;
+WHERE NOT EXISTS (SELECT 1 FROM site_settings);`;
 };
 
 // Complete SQL migration script
@@ -223,65 +220,75 @@ COMMIT;
 };
 
 /**
- * Execute SQL with retries and batch splitting if needed
+ * Execute SQL directly using the Supabase client
  */
-async function executeSqlWithRetries(
+async function executeSql(
   client: SupabaseClient,
   sql: string,
   retries: number = 3
 ): Promise<{ success: boolean; error?: string }> {
   for (let i = 0; i < retries; i++) {
     try {
-      // Try using direct query 
-      const { error } = await client.rpc('exec_sql', { sql_query: sql })
-        .single();
+      // Execute SQL directly with the Supabase client 
+      // This uses the REST API and the service role key
+      const { error } = await client.rpc('_utils_sql', { sql });
       
+      // Using direct SQL execution via REST API
       if (!error) {
         return { success: true };
       }
       
-      // If direct RPC fails, try with PostgREST API
-      // This is a fallback since the RPC method is preferred
-      const { error: queryError } = await client
-        .from('_exec_sql')
-        .insert({ sql })
-        .single();
-        
-      if (!queryError) {
+      // Try alternative approach if first method fails
+      const { error: sqlError } = await client
+        .from('_utils')
+        .select('*')
+        .execute(sql);
+      
+      if (!sqlError) {
         return { success: true };
       }
-
-      // If both methods fail, log and retry with smaller batches
-      console.warn(`SQL execution failed, retry ${i+1}/${retries}:`, error?.message || queryError?.message);
       
-      // If this is the last retry, try to split SQL by statements and execute one by one
+      // If both methods fail, try another fallback
+      const { error: restError } = await client
+        .from('_rpc_query')
+        .insert({ query: sql });
+      
+      if (!restError) {
+        return { success: true };
+      }
+      
+      // Log the error and retry
+      console.warn(`SQL execution failed, retry ${i+1}/${retries}:`, error?.message || sqlError?.message || restError?.message);
+      
+      // If this is the last retry, try splitting the SQL
       if (i === retries - 1) {
         const sqlStatements = sql.split(';')
           .map(stmt => stmt.trim())
           .filter(stmt => stmt.length > 0)
           .map(stmt => stmt + ';');
         
-        // Execute each statement
+        // Execute statements one by one
         let allSuccess = true;
         let lastError = '';
         
         for (const statement of sqlStatements) {
-          const { error: stmtError } = await client.rpc('exec_sql', { 
-            sql_query: statement 
-          }).single();
+          if (statement.length < 5) continue; // Skip empty statements
           
-          if (stmtError) {
-            const { error: queryStmtError } = await client
-              .from('_exec_sql')
-              .insert({ sql: statement })
-              .single();
+          try {
+            const { error: stmtError } = await client
+              .from('_utils')
+              .select('*')
+              .execute(statement);
             
-            if (queryStmtError) {
+            if (stmtError) {
               allSuccess = false;
-              lastError = queryStmtError.message || stmtError.message;
+              lastError = stmtError.message;
               console.error('Statement execution failed:', statement, lastError);
-              // Continue with next statement despite error
             }
+          } catch (err) {
+            allSuccess = false;
+            lastError = err instanceof Error ? err.message : String(err);
+            console.error('Statement execution error:', statement, lastError);
           }
         }
         
@@ -304,8 +311,8 @@ async function executeSqlWithRetries(
       }
     }
     
-    // Wait before next retry
-    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    // Wait before next retry with exponential backoff
+    await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
   }
   
   return { 
@@ -314,7 +321,7 @@ async function executeSqlWithRetries(
   };
 }
 
-// The main migration function to be exported
+// The main migration function
 export const runMigration = async (
   client: SupabaseClient, 
   callbacks: MigrationCallbacks
@@ -322,9 +329,10 @@ export const runMigration = async (
   const { onProgress, onSuccess, onError } = callbacks;
   const totalSteps = 6;
   let currentStep = 0;
+  let migrationSuccess = true;
 
   try {
-    // Store config in localStorage as before
+    // Store config in localStorage
     let config = {
       url: '',
       key: '',
@@ -357,10 +365,11 @@ export const runMigration = async (
     onProgress((currentStep / totalSteps) * 100, "Creating enum types...");
     
     const enumSql = generateEnumTypesSql();
-    const { success: enumSuccess, error: enumError } = await executeSqlWithRetries(client, enumSql);
+    const { success: enumSuccess, error: enumError } = await executeSql(client, enumSql);
     
     if (!enumSuccess) {
       onError(`Error creating enum types: ${enumError}`);
+      migrationSuccess = false;
     } else {
       onSuccess("Enum types created successfully");
     }
@@ -370,10 +379,11 @@ export const runMigration = async (
     onProgress((currentStep / totalSteps) * 100, "Creating database tables...");
     
     const tablesSql = generateTablesSql();
-    const { success: tablesSuccess, error: tablesError } = await executeSqlWithRetries(client, tablesSql);
+    const { success: tablesSuccess, error: tablesError } = await executeSql(client, tablesSql);
     
     if (!tablesSuccess) {
       onError(`Error creating tables: ${tablesError}`);
+      migrationSuccess = false;
     } else {
       onSuccess("Database tables created successfully");
     }
@@ -383,10 +393,11 @@ export const runMigration = async (
     onProgress((currentStep / totalSteps) * 100, "Enabling row-level security...");
     
     const rlsSql = generateRlsSql();
-    const { success: rlsSuccess, error: rlsError } = await executeSqlWithRetries(client, rlsSql);
+    const { success: rlsSuccess, error: rlsError } = await executeSql(client, rlsSql);
     
     if (!rlsSuccess) {
       onError(`Error enabling RLS: ${rlsError}`);
+      migrationSuccess = false;
     } else {
       onSuccess("Row-level security enabled successfully");
     }
@@ -396,10 +407,11 @@ export const runMigration = async (
     onProgress((currentStep / totalSteps) * 100, "Creating security policies...");
     
     const policiesSql = generatePoliciesSql();
-    const { success: policiesSuccess, error: policiesError } = await executeSqlWithRetries(client, policiesSql);
+    const { success: policiesSuccess, error: policiesError } = await executeSql(client, policiesSql);
     
     if (!policiesSuccess) {
       onError(`Error creating policies: ${policiesError}`);
+      migrationSuccess = false;
     } else {
       onSuccess("Security policies created successfully");
     }
@@ -409,10 +421,11 @@ export const runMigration = async (
     onProgress((currentStep / totalSteps) * 100, "Creating initial data...");
     
     const initialDataSql = generateInitialDataSql();
-    const { success: dataSuccess, error: dataError } = await executeSqlWithRetries(client, initialDataSql);
+    const { success: dataSuccess, error: dataError } = await executeSql(client, initialDataSql);
     
     if (!dataSuccess) {
       onError(`Error inserting initial data: ${dataError}`);
+      migrationSuccess = false;
     } else {
       onSuccess("Initial data created successfully");
     }
@@ -421,20 +434,38 @@ export const runMigration = async (
     onProgress(100, "Verifying installation...");
     
     try {
-      const { data, error } = await client
+      // Try to verify if the tables were created
+      const { data: profilesData, error: profilesError } = await client
         .from('profiles')
         .select('count(*)', { count: 'exact', head: true });
-        
-      if (error) {
-        console.warn("Verification query failed:", error);
-        onSuccess("Migration completed (verification limited)");
+      
+      const { data: pagesData, error: pagesError } = await client
+        .from('pages')
+        .select('count(*)', { count: 'exact', head: true });
+      
+      if (profilesError && pagesError) {
+        console.warn("Verification queries failed:", profilesError, pagesError);
+        if (migrationSuccess) {
+          onProgress(100, "Migration completed with limited verification!");
+        } else {
+          onProgress(100, "Migration completed with errors. Manual verification recommended.");
+        }
       } else {
-        onProgress(100, "Migration completed successfully!");
+        // At least one verification query succeeded
+        if (migrationSuccess) {
+          onProgress(100, "Migration completed successfully!");
+        } else {
+          onProgress(100, "Migration partially completed. Some steps failed.");
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.warn(`Verification limited: ${errorMessage}`);
-      onProgress(100, "Migration completed with limited verification!");
+      if (migrationSuccess) {
+        onProgress(100, "Migration completed with limited verification!");
+      } else {
+        onProgress(100, "Migration completed with errors. Manual verification recommended.");
+      }
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -494,6 +525,7 @@ const verifyDatabaseSetup = async (): Promise<boolean> => {
         return true;
       }
     } catch {
+      // Failed to check profiles, continue with other checks
     }
     
     try {
@@ -505,6 +537,7 @@ const verifyDatabaseSetup = async (): Promise<boolean> => {
         return true;
       }
     } catch {
+      // Failed to check profile count, continue with other checks
     }
     
     const { data: authData, error: authError } = await defaultSupabase.auth.getSession();

@@ -63,7 +63,13 @@ export function MigrationStep({
       }
       
       // Create a client with the provided config
-      const supabase = createClient(supabaseUrl, config.key);
+      // This is important - we need to create a new client with the service role key
+      const supabase = createClient(supabaseUrl, config.key, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        }
+      });
       
       // Store configuration for future use
       try {
@@ -100,18 +106,26 @@ export function MigrationStep({
         }
       });
 
-      // Mark the migration as complete
-      setMigrationState(prev => ({
-        ...prev,
-        completed: true,
-        progress: 100,
-        currentTask: "Migration completed successfully!"
-      }));
-      
-      setLog(prev => [...prev, { 
-        message: "Migration completed successfully!", 
-        type: "success" 
-      }]);
+      // Mark the migration as complete only if no errors occurred
+      if (migrationState.errors.length === 0) {
+        setMigrationState(prev => ({
+          ...prev,
+          completed: true,
+          progress: 100,
+          currentTask: "Migration completed successfully!"
+        }));
+        
+        setLog(prev => [...prev, { 
+          message: "Migration completed successfully!", 
+          type: "success" 
+        }]);
+      } else {
+        setMigrationState(prev => ({
+          ...prev,
+          progress: 100,
+          currentTask: "Migration completed with errors. Check the logs for details."
+        }));
+      }
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -129,16 +143,19 @@ export function MigrationStep({
     }
   };
 
-  // Check for manual SQL script URL
+  // Generate SQL script URL on component mount
   useEffect(() => {
-    try {
-      const url = localStorage.getItem('supabase_migration_sql_url');
-      if (url) {
-        setSqlDownloadUrl(url);
+    const sqlScript = generateCompleteMigrationSql();
+    const blob = new Blob([sqlScript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    setSqlDownloadUrl(url);
+    
+    // Clean up URL on unmount
+    return () => {
+      if (sqlDownloadUrl) {
+        URL.revokeObjectURL(sqlDownloadUrl);
       }
-    } catch (e) {
-      console.error("Error reading SQL URL:", e);
-    }
+    };
   }, []);
 
   return (
@@ -180,13 +197,28 @@ export function MigrationStep({
 
       <div className="space-y-4">
         {!migrationState.completed && !isRunning && (
-          <Button 
-            onClick={startMigration} 
-            className="w-full"
-            disabled={isRunning}
-          >
-            Start Database Migration
-          </Button>
+          <div className="space-y-4">
+            <Button 
+              onClick={startMigration} 
+              className="w-full"
+              disabled={isRunning}
+            >
+              Start Database Migration
+            </Button>
+            
+            {sqlDownloadUrl && (
+              <div className="flex justify-center">
+                <a 
+                  href={sqlDownloadUrl} 
+                  download="supabase_cms_migration.sql"
+                  className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download SQL Script (for manual execution)
+                </a>
+              </div>
+            )}
+          </div>
         )}
 
         {(isRunning || migrationState.progress > 0) && (
@@ -234,7 +266,7 @@ export function MigrationStep({
               {sqlDownloadUrl && (
                 <div className="mt-4">
                   <p className="text-sm text-red-800 mb-2">
-                    Automatic migration failed. You can manually run the SQL script in Supabase SQL Editor:
+                    Automatic migration failed. You can manually run the SQL script in the Supabase SQL Editor:
                   </p>
                   <a 
                     href={sqlDownloadUrl} 
@@ -263,7 +295,7 @@ export function MigrationStep({
         </Button>
         
         <div className="flex space-x-2">
-          {sqlDownloadUrl && migrationState.errors.length > 0 && (
+          {sqlDownloadUrl && !isRunning && (
             <a 
               href={sqlDownloadUrl} 
               download="supabase_cms_migration.sql"
@@ -276,7 +308,7 @@ export function MigrationStep({
           
           <Button 
             onClick={onNext} 
-            disabled={!migrationState.completed || isRunning}
+            disabled={!migrationState.completed && !migrationState.errors.length || isRunning}
           >
             {isRunning ? (
               <>

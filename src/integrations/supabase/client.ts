@@ -38,6 +38,12 @@ const config = getStoredConfig() || {
 export const createSupabaseClient = () => {
   const { url, key } = config;
   
+  // Log configuration for debugging
+  console.log('Creating Supabase client with:', { 
+    url, 
+    keyType: key.includes('service_role') ? 'service_role' : 'anon' 
+  });
+  
   const options = {
     auth: {
       autoRefreshToken: true,
