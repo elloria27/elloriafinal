@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // Create a default supabase client for DB operations
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const defaultSupabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const defaultSupabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Helper function to verify database tables exist
 export const verifyDatabaseSetup = async (customClient?: SupabaseClient): Promise<boolean> => {
@@ -97,6 +97,9 @@ export const saveSupabaseConfig = (config: { url: string; key: string; projectId
   localStorage.setItem('supabase_key', config.key);
   localStorage.setItem('supabase_project_id', config.projectId);
   
+  // Also save as a single JSON object for easier retrieval
+  localStorage.setItem('supabase_config', JSON.stringify(config));
+  
   // In a production app, you might want to store this in a more secure way
   console.log('Supabase configuration saved');
 };
@@ -109,24 +112,35 @@ export const createDbHelperFunctions = async (supabase: SupabaseClient) => {
   
   // Example implementation - in a real app, you'd create actual SQL functions
   try {
-    // Simple example to show the concept
-    const { error } = await supabase.rpc('create_helper_functions', {});
-    
-    if (error) {
-      console.error('Error creating helper functions:', error);
-      // If the function doesn't exist, that's okay in this demo
-      if (error.message.includes('does not exist')) {
-        console.log('Helper function creation skipped - function not found');
+    // We'll just check if we can access the database schema
+    try {
+      // Try calling a schema version RPC function (might not exist in new projects)
+      const { error: rpcError } = await supabase.rpc('get_schema_version');
+      if (!rpcError) {
+        console.log('Helper functions exist');
         return true;
       }
-      return false;
+    } catch (err) {
+      // RPC function doesn't exist, which is expected
     }
     
-    return true;
+    // If RPC failed, try direct schema access
+    const { error: tableError } = await supabase
+      .from('profiles')
+      .select('id')
+      .limit(1);
+      
+    // If we can access profiles, we have good permissions
+    if (!tableError) {
+      console.log('Database access verified');
+      return true;
+    }
+    
+    console.error('Insufficient permissions:', tableError);
+    return false;
   } catch (error) {
-    console.error('Error:', error);
-    // For the sake of this demo, we'll return true even if this fails
-    return true;
+    console.error('Error creating helper functions:', error);
+    return false;
   }
 };
 
