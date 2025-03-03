@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
 import { createClient } from "@supabase/supabase-js";
 import siteSettingsSQL from "@/utils/site_settings_rows.sql?raw";
-import { executeRawSQL, createSiteSettingsRpcFunction, tableExists } from "@/utils/supabase-helpers";
+import { executeRawSQL, createSiteSettingsRpcFunction, tableExists, importDefaultSiteSettings } from "@/utils/supabase-helpers";
 
 const siteSettingsJSON = {
   "table": "site_settings",
@@ -261,15 +261,26 @@ export default function Setup() {
         toast.warning("Не вдалося викликати edge function, пробуємо запасний метод");
       }
       
-      // If edge function failed, use the previous method
+      // If edge function failed, use the new importDefaultSiteSettings function
       if (!edgeFunctionSuccess) {
-        // Try to use direct SQL methods via client
-        setProgress(30);
+        console.log("Using importDefaultSiteSettings as fallback...");
+        setProgress(50);
         
-        console.log("Attempting direct SQL methods...");
+        const result = await importDefaultSiteSettings(targetSupabaseClient);
         
-        // Create table
-        const createTableSQL = `
+        if (result.success) {
+          console.log("Successfully imported site settings:", result);
+          toast.success("Налаштування сайту успішно імпортовано");
+          setProgress(100);
+        } else {
+          console.warn("Error importing site settings:", result.error);
+          toast.warning("Проблема при імпорті через API, пробуємо останній запасний метод");
+          
+          // If our helper function failed, fall back to direct SQL methods
+          setProgress(70);
+          
+          // Try direct SQL - this is the same as in the original code
+          const createTableSQL = `
           CREATE TABLE IF NOT EXISTS "public"."site_settings" (
             "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             "site_title" VARCHAR(255),
@@ -420,6 +431,7 @@ export default function Setup() {
         
         toast.success("Налаштування сайту успішно імпортовано");
         setProgress(100);
+        }
       }
       
       setSetupComplete(true);

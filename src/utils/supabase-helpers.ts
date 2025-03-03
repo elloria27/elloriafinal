@@ -207,6 +207,41 @@ export const tableExists = async (tableName: string) => {
 };
 
 /**
+ * Gets the Supabase URL from different sources
+ * @param client Supabase client instance
+ * @returns The Supabase URL or null if it can't be determined
+ */
+const getSupabaseUrl = (client: any): string | null => {
+  try {
+    // Option 1: Try to access URL from environment in Node.js
+    if (typeof process !== 'undefined' && process.env && process.env.SUPABASE_URL) {
+      return process.env.SUPABASE_URL;
+    }
+
+    // Option 2: Extract from auth configuration
+    try {
+      // In newer versions, we need to get the URL from the session
+      const { data } = client.auth.getSession();
+      if (data.session?.access_token) {
+        // Try to extract URL from token
+        const payload = JSON.parse(atob(data.session.access_token.split('.')[1]));
+        if (payload.iss) {
+          return payload.iss; // Issuer URL
+        }
+      }
+    } catch (authError) {
+      console.warn('Could not extract URL from auth session:', authError);
+    }
+
+    // Option 3: Use hardcoded URL from project configuration
+    return "https://amlirkbzqkbgbvrmgibf.supabase.co";
+  } catch (error) {
+    console.error('Error getting Supabase URL:', error);
+    return null;
+  }
+};
+
+/**
  * Executes a raw SQL query against the Supabase database
  * @param sql SQL query to execute
  * @param client Supabase client to use
@@ -223,16 +258,16 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     
     // Try direct HTTP request to the pg-meta REST API (using service role only)
     try {
-      // Extract URL from environment or configuration
-      // Instead of using client.getUrl() which doesn't exist
-      const supabaseUrl = typeof window !== 'undefined' 
-        ? new URL(client.auth.getAutoRefreshToken().currentSession?.access_token || '')?.origin 
-        : process.env.SUPABASE_URL;
+      // Get the Supabase URL
+      const supabaseUrl = getSupabaseUrl(client);
       
-      // Fallback to the URL directly from the client instance if available
-      const url = supabaseUrl 
-        ? `${supabaseUrl}/rest/v1/sql` 
-        : 'https://amlirkbzqkbgbvrmgibf.supabase.co/rest/v1/sql'; // Fallback to hardcoded URL
+      if (!supabaseUrl) {
+        console.warn('Could not determine Supabase URL for SQL execution');
+        throw new Error('Could not determine Supabase URL');
+      }
+      
+      // Construct REST API URL
+      const url = `${supabaseUrl}/rest/v1/sql`;
       
       // Get auth token from client if possible
       let supabaseKey = '';
@@ -241,13 +276,7 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
         supabaseKey = authData?.session?.access_token || '';
       } catch (authError) {
         console.warn('Could not get session token, using apikey from headers instead');
-        // We can't directly access headers, so use a different approach
-        supabaseKey = process.env.SUPABASE_KEY || '';
-      }
-      
-      if (!supabaseKey) {
-        console.warn('No authentication token available for SQL execution, using default key');
-        // Use the default key from the client or environment
+        // Use the default key from environment or configuration
         supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbGlya2J6cWtiZ2J2cm1naWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5Nzg4MzAsImV4cCI6MjA1NjU1NDgzMH0.qsXKN4NNFNzc2YHSgvqPyEP3NIk0W4MRlOxOq7tZ3-8";
       }
       
@@ -455,6 +484,104 @@ export const executeRawSQL = async (sql: string, client = supabase) => {
     return { 
       data: null, 
       error: { message: error instanceof Error ? error.message : 'Unknown error executing SQL' } 
+    };
+  }
+};
+
+// Function to create site_settings data from SQL file
+export const importDefaultSiteSettings = async (client = supabase) => {
+  try {
+    console.log('Importing default site settings...');
+    
+    // Default site settings data matching the SQL file
+    const defaultSettings = {
+      id: 'c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec',
+      site_title: 'Elloria',
+      default_language: 'en',
+      enable_registration: true,
+      enable_search_indexing: true,
+      custom_scripts: [],
+      created_at: '2025-01-26T16:59:44.940264-06:00',
+      updated_at: '2025-02-13T06:02:08.844257-06:00',
+      homepage_slug: 'index',
+      maintenance_mode: false,
+      contact_email: 'sales@elloria.ca',
+      enable_cookie_consent: false,
+      enable_https_redirect: false,
+      max_upload_size: 10,
+      enable_user_avatars: false
+    };
+    
+    // First, check if the table exists
+    const tableCheck = await tableExists('site_settings');
+    
+    if (!tableCheck) {
+      // Create table if it doesn't exist
+      console.log('Creating site_settings table...');
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS "public"."site_settings" (
+          "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          "site_title" VARCHAR(255),
+          "default_language" VARCHAR(10),
+          "enable_registration" BOOLEAN,
+          "enable_search_indexing" BOOLEAN,
+          "meta_description" TEXT,
+          "meta_keywords" TEXT,
+          "custom_scripts" JSONB,
+          "created_at" TIMESTAMPTZ,
+          "updated_at" TIMESTAMPTZ,
+          "homepage_slug" VARCHAR(255),
+          "favicon_url" TEXT,
+          "maintenance_mode" BOOLEAN,
+          "contact_email" VARCHAR(255),
+          "google_analytics_id" VARCHAR(255),
+          "enable_cookie_consent" BOOLEAN,
+          "enable_https_redirect" BOOLEAN,
+          "max_upload_size" INTEGER,
+          "enable_user_avatars" BOOLEAN,
+          "logo_url" TEXT
+        );
+      `;
+      
+      const { error: createError } = await executeRawSQL(createTableSQL, client);
+      
+      if (createError) {
+        throw new Error(`Failed to create site_settings table: ${createError.message}`);
+      }
+    }
+    
+    // Check if data already exists
+    const { data: existingData, error: checkError } = await client
+      .from('site_settings')
+      .select('id')
+      .eq('id', defaultSettings.id)
+      .single();
+      
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.warn('Error checking existing data:', checkError);
+    }
+    
+    if (existingData) {
+      console.log('Default site settings already exist, skipping import');
+      return { success: true, message: 'Default site settings already exist' };
+    }
+    
+    // Insert default settings
+    console.log('Inserting default site settings...');
+    const { error: insertError } = await client
+      .from('site_settings')
+      .upsert([defaultSettings]);
+      
+    if (insertError) {
+      throw new Error(`Failed to insert default site settings: ${insertError.message}`);
+    }
+    
+    return { success: true, message: 'Default site settings imported successfully' };
+  } catch (error) {
+    console.error('Error importing default site settings:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error importing site settings' 
     };
   }
 };
