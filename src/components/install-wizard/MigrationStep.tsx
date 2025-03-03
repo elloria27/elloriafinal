@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, Loader2, Download, AlertTriangle, ExternalLink, Upload } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { runMigration } from "@/utils/migration";
 
 interface MigrationStepProps {
   config: {
@@ -46,6 +47,7 @@ export function MigrationStep({
   const [manualSteps, setManualSteps] = useState<string[]>([]);
   const [supabaseClient, setSupabaseClient] = useState<any>(null);
   const [backupFileContent, setBackupFileContent] = useState<ArrayBuffer | null>(null);
+  const STORAGE_BUCKET = 'database-backups';
 
   // Initialize Supabase client and backup file on component mount
   useEffect(() => {
@@ -122,6 +124,51 @@ export function MigrationStep({
     }
   }, [config]);
 
+  // Function to ensure the storage bucket exists
+  const ensureStorageBucketExists = async (): Promise<boolean> => {
+    try {
+      setLog(prev => [...prev, { message: "Checking if storage bucket exists...", type: "info" }]);
+      
+      // First, check if the bucket already exists
+      const { data: buckets, error: listError } = await supabaseClient
+        .storage
+        .listBuckets();
+      
+      if (listError) {
+        throw new Error(`Failed to list buckets: ${listError.message}`);
+      }
+      
+      // Check if our target bucket is in the list
+      const bucketExists = buckets.some((bucket: any) => bucket.name === STORAGE_BUCKET);
+      
+      if (bucketExists) {
+        setLog(prev => [...prev, { message: `Storage bucket '${STORAGE_BUCKET}' exists`, type: "success" }]);
+        return true;
+      }
+      
+      // If bucket doesn't exist, create it
+      setLog(prev => [...prev, { message: `Creating storage bucket '${STORAGE_BUCKET}'...`, type: "info" }]);
+      
+      const { error: createError } = await supabaseClient
+        .storage
+        .createBucket(STORAGE_BUCKET, {
+          public: false,
+          fileSizeLimit: 52428800 // 50MB
+        });
+      
+      if (createError) {
+        throw new Error(`Failed to create bucket: ${createError.message}`);
+      }
+      
+      setLog(prev => [...prev, { message: `Storage bucket '${STORAGE_BUCKET}' created successfully`, type: "success" }]);
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setLog(prev => [...prev, { message: `Storage bucket error: ${errorMessage}`, type: "error" }]);
+      return false;
+    }
+  };
+
   const startAutomaticImport = async () => {
     if (!supabaseClient || !backupFileContent) {
       toast.error("Cannot start import: Supabase client or backup file not ready");
@@ -140,6 +187,12 @@ export function MigrationStep({
     }));
 
     try {
+      // First ensure the storage bucket exists
+      const bucketReady = await ensureStorageBucketExists();
+      if (!bucketReady) {
+        throw new Error("Failed to prepare storage bucket for upload");
+      }
+
       // Convert ArrayBuffer to Blob
       const backupBlob = new Blob([backupFileContent], { type: 'application/octet-stream' });
       
@@ -153,59 +206,31 @@ export function MigrationStep({
         currentTask: "Preparing database import..."
       }));
 
-      // Attempt to use the Supabase Storage API to upload the backup file
-      const { data: uploadData, error: uploadError } = await supabaseClient
-        .storage
-        .from('database-backups')
-        .upload(`import-${Date.now()}.backup`, backupFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw new Error(`Failed to upload backup: ${uploadError.message}`);
-      }
-
-      setLog(prev => [...prev, { message: "Backup file uploaded, initiating import...", type: "info" }]);
+      // Upload using direct PostgreSQL import instead
+      setLog(prev => [...prev, { message: "Attempting direct database import via SQL...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
-        progress: 40,
-        currentTask: "Backup file uploaded, initiating import..."
+        progress: 30,
+        currentTask: "Attempting direct database import via SQL..."
       }));
 
-      // Try to call a custom database import RPC function (note: this would need to be set up in Supabase)
-      const { data: importData, error: importError } = await supabaseClient
-        .rpc('import_database_backup', { file_path: uploadData.path });
-
-      if (importError) {
-        // If automatic import fails, suggest manual method
-        setLog(prev => [...prev, { 
-          message: `Automatic import failed: ${importError.message}. Please try manual import.`, 
-          type: "error" 
-        }]);
-        setManualModeActive(true);
-        throw new Error(`Failed to import database: ${importError.message}`);
-      }
-
-      // Simulate progress with a delay (in a real implementation, you would poll for actual progress)
-      for (let progress = 50; progress <= 90; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setMigrationState(prev => ({
-          ...prev,
-          progress,
-          currentTask: `Importing database (${progress}% complete)...`
-        }));
-      }
-
-      // Verify the import was successful by checking for a table
-      const { data: verifyData, error: verifyError } = await supabaseClient
-        .from('pages')
-        .select('id')
-        .limit(1);
-
-      if (verifyError) {
-        throw new Error(`Failed to verify import: ${verifyError.message}`);
-      }
+      // Use the runMigration function from migration.ts
+      await runMigration(supabaseClient, {
+        onProgress: (progress, task) => {
+          setMigrationState(prev => ({
+            ...prev,
+            progress,
+            currentTask: task
+          }));
+          setLog(prev => [...prev, { message: task, type: "info" }]);
+        },
+        onSuccess: (message) => {
+          setLog(prev => [...prev, { message, type: "success" }]);
+        },
+        onError: (error) => {
+          setLog(prev => [...prev, { message: `Migration error: ${error}`, type: "error" }]);
+        }
+      });
 
       // Successful import
       setLog(prev => [...prev, { message: "Database import completed successfully!", type: "success" }]);
