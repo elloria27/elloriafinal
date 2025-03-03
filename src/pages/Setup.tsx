@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,14 @@ interface DatabaseSchema {
   [key: string]: any[];
 }
 
+interface MigrationLog {
+  table: string;
+  operation: 'create' | 'data_insert' | 'policy';
+  status: 'success' | 'error';
+  details?: string;
+  timestamp: string;
+}
+
 export default function Setup() {
   const [currentStep, setCurrentStep] = useState("connect");
   const [loading, setLoading] = useState(false);
@@ -38,6 +47,7 @@ export default function Setup() {
   });
   const [setupComplete, setSetupComplete] = useState(false);
   const [targetSupabaseClient, setTargetSupabaseClient] = useState<any>(null);
+  const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -104,10 +114,186 @@ export default function Setup() {
     }
   };
 
+  const logMigrationStep = (log: Omit<MigrationLog, 'timestamp'>) => {
+    const newLog = { ...log, timestamp: new Date().toISOString() };
+    setMigrationLogs(prev => [...prev, newLog]);
+    
+    // Also console log for debugging
+    console.log(`[Migration ${log.operation}] ${log.table}: ${log.status}`, log.details || '');
+    
+    // Show toast for errors
+    if (log.status === 'error') {
+      toast.error(`Помилка при ${getOperationName(log.operation)} таблиці ${log.table}: ${log.details}`);
+    }
+  };
+  
+  const getOperationName = (operation: string): string => {
+    switch(operation) {
+      case 'create': return 'створенні';
+      case 'data_insert': return 'вставці даних у';
+      case 'policy': return 'встановленні політики для';
+      default: return operation;
+    }
+  };
+
+  const createTableWithRetry = async (tableName: string, tableStructure: string, retries = 3) => {
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const { error } = await targetSupabaseClient.rpc(
+          'execute_sql', 
+          { sql: tableStructure }
+        );
+        
+        if (error) throw error;
+        
+        logMigrationStep({
+          table: tableName,
+          operation: 'create',
+          status: 'success'
+        });
+        
+        return true;
+      } catch (err) {
+        lastError = err;
+        console.error(`Error creating table ${tableName} (Attempt ${attempt}/${retries}):`, err);
+        
+        // Wait before retrying (exponential backoff)
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+        }
+      }
+    }
+    
+    // All attempts failed
+    logMigrationStep({
+      table: tableName,
+      operation: 'create',
+      status: 'error',
+      details: lastError?.message || 'Unknown error'
+    });
+    
+    return false;
+  };
+
+  const insertDataWithBatching = async (tableName: string, tableData: any[]) => {
+    if (!Array.isArray(tableData) || tableData.length === 0) return true;
+    
+    try {
+      // Insert data in batches to avoid overwhelming the API
+      const batchSize = 20;
+      const totalItems = tableData.length;
+      let successCount = 0;
+      
+      for (let i = 0; i < totalItems; i += batchSize) {
+        const batch = tableData.slice(i, i + batchSize);
+        
+        // Use upsert instead of insert to handle conflicts
+        const { error } = await targetSupabaseClient
+          .from(tableName)
+          .upsert(batch, { onConflict: 'id' });
+        
+        if (error) {
+          console.warn(`Warning inserting batch in ${tableName}:`, error);
+          // Continue despite errors to try to insert as much as possible
+        } else {
+          successCount += batch.length;
+        }
+      }
+      
+      const insertResult = successCount > 0;
+      logMigrationStep({
+        table: tableName,
+        operation: 'data_insert',
+        status: insertResult ? 'success' : 'error',
+        details: `${successCount}/${totalItems} records inserted`
+      });
+      
+      return insertResult;
+    } catch (err) {
+      logMigrationStep({
+        table: tableName,
+        operation: 'data_insert',
+        status: 'error',
+        details: err instanceof Error ? err.message : 'Unknown error'
+      });
+      
+      return false;
+    }
+  };
+
+  const setupRlsPolicy = async (tableName: string) => {
+    try {
+      const policyScript = `
+        ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "${tableName}_policy" ON ${tableName};
+        CREATE POLICY "${tableName}_policy" 
+        ON ${tableName} 
+        FOR ALL 
+        TO authenticated 
+        USING (true);
+      `;
+      
+      const { error } = await targetSupabaseClient.rpc(
+        'execute_sql', 
+        { sql: policyScript }
+      );
+      
+      if (error) throw error;
+      
+      logMigrationStep({
+        table: tableName,
+        operation: 'policy',
+        status: 'success'
+      });
+      
+      return true;
+    } catch (err) {
+      logMigrationStep({
+        table: tableName,
+        operation: 'policy',
+        status: 'error',
+        details: err instanceof Error ? err.message : 'Unknown error'
+      });
+      
+      return false;
+    }
+  };
+
+  const determineColumnType = (value: any): string => {
+    if (value === null || value === undefined) return 'TEXT';
+    
+    if (Array.isArray(value)) return 'JSONB';
+    
+    switch (typeof value) {
+      case 'number':
+        // Is it an integer?
+        return Number.isInteger(value) ? 'INTEGER' : 'NUMERIC';
+      case 'boolean':
+        return 'BOOLEAN';
+      case 'object':
+        return 'JSONB';
+      case 'string':
+        // Check if it's a date string
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+          return 'TIMESTAMP WITH TIME ZONE';
+        }
+        // Check if it's a UUID
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+          return 'UUID';
+        }
+        return 'TEXT';
+      default:
+        return 'TEXT';
+    }
+  };
+
   const runDatabaseMigration = async () => {
     setLoading(true);
     setError(null);
     setProgress(0);
+    setMigrationLogs([]);
     
     try {
       if (!targetSupabaseClient) {
@@ -124,12 +310,26 @@ export default function Setup() {
       let currentProgress = 10;
       setProgress(currentProgress);
       
+      // Create migration log table first to track history
+      const migrationLogTable = `
+        CREATE TABLE IF NOT EXISTS migration_logs (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          table_name TEXT NOT NULL,
+          operation TEXT NOT NULL,
+          status TEXT NOT NULL,
+          details TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `;
+      
+      await createTableWithRetry('migration_logs', migrationLogTable);
+      
       // Get all table names from the schema
       const tableNames = Object.keys(schema);
       const totalTables = tableNames.length;
       console.log("Tables to create:", tableNames);
       
-      // Create tables for each table in the schema
+      // First, create all tables in a single transaction if possible
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         console.log(`Creating table: ${tableName}`);
@@ -137,114 +337,83 @@ export default function Setup() {
         // Check if the table has any data to determine structure
         if (schema[tableName].length > 0) {
           const sampleRow = schema[tableName][0];
-          const columns = Object.keys(sampleRow)
-            .filter(col => col !== 'id' && col !== 'created_at') // Skip id and created_at as they will be handled separately
-            .map(col => {
-              // Determine column type based on value
+          const columnDefinitions = [];
+          
+          // Add id and created_at as standard columns
+          columnDefinitions.push('id UUID PRIMARY KEY DEFAULT uuid_generate_v4()');
+          columnDefinitions.push('created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()');
+          
+          // Add all other columns found in the sample row
+          for (const col of Object.keys(sampleRow)) {
+            if (col !== 'id' && col !== 'created_at') {
               const value = sampleRow[col];
-              let type = 'TEXT';
-              
-              if (typeof value === 'number') {
-                type = 'NUMERIC';
-              } else if (typeof value === 'boolean') {
-                type = 'BOOLEAN';
-              } else if (value && typeof value === 'object') {
-                type = 'JSONB';
-              }
-              
-              return `${col} ${type}`;
-            });
-          
-          // Create the table with all columns
-          const { error: tableError } = await targetSupabaseClient.rpc(
-            'execute_sql', 
-            { 
-              sql: `CREATE TABLE IF NOT EXISTS ${tableName} (
-                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                ${columns.join(',\n')}
-              )` 
+              const colType = determineColumnType(value);
+              columnDefinitions.push(`${col} ${colType}`);
             }
-          );
-          
-          if (tableError) {
-            console.error(`Error creating table ${tableName}:`, tableError);
-            toast.error(`Помилка створення таблиці ${tableName}: ${tableError.message}`);
-            // Continue with other tables despite error
           }
+          
+          const createTableSQL = `
+            CREATE TABLE IF NOT EXISTS ${tableName} (
+              ${columnDefinitions.join(',\n')}
+            );
+          `;
+          
+          await createTableWithRetry(tableName, createTableSQL);
         } else {
           // If no data, create a basic table structure
-          const { error: tableError } = await targetSupabaseClient.rpc(
-            'execute_sql', 
-            { 
-              sql: `CREATE TABLE IF NOT EXISTS ${tableName} (
-                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-              )` 
-            }
-          );
+          const createTableSQL = `
+            CREATE TABLE IF NOT EXISTS ${tableName} (
+              id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            );
+          `;
           
-          if (tableError) {
-            console.error(`Error creating table ${tableName}:`, tableError);
-            toast.error(`Помилка створення таблиці ${tableName}: ${tableError.message}`);
-            // Continue with other tables despite error
-          }
+          await createTableWithRetry(tableName, createTableSQL);
         }
         
         // Update progress for each table
-        currentProgress = 10 + Math.floor((i + 1) / totalTables * 50);
+        currentProgress = 10 + Math.floor((i + 1) / totalTables * 30);
         setProgress(currentProgress);
       }
       
-      // Insert data into each table
+      // Now insert data into all tables
       for (let i = 0; i < totalTables; i++) {
         const tableName = tableNames[i];
         const tableData = schema[tableName];
         
-        if (Array.isArray(tableData) && tableData.length > 0) {
-          console.log(`Inserting data into table: ${tableName}`);
-          
-          // Insert data in batches to avoid overwhelming the API
-          const batchSize = 20;
-          for (let j = 0; j < tableData.length; j += batchSize) {
-            const batch = tableData.slice(j, j + batchSize);
-            
-            const { error: insertError } = await targetSupabaseClient
-              .from(tableName)
-              .insert(batch);
-            
-            if (insertError) {
-              console.error(`Error inserting data into ${tableName}:`, insertError);
-              // Continue despite errors to try to insert as much as possible
-              toast.error(`Помилка вставки даних у таблицю ${tableName}: ${insertError.message}`);
-            }
-          }
-        }
+        await insertDataWithBatching(tableName, tableData);
         
         // Update progress for data insertion
-        currentProgress = 60 + Math.floor((i + 1) / totalTables * 30);
+        currentProgress = 40 + Math.floor((i + 1) / totalTables * 30);
         setProgress(currentProgress);
+      }
+      
+      // Finally, set RLS policies for all tables
+      for (let i = 0; i < totalTables; i++) {
+        const tableName = tableNames[i];
         
-        // Set basic RLS policy for each table
-        const { error: policyError } = await targetSupabaseClient.rpc(
-          'execute_sql', 
-          { 
-            sql: `
-              ALTER TABLE ${tableName} ENABLE ROW LEVEL SECURITY;
-              CREATE POLICY IF NOT EXISTS "${tableName}_policy" 
-              ON ${tableName} 
-              FOR ALL 
-              TO authenticated 
-              USING (true);
-            ` 
-          }
-        );
+        await setupRlsPolicy(tableName);
         
-        if (policyError) {
-          console.error(`Error setting policy on ${tableName}:`, policyError);
-          // Continue despite errors
-          toast.error(`Помилка встановлення політики для таблиці ${tableName}: ${policyError.message}`);
+        // Update progress for policies
+        currentProgress = 70 + Math.floor((i + 1) / totalTables * 25);
+        setProgress(currentProgress);
+      }
+      
+      // Save migration logs to the database if possible
+      try {
+        for (const log of migrationLogs) {
+          await targetSupabaseClient
+            .from('migration_logs')
+            .insert({
+              table_name: log.table,
+              operation: log.operation,
+              status: log.status,
+              details: log.details || null,
+              created_at: log.timestamp
+            });
         }
+      } catch (logErr) {
+        console.error("Could not save migration logs:", logErr);
       }
       
       // Final progress update
@@ -450,6 +619,27 @@ export default function Setup() {
                 <Progress value={progress} className="h-2" />
                 <p className="text-xs text-gray-500 text-right">{progress}%</p>
               </div>
+
+              {migrationLogs.length > 0 && (
+                <div className="mt-4 border rounded-md overflow-hidden">
+                  <div className="bg-gray-50 py-2 px-4 border-b">
+                    <h4 className="font-medium">Журнал міграції</h4>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto p-2">
+                    {migrationLogs.map((log, index) => (
+                      <div 
+                        key={index} 
+                        className={`px-3 py-2 text-sm rounded mb-1 ${
+                          log.status === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                        }`}
+                      >
+                        <span className="font-medium">{log.table}</span>: {getOperationName(log.operation)} - {log.status === 'success' ? 'успішно' : 'помилка'}
+                        {log.details && <div className="text-xs mt-1">{log.details}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <Alert variant="destructive">
