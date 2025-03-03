@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -49,14 +48,11 @@ export function MigrationStep({
   const [backupFileContent, setBackupFileContent] = useState<ArrayBuffer | null>(null);
   const STORAGE_BUCKET = 'database-backups';
 
-  // Initialize Supabase client and backup file on component mount
   useEffect(() => {
     try {
-      // Create URL for the database backup file
       const backupFileUrl = '/src/utils/db_cluster-02-03-2025@08-03-16.backup';
       setDatabaseBackupUrl(backupFileUrl);
       
-      // Initialize Supabase client with the provided configuration
       const supabase = createClient(config.url, config.key, {
         auth: {
           autoRefreshToken: false,
@@ -65,7 +61,6 @@ export function MigrationStep({
       });
       setSupabaseClient(supabase);
 
-      // Prepare manual steps as fallback
       setManualSteps([
         "Download the database backup file",
         "Login to your Supabase dashboard at https://supabase.com/dashboard",
@@ -78,7 +73,6 @@ export function MigrationStep({
         "Once completed, return here and click 'I've completed the database import'"
       ]);
       
-      // Load backup file content
       fetch(backupFileUrl)
         .then(response => {
           if (!response.ok) {
@@ -101,14 +95,12 @@ export function MigrationStep({
           }]);
         });
       
-      // Store configuration for future use
       try {
         localStorage.setItem('supabase_config', JSON.stringify(config));
       } catch (e) {
         console.error("Error storing config:", e);
       }
       
-      // Initial log message
       setLog([
         { 
           message: "Ready to import database backup. Click 'Start Import' to begin.", 
@@ -124,12 +116,10 @@ export function MigrationStep({
     }
   }, [config]);
 
-  // Function to ensure the storage bucket exists
   const ensureStorageBucketExists = async (): Promise<boolean> => {
     try {
       setLog(prev => [...prev, { message: "Checking if storage bucket exists...", type: "info" }]);
       
-      // First, check if the bucket already exists
       const { data: buckets, error: listError } = await supabaseClient
         .storage
         .listBuckets();
@@ -138,7 +128,6 @@ export function MigrationStep({
         throw new Error(`Failed to list buckets: ${listError.message}`);
       }
       
-      // Check if our target bucket is in the list
       const bucketExists = buckets.some((bucket: any) => bucket.name === STORAGE_BUCKET);
       
       if (bucketExists) {
@@ -146,14 +135,13 @@ export function MigrationStep({
         return true;
       }
       
-      // If bucket doesn't exist, create it
       setLog(prev => [...prev, { message: `Creating storage bucket '${STORAGE_BUCKET}'...`, type: "info" }]);
       
       const { error: createError } = await supabaseClient
         .storage
         .createBucket(STORAGE_BUCKET, {
           public: false,
-          fileSizeLimit: 52428800 // 50MB
+          fileSizeLimit: 52428800
         });
       
       if (createError) {
@@ -187,7 +175,6 @@ export function MigrationStep({
     }));
 
     try {
-      // First ensure the storage bucket exists
       const bucketReady = await ensureStorageBucketExists();
       if (!bucketReady) {
         throw new Error("Failed to prepare storage bucket for upload");
@@ -200,7 +187,6 @@ export function MigrationStep({
         currentTask: "Preparing database import..."
       }));
 
-      // Try direct SQL import approach
       setLog(prev => [...prev, { message: "Attempting direct database import via SQL...", type: "info" }]);
       setMigrationState(prev => ({
         ...prev,
@@ -208,12 +194,27 @@ export function MigrationStep({
         currentTask: "Attempting direct database import via SQL..."
       }));
 
-      // Use the runMigration function with improved error handling
+      try {
+        console.log('Trying to clear database statistics...');
+        const { error } = await supabaseClient.rpc('exec_sql', {
+          sql: 'SELECT pg_stat_clear_snapshot();'
+        });
+        
+        if (!error) {
+          setLog(prev => [...prev, { 
+            message: "Successfully reset database statistics", 
+            type: "success" 
+          }]);
+        }
+      } catch (e) {
+        console.log('Could not reset statistics directly:', e);
+      }
+      
       await runMigration(supabaseClient, {
         onProgress: (progress, task) => {
           setMigrationState(prev => ({
             ...prev,
-            progress: Math.min(progress + 30, 95), // Scale progress to leave room for completion
+            progress: Math.min(progress + 30, 95),
             currentTask: task
           }));
           setLog(prev => [...prev, { message: task, type: "info" }]);
@@ -222,11 +223,9 @@ export function MigrationStep({
           setLog(prev => [...prev, { message, type: "success" }]);
         },
         onError: (error) => {
-          // Make SQL function errors more user-friendly
           let errorMessage = error;
           if (error.includes("exec_sql") && error.includes("schema cache")) {
             errorMessage = "Database doesn't have permission to execute SQL functions directly. This is common with new Supabase projects.";
-            // Don't treat this as fatal, just log it as a warning
             setLog(prev => [...prev, { 
               message: errorMessage, 
               type: "warning" 
@@ -238,7 +237,6 @@ export function MigrationStep({
         }
       });
 
-      // Check if we have too many errors
       const errorCount = log.filter(entry => entry.type === "error").length;
       
       if (errorCount > 3) {
@@ -250,7 +248,6 @@ export function MigrationStep({
         return;
       }
 
-      // Successful import
       setLog(prev => [...prev, { message: "Database import completed successfully!", type: "success" }]);
       setMigrationState({
         completed: true,
@@ -268,7 +265,6 @@ export function MigrationStep({
         type: "error" 
       }]);
       
-      // Add errors to migration state
       setMigrationState(prev => ({
         ...prev,
         progress: 0,
@@ -276,7 +272,6 @@ export function MigrationStep({
         errors: [...prev.errors, errorMessage]
       }));
       
-      // Switch to manual mode
       setManualModeActive(true);
       toast.error("Automatic import failed. Please follow manual import steps.");
     } finally {
@@ -285,7 +280,6 @@ export function MigrationStep({
   };
 
   const handleManualMigrationSuccess = () => {
-    // Update migration state to completed
     setMigrationState({
       completed: true,
       progress: 100,
@@ -293,13 +287,11 @@ export function MigrationStep({
       errors: []
     });
     
-    // Add success message to log
     setLog(prev => [...prev, { 
       message: "Database import reported as successful", 
       type: "success" 
     }]);
     
-    // Show success toast
     toast.success("Database import completed successfully");
   };
 
@@ -307,7 +299,6 @@ export function MigrationStep({
     const dashboardUrl = `https://supabase.com/dashboard/project/${config.projectId}/database/backups`;
     window.open(dashboardUrl, '_blank');
     
-    // Log this action
     setLog(prev => [...prev, { 
       message: "Opened Supabase dashboard", 
       type: "info" 
@@ -350,7 +341,6 @@ export function MigrationStep({
       </div>
 
       <div className="space-y-4">
-        {/* Automatic import section - shown by default */}
         {!manualModeActive && (
           <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="font-medium text-blue-800">Automatic Database Import</h3>
@@ -405,7 +395,6 @@ export function MigrationStep({
           </div>
         )}
 
-        {/* Manual migration instructions - shown when automatic fails or user chooses manual */}
         {manualModeActive && (
           <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="font-medium text-blue-800">Manual Database Import</h3>

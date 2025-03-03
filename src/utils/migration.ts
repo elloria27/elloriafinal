@@ -228,10 +228,25 @@ SELECT 'My CMS', 'A powerful headless CMS', '#4338ca', '#60a5fa'
 WHERE NOT EXISTS (SELECT 1 FROM site_settings);`;
 };
 
+// Generate SQL to clear statistics and reset session
+const generateClearStatisticsSql = () => {
+  return `
+-- Clear statistics snapshot to ensure fresh statistics
+SELECT pg_stat_clear_snapshot();
+
+-- Additional session reset commands
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+  `;
+};
+
 // Complete SQL migration script with transaction
 export const generateCompleteMigrationSql = () => {
   return `
 BEGIN;
+  ${generateClearStatisticsSql()}
   ${generateEnumTypesSql()}
   ${generateTablesSql()}
   ${generateRlsSql()}
@@ -255,6 +270,17 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
       END;
       $$ LANGUAGE plpgsql SECURITY DEFINER;
     `;
+    
+    // First try to execute the clear statistics command directly
+    // This can help establish connection and reset the session
+    try {
+      await client.rpc('exec_sql', { 
+        sql: 'SELECT pg_stat_clear_snapshot();' 
+      });
+      console.log('Statistics cleared successfully');
+    } catch (e) {
+      console.log('Could not clear statistics, continuing with function creation', e);
+    }
     
     // Use a direct query to create the function
     // Fixed: Use try-catch instead of chaining .catch()
@@ -298,6 +324,14 @@ async function executeSql(
   // Try to execute each statement
   let successCount = 0;
   let errorMessages: string[] = [];
+  
+  // First try to reset statistics to help ensure a clean state
+  try {
+    await client.rpc('exec_sql', { sql: 'SELECT pg_stat_clear_snapshot();' });
+    console.log('Statistics cleared before executing statements');
+  } catch (e) {
+    console.log('Could not clear statistics before execution, continuing', e);
+  }
   
   for (let i = 0; i < statements.length; i++) {
     const stmt = statements[i];
@@ -403,6 +437,15 @@ export const runMigration = async (
   let migrationSuccess = true;
 
   try {
+    // Step 0: Try to clear statistics directly first
+    try {
+      console.log("Attempting to clear statistics...");
+      await client.rpc('exec_sql', { sql: 'SELECT pg_stat_clear_snapshot();' });
+      console.log("Successfully cleared statistics");
+    } catch (e) {
+      console.log("Could not clear statistics directly, will try in later steps", e);
+    }
+    
     // Step 1: Check if exec_sql RPC function exists and create it if needed
     currentStep++;
     onProgress((currentStep / totalSteps) * 100, "Setting up database access...");
