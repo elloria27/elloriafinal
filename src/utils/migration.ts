@@ -1,3 +1,4 @@
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import { supabase as defaultSupabase } from "@/integrations/supabase/client";
@@ -256,7 +257,7 @@ const createExecSqlFunction = async (client: SupabaseClient) => {
     `;
     
     // Use a direct query to create the function
-    // Fixed: Use .then().catch() pattern instead of chaining .catch() directly
+    // Fixed: Use try-catch instead of chaining .catch()
     try {
       const { error } = await client.from('_dummy_table_for_query')
         .select()

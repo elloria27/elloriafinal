@@ -118,7 +118,7 @@ export function MigrationStep({
         }
         
         // Check if we can access the database (simple query)
-        // Fixed: Don't use .catch() on PostgrestFilterBuilder
+        // Fixed: Use try-catch instead of .catch()
         try {
           const { error: queryError } = await supabase
             .from('_dummy_table_check')
