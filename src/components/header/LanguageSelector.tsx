@@ -1,3 +1,4 @@
+
 import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -7,9 +8,10 @@ import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
+type SupportedLanguage = Database['public']['Enums']['supported_language'];
 
 export const LanguageSelector = () => {
-  const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>("en");
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
@@ -21,9 +23,11 @@ export const LanguageSelector = () => {
 
         if (error) throw error;
         
-        if (data) {
+        if (data && data.default_language) {
           console.log('Fetched default language:', data.default_language);
-          setCurrentLanguage(data.default_language);
+          // Ensure we're setting the correct type
+          const lang = data.default_language as SupportedLanguage;
+          setCurrentLanguage(lang);
         }
       } catch (error) {
         console.error('Error fetching site settings:', error);
@@ -46,8 +50,10 @@ export const LanguageSelector = () => {
         (payload) => {
           console.log('Site settings changed:', payload);
           const newData = payload.new as SiteSettings;
-          if (newData) {
-            setCurrentLanguage(newData.default_language);
+          if (newData && newData.default_language) {
+            // Ensure we're setting the correct type
+            const lang = newData.default_language as SupportedLanguage;
+            setCurrentLanguage(lang);
           }
         }
       )
@@ -91,7 +97,7 @@ export const LanguageSelector = () => {
           {["en", "fr", "uk"].map((lang) => (
             <button
               key={lang}
-              onClick={() => lang === "en" && setCurrentLanguage(lang as Database['public']['Enums']['supported_language'])}
+              onClick={() => lang === "en" && setCurrentLanguage("en")}
               className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                 currentLanguage === lang
                   ? "bg-primary/10 text-primary"
