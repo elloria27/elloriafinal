@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Database, AlertCircle, ArrowRight, Copy, Import } from "lucide-react";
+import { CheckCircle, Database, AlertCircle, ArrowRight, Copy, Import, Code } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import databaseExportData from "@/utils/database_export.json";
@@ -236,6 +235,7 @@ export default function Setup() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [targetSupabaseClient, setTargetSupabaseClient] = useState<any>(null);
   const [migrationLogs, setMigrationLogs] = useState<MigrationLog[]>([]);
+  const [executingSEOQuery, setExecutingSEOQuery] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -723,6 +723,97 @@ export default function Setup() {
     }
   };
 
+  const executeSEOQuery = async () => {
+    try {
+      setExecutingSEOQuery(true);
+      setError(null);
+      
+      if (!targetSupabaseClient) {
+        throw new Error("Необхідно спочатку встановити з'єднання");
+      }
+
+      const seoQuery = `
+        -- Add SEO-related columns to the pages table
+        ALTER TABLE pages 
+        ADD COLUMN IF NOT EXISTS allow_indexing boolean DEFAULT true,
+        ADD COLUMN IF NOT EXISTS custom_canonical_url text,
+        ADD COLUMN IF NOT EXISTS redirect_url text,
+        ADD COLUMN IF NOT EXISTS meta_robots text;
+
+        -- Add SEO settings table for global configuration
+        CREATE TABLE IF NOT EXISTS seo_settings (
+          id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+          robots_txt text,
+          default_title_template text,
+          default_meta_description text,
+          default_meta_keywords text,
+          google_site_verification text,
+          created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+          updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+        );
+
+        -- Insert default SEO settings
+        INSERT INTO seo_settings (
+          robots_txt,
+          default_title_template,
+          default_meta_description
+        ) VALUES (
+          E'User-agent: *\\nAllow: /\\nDisallow: /admin/\\nDisallow: /api/\\nSitemap: https://elloria.ca/sitemap.xml',
+          '\${page_title} | Elloria Eco Products',
+          'Sustainable and eco-friendly products for a better future'
+        ) ON CONFLICT DO NOTHING;
+
+        -- Create a function to update the updated_at timestamp
+        CREATE OR REPLACE FUNCTION update_updated_at_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = timezone('utc'::text, now());
+            RETURN NEW;
+        END;
+        $$ language 'plpgsql';
+
+        -- Create a trigger for the seo_settings table
+        CREATE TRIGGER update_seo_settings_updated_at
+            BEFORE UPDATE ON seo_settings
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+      `;
+
+      console.log("Executing SEO SQL query...");
+
+      try {
+        // First attempt to use the pgrest_exec RPC function if available
+        const { error: rpcError } = await targetSupabaseClient.rpc('pgrest_exec', { sql: seoQuery });
+        
+        if (rpcError) {
+          console.warn("pgrest_exec not available, trying direct SQL execution:", rpcError);
+          
+          // Try using direct SQL execution method (this depends on service role permissions)
+          const { error: sqlError } = await targetSupabaseClient.auth.admin.executeSql(seoQuery);
+          
+          if (sqlError) {
+            throw sqlError;
+          }
+        }
+        
+        toast.success("SEO налаштування успішно додані до бази даних");
+        console.log("SEO SQL query executed successfully");
+      } catch (error) {
+        console.error("Error executing SEO SQL query:", error);
+        throw new Error("Не вдалося виконати SQL запит для SEO налаштувань. " + 
+          "Можливо, у вас немає достатніх прав для цієї операції або функція рівня адміністратора недоступна.");
+      }
+    } catch (err) {
+      console.error("Помилка виконання SEO запиту:", err);
+      setError(err instanceof Error 
+        ? err.message 
+        : "Не вдалося виконати SEO SQL запит. Перевірте налаштування та спробуйте знову.");
+      toast.error("Помилка виконання SEO запиту");
+    } finally {
+      setExecutingSEOQuery(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-10 px-4 max-w-4xl min-h-screen">
       <div className="flex flex-col items-center mb-8">
@@ -858,24 +949,43 @@ export default function Setup() {
                   Натисніть кнопку нижче, щоб розпочати процес імпорту бази даних. 
                   Дані будуть імпортовані з файлу database_export.json до вашого нового проекту Supabase.
                 </p>
-                <Button 
-                  onClick={runDatabaseMigration} 
-                  disabled={loading}
-                  size="lg"
-                  className="mt-2"
-                >
-                  {loading ? (
-                    <>
-                      <span className="animate-spin mr-2">◌</span>
-                      Імпортування...
-                    </>
-                  ) : (
-                    <>
-                      <Import className="mr-2 h-4 w-4" />
-                      Почати імпорт бази даних
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2 mt-2">
+                  <Button 
+                    onClick={executeSEOQuery} 
+                    disabled={loading || executingSEOQuery}
+                    variant="outline"
+                    size="lg"
+                  >
+                    {executingSEOQuery ? (
+                      <>
+                        <span className="animate-spin mr-2">◌</span>
+                        Виконання SQL...
+                      </>
+                    ) : (
+                      <>
+                        <Code className="mr-2 h-4 w-4" />
+                        Тест Імпорт (SEO)
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={runDatabaseMigration} 
+                    disabled={loading || executingSEOQuery}
+                    size="lg"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="animate-spin mr-2">◌</span>
+                        Імпортування...
+                      </>
+                    ) : (
+                      <>
+                        <Import className="mr-2 h-4 w-4" />
+                        Почати імпорт бази даних
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -914,7 +1024,7 @@ export default function Setup() {
               )}
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setCurrentStep("connect")} disabled={loading}>
+              <Button variant="outline" onClick={() => setCurrentStep("connect")} disabled={loading || executingSEOQuery}>
                 Назад
               </Button>
             </CardFooter>
