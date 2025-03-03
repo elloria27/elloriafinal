@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -497,7 +496,7 @@ export const importDefaultSiteSettings = async (client = supabase) => {
     const defaultSettings = {
       id: 'c58d6cba-34dc-4ac6-b9fe-b19cad7eb3ec',
       site_title: 'Elloria',
-      default_language: 'en',
+      default_language: 'en' as const,
       enable_registration: true,
       enable_search_indexing: true,
       custom_scripts: [],
@@ -570,7 +569,7 @@ export const importDefaultSiteSettings = async (client = supabase) => {
     console.log('Inserting default site settings...');
     const { error: insertError } = await client
       .from('site_settings')
-      .upsert([defaultSettings]);
+      .upsert(defaultSettings);
       
     if (insertError) {
       throw new Error(`Failed to insert default site settings: ${insertError.message}`);

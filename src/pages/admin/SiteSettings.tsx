@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Download, Upload, Image, Trash2, Database } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
+import type { Tables } from "@/integrations/supabase/types";
 import { SeoSettings } from "@/components/admin/seo/SeoSettings";
 import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 import { createDefaultSiteSettings, importDefaultSiteSettings } from "@/utils/supabase-helpers";
@@ -18,7 +19,7 @@ import { createDefaultSiteSettings, importDefaultSiteSettings } from "@/utils/su
 type SiteSettings = {
   id: string;
   site_title: string;
-  default_language: Database['public']['Enums']['supported_language'];
+  default_language: Tables<'site_settings'>['default_language'];
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
