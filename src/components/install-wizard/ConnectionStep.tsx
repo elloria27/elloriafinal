@@ -146,7 +146,7 @@ export function ConnectionStep({
             <p className="text-sm text-red-500">{validationErrors.url}</p>
           )}
           <p className="text-xs text-gray-500">
-            Found in your Supabase project dashboard under Settings > API
+            Found in your Supabase project dashboard under Settings {'>'}  API
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export function ConnectionStep({
             <p className="text-sm text-red-500">{validationErrors.key}</p>
           )}
           <p className="text-xs text-gray-500">
-            Use the <strong>service_role</strong> key (not anon/public), found in Settings > API
+            Use the <strong>service_role</strong> key (not anon/public), found in Settings {'>'}  API
           </p>
         </div>
 
@@ -183,7 +183,7 @@ export function ConnectionStep({
             <p className="text-sm text-red-500">{validationErrors.projectId}</p>
           )}
           <p className="text-xs text-gray-500">
-            Found in the URL of your Supabase dashboard (or Settings > General)
+            Found in the URL of your Supabase dashboard (or Settings {'>'}  General)
           </p>
         </div>
 
