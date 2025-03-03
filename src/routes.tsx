@@ -27,6 +27,7 @@ import BulkOrders from "@/pages/BulkOrders";
 import NotFound from "@/pages/NotFound";
 import DynamicPage from "@/pages/DynamicPage";
 import Certificates from "@/pages/Certificates";
+import SiteSettings from "@/pages/admin/SiteSettings";
 
 export function Routes() {
   return (
