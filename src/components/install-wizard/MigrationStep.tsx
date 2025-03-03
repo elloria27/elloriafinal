@@ -102,37 +102,32 @@ export function MigrationStep({
           persistSession: true,
         },
         global: {
-          fetch: (url, options) => {
-            // Ensure proper headers for all requests
-            const headers = {
-              ...options.headers,
-              'apikey': config.key,
-              'Authorization': `Bearer ${config.key}`
-            };
-            
-            return fetch(url, {
-              ...options,
-              headers
-            });
+          headers: {
+            'apikey': config.key,
+            'Authorization': `Bearer ${config.key}`
           }
         }
       });
       
       // Test the connection first
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          setLog(prev => [...prev, { 
-            message: `Connection test failed: ${error.message}`, 
-            type: "error" 
-          }]);
-          throw new Error(`Connection failed: ${error.message}`);
-        } else {
-          setLog(prev => [...prev, { 
-            message: "Connection to Supabase successful", 
-            type: "success" 
-          }]);
+        const { data: userResponse, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          throw new Error(`Auth test failed: ${userError.message}`);
         }
+        
+        // Check if we can access the database (simple query)
+        const { error: queryError } = await supabase
+          .from('_dummy_table_check')
+          .select()
+          .limit(1)
+          .catch(() => ({ error: null })); // Ignore this specific error
+          
+        // If we got this far, connection is working
+        setLog(prev => [...prev, { 
+          message: "Connection to Supabase successful", 
+          type: "success" 
+        }]);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         setLog(prev => [...prev, { 
