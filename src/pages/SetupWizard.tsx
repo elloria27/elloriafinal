@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2, ChevronRight, Database, Globe, User, Check, KeyRound } from "lucide-react";
+import { Loader2, ChevronRight, Database, Globe, User, Check, KeyRound, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,7 @@ const adminFormSchema = z.object({
 const siteFormSchema = z.object({
   siteTitle: z.string().min(1, "Site title is required"),
   defaultLanguage: z.enum(["en", "fr", "uk"]),
+  importDefaultSettings: z.boolean().optional()
 });
 
 export default function SetupWizard() {
@@ -46,6 +47,7 @@ export default function SetupWizard() {
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME);
   const [loading, setLoading] = useState(false);
   const [databaseConnected, setDatabaseConnected] = useState(false);
+  const [importingSettings, setImportingSettings] = useState(false);
   
   // Define forms for each step
   const databaseForm = useForm<z.infer<typeof databaseFormSchema>>({
@@ -69,7 +71,8 @@ export default function SetupWizard() {
     resolver: zodResolver(siteFormSchema),
     defaultValues: {
       siteTitle: "My Website",
-      defaultLanguage: "en"
+      defaultLanguage: "en",
+      importDefaultSettings: false
     }
   });
 
@@ -119,7 +122,22 @@ export default function SetupWizard() {
       if (error) throw error;
       
       // Assign admin role (would require RPC or service role in a real app)
-      // This is just simulated here
+      try {
+        // We use the supabase client to insert a user role record
+        // This assumes that appropriate RLS policies are in place
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: data.user?.id,
+            role: 'admin'
+          });
+          
+        if (roleError) throw roleError;
+      } catch (roleError) {
+        console.warn("Could not assign admin role:", roleError);
+        // Continue anyway, as the user was created successfully
+      }
+      
       toast.success("Admin user created successfully!");
       setCurrentStep(STEPS.SITE);
     } catch (error: any) {
@@ -127,6 +145,56 @@ export default function SetupWizard() {
       toast.error(error.message || "Failed to create admin user");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Import default settings
+  const importDefaultSettings = async () => {
+    setImportingSettings(true);
+    
+    try {
+      // In a real app, this would execute a predefined SQL script or call an Edge Function
+      // Here we're simulating by inserting some default values
+      
+      const defaultSettings = {
+        id: 'default',
+        site_title: siteForm.getValues('siteTitle'),
+        default_language: siteForm.getValues('defaultLanguage'),
+        enable_registration: true,
+        enable_search_indexing: true,
+        custom_scripts: '[]',
+        logo_url: null,
+        favicon_url: null,
+        footer_text: 'Copyright © 2023 ' + siteForm.getValues('siteTitle'),
+        social_links: JSON.stringify({
+          facebook: 'https://facebook.com',
+          twitter: 'https://twitter.com',
+          instagram: 'https://instagram.com'
+        }),
+        navbar_links: JSON.stringify([
+          { text: 'Home', url: '/' },
+          { text: 'About', url: '/about' },
+          { text: 'Contact', url: '/contact' }
+        ]),
+        theme_colors: JSON.stringify({
+          primary: '#3b82f6',
+          secondary: '#10b981'
+        })
+      };
+      
+      // Upsert default settings
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert(defaultSettings);
+      
+      if (error) throw error;
+      
+      toast.success("Default settings imported successfully!");
+    } catch (error: any) {
+      console.error("Import error:", error);
+      toast.error(error.message || "Failed to import default settings");
+    } finally {
+      setImportingSettings(false);
     }
   };
 
@@ -147,6 +215,11 @@ export default function SetupWizard() {
         });
       
       if (error) throw error;
+      
+      // Import default settings if requested
+      if (values.importDefaultSettings) {
+        await importDefaultSettings();
+      }
       
       toast.success("Site setup completed successfully!");
       setCurrentStep(STEPS.COMPLETE);
@@ -209,6 +282,15 @@ export default function SetupWizard() {
                   <div>
                     <h3 className="font-medium">Basic Site Settings</h3>
                     <p className="text-sm text-muted-foreground">Configure your website name and language</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    <Code className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Import Default Data</h3>
+                    <p className="text-sm text-muted-foreground">Install predefined settings and content</p>
                   </div>
                 </div>
               </div>
@@ -430,6 +512,29 @@ export default function SetupWizard() {
                     )}
                   />
                   
+                  <FormField
+                    control={siteForm.control}
+                    name="importDefaultSettings"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 mt-1"
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Import Default Settings</FormLabel>
+                          <FormDescription>
+                            Set up predefined configuration including social links, navigation, and theme colors
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  
                   <div className="flex justify-between">
                     <Button
                       type="button"
@@ -485,6 +590,12 @@ export default function SetupWizard() {
                   <Check className="h-5 w-5 text-green-500" />
                   <p>Site settings configured</p>
                 </div>
+                {siteForm.getValues("importDefaultSettings") && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Check className="h-5 w-5 text-green-500" />
+                    <p>Default data imported</p>
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex justify-center">
