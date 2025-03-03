@@ -185,20 +185,9 @@ export function MigrationStep({
         $$ LANGUAGE plpgsql SECURITY DEFINER;
       `;
       
-      // Execute all functions as a single SQL statement for atomicity
-      const { error } = await supabase.rpc('postgres_execute', {
-        query: `
-          ${enableRlsQuery}
-          ${definePolicyQuery}
-          ${createEnumTypeQuery}
-          ${createIndexQuery}
-          ${createTableQuery}
-        `
-      }).catch(async (err: any) => {
-        // If that fails, try with the REST API directly
-        console.log("Falling back to direct SQL API");
-        
-        // Try using the SQL HTTP endpoint directly
+      // We need to fix the error with catch() by using a different approach
+      // Try using the SQL HTTP endpoint directly
+      try {
         const response = await fetch(`${config.url}/rest/v1/sql`, {
           method: 'POST',
           headers: {
@@ -221,15 +210,17 @@ export function MigrationStep({
           throw new Error(`SQL execution failed: ${await response.text()}`);
         }
         
-        return { error: null };
-      });
-      
-      if (error) {
-        throw error;
+        setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
+        return true;
+      } catch (error) {
+        console.error("Error creating helper functions directly:", error);
+        setLog(prev => [...prev, { 
+          message: `Warning: Could not create helper functions: ${error}. Will try to proceed anyway.`, 
+          type: "error" 
+        }]);
+        // Don't throw here, we'll try to continue anyway
+        return false;
       }
-      
-      setLog(prev => [...prev, { message: "Helper functions created successfully", type: "success" }]);
-      return true;
     } catch (error) {
       console.error("Error creating helper functions directly:", error);
       setLog(prev => [...prev, { 
@@ -259,7 +250,7 @@ export function MigrationStep({
       // First try to create the helper functions directly
       await createHelperFunctionsDirectly(supabase);
       
-      // Create migration instance
+      // Run migration with direct SQL execution mode
       await runMigration(supabase, {
         onProgress: (progress, task) => {
           setMigrationState(prev => ({
