@@ -85,20 +85,41 @@ export default function Setup() {
       const targetClient = createClient(formData.url, formData.key);
       setTargetSupabaseClient(targetClient);
       
-      // Try to make an actual API call that doesn't require authentication
-      // Just query a system table to verify DB connection works
-      const { data, error: apiError } = await targetClient
-        .from('_prisma_migrations')
-        .select('*')
-        .limit(1);
-      
-      if (apiError) {
-        // If the table doesn't exist, try another call that should always work
-        const { error: healthError } = await targetClient.rpc('get_server_version');
-        if (healthError) {
-          console.error("Connection error:", healthError);
-          throw new Error(`Помилка підключення: ${healthError.message}`);
+      // Test connection with a health check query
+      // Try different approaches to verify connectivity
+      try {
+        // Try to list all tables (doesn't require specific table to exist)
+        const { error: schemaError } = await targetClient.rpc('get_schema_version');
+        
+        if (schemaError) {
+          // If that fails, try listing tables in the PostgreSQL information schema
+          const { error: infoSchemaError } = await targetClient
+            .from('information_schema.tables')
+            .select('table_name')
+            .limit(1);
+            
+          if (infoSchemaError) {
+            // If that fails, try a direct health check
+            const { error: healthCheckError } = await targetClient
+              .from('pg_stat_activity')
+              .select('query')
+              .limit(1);
+              
+            if (healthCheckError) {
+              // If all methods fail, try a simple storage bucket list as last resort
+              const { error: storageError } = await targetClient
+                .storage
+                .listBuckets();
+                
+              if (storageError) {
+                throw new Error(`Неможливо підтвердити з'єднання: ${storageError.message}`);
+              }
+            }
+          }
         }
+      } catch (connErr) {
+        console.error("Connection validation error:", connErr);
+        throw new Error(`Помилка перевірки з'єднання: ${connErr instanceof Error ? connErr.message : 'Невідома помилка'}`);
       }
       
       // If we get here, connection is successful
