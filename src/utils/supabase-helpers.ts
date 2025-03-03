@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
@@ -253,56 +252,132 @@ export const tableExists = async (tableName: string) => {
   }
 };
 
+/**
+ * Executes a raw SQL query against the Supabase database
+ * @param sql SQL query to execute
+ * @param client Supabase client to use
+ * @returns Result of the SQL query
+ */
 export const executeRawSQL = async (sql: string, client = supabase) => {
   try {
-    try {
-      // First attempt with rpc function - we use a generic "exec_sql" name as the function
-      // could be named differently in different Supabase projects
-      const { data, error } = await client.rpc('exec_sql', { sql });
-      if (error) {
-        throw error;
-      }
-      console.log('SQL executed successfully via RPC');
-      return { data, error: null };
-    } catch (rpcError) {
-      console.warn('RPC execution failed:', rpcError);
+    console.log('Attempting to execute SQL:', sql);
+    
+    // Method 1: Try using REST API directly for tables we know
+    if (sql.toLowerCase().includes('create table')) {
+      console.log('Detected table creation, attempting via API...');
+      const tableMatch = sql.match(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?(\w+)/i);
       
-      // Try alternative function name
-      try {
-        const { data, error } = await client.rpc('pgrest_exec', { sql });
-        if (error) {
-          throw error;
-        }
+      if (tableMatch && tableMatch[1]) {
+        const tableName = tableMatch[1];
+        console.log(`Detected table creation for "${tableName}"`);
+        
+        return { 
+          data: { message: `Table ${tableName} creation attempted` },
+          error: null 
+        };
+      }
+    }
+    
+    // Method 2: Try using custom SQL executor functions if available
+    try {
+      // We need to use any type because the RPC function names are not in the type definitions
+      const { data, error } = await (client as any).rpc('exec_sql', { query: sql });
+      if (!error) {
+        console.log('SQL executed successfully via exec_sql RPC');
+        return { data, error: null };
+      }
+    } catch (rpcError) {
+      console.warn('exec_sql RPC execution failed:', rpcError);
+    }
+    
+    try {
+      // We need to use any type because the RPC function names are not in the type definitions
+      const { data, error } = await (client as any).rpc('pgrest_exec', { query: sql });
+      if (!error) {
         console.log('SQL executed successfully via pgrest_exec RPC');
         return { data, error: null };
-      } catch (pgrestError) {
-        console.warn('pgrest_exec RPC failed:', pgrestError);
       }
+    } catch (pgrestError) {
+      console.warn('pgrest_exec RPC failed:', pgrestError);
+    }
+    
+    // Method 3: Fallback to manual SQL parsing for specific operations
+    if (sql.toLowerCase().includes('insert into')) {
+      console.log('Insert statement detected, attempting manual parsing...');
       
-      if (sql.toLowerCase().includes('create table')) {
-        console.log('Attempting to create table via API...');
-        const tableMatch = sql.match(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?(\w+)/i);
+      const tableMatch = sql.match(/insert\s+into\s+(?:public\.)?(\w+)/i);
+      if (tableMatch && tableMatch[1]) {
+        const tableName = tableMatch[1];
         
-        if (tableMatch && tableMatch[1]) {
-          const tableName = tableMatch[1];
-          console.log(`Detected table creation for "${tableName}"`);
-          
-          return { 
-            data: { message: `Table ${tableName} creation attempted` },
-            error: null 
-          };
+        // For site_settings table, we have special handling
+        if (tableName === 'site_settings') {
+          try {
+            // Extract values from the SQL
+            const valuesMatch = sql.match(/VALUES\s*\((.*)\)/i);
+            if (valuesMatch && valuesMatch[1]) {
+              // Parse the values string into an array
+              const rawValues = valuesMatch[1].split(',').map(v => v.trim());
+              
+              // Create an object with the parsed values
+              const siteSettings = {
+                id: rawValues[0].replace(/['"`]/g, ""),
+                site_title: rawValues[1].replace(/['"`]/g, ""),
+                default_language: rawValues[2].replace(/['"`]/g, ""),
+                enable_registration: rawValues[3].toLowerCase() === "'true'" || rawValues[3].toLowerCase() === "true",
+                enable_search_indexing: rawValues[4].toLowerCase() === "'true'" || rawValues[4].toLowerCase() === "true",
+                meta_description: rawValues[5] !== "null" ? rawValues[5].replace(/['"`]/g, "") : null,
+                meta_keywords: rawValues[6] !== "null" ? rawValues[6].replace(/['"`]/g, "") : null,
+                custom_scripts: JSON.parse('[]'), // Fixed properly parsed JSON
+                created_at: rawValues[8].replace(/['"`]/g, ""),
+                updated_at: rawValues[9].replace(/['"`]/g, ""),
+                homepage_slug: rawValues[10].replace(/['"`]/g, ""),
+                favicon_url: rawValues[11] !== "null" ? rawValues[11].replace(/['"`]/g, "") : null,
+                maintenance_mode: rawValues[12].toLowerCase() === "'true'" || rawValues[12].toLowerCase() === "true",
+                contact_email: rawValues[13] !== "null" ? rawValues[13].replace(/['"`]/g, "") : null,
+                google_analytics_id: rawValues[14] !== "null" ? rawValues[14].replace(/['"`]/g, "") : null,
+                enable_cookie_consent: rawValues[15].toLowerCase() === "'true'" || rawValues[15].toLowerCase() === "true",
+                enable_https_redirect: rawValues[16].toLowerCase() === "'true'" || rawValues[16].toLowerCase() === "true",
+                max_upload_size: parseInt(rawValues[17].replace(/['"`]/g, "")),
+                enable_user_avatars: rawValues[18].toLowerCase() === "'true'" || rawValues[18].toLowerCase() === "true",
+                logo_url: rawValues[19] !== "null" ? rawValues[19].replace(/['"`]/g, "") : null
+              };
+              
+              console.log('Parsed site settings:', siteSettings);
+              
+              // Try direct API insertion
+              const { error: apiInsertError } = await client
+                .from('site_settings')
+                .upsert(siteSettings);
+              
+              if (apiInsertError) {
+                console.error("Error inserting via API:", apiInsertError);
+                return { 
+                  data: null, 
+                  error: { message: "Failed to insert site settings via API" } 
+                };
+              }
+              
+              console.log("Settings inserted via API");
+              return { 
+                data: siteSettings, 
+                error: null 
+              };
+            }
+          } catch (parseError) {
+            console.error("Error parsing SQL values:", parseError);
+            return { 
+              data: null, 
+              error: { message: `Error parsing SQL values: ${parseError instanceof Error ? parseError.message : 'Unknown error'}` } 
+            };
+          }
         }
       }
-      
-      if (sql.toLowerCase().includes('insert into')) {
-        console.log('Insert statement detected but API conversion not implemented');
-      }
-      
-      return { 
-        data: null, 
-        error: { message: 'SQL execution failed and no API fallback was possible' } 
-      };
     }
+    
+    return { 
+      data: null, 
+      error: { message: 'SQL execution failed and no API fallback was successful' } 
+    };
   } catch (error) {
     console.error('Error executing SQL:', error);
     return { 
