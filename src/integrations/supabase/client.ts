@@ -3,8 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://iczvmddzgupmwsicfrpi.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcnZtZGR6Z3VwbXdzaWNmcnBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQyOTA2MTMsImV4cCI6MjAxOTg2NjYxM30.hInGhqTK9VdkSlUJpZ_KovmjdJ77CZDj0KphONnWQgM";
+const SUPABASE_URL = "https://amlirkbzqkbgbvrmgibf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbGlya2J6cWtiZ2J2cm1naWJmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MDI1MzM1NywiZXhwIjoyMDU1ODI5MzU3fQ.aaL4_-zjVl9VQpKZ0bA3H-CJHPpSXMs0eRqKdQyart4";
 
 // Try to get configuration from localStorage if it exists
 const getStoredConfig = () => {
@@ -26,7 +26,7 @@ const getStoredConfig = () => {
 // Use stored config if available, otherwise use the default
 const config = getStoredConfig() || { 
   url: SUPABASE_URL, 
-  key: SUPABASE_PUBLISHABLE_KEY 
+  key: SUPABASE_ANON_KEY 
 };
 
 // Import the supabase client like this:
