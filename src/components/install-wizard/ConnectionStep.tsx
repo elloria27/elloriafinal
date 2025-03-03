@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,39 +84,61 @@ export function ConnectionStep({
       
       // Check if we have proper permissions by checking if we can create schema objects
       try {
-        // Test if we can access schema information with a simple SQL query
-        // This will work even if our app tables don't exist yet
-        const { error: schemaError } = await supabase
-          .rpc('get_schema_version', {})
-          .catch(() => {
-            // If the RPC doesn't exist yet, try a direct query to postgres catalogs
-            return supabase.from('information_schema.tables')
-              .select('table_schema')
-              .limit(1);
-          });
+        // First try to access schema information with an RPC call
+        let schemaError;
         
-        if (schemaError) {
-          // If we can't do either, check if we're using service role key
-          if (schemaError.message.includes("permission denied")) {
-            setTestResult({
-              success: false, 
-              message: "Connection successful, but insufficient permissions. Make sure you're using the service_role key."
-            });
-          } else {
-            // We connected but still have a different error
-            setTestResult({
-              success: false, 
-              message: "Connection successful, but couldn't verify permissions: " + schemaError.message
-            });
-          }
-          return;
+        try {
+          // Try calling a schema version RPC function (might not exist in new projects)
+          const rpcResult = await supabase.rpc('get_schema_version', {});
+          schemaError = rpcResult.error;
+        } catch (_) {
+          // If the RPC call itself throws an exception (not just returns an error)
+          schemaError = { message: "RPC function doesn't exist" };
         }
         
-        // Connection successful with proper permissions
-        setTestResult({
-          success: true, 
-          message: "Connection successful! Ready to set up the database."
-        });
+        // If RPC failed, try direct schema access
+        if (schemaError) {
+          try {
+            // Try using a raw SQL query instead of accessing information_schema directly
+            const { error: sqlError } = await supabase.rpc('execute_sql', {
+              sql_query: "SELECT table_schema FROM information_schema.tables LIMIT 1"
+            });
+            
+            // If SQL query works, we have good permissions
+            if (!sqlError) {
+              setTestResult({
+                success: true, 
+                message: "Connection successful! Ready to set up the database."
+              });
+              return;
+            }
+            
+            // Otherwise check the error type
+            if (sqlError.message.includes("permission denied")) {
+              setTestResult({
+                success: false, 
+                message: "Connection successful, but insufficient permissions. Make sure you're using the service_role key."
+              });
+            } else {
+              setTestResult({
+                success: false, 
+                message: "Connection successful, but couldn't verify permissions: " + sqlError.message
+              });
+            }
+          } catch (err) {
+            // If all else fails, assume we're good as long as we connected
+            setTestResult({
+              success: true, 
+              message: "Connection successful! Ready to set up the database."
+            });
+          }
+        } else {
+          // RPC call worked, we have good permissions
+          setTestResult({
+            success: true, 
+            message: "Connection successful! Ready to set up the database."
+          });
+        }
       } catch (permError) {
         // Fallback that just assumes we're good if we can connect at all
         setTestResult({

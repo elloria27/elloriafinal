@@ -376,36 +376,55 @@ export const isInstallationNeeded = async (): Promise<boolean> => {
 // Helper function to verify database tables exist
 const verifyDatabaseSetup = async (): Promise<boolean> => {
   try {
-    // Use a simpler query to check if the profiles table exists
-    // that doesn't rely on direct pg_catalog access
-    const { data, error } = await defaultSupabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'profiles')
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error checking table existence:', error);
+    // Try to use a direct SQL query first - this works even with limited permissions
+    try {
+      // Try to select from the profiles table directly with limit 0
+      // This will error only if the table doesn't exist, not if it's empty
+      const { error: tableError } = await defaultSupabase
+        .from('profiles')
+        .select('id')
+        .limit(0);
       
-      // If there's an error querying information_schema, try a different approach
+      // If we don't get an error, the table exists
+      if (!tableError) {
+        return true;
+      }
+    } catch {
+      // If direct query fails, continue to other methods
+    }
+    
+    // Try a raw SQL query as a fallback method
+    try {
+      const { data, error } = await defaultSupabase.rpc('execute_sql', {
+        sql_query: "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles')"
+      });
+      
+      if (!error && data && data[0] && data[0].exists) {
+        return true;
+      }
+    } catch {
+      // If RPC method fails, continue to other fallbacks
+    }
+    
+    // Final fallback - check if we can authenticate, if yes, assume tables are set up
+    // This is not as reliable but better than nothing
+    const { data: authData, error: authError } = await defaultSupabase.auth.getSession();
+    if (!authError && authData) {
+      // Last resort - look for any existing table to determine if setup is complete
       try {
-        // Try to select from the profiles table directly with limit 0
-        // This will error only if the table doesn't exist, not if it's empty
-        const { error: tableError } = await defaultSupabase
-          .from('profiles')
+        const { data: siteSettings } = await defaultSupabase
+          .from('site_settings')
           .select('id')
-          .limit(0);
-        
-        // If we don't get an error, the table exists
-        return !tableError;
+          .limit(1);
+          
+        return siteSettings !== null && siteSettings.length > 0;
       } catch {
+        // If we can authenticate but no tables exist, assume setup is not complete
         return false;
       }
     }
     
-    // If data is not null, the table exists
-    return data !== null;
+    return false;
   } catch (error) {
     console.error('Error in database verification:', error);
     return false;
