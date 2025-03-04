@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.0'
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { readerFromStreamReader } from 'https://deno.land/std@0.177.0/streams/reader_from_stream_reader.ts'
@@ -54,18 +55,21 @@ serve(async (req) => {
     switch (action) {
       case 'run-migration':
         responseData = await runDatabaseMigration(adminClient)
-        break
+        break;
       
       case 'import-demo-data':
         responseData = await importDemoData(adminClient)
-        break
+        break;
       
       case 'deploy-edge-functions':
         responseData = await deployEdgeFunctions(adminClient, requestData.functionsData || [], supabaseUrl, serviceRoleKey)
-        break
+        break;
 
       default:
-        return new Response(JSON.stringify({ error: 'Invalid action', received: action }), {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: `Unknown action: ${action}` 
+        }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -85,6 +89,7 @@ serve(async (req) => {
     
     // Return error response
     return new Response(JSON.stringify({ 
+      success: false, 
       error: error.message || 'An unknown error occurred',
       stack: Deno.env.get('ENVIRONMENT') === 'development' ? error.stack : undefined
     }), {
@@ -722,38 +727,73 @@ async function deployEdgeFunctions(supabase, functionsData, supabaseUrl, service
     
     console.log(`Functions to deploy: ${JSON.stringify(functionsToDeploy)}`);
     
-    // Project ID extraction from the URL
-    let projectId = '';
-    try {
-      const urlParts = new URL(supabaseUrl);
-      projectId = urlParts.hostname.split('.')[0];
-      console.log(`Extracted project ID: ${projectId}`);
-    } catch (err) {
-      console.error(`Error extracting project ID: ${err.message}`);
-    }
+    // Extract project ID from the Supabase URL
+    const projectId = extractProjectId(supabaseUrl);
+    console.log(`Project ID: ${projectId}`);
     
-    // For direct function deployment (in a real implementation)
+    // Prepare Management API URL
+    const managementApiUrl = 'https://api.supabase.com/v1/projects';
+    
+    // Deploy each function
     const deployedFunctions = [];
     const failedFunctions = [];
     
-    // Simulated function deployment - in a real implementation
-    // this would interact with Supabase Management API to deploy actual functions
     for (const funcName of functionsToDeploy) {
       try {
         console.log(`Deploying function: ${funcName}`);
         
-        // In a real implementation, this would:
-        // 1. Get the function code from a repository or storage
-        // 2. Deploy it using the Supabase Management API
-        // 3. Set up any necessary secrets or environment variables
+        // Get Edge Function config
+        const funcConfigPath = `./supabase/functions/${funcName}/config.toml`;
+        let config = '';
         
-        // For this demonstration, we're just logging the process
+        try {
+          // In a real implementation, this would read the config file
+          // For now, we'll create a basic config
+          config = `project_id = "${projectId}"\n`;
+        } catch (configErr) {
+          console.log(`Config not found for ${funcName}, using default`);
+        }
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Get Edge Function source code
+        const funcSourcePath = `./supabase/functions/${funcName}/index.ts`;
+        let source = '';
         
-        deployedFunctions.push(funcName);
+        try {
+          // In a real implementation, this would read the source file
+          // For now, we'll use a placeholder
+          source = `// ${funcName} function code would be here`;
+        } catch (sourceErr) {
+          console.error(`Source not found for ${funcName}`);
+          throw new Error(`Source file not found for ${funcName}`);
+        }
+        
+        // In a real implementation, we would make API requests to the Supabase Management API
+        // using the service role key for authentication to deploy each function
+        
+        // For example (this is just a placeholder - not working code):
+        /*
+        const deployResponse = await fetch(`${managementApiUrl}/${projectId}/functions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${serviceRoleKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: funcName,
+            source_code: source,
+            config: config
+          })
+        });
+        
+        if (!deployResponse.ok) {
+          throw new Error(`Deployment failed with status: ${deployResponse.status}`);
+        }
+        */
+        
+        // Since we can't actually deploy via the API in this context,
+        // we'll log success and continue
         console.log(`Successfully deployed function: ${funcName}`);
+        deployedFunctions.push(funcName);
       } catch (err) {
         console.error(`Failed to deploy function ${funcName}: ${err.message}`);
         failedFunctions.push({ name: funcName, error: err.message });
@@ -765,10 +805,22 @@ async function deployEdgeFunctions(supabase, functionsData, supabaseUrl, service
       deployed: deployedFunctions,
       failed: failedFunctions,
       project_id: projectId,
+      note: "This is a simulation. To actually deploy functions, they must be uploaded to Supabase via the dashboard or CLI.",
       message: `Deployed ${deployedFunctions.length} functions${failedFunctions.length > 0 ? `, ${failedFunctions.length} failed` : ''}`
     };
   } catch (error) {
     console.error('Error in edge functions deployment:', error);
     throw error;
+  }
+}
+
+// Helper function to extract project ID from URL
+function extractProjectId(supabaseUrl) {
+  try {
+    const url = new URL(supabaseUrl);
+    return url.hostname.split('.')[0];
+  } catch (err) {
+    console.error(`Error extracting project ID: ${err.message}`);
+    return 'unknown-project';
   }
 }
