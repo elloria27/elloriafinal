@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -272,7 +271,7 @@ async function createEnumTypes(client: Client) {
 // Create core tables (user-related, settings)
 async function createCoreTables(client: Client) {
   const coreTablesSQL = `
-    -- Create site_settings table
+    -- Create site_settings table if not exists
     CREATE TABLE IF NOT EXISTS public.site_settings (
       id TEXT PRIMARY KEY DEFAULT 'default',
       site_title TEXT,
@@ -296,7 +295,7 @@ async function createCoreTables(client: Client) {
       updated_at TIMESTAMPTZ
     );
     
-    -- Create user_roles table
+    -- Create user_roles table if not exists
     CREATE TABLE IF NOT EXISTS public.user_roles (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       user_id UUID NOT NULL,
@@ -304,7 +303,7 @@ async function createCoreTables(client: Client) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
     );
     
-    -- Create profiles table
+    -- Create profiles table if not exists
     CREATE TABLE IF NOT EXISTS public.profiles (
       id UUID PRIMARY KEY REFERENCES auth.users,
       email TEXT,
@@ -322,7 +321,7 @@ async function createCoreTables(client: Client) {
       updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
     );
     
-    -- Create SEO settings
+    -- Create SEO settings if not exists
     CREATE TABLE IF NOT EXISTS public.seo_settings (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       default_title_template TEXT,
@@ -1295,4 +1294,3 @@ async function insertInitialData(client: Client) {
   await client.queryArray(initialDataSQL);
   console.log("Initial data inserted successfully");
 }
-
