@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Database, RotateCw, AlertCircle, Server } from "lucide-react";
 import { toast } from "sonner";
@@ -37,11 +37,28 @@ export default function DatabaseStep({
   const [deployFunctionsLog, setDeployFunctionsLog] = useState<string[]>([]);
   const [deployFunctionsProgress, setDeployFunctionsProgress] = useState(0);
   const [currentDeployStep, setCurrentDeployStep] = useState("");
+  const [deploymentError, setDeploymentError] = useState<string | null>(null);
+
+  // Function to validate required setup data
+  const validateSetupData = () => {
+    const serviceRoleKey = setupData.supabaseServiceRoleKey;
+    if (!serviceRoleKey) {
+      return "Missing Supabase Service Role Key in setupData. Please go back to Connection step.";
+    }
+
+    const supabaseUrl = setupData.supabaseUrl;
+    if (!supabaseUrl) {
+      return "Missing Supabase URL in setupData. Please go back to Connection step.";
+    }
+
+    return null; // No errors
+  };
 
   const deployEdgeFunctions = async () => {
     setDeployFunctionsRunning(true);
     setDeployFunctionsComplete(false);
     setDeployFunctionsSuccess(false);
+    setDeploymentError(null);
     setDeployFunctionsLog(["Starting Edge Functions deployment..."]);
     setDeployFunctionsProgress(0);
     setCurrentDeployStep("Initializing");
@@ -50,19 +67,34 @@ export default function DatabaseStep({
       // Validate required keys
       setDeployFunctionsLog(prev => [...prev, "Checking Supabase service role key..."]);
       
-      const serviceRoleKey = setupData.supabaseServiceRoleKey;
-      if (!serviceRoleKey) {
-        throw new Error("Missing Supabase Service Role Key in setupData. Please go back to Connection step.");
+      const validationError = validateSetupData();
+      if (validationError) {
+        throw new Error(validationError);
       }
 
+      const serviceRoleKey = setupData.supabaseServiceRoleKey;
       const supabaseUrl = setupData.supabaseUrl;
-      if (!supabaseUrl) {
-        throw new Error("Missing Supabase URL in setupData. Please go back to Connection step.");
-      }
 
       setDeployFunctionsLog(prev => [...prev, "Checking Supabase connection..."]);
       setDeployFunctionsProgress(10);
       setCurrentDeployStep("Checking connection");
+      
+      // Test the connection with a simple query
+      try {
+        const { error: connectionError } = await supabase.from('site_settings').select('id').limit(1);
+        if (connectionError) {
+          console.error("Connection test error:", connectionError);
+          setDeployFunctionsLog(prev => [...prev, `Connection test error: ${connectionError.message}`]);
+          setDeployFunctionsLog(prev => [...prev, "Proceeding with deployment anyway..."]);
+        } else {
+          setDeployFunctionsLog(prev => [...prev, "Supabase connection successful"]);
+        }
+      } catch (connErr) {
+        console.error("Connection test exception:", connErr);
+        setDeployFunctionsLog(prev => [...prev, `Connection test exception: ${connErr instanceof Error ? connErr.message : String(connErr)}`]);
+        setDeployFunctionsLog(prev => [...prev, "Proceeding with deployment anyway..."]);
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Invoke the deploy edge functions action
@@ -92,9 +124,12 @@ export default function DatabaseStep({
       ];
 
       setDeployFunctionsLog(prev => [...prev, "Calling setup-wizard edge function for deployment..."]);
-      const { data, error } = await supabase.functions.invoke('setup-wizard', {
+      setDeployFunctionsLog(prev => [...prev, `Using Supabase URL: ${supabaseUrl}`]);
+
+      // Log the request details before sending (without the service role key)
+      console.log("Deployment request:", {
         headers: {
-          "Authorization": `Bearer ${serviceRoleKey}`,
+          "Authorization": `Bearer ***SERVICE_ROLE_KEY_HIDDEN***`,
           "Supabase-URL": supabaseUrl
         },
         body: { 
@@ -103,10 +138,73 @@ export default function DatabaseStep({
         }
       });
 
-      console.log("Edge function deployment response:", data, error);
+      // Add some extra information to help debug issues
+      try {
+        const functionsList = await supabase.functions.listFunctions();
+        console.log("Available Edge Functions:", functionsList);
+        setDeployFunctionsLog(prev => [...prev, `Found ${functionsList.data?.length || 0} existing edge functions`]);
+      } catch (listError) {
+        console.error("Error listing functions:", listError);
+        setDeployFunctionsLog(prev => [...prev, `Error listing functions: ${listError instanceof Error ? listError.message : String(listError)}`]);
+      }
+      
+      // Make the actual request with more detailed error handling
+      try {
+        const { data, error } = await supabase.functions.invoke('setup-wizard', {
+          headers: {
+            "Authorization": `Bearer ${serviceRoleKey}`,
+            "Supabase-URL": supabaseUrl
+          },
+          body: { 
+            action: 'deploy-edge-functions',
+            functionsData: functionsToDeploy
+          }
+        });
 
-      if (error) {
-        throw new Error(`Error calling setup-wizard function: ${error.message}`);
+        console.log("Edge function deployment response:", data, error);
+
+        if (error) {
+          throw new Error(`Error calling setup-wizard function: ${error.message || 'Unknown error'}`);
+        }
+
+        if (!data) {
+          throw new Error("No data returned from setup-wizard function");
+        }
+
+        setDeployFunctionsLog(prev => [...prev, `Received response: ${JSON.stringify(data)}`]);
+      } catch (invokeError) {
+        console.error("Function invocation error:", invokeError);
+        setDeployFunctionsLog(prev => [...prev, `Function invocation error: ${invokeError instanceof Error ? invokeError.message : String(invokeError)}`]);
+        
+        // Try a different approach with direct fetch for diagnosis
+        try {
+          setDeployFunctionsLog(prev => [...prev, "Trying alternative approach for diagnosis..."]);
+          const response = await fetch(`${supabaseUrl}/functions/v1/setup-wizard`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'Content-Type': 'application/json',
+              'Supabase-URL': supabaseUrl
+            },
+            body: JSON.stringify({
+              action: 'deploy-edge-functions',
+              functionsData: functionsToDeploy
+            })
+          });
+          
+          const result = await response.json();
+          console.log("Direct fetch response:", response.status, result);
+          setDeployFunctionsLog(prev => [...prev, `Direct fetch status: ${response.status}`]);
+          setDeployFunctionsLog(prev => [...prev, `Direct fetch response: ${JSON.stringify(result)}`]);
+          
+          if (!response.ok) {
+            throw new Error(`Direct fetch error: ${response.status} - ${JSON.stringify(result)}`);
+          }
+        } catch (fetchError) {
+          console.error("Direct fetch error:", fetchError);
+          setDeployFunctionsLog(prev => [...prev, `Direct fetch error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`]);
+          throw new Error(`All deployment attempts failed: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+        }
       }
 
       // Simulate progress for each function deployment
@@ -132,7 +230,9 @@ export default function DatabaseStep({
       toast.success("Edge Functions deployed successfully!");
     } catch (error) {
       console.error("Edge Functions deployment error:", error);
-      setDeployFunctionsLog(prev => [...prev, `Error: ${error instanceof Error ? error.message : String(error)}`]);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setDeployFunctionsLog(prev => [...prev, `Error: ${errorMessage}`]);
+      setDeploymentError(errorMessage);
       setDeployFunctionsComplete(true);
       setDeployFunctionsSuccess(false);
       setDeployFunctionsProgress(0);
@@ -297,6 +397,17 @@ export default function DatabaseStep({
             </li>
           </ul>
           
+          {deploymentError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+              <div className="font-semibold flex items-center mb-1">
+                <AlertCircle className="mr-1 h-4 w-4" />
+                Deployment Error:
+              </div>
+              <div className="pl-5">{deploymentError}</div>
+              <div className="mt-2 text-xs text-red-600">Please check your Supabase URL and Service Role Key. Make sure the setup-wizard Edge Function exists and is properly configured.</div>
+            </div>
+          )}
+          
           {deployFunctionsRunning && (
             <div className="mb-4">
               <div className="flex justify-between items-center mb-1">
@@ -336,6 +447,13 @@ export default function DatabaseStep({
               </>
             )}
           </Button>
+          
+          <div className="mt-3 text-xs text-gray-500">
+            <p className="flex items-center">
+              <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+              The Supabase Service Role Key is required for this step
+            </p>
+          </div>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-md mt-6">
