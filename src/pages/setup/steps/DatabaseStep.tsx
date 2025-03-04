@@ -79,26 +79,8 @@ export default function DatabaseStep({
       setDeployFunctionsProgress(10);
       setCurrentDeployStep("Checking connection");
       
-      // Test the connection with a simple query
-      try {
-        const { error: connectionError } = await supabase.from('site_settings').select('id').limit(1);
-        if (connectionError) {
-          console.error("Connection test error:", connectionError);
-          setDeployFunctionsLog(prev => [...prev, `Connection test error: ${connectionError.message}`]);
-          setDeployFunctionsLog(prev => [...prev, "Proceeding with deployment anyway..."]);
-        } else {
-          setDeployFunctionsLog(prev => [...prev, "Supabase connection successful"]);
-        }
-      } catch (connErr) {
-        console.error("Connection test exception:", connErr);
-        setDeployFunctionsLog(prev => [...prev, `Connection test exception: ${connErr instanceof Error ? connErr.message : String(connErr)}`]);
-        setDeployFunctionsLog(prev => [...prev, "Proceeding with deployment anyway..."]);
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Invoke the deploy edge functions action
-      setDeployFunctionsLog(prev => [...prev, "Starting Edge Functions deployment..."]);
+      // Try direct fetch approach instead of using supabase client
+      setDeployFunctionsLog(prev => [...prev, "Initializing deployment process..."]);
       setDeployFunctionsProgress(20);
       setCurrentDeployStep("Starting deployment");
       
@@ -123,40 +105,27 @@ export default function DatabaseStep({
         'mobile-api'
       ];
 
-      setDeployFunctionsLog(prev => [...prev, "Calling setup-wizard edge function for deployment..."]);
       setDeployFunctionsLog(prev => [...prev, `Using Supabase URL: ${supabaseUrl}`]);
-
-      // Log the request details before sending (without the service role key)
-      console.log("Deployment request:", {
-        headers: {
-          "Authorization": `Bearer ***SERVICE_ROLE_KEY_HIDDEN***`,
-          "Supabase-URL": supabaseUrl
-        },
-        body: { 
-          action: 'deploy-edge-functions',
-          functionsData: functionsToDeploy
-        }
-      });
-
-      // Remove the attempt to list functions as it's not supported
       setDeployFunctionsLog(prev => [...prev, "Preparing deployment request..."]);
       
-      // Make the actual request with more detailed error handling
+      // Try using the supabase client first with detailed error handling
       try {
+        setDeployFunctionsLog(prev => [...prev, "Attempting to deploy using supabase client..."]);
+        
         const { data, error } = await supabase.functions.invoke('setup-wizard', {
-          headers: {
-            "Authorization": `Bearer ${serviceRoleKey}`,
-            "Supabase-URL": supabaseUrl
-          },
           body: { 
             action: 'deploy-edge-functions',
             functionsData: functionsToDeploy
+          },
+          headers: {
+            "Authorization": `Bearer ${serviceRoleKey}`,
+            "Supabase-URL": supabaseUrl
           }
         });
 
-        console.log("Edge function deployment response:", data, error);
-
         if (error) {
+          console.error("Supabase client error:", error);
+          setDeployFunctionsLog(prev => [...prev, `Supabase client error: ${error.message || 'Unknown error'}`]);
           throw new Error(`Error calling setup-wizard function: ${error.message || 'Unknown error'}`);
         }
 
@@ -165,19 +134,26 @@ export default function DatabaseStep({
         }
 
         setDeployFunctionsLog(prev => [...prev, `Received response: ${JSON.stringify(data)}`]);
-      } catch (invokeError) {
-        console.error("Function invocation error:", invokeError);
-        setDeployFunctionsLog(prev => [...prev, `Function invocation error: ${invokeError instanceof Error ? invokeError.message : String(invokeError)}`]);
+        console.log("Edge function deployment response:", data);
+      } catch (clientError) {
+        console.error("Supabase client attempt failed:", clientError);
+        setDeployFunctionsLog(prev => [...prev, `Supabase client attempt failed: ${clientError instanceof Error ? clientError.message : String(clientError)}`]);
         
-        // Try a different approach with direct fetch for diagnosis
+        // If supabase client fails, try direct fetch with more debugging
         try {
-          setDeployFunctionsLog(prev => [...prev, "Trying alternative approach for diagnosis..."]);
-          const response = await fetch(`${supabaseUrl}/functions/v1/setup-wizard`, {
+          setDeployFunctionsLog(prev => [...prev, "Attempting direct fetch to setup-wizard function..."]);
+          
+          // Ensure supabaseUrl doesn't end with a slash
+          const baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl;
+          const functionUrl = `${baseUrl}/functions/v1/setup-wizard`;
+          
+          setDeployFunctionsLog(prev => [...prev, `Calling: ${functionUrl}`]);
+          
+          const response = await fetch(functionUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${serviceRoleKey}`,
-              'Content-Type': 'application/json',
-              'Supabase-URL': supabaseUrl
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               action: 'deploy-edge-functions',
@@ -190,7 +166,7 @@ export default function DatabaseStep({
             const result = await response.json();
             resultText = JSON.stringify(result);
           } catch (parseError) {
-            resultText = await response.text();
+            resultText = await response.text() || "Empty response";
           }
           
           console.log("Direct fetch response:", response.status, resultText);
@@ -200,10 +176,55 @@ export default function DatabaseStep({
           if (!response.ok) {
             throw new Error(`Direct fetch error: ${response.status} - ${resultText}`);
           }
+          
+          // If we get here, the direct fetch worked
+          setDeployFunctionsLog(prev => [...prev, "Direct fetch deployment successful"]);
         } catch (fetchError) {
           console.error("Direct fetch error:", fetchError);
           setDeployFunctionsLog(prev => [...prev, `Direct fetch error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`]);
-          throw new Error(`All deployment attempts failed: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+          
+          // One last attempt - try with a different URL format
+          try {
+            setDeployFunctionsLog(prev => [...prev, "Attempting final deployment method..."]);
+            
+            // Try with project reference in the URL
+            const projectId = "euexcsqvsbkxiwdieepu"; // From supabase/config.toml
+            const altFunctionUrl = `https://${projectId}.supabase.co/functions/v1/setup-wizard`;
+            
+            setDeployFunctionsLog(prev => [...prev, `Calling: ${altFunctionUrl}`]);
+            
+            const altResponse = await fetch(altFunctionUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${serviceRoleKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'deploy-edge-functions',
+                functionsData: functionsToDeploy
+              })
+            });
+            
+            let altResultText;
+            try {
+              const altResult = await altResponse.json();
+              altResultText = JSON.stringify(altResult);
+            } catch (altParseError) {
+              altResultText = await altResponse.text() || "Empty response";
+            }
+            
+            console.log("Alternative fetch response:", altResponse.status, altResultText);
+            setDeployFunctionsLog(prev => [...prev, `Alternative fetch status: ${altResponse.status}`]);
+            setDeployFunctionsLog(prev => [...prev, `Alternative fetch response: ${altResultText}`]);
+            
+            if (!altResponse.ok) {
+              throw new Error(`Alternative fetch error: ${altResponse.status} - ${altResultText}`);
+            }
+          } catch (altFetchError) {
+            console.error("Alternative fetch error:", altFetchError);
+            setDeployFunctionsLog(prev => [...prev, `Alternative fetch error: ${altFetchError instanceof Error ? altFetchError.message : String(altFetchError)}`]);
+            throw new Error(`All deployment attempts failed: ${altFetchError instanceof Error ? altFetchError.message : String(altFetchError)}`);
+          }
         }
       }
 
