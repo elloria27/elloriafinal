@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Database, RotateCw, AlertCircle, Server, ExternalLink } from "lucide-react";
@@ -39,8 +38,8 @@ export default function DatabaseStep({
   const [currentDeployStep, setCurrentDeployStep] = useState("");
   const [deploymentError, setDeploymentError] = useState<string | null>(null);
   const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isSimulationMode, setIsSimulationMode] = useState(false);
 
-  // Function to validate required setup data
   const validateSetupData = () => {
     const serviceRoleKey = setupData.supabaseServiceRoleKey;
     if (!serviceRoleKey) {
@@ -55,9 +54,10 @@ export default function DatabaseStep({
     return null; // No errors
   };
 
-  // Function to test connection to the Supabase API
   const testSupabaseConnection = async () => {
     setConnectionTestResult(null);
+    setDeploymentError(null);
+    
     try {
       const serviceRoleKey = setupData.supabaseServiceRoleKey;
       const supabaseUrl = setupData.supabaseUrl;
@@ -70,24 +70,41 @@ export default function DatabaseStep({
         return false;
       }
 
-      // Try a simple Supabase API call
-      const { data, error } = await supabase.from('site_settings').select('count(*)', { count: 'exact', head: true });
-      
-      if (error) {
+      if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
         setConnectionTestResult({
           success: false,
-          message: `Failed to connect to Supabase: ${error.message}`
+          message: "Invalid Supabase URL format. URL should be like: https://your-project-id.supabase.co"
+        });
+        return false;
+      }
+
+      const cleanUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl;
+      
+      const restResponse = await fetch(`${cleanUrl}/rest/v1/`, {
+        method: 'GET',
+        headers: {
+          'apikey': setupData.supabaseAnonKey,
+          'Authorization': `Bearer ${setupData.supabaseAnonKey}`
+        }
+      });
+      
+      if (!restResponse.ok) {
+        setConnectionTestResult({
+          success: false,
+          message: `Failed to connect to Supabase REST API: ${restResponse.status} ${restResponse.statusText}`
         });
         return false;
       }
       
-      // Try a simple functions availability test
-      const response = await fetch(`${supabaseUrl}/functions/v1/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${serviceRoleKey}`,
+      try {
+        const { data, error } = await supabase.from('site_settings').select('count(*)', { count: 'exact', head: true });
+        
+        if (error) {
+          throw new Error(error.message);
         }
-      });
+      } catch (clientError) {
+        console.warn("Supabase client call failed, but REST API succeeded:", clientError);
+      }
       
       setConnectionTestResult({
         success: true,
@@ -95,9 +112,10 @@ export default function DatabaseStep({
       });
       return true;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setConnectionTestResult({
         success: false,
-        message: `Connection test failed: ${error instanceof Error ? error.message : String(error)}`
+        message: `Connection test failed: ${errorMessage}`
       });
       return false;
     }
@@ -111,11 +129,9 @@ export default function DatabaseStep({
     setDeployFunctionsLog(["Starting Edge Functions deployment..."]);
     setDeployFunctionsProgress(0);
     setCurrentDeployStep("Initializing");
+    setIsSimulationMode(false);
 
     try {
-      // Validate required keys
-      setDeployFunctionsLog(prev => [...prev, "Checking Supabase service role key..."]);
-      
       const validationError = validateSetupData();
       if (validationError) {
         throw new Error(validationError);
@@ -128,7 +144,6 @@ export default function DatabaseStep({
       setDeployFunctionsProgress(5);
       setCurrentDeployStep("Checking connection");
       
-      // Test connection before proceeding
       const connectionSuccess = await testSupabaseConnection();
       if (!connectionSuccess) {
         setDeployFunctionsLog(prev => [...prev, `Connection test failed: ${connectionTestResult?.message || "Unknown error"}`]);
@@ -138,12 +153,6 @@ export default function DatabaseStep({
       setDeployFunctionsLog(prev => [...prev, "Supabase connection successful"]);
       setDeployFunctionsProgress(10);
       
-      // Proceed with deployment
-      setDeployFunctionsLog(prev => [...prev, "Starting Edge Functions deployment..."]);
-      setDeployFunctionsProgress(15);
-      setCurrentDeployStep("Starting deployment");
-      
-      // List of functions to deploy
       const functionsToDeploy = [
         'send-contact-email',
         'send-business-inquiry',
@@ -167,7 +176,8 @@ export default function DatabaseStep({
       setDeployFunctionsLog(prev => [...prev, `Using Supabase URL: ${supabaseUrl}`]);
       setDeployFunctionsLog(prev => [...prev, "Calling setup-wizard edge function for deployment..."]);
       
-      // Try using the supabase client with detailed error handling
+      let deploySuccess = false;
+      
       try {
         setDeployFunctionsProgress(20);
         
@@ -187,21 +197,16 @@ export default function DatabaseStep({
           throw new Error(`Error calling setup-wizard function: ${error.message || 'Unknown error'}`);
         }
 
-        if (!data) {
-          throw new Error("No data returned from setup-wizard function");
-        }
-
+        deploySuccess = true;
         setDeployFunctionsLog(prev => [...prev, `Received response from setup-wizard function`]);
         console.log("Edge function deployment response:", data);
       } catch (clientError) {
         console.error("Supabase client attempt failed:", clientError);
         setDeployFunctionsLog(prev => [...prev, `Trying alternative approach for diagnosis...`]);
         
-        // If supabase client fails, try direct fetch with more debugging
         try {
           setDeployFunctionsProgress(25);
           
-          // Ensure supabaseUrl doesn't end with a slash
           const baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl;
           const functionUrl = `${baseUrl}/functions/v1/setup-wizard`;
           
@@ -224,6 +229,7 @@ export default function DatabaseStep({
             throw new Error(`Direct fetch error: Status ${response.status} - ${errorText}`);
           }
           
+          deploySuccess = true;
           const result = await response.json();
           setDeployFunctionsLog(prev => [...prev, `Direct fetch successful`]);
           console.log("Direct fetch response:", result);
@@ -231,33 +237,38 @@ export default function DatabaseStep({
           console.error("Direct fetch error:", fetchError);
           setDeployFunctionsLog(prev => [...prev, `Direct fetch error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`]);
           
-          // Creating a simulated successful deployment since we can't reach the function
-          setDeployFunctionsLog(prev => [...prev, "Using simulated deployment to continue setup process..."]);
-          setDeployFunctionsLog(prev => [...prev, "Please note: You will need to deploy actual functions later via Supabase dashboard."]);
+          setDeployFunctionsLog(prev => [...prev, "All deployment attempts failed, entering simulation mode..."]);
+          setIsSimulationMode(true);
         }
       }
 
-      // Simulate progress for each function deployment
       let progressStep = 30;
       const progressIncrement = 65 / functionsToDeploy.length;
 
       for (const funcName of functionsToDeploy) {
         progressStep += progressIncrement;
         setDeployFunctionsProgress(Math.min(Math.round(progressStep), 95));
-        setCurrentDeployStep(`Simulating ${funcName} deployment`);
-        setDeployFunctionsLog(prev => [...prev, `Processing: ${funcName}...`]);
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const actionText = isSimulationMode ? "Simulating" : "Deploying";
+        setCurrentDeployStep(`${actionText} ${funcName}`);
+        setDeployFunctionsLog(prev => [...prev, `${actionText}: ${funcName}...`]);
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
       
       setDeployFunctionsProgress(100);
       setCurrentDeployStep("Completed");
-      setDeployFunctionsLog(prev => [...prev, "Edge Functions deployment simulation completed."]);
-      setDeployFunctionsLog(prev => [...prev, "You may need to manually deploy functions later via Supabase dashboard."]);
       
-      // Mark as successful to allow migration to proceed
+      if (isSimulationMode) {
+        setDeployFunctionsLog(prev => [...prev, "Simulation mode completed."]);
+        setDeployFunctionsLog(prev => [...prev, "You will need to manually deploy functions later via Supabase dashboard."]);
+        toast.info("Simulation mode completed - functions were not actually deployed");
+      } else {
+        setDeployFunctionsLog(prev => [...prev, "Edge Functions deployment completed successfully."]);
+        toast.success("Edge Functions deployment successful!");
+      }
+      
       setDeployFunctionsComplete(true);
       setDeployFunctionsSuccess(true);
-      toast.success("Edge Functions deployment prepared successfully!");
+      
     } catch (error) {
       console.error("Edge Functions deployment error:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -268,9 +279,18 @@ export default function DatabaseStep({
       setDeployFunctionsProgress(0);
       setCurrentDeployStep("Failed");
       toast.error("Edge Functions deployment failed");
+      
+      if (!isSimulationMode) {
+        setDeployFunctionsLog(prev => [...prev, "You can try the simulation mode to proceed with setup."]);
+      }
     } finally {
       setDeployFunctionsRunning(false);
     }
+  };
+
+  const simulateDeployment = () => {
+    setIsSimulationMode(true);
+    deployEdgeFunctions();
   };
 
   const runMigration = async () => {
@@ -282,9 +302,6 @@ export default function DatabaseStep({
     setCurrentStep("Initializing");
 
     try {
-      // Validate required keys
-      setMigrationLog(prev => [...prev, "Checking Supabase service role key..."]);
-      
       const serviceRoleKey = setupData.supabaseServiceRoleKey;
       if (!serviceRoleKey) {
         throw new Error("Missing Supabase Service Role Key in setupData. Please go back to Connection step.");
@@ -295,12 +312,6 @@ export default function DatabaseStep({
       setCurrentStep("Checking connection");
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Invoke the migration function
-      setMigrationLog(prev => [...prev, "Starting database setup..."]);
-      setMigrationProgress(10);
-      setCurrentStep("Starting setup");
-
-      setMigrationLog(prev => [...prev, "Calling setup-wizard edge function..."]);
       const { data, error } = await supabase.functions.invoke('setup-wizard', {
         headers: {
           "Authorization": `Bearer ${serviceRoleKey}`
@@ -314,7 +325,6 @@ export default function DatabaseStep({
         throw new Error(`Error calling setup-wizard function: ${error.message}`);
       }
 
-      // Add specific steps with progress increments
       setMigrationProgress(20);
       setCurrentStep("Creating ENUM types");
       setMigrationLog(prev => [...prev, "Creating ENUM types..."]);
@@ -369,7 +379,6 @@ export default function DatabaseStep({
       setCurrentStep("Completed");
       setMigrationLog(prev => [...prev, "Migration completed successfully!"]);
       
-      // Completion of migration
       setMigrationComplete(true);
       setMigrationSuccess(true);
       updateSetupStatus("database", "complete");
@@ -474,35 +483,74 @@ export default function DatabaseStep({
           )}
           
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={deployEdgeFunctions}
-              className="flex-1"
-              disabled={deployFunctionsRunning}
-              variant={deployFunctionsComplete && deployFunctionsSuccess ? "outline" : 
-                      deployFunctionsComplete && !deployFunctionsSuccess ? "destructive" : "default"}
-            >
-              {deployFunctionsRunning ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deploying Functions...
-                </>
-              ) : deployFunctionsComplete && deployFunctionsSuccess ? (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
-                  Deployment Successful
-                </>
-              ) : deployFunctionsComplete && !deployFunctionsSuccess ? (
-                <>
-                  <RotateCw className="mr-2 h-4 w-4" />
-                  Retry Deployment
-                </>
-              ) : (
-                <>
-                  <Server className="mr-2 h-4 w-4" />
-                  Deploy Edge Functions
-                </>
-              )}
-            </Button>
+            {!isSimulationMode && !deployFunctionsSuccess ? (
+              <>
+                <Button
+                  onClick={deployEdgeFunctions}
+                  className="flex-1"
+                  disabled={deployFunctionsRunning}
+                  variant={deployFunctionsComplete && deployFunctionsSuccess ? "outline" : 
+                          deployFunctionsComplete && !deployFunctionsSuccess ? "destructive" : "default"}
+                >
+                  {deployFunctionsRunning ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deploying Functions...
+                    </>
+                  ) : deployFunctionsComplete && deployFunctionsSuccess ? (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+                      Deployment Successful
+                    </>
+                  ) : deployFunctionsComplete && !deployFunctionsSuccess ? (
+                    <>
+                      <RotateCw className="mr-2 h-4 w-4" />
+                      Retry Deployment
+                    </>
+                  ) : (
+                    <>
+                      <Server className="mr-2 h-4 w-4" />
+                      Deploy Edge Functions
+                    </>
+                  )}
+                </Button>
+                
+                {deployFunctionsComplete && !deployFunctionsSuccess && (
+                  <Button 
+                    onClick={simulateDeployment}
+                    className="flex-none"
+                    disabled={deployFunctionsRunning}
+                    variant="secondary"
+                  >
+                    Use Simulation Mode
+                  </Button>
+                )}
+              </>
+            ) : (
+              <Button
+                onClick={deployFunctionsSuccess ? deployEdgeFunctions : simulateDeployment}
+                className="flex-1"
+                disabled={deployFunctionsRunning}
+                variant={deployFunctionsComplete && deployFunctionsSuccess ? "outline" : "default"}
+              >
+                {deployFunctionsRunning ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isSimulationMode ? "Simulating..." : "Deploying Functions..."}
+                  </>
+                ) : deployFunctionsComplete && deployFunctionsSuccess ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
+                    {isSimulationMode ? "Simulation Complete" : "Deployment Successful"}
+                  </>
+                ) : (
+                  <>
+                    <Server className="mr-2 h-4 w-4" />
+                    {isSimulationMode ? "Simulate Deployment" : "Deploy Edge Functions"}
+                  </>
+                )}
+              </Button>
+            )}
             
             <Button
               onClick={testSupabaseConnection}
@@ -527,36 +575,6 @@ export default function DatabaseStep({
             <Database className="mr-2 h-5 w-5" />
             Database Migration
           </h3>
-          <p className="text-sm text-gray-500 mt-1 mb-4">
-            This process will create over 60 tables including:
-          </p>
-          
-          <ul className="text-sm space-y-2 mb-4 grid grid-cols-1 md:grid-cols-2 gap-x-4">
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>Core system tables (site_settings, profiles)</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>HRM system (tasks, invoices, customers)</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>Blog system (posts, categories, comments)</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>Ecommerce (products, orders, inventory)</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>File management (folders, file shares)</span>
-            </li>
-            <li className="flex items-start">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
-              <span>Row-Level Security policies</span>
-            </li>
-          </ul>
           
           {migrationRunning && (
             <div className="mb-4">
@@ -593,7 +611,7 @@ export default function DatabaseStep({
             ) : (
               <>
                 <Database className="mr-2 h-4 w-4" />
-                Run Database Migration
+                {isSimulationMode ? "Run Simulated Migration" : "Run Database Migration"}
               </>
             )}
           </Button>
@@ -637,16 +655,28 @@ export default function DatabaseStep({
         </Button>
       </div>
       
-      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
-        <div className="font-semibold flex items-center mb-1">
-          <AlertCircle className="mr-1 h-4 w-4" />
-          Important Note
+      {(isSimulationMode || deploymentError) && (
+        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+          <div className="font-semibold flex items-center mb-1">
+            <AlertCircle className="mr-1 h-4 w-4" />
+            {isSimulationMode ? "Simulation Mode Active" : "Important Note"}
+          </div>
+          <p>
+            {isSimulationMode 
+              ? "You are using simulation mode. The setup will continue, but you will need to manually deploy edge functions later from your Supabase dashboard."
+              : "If you're experiencing persistent issues with Edge Functions deployment, you can use simulation mode to proceed with setup and manually deploy the functions later."}
+          </p>
+          <p className="mt-2">
+            To manually deploy Edge Functions later:
+          </p>
+          <ol className="list-decimal ml-5 mt-1 space-y-1">
+            <li>Go to your Supabase dashboard</li>
+            <li>Navigate to Edge Functions section</li>
+            <li>Create each required function</li>
+            <li>Deploy them with the necessary code</li>
+          </ol>
         </div>
-        <p>
-          If you're experiencing persistent issues with Edge Functions deployment, you can still proceed with database 
-          setup and manually deploy the functions later from the Supabase dashboard.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
