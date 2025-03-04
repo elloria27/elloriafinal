@@ -149,19 +149,15 @@ export const AdvancedSettings = () => {
       setDeployingFunctions(true);
       console.log('Deploying edge functions...');
 
-      // Get the current project URL from the host
-      const supabaseUrl = supabase.supabaseUrl;
+      // Get the current project URL from the environment
+      const supabaseUrl = process.env.SUPABASE_URL || "https://euexcsqvsbkxiwdieepu.supabase.co";
       
-      // Get service role key
-      const { data: keyData, error: keyError } = await supabase.rpc('get_service_role_key');
+      // Instead of using a non-existent RPC, we'll use the admin access token from environment
+      // This is a temporary solution until we implement a proper way to get the service role key
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       
-      if (keyError) {
-        console.error('Error getting service role key:', keyError);
-        throw new Error('Failed to retrieve service role key. Please make sure you have the correct permissions.');
-      }
-      
-      if (!keyData || !keyData.key) {
-        throw new Error('Service role key not available');
+      if (!serviceRoleKey) {
+        throw new Error('Service role key not available. Please make sure it is set in your environment variables.');
       }
       
       // List of functions to deploy
@@ -188,7 +184,7 @@ export const AdvancedSettings = () => {
       // Call the setup-wizard function with a specific action to deploy edge functions
       const { data, error } = await supabase.functions.invoke('setup-wizard', {
         headers: {
-          "Authorization": `Bearer ${keyData.key}`,
+          "Authorization": `Bearer ${serviceRoleKey}`,
           "Supabase-URL": supabaseUrl
         },
         body: { 
