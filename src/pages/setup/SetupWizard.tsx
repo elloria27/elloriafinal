@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Database, UserPlus, Globe, Check, X, AlertCircle, Loader2 } from "lucide-react";
@@ -13,6 +12,9 @@ import DatabaseStep from "@/pages/setup/steps/DatabaseStep";
 import AdminStep from "@/pages/setup/steps/AdminStep";
 import SettingsStep from "@/pages/setup/steps/SettingsStep";
 import CompleteStep from "@/pages/setup/steps/CompleteStep";
+import type { Database } from "@/integrations/supabase/types";
+
+type SupportedLanguage = Database['public']['Enums']['supported_language'];
 
 type SetupStep = {
   id: string;
@@ -87,12 +89,11 @@ export default function SetupWizard() {
     adminPassword: "",
     adminName: "",
     siteTitle: "Elloria",
-    siteLanguage: "en",
+    siteLanguage: "en" as SupportedLanguage,
     contactEmail: "",
   });
 
   useEffect(() => {
-    // Determine current step index based on path
     const path = location.pathname.replace("/setup/", "");
     const index = setupSteps.findIndex((step) => 
       (path === "" && step.path === "") || 
@@ -102,7 +103,6 @@ export default function SetupWizard() {
     if (index !== -1) {
       setCurrentStepIndex(index);
     } else {
-      // Redirect to the first step if path doesn't match any step
       navigate("/setup");
     }
   }, [location.pathname, navigate]);

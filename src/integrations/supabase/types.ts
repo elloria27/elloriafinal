@@ -2616,7 +2616,9 @@ export type Database = {
           contact_email: string | null
           created_at: string | null
           custom_scripts: Json | null
-          default_language: string | null
+          default_language:
+            | Database["public"]["Enums"]["supported_language"]
+            | null
           enable_cookie_consent: boolean | null
           enable_https_redirect: boolean | null
           enable_registration: boolean | null
@@ -2638,7 +2640,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string | null
           custom_scripts?: Json | null
-          default_language?: string | null
+          default_language?:
+            | Database["public"]["Enums"]["supported_language"]
+            | null
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
           enable_registration?: boolean | null
@@ -2660,7 +2664,9 @@ export type Database = {
           contact_email?: string | null
           created_at?: string | null
           custom_scripts?: Json | null
-          default_language?: string | null
+          default_language?:
+            | Database["public"]["Enums"]["supported_language"]
+            | null
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
           enable_registration?: boolean | null

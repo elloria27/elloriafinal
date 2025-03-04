@@ -47,6 +47,8 @@ export function Routes() {
           </>
         } />
         
+        <Route path="/admin/site-settings" element={<SiteSettings />} />
+        
         <Route path="*" element={
           <>
             <Header />

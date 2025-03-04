@@ -8,17 +8,20 @@ import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Settings, Import } from "
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { importDefaultSiteSettings } from "@/utils/supabase-helpers";
+import type { Database } from "@/integrations/supabase/types";
+
+type SupportedLanguage = Database['public']['Enums']['supported_language'];
 
 interface SettingsStepProps {
   setupData: {
     siteTitle: string;
-    siteLanguage: string;
+    siteLanguage: SupportedLanguage;
     contactEmail: string;
     [key: string]: string;
   };
   updateSetupData: (data: Partial<{
     siteTitle: string;
-    siteLanguage: string;
+    siteLanguage: SupportedLanguage;
     contactEmail: string;
     [key: string]: string;
   }>) => void;
@@ -86,7 +89,7 @@ export default function SettingsStep({
         // Update the form with imported values
         updateSetupData({
           siteTitle: "Elloria",
-          siteLanguage: "en",
+          siteLanguage: "en" as SupportedLanguage,
           contactEmail: "sales@elloria.ca"
         });
       } else {
@@ -127,7 +130,7 @@ export default function SettingsStep({
           <Label htmlFor="siteLanguage">Default Language</Label>
           <Select 
             value={setupData.siteLanguage} 
-            onValueChange={(value) => updateSetupData({ siteLanguage: value })}
+            onValueChange={(value: SupportedLanguage) => updateSetupData({ siteLanguage: value })}
             disabled={settingsSaved}
           >
             <SelectTrigger id="siteLanguage">

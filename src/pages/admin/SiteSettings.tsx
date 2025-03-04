@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,10 +15,12 @@ import { AdvancedSettings } from "@/components/admin/settings/AdvancedSettings";
 import { importDefaultSiteSettings } from "@/utils/supabase-helpers";
 import type { Database } from "@/integrations/supabase/types";
 
+type SupportedLanguage = Database['public']['Enums']['supported_language'];
+
 type SiteSettings = {
   id: string;
   site_title: string;
-  default_language: Database['public']['Enums']['supported_language'];
+  default_language: SupportedLanguage;
   enable_registration: boolean;
   enable_search_indexing: boolean;
   meta_description: string | null;
@@ -96,6 +97,7 @@ export default function SiteSettings() {
       // Transform the data to match our expected types
       setSettings({
         ...data,
+        default_language: (data.default_language || "en") as SupportedLanguage,
         custom_scripts: Array.isArray(data.custom_scripts) ? data.custom_scripts : [],
         homepage_slug: data.homepage_slug || '',
         logo_url: data.logo_url || null
@@ -491,7 +493,7 @@ export default function SiteSettings() {
                 <Label htmlFor="default_language" className="text-base font-medium">Default Language</Label>
                 <Select 
                   value={settings.default_language}
-                  onValueChange={(value: 'en' | 'fr' | 'uk') => setSettings({ ...settings, default_language: value })}
+                  onValueChange={(value: SupportedLanguage) => setSettings({ ...settings, default_language: value })}
                 >
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Select language" />
