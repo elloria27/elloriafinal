@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Upload, Image, Database, RefreshCw } from "lucide-react";
+import { Download, Upload, Image, Database, RefreshCw, Server } from "lucide-react";
 
 export const AdvancedSettings = () => {
   const [uploading, setUploading] = useState(false);
   const [importingDemo, setImportingDemo] = useState(false);
+  const [deployingFunctions, setDeployingFunctions] = useState(false);
 
   const handleDatabaseExport = async () => {
     try {
@@ -143,6 +144,71 @@ export const AdvancedSettings = () => {
     }
   };
 
+  const handleDeployEdgeFunctions = async () => {
+    try {
+      setDeployingFunctions(true);
+      console.log('Deploying edge functions...');
+
+      // Get the current project URL from the host
+      const supabaseUrl = supabase.supabaseUrl;
+      
+      // Get service role key
+      const { data: keyData, error: keyError } = await supabase.rpc('get_service_role_key');
+      
+      if (keyError) {
+        console.error('Error getting service role key:', keyError);
+        throw new Error('Failed to retrieve service role key. Please make sure you have the correct permissions.');
+      }
+      
+      if (!keyData || !keyData.key) {
+        throw new Error('Service role key not available');
+      }
+      
+      // List of functions to deploy
+      const functionsToDeploy = [
+        'send-contact-email',
+        'send-business-inquiry',
+        'send-bulk-consultation',
+        'send-consultation-request',
+        'send-invoice-email',
+        'send-order-email',
+        'send-reminder-emails',
+        'send-sustainability-registration',
+        'send-task-notification',
+        'stripe-webhook',
+        'create-checkout',
+        'create-donation-checkout',
+        'admin-change-password',
+        'delete-user',
+        'generate-invoice',
+        'get-seo-meta',
+        'mobile-api'
+      ];
+
+      // Call the setup-wizard function with a specific action to deploy edge functions
+      const { data, error } = await supabase.functions.invoke('setup-wizard', {
+        headers: {
+          "Authorization": `Bearer ${keyData.key}`,
+          "Supabase-URL": supabaseUrl
+        },
+        body: { 
+          action: 'deploy-edge-functions',
+          functionsData: functionsToDeploy
+        }
+      });
+
+      if (error) throw error;
+      console.log("Edge functions deployment response:", data);
+
+      toast.success("Edge functions deployed successfully");
+    } catch (error) {
+      console.error('Error deploying edge functions:', error);
+      toast.error(`Failed to deploy edge functions: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setDeployingFunctions(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -154,7 +220,7 @@ export const AdvancedSettings = () => {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Database Management</h3>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
             <Button
               variant="outline"
               onClick={handleDatabaseExport}
@@ -190,6 +256,15 @@ export const AdvancedSettings = () => {
             >
               <RefreshCw className={`h-4 w-4 ${importingDemo ? 'animate-spin' : ''}`} />
               {importingDemo ? "Importing..." : "Import Demo Content"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDeployEdgeFunctions}
+              disabled={deployingFunctions}
+              className="flex items-center gap-2 w-full sm:w-auto text-sm"
+            >
+              <Server className={`h-4 w-4 ${deployingFunctions ? 'animate-spin' : ''}`} />
+              {deployingFunctions ? "Deploying..." : "Deploy Edge Functions"}
             </Button>
           </div>
         </div>
