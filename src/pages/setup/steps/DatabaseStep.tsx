@@ -58,12 +58,15 @@ export default function DatabaseStep({
       setMigrationProgress(10);
       setCurrentStep("Starting setup");
 
+      setMigrationLog(prev => [...prev, "Calling setup-wizard edge function..."]);
       const { data, error } = await supabase.functions.invoke('setup-wizard', {
         headers: {
           "Authorization": `Bearer ${serviceRoleKey}`
         },
         body: { action: 'run-migration' }
       });
+
+      console.log("Edge function response:", data, error);
 
       if (error) {
         throw new Error(`Error calling setup-wizard function: ${error.message}`);
@@ -124,7 +127,7 @@ export default function DatabaseStep({
       setCurrentStep("Completed");
       setMigrationLog(prev => [...prev, "Migration completed successfully!"]);
       
-      // Simulate completion of migration
+      // Completion of migration
       setMigrationComplete(true);
       setMigrationSuccess(true);
       updateSetupStatus("database", "complete");

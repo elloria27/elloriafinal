@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
@@ -65,13 +66,25 @@ serve(async (req) => {
           await createEnumTypes(client);
           
           // Create tables in the correct order (respecting dependencies)
-          console.log("Creating database tables...");
+          console.log("Creating core tables...");
           await createCoreTables(client);
+          
+          console.log("Creating HRM tables...");
           await createHRMTables(client);
+          
+          console.log("Creating blog tables...");
           await createBlogTables(client);
+          
+          console.log("Creating ecommerce tables...");
           await createEcommerceTables(client);
+          
+          console.log("Creating file tables...");
           await createFileTables(client);
+          
+          console.log("Creating health tables...");
           await createHealthTables(client);
+          
+          console.log("Creating misc tables...");
           await createMiscTables(client);
           
           // Set up RLS policies
