@@ -46,10 +46,16 @@ export default function DatabaseStep({
         body: { action: 'run-migration' }
       });
 
+      console.log("Response from setup-wizard function:", data, error);
+
       if (error) {
-        throw new Error(error.message);
+        throw new Error(`Function error: ${error.message}`);
       }
 
+      if (!data || !data.success) {
+        throw new Error(data?.error || "Unknown error occurred");
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulating wait time
       
       setMigrationLog(prev => [...prev, "Setting up default data..."]);
@@ -100,6 +106,10 @@ export default function DatabaseStep({
             <li className="flex items-start">
               <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
               <span>Create site_settings table</span>
+            </li>
+            <li className="flex items-start">
+              <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />
+              <span>Create user_roles table for permissions</span>
             </li>
             <li className="flex items-start">
               <CheckCircle2 className="mr-2 h-4 w-4 text-gray-400 mt-0.5" />

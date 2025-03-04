@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
+// Properly configured CORS headers
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -11,7 +12,10 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204, 
+      headers: corsHeaders 
+    });
   }
 
   // Check if the request method is valid
@@ -123,6 +127,38 @@ serve(async (req) => {
                 WHERE user_id = auth.uid() AND role = 'admin'
             )
         );
+
+        -- Create user_roles table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS user_roles (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+          role TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(user_id, role)
+        );
+
+        -- Enable Row-Level Security for user_roles
+        ALTER TABLE IF EXISTS user_roles ENABLE ROW LEVEL SECURITY;
+        
+        -- Create RLS policies for user_roles
+        DROP POLICY IF EXISTS "Allow users to view their own roles" ON user_roles;
+        CREATE POLICY "Allow users to view their own roles"
+          ON user_roles
+          FOR SELECT
+          TO authenticated
+          USING (user_id = auth.uid());
+        
+        DROP POLICY IF EXISTS "Allow admins full access to user roles" ON user_roles;
+        CREATE POLICY "Allow admins full access to user roles"
+          ON user_roles
+          FOR ALL
+          TO authenticated
+          USING (
+            EXISTS (
+              SELECT 1 FROM user_roles
+              WHERE user_id = auth.uid() AND role = 'admin'
+            )
+          );
 
         -- Insert default values if not exists
         INSERT INTO site_settings (
