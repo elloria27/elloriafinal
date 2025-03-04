@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Database, RotateCw, AlertCircle, Server, ExternalLink } from "lucide-react";
@@ -199,6 +200,20 @@ export default function DatabaseStep({
 
         deploySuccess = true;
         setDeployFunctionsLog(prev => [...prev, `Received response from setup-wizard function`]);
+        if (data) {
+          setDeployFunctionsLog(prev => [...prev, `Deployment results: ${data.message || 'Success'}`]);
+          
+          if (data.deployed && Array.isArray(data.deployed)) {
+            setDeployFunctionsLog(prev => [...prev, `Successfully deployed ${data.deployed.length} functions`]);
+          }
+          
+          if (data.failed && data.failed.length > 0) {
+            setDeployFunctionsLog(prev => [...prev, `Failed to deploy ${data.failed.length} functions`]);
+            data.failed.forEach(f => {
+              setDeployFunctionsLog(prev => [...prev, `- Failed: ${f.name}: ${f.error || 'Unknown error'}`]);
+            });
+          }
+        }
         console.log("Edge function deployment response:", data);
       } catch (clientError) {
         console.error("Supabase client attempt failed:", clientError);
@@ -224,15 +239,34 @@ export default function DatabaseStep({
             })
           });
           
+          const responseText = await response.text();
+          
           if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Direct fetch error: Status ${response.status} - ${errorText}`);
+            setDeployFunctionsLog(prev => [...prev, `Direct fetch error: Status ${response.status} - ${responseText}`]);
+            throw new Error(`Direct fetch error: Status ${response.status} - ${responseText}`);
           }
           
           deploySuccess = true;
-          const result = await response.json();
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (e) {
+            console.error("Failed to parse response:", e);
+            result = { message: "Received response but failed to parse JSON" };
+          }
+          
           setDeployFunctionsLog(prev => [...prev, `Direct fetch successful`]);
           console.log("Direct fetch response:", result);
+          
+          if (result && result.data) {
+            if (result.data.deployed) {
+              setDeployFunctionsLog(prev => [...prev, `Successfully deployed ${result.data.deployed.length} functions`]);
+            }
+            
+            if (result.data.failed && result.data.failed.length > 0) {
+              setDeployFunctionsLog(prev => [...prev, `Failed to deploy ${result.data.failed.length} functions`]);
+            }
+          }
         } catch (fetchError) {
           console.error("Direct fetch error:", fetchError);
           setDeployFunctionsLog(prev => [...prev, `Direct fetch error: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`]);
