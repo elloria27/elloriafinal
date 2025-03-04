@@ -1,14 +1,13 @@
-
 import { Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database as SupabaseDatabase } from "@/integrations/supabase/types";
 
-type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
-type SupportedLanguage = Database['public']['Enums']['supported_language'];
+type SiteSettings = SupabaseDatabase['public']['Tables']['site_settings']['Row'];
+type SupportedLanguage = SupabaseDatabase['public']['Enums']['supported_language'];
 
 export const LanguageSelector = () => {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>("en");

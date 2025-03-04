@@ -12,9 +12,9 @@ import DatabaseStep from "@/pages/setup/steps/DatabaseStep";
 import AdminStep from "@/pages/setup/steps/AdminStep";
 import SettingsStep from "@/pages/setup/steps/SettingsStep";
 import CompleteStep from "@/pages/setup/steps/CompleteStep";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database as SupabaseDatabase } from "@/integrations/supabase/types";
 
-type SupportedLanguage = Database['public']['Enums']['supported_language'];
+type SupportedLanguage = SupabaseDatabase['public']['Enums']['supported_language'];
 
 type SetupStep = {
   id: string;
