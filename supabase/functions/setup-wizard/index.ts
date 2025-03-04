@@ -94,7 +94,6 @@ serve(async (req) => {
   }
 })
 
-// Main function to run database migration
 async function runDatabaseMigration(supabase) {
   console.log('Running database migration...')
 
@@ -694,7 +693,6 @@ async function importDemoData(supabase) {
   }
 }
 
-// Updated function to deploy Edge Functions to a Supabase project
 async function deployEdgeFunctions(supabase, functionsData, supabaseUrl, serviceRoleKey) {
   console.log('Starting Edge Functions deployment...')
   
