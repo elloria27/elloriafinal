@@ -138,15 +138,8 @@ export default function DatabaseStep({
         }
       });
 
-      // Add some extra information to help debug issues
-      try {
-        const functionsList = await supabase.functions.listFunctions();
-        console.log("Available Edge Functions:", functionsList);
-        setDeployFunctionsLog(prev => [...prev, `Found ${functionsList.data?.length || 0} existing edge functions`]);
-      } catch (listError) {
-        console.error("Error listing functions:", listError);
-        setDeployFunctionsLog(prev => [...prev, `Error listing functions: ${listError instanceof Error ? listError.message : String(listError)}`]);
-      }
+      // Remove the attempt to list functions as it's not supported
+      setDeployFunctionsLog(prev => [...prev, "Preparing deployment request..."]);
       
       // Make the actual request with more detailed error handling
       try {
@@ -192,13 +185,20 @@ export default function DatabaseStep({
             })
           });
           
-          const result = await response.json();
-          console.log("Direct fetch response:", response.status, result);
+          let resultText = "Could not parse response";
+          try {
+            const result = await response.json();
+            resultText = JSON.stringify(result);
+          } catch (parseError) {
+            resultText = await response.text();
+          }
+          
+          console.log("Direct fetch response:", response.status, resultText);
           setDeployFunctionsLog(prev => [...prev, `Direct fetch status: ${response.status}`]);
-          setDeployFunctionsLog(prev => [...prev, `Direct fetch response: ${JSON.stringify(result)}`]);
+          setDeployFunctionsLog(prev => [...prev, `Direct fetch response: ${resultText}`]);
           
           if (!response.ok) {
-            throw new Error(`Direct fetch error: ${response.status} - ${JSON.stringify(result)}`);
+            throw new Error(`Direct fetch error: ${response.status} - ${resultText}`);
           }
         } catch (fetchError) {
           console.error("Direct fetch error:", fetchError);
