@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Upload, Image } from "lucide-react";
+import { Download, Upload, Image, Database, RefreshCw } from "lucide-react";
 
 export const AdvancedSettings = () => {
   const [uploading, setUploading] = useState(false);
+  const [importingDemo, setImportingDemo] = useState(false);
 
   const handleDatabaseExport = async () => {
     try {
@@ -120,6 +121,28 @@ export const AdvancedSettings = () => {
     }
   };
 
+  const handleImportDemoContent = async () => {
+    try {
+      setImportingDemo(true);
+      console.log('Importing demo content...');
+
+      // Call the setup-wizard function with a specific action to import demo data
+      const { data, error } = await supabase.functions.invoke('setup-wizard', {
+        body: { action: 'import-demo-data' }
+      });
+
+      if (error) throw error;
+      console.log("Demo content import response:", data);
+
+      toast.success("Demo content imported successfully");
+    } catch (error) {
+      console.error('Error importing demo content:', error);
+      toast.error("Failed to import demo content");
+    } finally {
+      setImportingDemo(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -159,6 +182,15 @@ export const AdvancedSettings = () => {
                 </label>
               </Button>
             </div>
+            <Button
+              variant="outline"
+              onClick={handleImportDemoContent}
+              disabled={importingDemo}
+              className="flex items-center gap-2 w-full sm:w-auto text-sm"
+            >
+              <RefreshCw className={`h-4 w-4 ${importingDemo ? 'animate-spin' : ''}`} />
+              {importingDemo ? "Importing..." : "Import Demo Content"}
+            </Button>
           </div>
         </div>
 
@@ -190,4 +222,3 @@ export const AdvancedSettings = () => {
     </Card>
   );
 };
-
