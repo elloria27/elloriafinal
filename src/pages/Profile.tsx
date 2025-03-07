@@ -1,10 +1,9 @@
-
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,7 +15,6 @@ import Settings from "./profile/Settings";
 const Profile = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -26,8 +24,7 @@ const Profile = () => {
         if (!session) {
           console.log("No active session found");
           toast.error("Please sign in to view your profile");
-          navigate("/login");
-          return;
+          return <Navigate to="/login" />;
         }
         console.log("Active session found for user:", session.user.id);
         setLoading(false);
@@ -39,7 +36,7 @@ const Profile = () => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, []);
 
   if (loading) {
     return (

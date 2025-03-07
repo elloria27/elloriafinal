@@ -4,13 +4,12 @@ import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Database as SupabaseDatabase } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
 
-type SiteSettings = SupabaseDatabase['public']['Tables']['site_settings']['Row'];
-type SupportedLanguage = SupabaseDatabase['public']['Enums']['supported_language'];
+type SiteSettings = Database['public']['Tables']['site_settings']['Row'];
 
 export const LanguageSelector = () => {
-  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>("en");
+  const [currentLanguage, setCurrentLanguage] = useState<Database['public']['Enums']['supported_language']>("en");
 
   useEffect(() => {
     const fetchSiteSettings = async () => {
@@ -24,9 +23,7 @@ export const LanguageSelector = () => {
         
         if (data) {
           console.log('Fetched default language:', data.default_language);
-          // Cast the string to our supported language type to ensure type safety
-          const lang = data.default_language as SupportedLanguage;
-          setCurrentLanguage(lang);
+          setCurrentLanguage(data.default_language);
         }
       } catch (error) {
         console.error('Error fetching site settings:', error);
@@ -49,10 +46,8 @@ export const LanguageSelector = () => {
         (payload) => {
           console.log('Site settings changed:', payload);
           const newData = payload.new as SiteSettings;
-          if (newData && newData.default_language) {
-            // Cast the string to our supported language type
-            const lang = newData.default_language as SupportedLanguage;
-            setCurrentLanguage(lang);
+          if (newData) {
+            setCurrentLanguage(newData.default_language);
           }
         }
       )
@@ -96,7 +91,7 @@ export const LanguageSelector = () => {
           {["en", "fr", "uk"].map((lang) => (
             <button
               key={lang}
-              onClick={() => lang === "en" && setCurrentLanguage(lang as SupportedLanguage)}
+              onClick={() => lang === "en" && setCurrentLanguage(lang as Database['public']['Enums']['supported_language'])}
               className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                 currentLanguage === lang
                   ? "bg-primary/10 text-primary"

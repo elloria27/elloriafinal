@@ -2614,75 +2614,69 @@ export type Database = {
       site_settings: {
         Row: {
           contact_email: string | null
-          created_at: string | null
+          created_at: string
           custom_scripts: Json | null
-          default_language:
-            | Database["public"]["Enums"]["supported_language"]
-            | null
+          default_language: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent: boolean | null
           enable_https_redirect: boolean | null
-          enable_registration: boolean | null
-          enable_search_indexing: boolean | null
+          enable_registration: boolean
+          enable_search_indexing: boolean
           enable_user_avatars: boolean | null
           favicon_url: string | null
           google_analytics_id: string | null
           homepage_slug: string | null
-          id: string | null
+          id: string
           logo_url: string | null
           maintenance_mode: boolean | null
           max_upload_size: number | null
           meta_description: string | null
           meta_keywords: string | null
-          site_title: string | null
-          updated_at: string | null
+          site_title: string
+          updated_at: string
         }
         Insert: {
           contact_email?: string | null
-          created_at?: string | null
+          created_at?: string
           custom_scripts?: Json | null
-          default_language?:
-            | Database["public"]["Enums"]["supported_language"]
-            | null
+          default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
-          enable_registration?: boolean | null
-          enable_search_indexing?: boolean | null
+          enable_registration?: boolean
+          enable_search_indexing?: boolean
           enable_user_avatars?: boolean | null
           favicon_url?: string | null
           google_analytics_id?: string | null
           homepage_slug?: string | null
-          id?: string | null
+          id?: string
           logo_url?: string | null
           maintenance_mode?: boolean | null
           max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
-          site_title?: string | null
-          updated_at?: string | null
+          site_title?: string
+          updated_at?: string
         }
         Update: {
           contact_email?: string | null
-          created_at?: string | null
+          created_at?: string
           custom_scripts?: Json | null
-          default_language?:
-            | Database["public"]["Enums"]["supported_language"]
-            | null
+          default_language?: Database["public"]["Enums"]["supported_language"]
           enable_cookie_consent?: boolean | null
           enable_https_redirect?: boolean | null
-          enable_registration?: boolean | null
-          enable_search_indexing?: boolean | null
+          enable_registration?: boolean
+          enable_search_indexing?: boolean
           enable_user_avatars?: boolean | null
           favicon_url?: string | null
           google_analytics_id?: string | null
           homepage_slug?: string | null
-          id?: string | null
+          id?: string
           logo_url?: string | null
           maintenance_mode?: boolean | null
           max_upload_size?: number | null
           meta_description?: string | null
           meta_keywords?: string | null
-          site_title?: string | null
-          updated_at?: string | null
+          site_title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2830,24 +2824,6 @@ export type Database = {
           title: string
           updated_at: string | null
         }[]
-      }
-      create_table: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_trigger: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
-      }
-      create_types: {
-        Args: {
-          sql: string
-        }
-        Returns: undefined
       }
       get_admin_users: {
         Args: Record<PropertyKey, never>
@@ -2998,10 +2974,6 @@ export type Database = {
         | "bulk_order"
         | "sustainability"
       invoice_status: "pending" | "paid" | "overdue" | "cancelled"
-      notification_type:
-        | "task_assigned"
-        | "task_updated"
-        | "deadline_approaching"
       page_view_type: "page_view" | "exit"
       payment_method: "cash" | "bank_transfer" | "credit_card"
       payment_status: "pending" | "completed" | "failed"

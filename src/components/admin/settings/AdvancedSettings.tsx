@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Upload, Image, Database, RefreshCw, Server } from "lucide-react";
+import { Download, Upload, Image } from "lucide-react";
 
 export const AdvancedSettings = () => {
   const [uploading, setUploading] = useState(false);
-  const [importingDemo, setImportingDemo] = useState(false);
-  const [deployingFunctions, setDeployingFunctions] = useState(false);
 
   const handleDatabaseExport = async () => {
     try {
@@ -122,89 +120,6 @@ export const AdvancedSettings = () => {
     }
   };
 
-  const handleImportDemoContent = async () => {
-    try {
-      setImportingDemo(true);
-      console.log('Importing demo content...');
-
-      // Call the setup-wizard function with a specific action to import demo data
-      const { data, error } = await supabase.functions.invoke('setup-wizard', {
-        body: { action: 'import-demo-data' }
-      });
-
-      if (error) throw error;
-      console.log("Demo content import response:", data);
-
-      toast.success("Demo content imported successfully");
-    } catch (error) {
-      console.error('Error importing demo content:', error);
-      toast.error("Failed to import demo content");
-    } finally {
-      setImportingDemo(false);
-    }
-  };
-
-  const handleDeployEdgeFunctions = async () => {
-    try {
-      setDeployingFunctions(true);
-      console.log('Deploying edge functions...');
-
-      // Get the current project URL from the environment
-      const supabaseUrl = process.env.SUPABASE_URL || "https://euexcsqvsbkxiwdieepu.supabase.co";
-      
-      // Instead of using a non-existent RPC, we'll use the admin access token from environment
-      // This is a temporary solution until we implement a proper way to get the service role key
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      
-      if (!serviceRoleKey) {
-        throw new Error('Service role key not available. Please make sure it is set in your environment variables.');
-      }
-      
-      // List of functions to deploy
-      const functionsToDeploy = [
-        'send-contact-email',
-        'send-business-inquiry',
-        'send-bulk-consultation',
-        'send-consultation-request',
-        'send-invoice-email',
-        'send-order-email',
-        'send-reminder-emails',
-        'send-sustainability-registration',
-        'send-task-notification',
-        'stripe-webhook',
-        'create-checkout',
-        'create-donation-checkout',
-        'admin-change-password',
-        'delete-user',
-        'generate-invoice',
-        'get-seo-meta',
-        'mobile-api'
-      ];
-
-      // Call the setup-wizard function with a specific action to deploy edge functions
-      const { data, error } = await supabase.functions.invoke('setup-wizard', {
-        headers: {
-          "Authorization": `Bearer ${serviceRoleKey}`,
-          "Supabase-URL": supabaseUrl
-        },
-        body: { 
-          action: 'deploy-edge-functions',
-          functionsData: functionsToDeploy
-        }
-      });
-
-      if (error) throw error;
-      console.log("Edge functions deployment response:", data);
-
-      toast.success("Edge functions deployed successfully");
-    } catch (error) {
-      console.error('Error deploying edge functions:', error);
-      toast.error(`Failed to deploy edge functions: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      setDeployingFunctions(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -216,7 +131,7 @@ export const AdvancedSettings = () => {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Database Management</h3>
-          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={handleDatabaseExport}
@@ -244,24 +159,6 @@ export const AdvancedSettings = () => {
                 </label>
               </Button>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleImportDemoContent}
-              disabled={importingDemo}
-              className="flex items-center gap-2 w-full sm:w-auto text-sm"
-            >
-              <RefreshCw className={`h-4 w-4 ${importingDemo ? 'animate-spin' : ''}`} />
-              {importingDemo ? "Importing..." : "Import Demo Content"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDeployEdgeFunctions}
-              disabled={deployingFunctions}
-              className="flex items-center gap-2 w-full sm:w-auto text-sm"
-            >
-              <Server className={`h-4 w-4 ${deployingFunctions ? 'animate-spin' : ''}`} />
-              {deployingFunctions ? "Deploying..." : "Deploy Edge Functions"}
-            </Button>
           </div>
         </div>
 
@@ -293,3 +190,4 @@ export const AdvancedSettings = () => {
     </Card>
   );
 };
+
