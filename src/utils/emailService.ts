@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Email service types
@@ -35,6 +34,7 @@ export interface OrderStatusEmailParams {
   }>;
   orderTotal?: number;
   currency?: string;
+  lang?: 'en' | 'uk';
 }
 
 export interface ShipmentNotificationParams {
@@ -45,6 +45,27 @@ export interface ShipmentNotificationParams {
   trackingUrl?: string;
   estimatedDelivery?: string;
   carrier?: string;
+  lang?: 'en' | 'uk';
+}
+
+// This is the interface that matches what the Checkout component expects
+export interface OrderEmailsParams {
+  customerEmail: string;
+  customerName: string;
+  orderId: string;
+  items: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+  }>;
+  total: number;
+  shippingAddress: {
+    address: string;
+    region: string;
+    country: string;
+  };
 }
 
 interface ApiResponse {
@@ -352,4 +373,125 @@ export class EmailService {
     
     return statusMap[lang === 'en' ? 'en' : 'uk'][status] || status;
   }
+
+  /**
+   * Send order confirmation emails to customer and team
+   */
+  async sendOrderEmails(params: OrderEmailsParams): Promise<ApiResponse> {
+    try {
+      console.log('Sending order confirmation email for order:', params.orderId);
+      
+      // Generate HTML template with order details
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <img src="${companyInfo.logo}" alt="${companyInfo.name}" style="max-width: 200px; height: auto;" />
+          </div>
+          
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+            <h1 style="color: #333; text-align: center; margin-bottom: 20px;">Order Confirmation</h1>
+            <p style="font-size: 16px; color: #666; margin-bottom: 10px;">Dear ${params.customerName},</p>
+            <p style="font-size: 16px; color: #666; margin-bottom: 20px;">
+              Thank you for your order! We have received your order #${params.orderId} and are processing it.
+            </p>
+
+            <div style="margin-top: 20px;">
+              <h2 style="color: #333; margin-bottom: 10px;">Order Summary</h2>
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #f1f1f1;">
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Item</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Quantity</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${params.items.map(item => `
+                    <tr>
+                      <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">${item.name}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${item.quantity}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">$${item.price}</td>
+                    </tr>
+                  `).join('')}
+                  <tr>
+                    <td colspan="2" style="padding: 8px; text-align: right; font-weight: bold;">Total:</td>
+                    <td style="padding: 8px; text-align: right; font-weight: bold;">$${params.total}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <h2 style="color: #333; margin-bottom: 10px;">Shipping Address</h2>
+              <p style="font-size: 14px; color: #666;">
+                ${params.shippingAddress.address}<br>
+                ${params.shippingAddress.region}, ${params.shippingAddress.country}
+              </p>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="font-size: 14px; color: #666;">
+              If you have any questions about your order, please contact our support at 
+              <a href="mailto:${companyInfo.email}" style="color: #0094F4; text-decoration: none;">${companyInfo.email}</a>
+            </p>
+            <p style="font-size: 14px; color: #666; margin-top: 20px;">
+              Thank you for choosing ${companyInfo.name}!
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Send the confirmation email to customer
+      const result = await this.sendEmail({
+        to: [{ email: params.customerEmail, name: params.customerName }],
+        subject: `Order Confirmation - Order #${params.orderId}`,
+        html: emailHtml
+      });
+
+      // Also send a notification to the team
+      await this.sendEmail({
+        to: [{ email: companyInfo.email }],
+        subject: `New Order Received - Order #${params.orderId}`,
+        html: `
+          <h2>New Order Received</h2>
+          <p><strong>Order ID:</strong> ${params.orderId}</p>
+          <p><strong>Customer:</strong> ${params.customerName}</p>
+          <p><strong>Email:</strong> ${params.customerEmail}</p>
+          <p><strong>Total Amount:</strong> $${params.total}</p>
+          <p><strong>Shipping Address:</strong><br>
+             ${params.shippingAddress.address}<br>
+             ${params.shippingAddress.region}, ${params.shippingAddress.country}</p>
+          <h3>Items Ordered:</h3>
+          <ul>
+            ${params.items.map(item => `
+              <li>${item.name} - Qty: ${item.quantity} - $${item.price}</li>
+            `).join('')}
+          </ul>
+        `
+      });
+
+      return result;
+    } catch (error: any) {
+      console.error('Error sending order emails:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
 }
+
+// Create and export a default instance for common use
+const emailServiceInstance = new EmailService(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_ANON_KEY || ''
+);
+
+export const { 
+  sendEmail, 
+  sendOrderStatusEmail, 
+  sendShipmentNotificationEmail,
+  sendOrderEmails
+} = emailServiceInstance;
+

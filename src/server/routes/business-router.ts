@@ -16,7 +16,7 @@ router.post('/business-inquiry', async (req: Request, res: Response) => {
     // Send email notification
     await sendEmail({
       from: 'noreply@yourdomain.com',
-      to: ['admin@yourdomain.com'],
+      to: [{ email: 'admin@yourdomain.com' }],
       subject: `New Business Inquiry: ${inquiryType || 'General'}`,
       html: `
         <h2>New Business Inquiry</h2>
@@ -48,7 +48,7 @@ router.post('/sustainability-registration', async (req: Request, res: Response) 
     // Send email notification
     await sendEmail({
       from: 'sustainability@yourdomain.com',
-      to: ['admin@yourdomain.com'],
+      to: [{ email: 'admin@yourdomain.com' }],
       subject: 'New Sustainability Program Registration',
       html: `
         <h2>New Sustainability Program Registration</h2>

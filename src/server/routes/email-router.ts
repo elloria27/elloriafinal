@@ -16,7 +16,7 @@ router.post('/contact', async (req: Request, res: Response) => {
     // Send email notification
     await sendEmail({
       from: 'noreply@yourdomain.com',
-      to: ['admin@yourdomain.com'],
+      to: [{ email: 'admin@yourdomain.com' }],
       subject: `Contact Form: ${subject}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -48,7 +48,7 @@ router.post('/subscribe', async (req: Request, res: Response) => {
     // Send confirmation email
     await sendEmail({
       from: 'newsletter@yourdomain.com',
-      to: [email],
+      to: [{ email }],
       subject: 'Newsletter Subscription Confirmation',
       html: `
         <h2>Thank you for subscribing!</h2>
@@ -111,7 +111,7 @@ router.post('/order-status', async (req: Request, res: Response) => {
     // Send email notification
     await sendEmail({
       from: 'orders@yourdomain.com',
-      to: [customerEmail],
+      to: [{ email: customerEmail }],
       subject: subject,
       html: content,
     });
