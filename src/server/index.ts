@@ -2,43 +2,32 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-
-// Import routers
+import compression from 'compression';
 import authRouter from './routes/auth-router';
-import productRouter from './routes/product-router';
-import emailRouter from './routes/email-router';
 import businessRouter from './routes/business-router';
+import emailRouter from './routes/email-router';
+import productRouter from './routes/product-router';
 
-// Load environment variables
-dotenv.config();
-
+// Create Express server
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
+app.use(compression());
 app.use(bodyParser.json());
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Log requests
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
-
-// Routes
+// API routes
 app.use('/api/auth', authRouter);
-app.use('/api/products', productRouter);
-app.use('/api/email', emailRouter);
 app.use('/api/business', businessRouter);
+app.use('/api/email', emailRouter);
+app.use('/api/products', productRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
+  res.json({
     status: 'ok',
-    message: 'Express server is running',
-    timestamp: new Date().toISOString()
+    message: 'Server is running'
   });
 });
 
@@ -51,7 +40,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Start the server
+// Start server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

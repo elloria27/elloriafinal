@@ -33,7 +33,7 @@ export const generateTokens = (user: { id: string; email: string; role: string }
   // Use the correct signature for jwt.sign
   const accessToken = jwt.sign(
     payload, 
-    JWT_SECRET, 
+    JWT_SECRET as jwt.Secret, 
     { expiresIn: JWT_EXPIRES_IN }
   );
 
@@ -51,7 +51,7 @@ export const generateTokens = (user: { id: string; email: string; role: string }
  */
 export const verifyToken = (token: string): JwtTokenPayload => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtTokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET as jwt.Secret) as JwtTokenPayload;
     return decoded;
   } catch (error) {
     throw new Error('Invalid token');

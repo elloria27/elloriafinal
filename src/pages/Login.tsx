@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { signIn, user } = useAuth();
 
   useEffect(() => {
     // Check for stored email from order completion
@@ -28,81 +29,29 @@ const Login = () => {
   const redirectTo = searchParams.get("redirectTo");
 
   useEffect(() => {
-    const checkSession = async () => {
-      console.log("Checking session...");
-      const token = localStorage.getItem('authToken');
-      
-      if (token) {
-        try {
-          const response = await fetch('/api/auth/user', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (!response.ok) {
-            console.log('Session expired or invalid');
-            localStorage.removeItem('authToken');
-            return;
-          }
-          
-          const data = await response.json();
-          console.log("User data:", data.user);
-          
-          if (data.user) {
-            console.log("User role:", data.user.role);
-            const redirectPath = data.user.role === 'admin' ? '/admin' : (redirectTo || '/profile');
-            
-            toast.success("Welcome back!", {
-              description: "You've been successfully logged in"
-            });
-            
-            navigate(redirectPath);
-          }
-        } catch (error) {
-          console.error("Error in session check:", error);
-          localStorage.removeItem('authToken');
-        }
-      }
-    };
-    
-    checkSession();
-  }, [navigate, redirectTo]);
+    // If user is already logged in, redirect
+    if (user) {
+      const redirectPath = user.id ? (redirectTo || '/profile') : '/login';
+      toast.success("Welcome back!", {
+        description: "You've been successfully logged in"
+      });
+      navigate(redirectPath);
+    }
+  }, [navigate, redirectTo, user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      console.log("Attempting login with email:", email);
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-        })
-      });
-
-      const data = await response.json();
+      await signIn(email, password);
       
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Store the token
-      localStorage.setItem('authToken', data.token);
-      
-      console.log("Login successful, user role:", data.user.role);
-      const redirectPath = data.user.role === 'admin' ? '/admin' : (redirectTo || '/profile');
-      
+      // Auth context will handle the rest (storing session, redirecting)
       toast.success("Welcome back!", {
         description: "You've been successfully logged in"
       });
       
-      navigate(redirectPath);
+      // Navigation happens in the useEffect when user state updates
     } catch (error: any) {
       console.error("Login error:", error);
       
