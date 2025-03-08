@@ -1,120 +1,153 @@
 
 import express, { Request, Response } from 'express';
-import { 
-  sendEmail, 
-  sendOrderStatusEmail, 
-  sendShipmentNotificationEmail,
-  sendOrderEmails,
-  OrderStatusEmailParams,
-  ShipmentNotificationParams, 
-  OrderEmailsParams
-} from '@/utils/emailService';
+import { emailService } from '../../utils/emailService';
 
 const router = express.Router();
 
-/**
- * Send contact email
- */
+// Send contact form email
 router.post('/contact', async (req: Request, res: Response) => {
   try {
     const { name, email, message, subject } = req.body;
-
+    
     if (!name || !email || !message) {
-      return res.status(400).json({ error: 'Name, email, and message are required' });
+      return res.status(400).json({
+        error: 'Missing required fields: name, email, message'
+      });
     }
-
-    const result = await sendEmail({
-      to: [{ email: 'sales@elloria.ca' }],
-      subject: subject || `Contact Form Submission from ${name}`,
-      html: `
-        <h1>New Contact Form Submission</h1>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-      `
+    
+    // Send email
+    await emailService.sendContactEmail({
+      name,
+      email,
+      message,
+      subject: subject || 'Contact Form Submission'
     });
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
-    return res.status(200).json({ message: 'Contact email sent successfully' });
-  } catch (error: any) {
+    
+    return res.status(200).json({
+      message: 'Contact email sent successfully'
+    });
+  } catch (error) {
     console.error('Error sending contact email:', error);
-    return res.status(500).json({ error: error.message || 'Failed to send contact email' });
+    return res.status(500).json({ error: 'Failed to send contact email' });
   }
 });
 
-/**
- * Send order status update email
- */
+// Send order status email
 router.post('/order-status', async (req: Request, res: Response) => {
   try {
-    const params: OrderStatusEmailParams = req.body;
-
-    if (!params.orderNumber || !params.customerEmail || !params.customerName || !params.newStatus) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const {
+      orderNumber,
+      customerName,
+      customerEmail,
+      newStatus,
+      orderItems,
+      orderTotal,
+      currency,
+      lang
+    } = req.body;
+    
+    if (!orderNumber || !customerName || !customerEmail || !newStatus) {
+      return res.status(400).json({
+        error: 'Missing required fields: orderNumber, customerName, customerEmail, newStatus'
+      });
     }
-
-    const result = await sendOrderStatusEmail(params);
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
-    return res.status(200).json({ message: 'Order status email sent successfully' });
-  } catch (error: any) {
+    
+    // Send email
+    await emailService.sendOrderStatusEmail({
+      orderNumber,
+      customerName,
+      customerEmail,
+      newStatus,
+      orderItems: orderItems || [],
+      orderTotal: orderTotal || 0,
+      currency: currency || 'USD',
+      lang: lang || 'en'
+    });
+    
+    return res.status(200).json({
+      message: 'Order status email sent successfully'
+    });
+  } catch (error) {
     console.error('Error sending order status email:', error);
-    return res.status(500).json({ error: error.message || 'Failed to send order status email' });
+    return res.status(500).json({ error: 'Failed to send order status email' });
   }
 });
 
-/**
- * Send shipment notification email
- */
+// Send shipment notification email
 router.post('/shipment-notification', async (req: Request, res: Response) => {
   try {
-    const params: ShipmentNotificationParams = req.body;
-
-    if (!params.orderNumber || !params.customerEmail || !params.customerName || !params.trackingNumber) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const {
+      orderNumber,
+      customerName,
+      customerEmail,
+      trackingNumber,
+      trackingUrl,
+      estimatedDelivery,
+      carrier,
+      lang
+    } = req.body;
+    
+    if (!orderNumber || !customerName || !customerEmail || !trackingNumber) {
+      return res.status(400).json({
+        error: 'Missing required fields: orderNumber, customerName, customerEmail, trackingNumber'
+      });
     }
-
-    const result = await sendShipmentNotificationEmail(params);
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
-    return res.status(200).json({ message: 'Shipment notification email sent successfully' });
-  } catch (error: any) {
+    
+    // Send email
+    await emailService.sendShipmentNotificationEmail({
+      orderNumber,
+      customerName,
+      customerEmail,
+      trackingNumber,
+      trackingUrl: trackingUrl || '',
+      estimatedDelivery: estimatedDelivery || 'Not available',
+      carrier: carrier || 'Standard Shipping',
+      lang: lang || 'en'
+    });
+    
+    return res.status(200).json({
+      message: 'Shipment notification email sent successfully'
+    });
+  } catch (error) {
     console.error('Error sending shipment notification email:', error);
-    return res.status(500).json({ error: error.message || 'Failed to send shipment notification email' });
+    return res.status(500).json({ error: 'Failed to send shipment notification email' });
   }
 });
 
-/**
- * Send order confirmation emails
- */
+// Send order confirmation emails
 router.post('/order-confirmation', async (req: Request, res: Response) => {
   try {
-    const params: OrderEmailsParams = req.body;
-
-    if (!params.orderId || !params.customerEmail || !params.customerName) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    const {
+      customerEmail,
+      customerName,
+      orderId,
+      items,
+      total,
+      shippingAddress
+    } = req.body;
+    
+    if (!customerEmail || !customerName || !orderId || !items || !total || !shippingAddress) {
+      return res.status(400).json({
+        error: 'Missing required fields for order confirmation email'
+      });
     }
-
-    const result = await sendOrderEmails(params);
-
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-
-    return res.status(200).json({ message: 'Order confirmation emails sent successfully' });
-  } catch (error: any) {
+    
+    // Send email
+    await emailService.sendOrderEmails({
+      customerEmail,
+      customerName,
+      orderId,
+      items,
+      total,
+      shippingAddress
+    });
+    
+    return res.status(200).json({
+      message: 'Order confirmation emails sent successfully'
+    });
+  } catch (error) {
     console.error('Error sending order confirmation emails:', error);
-    return res.status(500).json({ error: error.message || 'Failed to send order confirmation emails' });
+    return res.status(500).json({ error: 'Failed to send order confirmation emails' });
   }
 });
 
