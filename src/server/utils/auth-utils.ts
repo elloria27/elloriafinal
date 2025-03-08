@@ -1,7 +1,7 @@
 
 import jwt from 'jsonwebtoken';
-import { UserWithRole } from '../models/user';
 
+// Set a strong secret key
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-for-development';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
@@ -9,6 +9,15 @@ export interface JwtTokenPayload {
   id: string;
   email: string;
   role: string;
+}
+
+export interface UserWithRole {
+  id: string;
+  email: string;
+  role: string;
+  password: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /**
@@ -21,9 +30,12 @@ export const generateTokens = (user: { id: string; email: string; role: string }
     role: user.role
   };
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN
-  });
+  // Use the correct signature for jwt.sign
+  const accessToken = jwt.sign(
+    payload, 
+    JWT_SECRET, 
+    { expiresIn: JWT_EXPIRES_IN }
+  );
 
   // Calculate expiry timestamp
   const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now

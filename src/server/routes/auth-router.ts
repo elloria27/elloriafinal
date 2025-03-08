@@ -55,7 +55,11 @@ router.post('/login', async (req: Request, res: Response) => {
       role: 'user'
     };
     
-    const { accessToken: access_token, expiresAt: expires_at } = generateTokens(user);
+    const { accessToken: access_token, expiresAt: expires_at } = generateTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role
+    });
     
     return res.status(200).json({
       session: {
