@@ -56,12 +56,12 @@ router.post('/login', async (req: Request, res: Response) => {
       role: 'user'
     };
     
-    const { accessToken, refreshToken, expiresAt } = generateTokens(user);
+    const { accessToken: access_token, expiresAt: expires_at } = generateTokens(user);
     
     return res.status(200).json({
       session: {
-        access_token: accessToken,
-        expires_at: expiresAt,
+        access_token,
+        expires_at,
         user
       },
       user
@@ -96,14 +96,10 @@ router.post('/verify', async (req: Request, res: Response) => {
     
     const decoded = verifyToken(token);
     
-    if (!decoded) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    
     return res.status(200).json({ valid: true, user: decoded });
   } catch (error) {
     console.error('Error verifying token:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(401).json({ error: 'Invalid token' });
   }
 });
 

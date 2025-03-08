@@ -13,6 +13,35 @@ interface JWTPayload {
   role: UserRole;
 }
 
+// Generate JWT tokens (access and refresh)
+export const generateTokens = (user: UserWithRole) => {
+  const payload: JWTPayload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  };
+
+  // Generate access token
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  
+  // Calculate expiry time (24 hours from now)
+  const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24);
+
+  return {
+    accessToken,
+    expiresAt
+  };
+};
+
+// Verify JWT token
+export const verifyToken = (token: string): JWTPayload => {
+  try {
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
+};
+
 // Generate JWT token
 export const generateJWT = (user: UserWithRole): string => {
   const payload: JWTPayload = {
@@ -22,15 +51,6 @@ export const generateJWT = (user: UserWithRole): string => {
   };
 
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
-};
-
-// Verify JWT token
-export const verifyJWT = (token: string): JWTPayload => {
-  try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
-    throw new Error('Invalid token');
-  }
 };
 
 // Middleware to require authentication
@@ -51,7 +71,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
     }
 
     // Verify token
-    const decoded = verifyJWT(token);
+    const decoded = verifyToken(token);
     
     // Attach user info to request object
     (req as any).user = decoded;

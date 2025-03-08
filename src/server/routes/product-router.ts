@@ -1,3 +1,4 @@
+
 import express, { Request, Response } from 'express';
 import { Product } from '../models/product';
 
@@ -12,10 +13,15 @@ const sampleProducts: Product[] = [
     description: 'Reusable water bottle made from sustainable materials.',
     price: 25.00,
     image: 'https://example.com/images/water-bottle.jpg',
+    features: ['Eco-friendly', 'Reusable', 'BPA-free'],
     specifications: {
       material: 'Stainless Steel',
       capacity: '750ml',
-      weight: '300g'
+      weight: '300g',
+      length: '',
+      absorption: '',
+      quantity: '',
+      features: ''
     },
     media: [],
     why_choose_features: []
@@ -27,10 +33,15 @@ const sampleProducts: Product[] = [
     description: 'Comfortable t-shirt made from 100% organic cotton.',
     price: 35.00,
     image: 'https://example.com/images/t-shirt.jpg',
+    features: ['100% Organic', 'Comfortable', 'Sustainable'],
     specifications: {
       material: 'Organic Cotton',
       sizes: 'S, M, L, XL',
-      color: 'White'
+      color: 'White',
+      length: '',
+      absorption: '',
+      quantity: '',
+      features: ''
     },
     media: [],
     why_choose_features: []
@@ -42,10 +53,15 @@ const sampleProducts: Product[] = [
     description: 'Sustainable toothbrush with a bamboo handle and soft bristles.',
     price: 8.00,
     image: 'https://example.com/images/toothbrush.jpg',
+    features: ['Biodegradable', 'Eco-friendly', 'Natural'],
     specifications: {
       handle: 'Bamboo',
       bristles: 'Nylon',
-      lifespan: '3 months'
+      lifespan: '3 months',
+      length: '',
+      absorption: '',
+      quantity: '',
+      features: ''
     },
     media: [],
     why_choose_features: []

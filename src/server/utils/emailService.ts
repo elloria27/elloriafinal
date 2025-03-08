@@ -1,132 +1,344 @@
 
 import nodemailer from 'nodemailer';
 
-interface EmailOptions {
-  from: string;
-  to: string[];
-  subject: string;
-  html: string;
-  attachments?: {
-    filename: string;
-    content: string;
-  }[];
-}
+// Configure email transport (replace with actual SMTP credentials in production)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.example.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER || 'user@example.com',
+    pass: process.env.SMTP_PASS || 'password',
+  },
+});
 
-// Create a transporter using environment variables
-const createTransporter = () => {
-  // For development, we can use a service like Mailtrap
-  // In production, use your actual SMTP settings
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
-    port: parseInt(process.env.SMTP_PORT || '2525'),
-    auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASSWORD || '',
-    },
-  });
-};
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@example.com';
 
-export const sendEmail = async (options: EmailOptions): Promise<any> => {
-  try {
-    const transporter = createTransporter();
+// Email service for sending various types of emails
+export const emailService = {
+  /**
+   * Send contact form email
+   */
+  async sendContactEmail(params: {
+    name: string;
+    email: string;
+    message: string;
+    subject?: string;
+  }): Promise<void> {
+    const { name, email, message, subject } = params;
     
-    const mailOptions = {
-      from: options.from,
-      to: options.to.join(','),
-      subject: options.subject,
-      html: options.html,
-      attachments: options.attachments,
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
-    return info;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
-  }
-};
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: subject || 'New Contact Form Submission',
+      html: `
+        <h1>New Contact Form Submission</h1>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `,
+    });
+  },
 
-interface OrderEmailOptions {
-  customerEmail: string;
-  customerName: string;
-  orderId: string;
-  items: any[];
-  total: number;
-  shippingAddress: {
-    address: string;
-    region: string;
-    country: string;
-  };
-}
+  /**
+   * Send order status update email
+   */
+  async sendOrderStatusEmail(params: {
+    orderNumber: string;
+    customerName: string;
+    customerEmail: string;
+    newStatus: string;
+    orderItems?: Array<{ name: string; quantity: number; price: number }>;
+    orderTotal?: number;
+    currency?: string;
+    lang?: 'en' | 'uk';
+  }): Promise<void> {
+    const {
+      orderNumber,
+      customerName,
+      customerEmail,
+      newStatus,
+      orderItems = [],
+      orderTotal = 0,
+      currency = 'USD',
+      lang = 'en',
+    } = params;
 
-export const sendOrderEmails = async (options: OrderEmailOptions): Promise<{ success: boolean; error?: any }> => {
-  try {
-    // Generate order confirmation email
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">Order Confirmation</h1>
-        <p>Dear ${options.customerName},</p>
-        <p>Thank you for your order! We're excited to confirm that we've received your order #${options.orderId}.</p>
-        
-        <h2 style="color: #333; margin-top: 30px;">Order Summary</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background-color: #f3f3f3;">
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Product</th>
-              <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Qty</th>
-              <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Price</th>
+    const subject = lang === 'uk'
+      ? `Замовлення ${orderNumber} - статус оновлено до "${newStatus}"`
+      : `Order ${orderNumber} - Status Updated to "${newStatus}"`;
+
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: customerEmail,
+      subject,
+      html: `
+        <h1>${lang === 'uk' ? 'Оновлення статусу замовлення' : 'Order Status Update'}</h1>
+        <p>${lang === 'uk' ? 'Шановний(а)' : 'Dear'} ${customerName},</p>
+        <p>${lang === 'uk' 
+          ? `Ваше замовлення №${orderNumber} тепер має статус "${newStatus}".` 
+          : `Your order #${orderNumber} has been updated to status "${newStatus}".`}</p>
+        ${orderItems.length > 0 ? `
+          <h2>${lang === 'uk' ? 'Деталі замовлення' : 'Order Details'}</h2>
+          <table border="1" cellpadding="5" cellspacing="0">
+            <tr>
+              <th>${lang === 'uk' ? 'Товар' : 'Item'}</th>
+              <th>${lang === 'uk' ? 'Кількість' : 'Quantity'}</th>
+              <th>${lang === 'uk' ? 'Ціна' : 'Price'}</th>
             </tr>
-          </thead>
-          <tbody>
-            ${options.items.map(item => `
+            ${orderItems.map(item => `
               <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
-                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${item.quantity}</td>
-                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">$${(item.price * item.quantity).toFixed(2)}</td>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>${currency} ${item.price.toFixed(2)}</td>
               </tr>
             `).join('')}
             <tr>
-              <td colspan="2" style="padding: 10px; text-align: right; border: 1px solid #ddd;"><strong>Total:</strong></td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #ddd;"><strong>$${options.total.toFixed(2)}</strong></td>
+              <td colspan="2"><strong>${lang === 'uk' ? 'Всього' : 'Total'}</strong></td>
+              <td><strong>${currency} ${orderTotal.toFixed(2)}</strong></td>
             </tr>
-          </tbody>
-        </table>
-        
-        <h2 style="color: #333; margin-top: 30px;">Shipping Address</h2>
-        <p>
-          ${options.shippingAddress.address}<br>
-          ${options.shippingAddress.region}<br>
-          ${options.shippingAddress.country}
-        </p>
-        
-        <p style="margin-top: 30px;">
-          We'll send you another email when your order ships. If you have any questions, please don't hesitate to contact us.
-        </p>
-        
-        <p>Thank you for shopping with us!</p>
-      </div>
-    `;
-    
-    // Send email to customer
-    await sendEmail({
-      from: 'noreply@yourdomain.com',
-      to: [options.customerEmail],
-      subject: `Order Confirmation #${options.orderId}`,
-      html: htmlContent,
+          </table>
+        ` : ''}
+        <p>${lang === 'uk' 
+          ? 'Дякуємо за покупку у нас!' 
+          : 'Thank you for shopping with us!'}</p>
+      `,
     });
-    
-    // You could also send a notification to your team
-    // await sendEmail({
-    //   from: 'orders@yourdomain.com',
-    //   to: ['admin@yourdomain.com'],
-    //   subject: `New Order #${options.orderId}`,
-    //   html: `New order received from ${options.customerName} for $${options.total.toFixed(2)}.`,
-    // });
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending order emails:', error);
-    return { success: false, error };
+  },
+
+  /**
+   * Send shipment notification email
+   */
+  async sendShipmentNotificationEmail(params: {
+    orderNumber: string;
+    customerName: string;
+    customerEmail: string;
+    trackingNumber: string;
+    trackingUrl?: string;
+    estimatedDelivery?: string;
+    carrier?: string;
+    lang?: 'en' | 'uk';
+  }): Promise<void> {
+    const {
+      orderNumber,
+      customerName,
+      customerEmail,
+      trackingNumber,
+      trackingUrl = '',
+      estimatedDelivery = 'Not available',
+      carrier = 'Standard Shipping',
+      lang = 'en',
+    } = params;
+
+    const subject = lang === 'uk'
+      ? `Замовлення ${orderNumber} - відправлено`
+      : `Order ${orderNumber} - Shipped`;
+
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: customerEmail,
+      subject,
+      html: `
+        <h1>${lang === 'uk' ? 'Сповіщення про відправлення' : 'Shipment Notification'}</h1>
+        <p>${lang === 'uk' ? 'Шановний(а)' : 'Dear'} ${customerName},</p>
+        <p>${lang === 'uk' 
+          ? `Ваше замовлення №${orderNumber} було відправлено.` 
+          : `Your order #${orderNumber} has been shipped.`}</p>
+        <p><strong>${lang === 'uk' ? 'Перевізник' : 'Carrier'}:</strong> ${carrier}</p>
+        <p><strong>${lang === 'uk' ? 'Номер для відстеження' : 'Tracking Number'}:</strong> ${trackingNumber}</p>
+        ${trackingUrl ? `<p><a href="${trackingUrl}">${lang === 'uk' ? 'Відстежити посилку' : 'Track Package'}</a></p>` : ''}
+        <p><strong>${lang === 'uk' ? 'Орієнтовна дата доставки' : 'Estimated Delivery'}:</strong> ${estimatedDelivery}</p>
+        <p>${lang === 'uk' 
+          ? 'Дякуємо за покупку у нас!' 
+          : 'Thank you for shopping with us!'}</p>
+      `,
+    });
+  },
+
+  /**
+   * Send business inquiry notification email
+   */
+  async sendBusinessInquiry(params: {
+    businessName: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    inquiry: string;
+    additionalInfo: string;
+  }): Promise<void> {
+    const {
+      businessName,
+      contactPerson,
+      email,
+      phone,
+      inquiry,
+      additionalInfo,
+    } = params;
+
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `New Business Inquiry from ${businessName}`,
+      html: `
+        <h1>New Business Inquiry</h1>
+        <p><strong>Business Name:</strong> ${businessName}</p>
+        <p><strong>Contact Person:</strong> ${contactPerson}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <h2>Inquiry</h2>
+        <p>${inquiry}</p>
+        <h2>Additional Information</h2>
+        <p>${additionalInfo}</p>
+      `,
+    });
+  },
+
+  /**
+   * Send consultation request notification email
+   */
+  async sendConsultationRequest(params: {
+    businessName: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    productInterest: string;
+    estimatedQuantity: string;
+    preferredDate: string;
+    additionalInfo: string;
+  }): Promise<void> {
+    const {
+      businessName,
+      contactPerson,
+      email,
+      phone,
+      productInterest,
+      estimatedQuantity,
+      preferredDate,
+      additionalInfo,
+    } = params;
+
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `New Consultation Request from ${businessName}`,
+      html: `
+        <h1>New Consultation Request</h1>
+        <p><strong>Business Name:</strong> ${businessName}</p>
+        <p><strong>Contact Person:</strong> ${contactPerson}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Product Interest:</strong> ${productInterest}</p>
+        <p><strong>Estimated Quantity:</strong> ${estimatedQuantity}</p>
+        <p><strong>Preferred Date:</strong> ${preferredDate}</p>
+        <h2>Additional Information</h2>
+        <p>${additionalInfo}</p>
+      `,
+    });
+  },
+
+  /**
+   * Send order confirmation emails
+   */
+  async sendOrderEmails(params: {
+    customerEmail: string;
+    customerName: string;
+    orderId: string;
+    items: Array<{
+      id: string;
+      name: string;
+      price: number;
+      quantity: number;
+      image?: string;
+    }>;
+    total: number;
+    shippingAddress: {
+      address: string;
+      region: string;
+      country: string;
+    };
+  }): Promise<void> {
+    const {
+      customerEmail,
+      customerName,
+      orderId,
+      items,
+      total,
+      shippingAddress,
+    } = params;
+
+    // Send customer confirmation
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: customerEmail,
+      subject: `Order Confirmation #${orderId}`,
+      html: `
+        <h1>Thank You for Your Order!</h1>
+        <p>Dear ${customerName},</p>
+        <p>We've received your order #${orderId} and are processing it now.</p>
+        <h2>Order Details</h2>
+        <table border="1" cellpadding="5" cellspacing="0">
+          <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+          </tr>
+          ${items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.price.toFixed(2)}</td>
+              <td>$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+          <tr>
+            <td colspan="3"><strong>Total</strong></td>
+            <td><strong>$${total.toFixed(2)}</strong></td>
+          </tr>
+        </table>
+        <h2>Shipping Address</h2>
+        <p>${shippingAddress.address}</p>
+        <p>${shippingAddress.region}, ${shippingAddress.country}</p>
+        <p>You will receive another email when your order ships.</p>
+        <p>Thank you for shopping with us!</p>
+      `,
+    });
+
+    // Send admin notification
+    await transporter.sendMail({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `New Order #${orderId}`,
+      html: `
+        <h1>New Order Received</h1>
+        <p><strong>Order ID:</strong> ${orderId}</p>
+        <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
+        <h2>Order Details</h2>
+        <table border="1" cellpadding="5" cellspacing="0">
+          <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Subtotal</th>
+          </tr>
+          ${items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.price.toFixed(2)}</td>
+              <td>$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+          <tr>
+            <td colspan="3"><strong>Total</strong></td>
+            <td><strong>$${total.toFixed(2)}</strong></td>
+          </tr>
+        </table>
+        <h2>Shipping Address</h2>
+        <p>${shippingAddress.address}</p>
+        <p>${shippingAddress.region}, ${shippingAddress.country}</p>
+      `,
+    });
   }
 };

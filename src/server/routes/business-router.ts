@@ -1,6 +1,6 @@
 
 import express, { Request, Response } from 'express';
-import { emailService } from '../../utils/emailService';
+import { emailService } from '../utils/emailService';
 
 const router = express.Router();
 

@@ -2,8 +2,6 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import compression from 'compression';
-import path from 'path';
 import dotenv from 'dotenv';
 
 // Import routers
@@ -19,32 +17,41 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(compression());
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.json());
 
-// API Routes
+// Log requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Routes
 app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/email', emailRouter);
 app.use('/api/business', businessRouter);
 
 // Health check endpoint
-app.get('/api/health', (_, res) => {
-  res.json({ status: 'ok', message: 'API is running' });
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Express server is running',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../dist')));
-  
-  app.get('*', (_, res) => {
-    res.sendFile(path.join(__dirname, '../../dist/index.html'));
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: err.message
   });
-}
+});
 
-// Start server
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
