@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import { apiClient } from '@/utils/api-client';
 import { supabase } from '@/integrations/supabase/client';
+import { parseProduct } from '@/utils/supabase-helpers';
 
 type UseProductsApiOptions = {
   fallbackToSupabase?: boolean;
@@ -38,29 +39,10 @@ export const useProductsApi = (options: UseProductsApiOptions = {}) => {
             
             if (supabaseError) throw supabaseError;
             
-            // Map Supabase data to Product type
-            const products = data.map(item => ({
-              id: item.id,
-              name: item.name,
-              description: item.description,
-              image: item.image,
-              price: item.price,
-              features: Array.isArray(item.features) ? item.features : [],
-              specifications: {
-                length: item.specifications?.length || '',
-                absorption: item.specifications?.absorption || '',
-                quantity: item.specifications?.quantity || '',
-                material: item.specifications?.material || '',
-                features: item.specifications?.features || ''
-              },
-              media: item.media || [],
-              why_choose_features: item.why_choose_features || [],
-              slug: item.slug,
-              created_at: item.created_at,
-              updated_at: item.updated_at
-            }));
+            // Map Supabase data to Product type using the parseProduct utility
+            const parsedProducts = data.map(parseProduct);
             
-            setProducts(products);
+            setProducts(parsedProducts);
             setError(null);
           } catch (fallbackErr: any) {
             console.error('Fallback also failed:', fallbackErr);
