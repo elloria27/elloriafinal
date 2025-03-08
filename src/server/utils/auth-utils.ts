@@ -1,37 +1,27 @@
 
 import jwt from 'jsonwebtoken';
-import { User, UserRole } from '../models/user';
+import { User } from '../models/user';
 
-// Інтерфейс для даних, які зберігаються в JWT токені
-interface JwtPayload {
-  sub: string; // Ідентифікатор користувача
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // In production, always use env variable
+
+export interface JwtPayload {
+  userId: string;
   email: string;
-  role: UserRole;
-  iat?: number; // Час видачі
-  exp?: number; // Час закінчення терміну дії
+  role: string;
 }
 
-// Секретний ключ для підпису JWT токенів
-// Це потрібно буде замінити на реальний секретний ключ з env змінних
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Термін дії токену (у секундах)
-const TOKEN_EXPIRY = 60 * 60 * 24 * 7; // 7 днів
-
-// Генерація JWT токену для користувача
-export const generateToken = (user: User, role: UserRole): string => {
+// Generate JWT token
+export const generateToken = (user: User): string => {
   const payload: JwtPayload = {
-    sub: user.id,
+    userId: user.id,
     email: user.email,
-    role: role,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY
+    role: 'client' // Default role, can be dynamic based on user.role
   };
 
-  return jwt.sign(payload, JWT_SECRET);
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };
 
-// Перевірка і декодування JWT токену
+// Verify JWT token
 export const verifyToken = (token: string): JwtPayload | null => {
   try {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
@@ -41,40 +31,36 @@ export const verifyToken = (token: string): JwtPayload | null => {
   }
 };
 
-// Middleware для перевірки автентифікації
-export const authMiddleware = (req: any, res: any, next: any) => {
+// Middleware to check if user is authenticated
+export const requireAuth = (req: any, res: any, next: any) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
     
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Authentication required' });
     }
     
-    const decodedToken = verifyToken(token);
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
     
-    if (!decodedToken) {
-      return res.status(401).json({ error: 'Invalid token' });
+    if (!payload) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
     
-    // Додаємо інформацію про користувача до об'єкту запиту
-    req.user = {
-      id: decodedToken.sub,
-      email: decodedToken.email,
-      role: decodedToken.role
-    };
-    
+    // Add user info to request object
+    req.user = payload;
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    return res.status(401).json({ error: 'Authentication failed' });
+    console.error('Authentication error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Middleware для перевірки ролі адміністратора
-export const adminMiddleware = (req: any, res: any, next: any) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+// Middleware to check if user has admin role
+export const requireAdmin = (req: any, res: any, next: any) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({ error: 'Access denied: Admin privileges required' });
   }
-  
-  next();
 };

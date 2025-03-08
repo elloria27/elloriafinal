@@ -4,7 +4,7 @@ import { supabase } from '../../integrations/supabase/client';
 
 const router = express.Router();
 
-// Реєстрація користувача
+// User registration
 router.post('/signup', async (req, res) => {
   try {
     const { email, password, full_name } = req.body;
@@ -38,7 +38,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Вхід користувача
+// User login
 router.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -68,7 +68,7 @@ router.post('/signin', async (req, res) => {
   }
 });
 
-// Вихід користувача
+// User logout
 router.post('/signout', async (req, res) => {
   try {
     const { error } = await supabase.auth.signOut();
@@ -85,7 +85,7 @@ router.post('/signout', async (req, res) => {
   }
 });
 
-// Отримання користувача за JWT токеном
+// Get user by JWT token
 router.get('/user', async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];

@@ -1,5 +1,5 @@
 
-// Модель користувача, яка відповідає структурі в Supabase
+// User model, matching the structure in Supabase
 export interface User {
   id: string;
   email: string;
@@ -17,15 +17,15 @@ export interface User {
   updated_at?: string;
 }
 
-// Роль користувача
+// User role
 export type UserRole = 'client' | 'admin';
 
-// Інтерфейс для доданої ролі
+// Interface for user with role
 export interface UserWithRole extends User {
   role: UserRole;
 }
 
-// Функція для перетворення даних з бази даних у модель User
+// Function to parse user data from database to User type
 export const parseUser = (data: any): User => {
   return {
     id: data.id,

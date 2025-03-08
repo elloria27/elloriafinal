@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { supabase } from '../../integrations/supabase/client';
-import { Product, parseProduct } from '../models/product';
+import { parseProduct } from '../models/product';
 
 const router = express.Router();
 
@@ -21,10 +21,10 @@ router.get('/', async (req, res) => {
     
     const products = data.map(parseProduct);
     console.log(`API: Successfully fetched ${products.length} products`);
-    res.json(products);
+    return res.json(products);
   } catch (error) {
     console.error('Server error fetching products:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -47,10 +47,10 @@ router.get('/:slug', async (req, res) => {
     
     const product = parseProduct(data);
     console.log(`API: Successfully fetched product: ${product.name}`);
-    res.json(product);
+    return res.json(product);
   } catch (error) {
     console.error('Server error fetching product by slug:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

@@ -1,58 +1,13 @@
 
-// Модель продукту, яка відповідає структурі в Supabase
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-  features: string[];
-  slug: string;
-  specifications: {
-    length: string;
-    absorption: string;
-    quantity: string;
-    material: string;
-    features: string;
-  };
-  media?: {
-    type: 'image' | 'video';
-    url: string;
-    thumbnail?: string;
-  }[];
-  why_choose_features?: {
-    icon: string;
-    title: string;
-    description: string;
-  }[];
-  created_at?: string;
-  updated_at?: string;
-}
+import { Product } from '../../types/product';
+import { Json } from '../../integrations/supabase/types';
 
-// Функція для перетворення даних з бази даних у модель Product
-export const parseProduct = (data: any): Product => {
-  return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    image: data.image,
-    price: data.price,
-    features: Array.isArray(data.features) ? data.features : [],
-    specifications: parseSpecifications(data.specifications),
-    media: parseMedia(data.media),
-    why_choose_features: parseWhyChooseFeatures(data.why_choose_features),
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-    slug: data.slug
-  };
-};
-
-// Допоміжні функції для обробки специфічних полів
 interface JsonObject {
-  [key: string]: any;
+  [key: string]: Json;
 }
 
-export const parseSpecifications = (specs: any): Product['specifications'] => {
+// Parse specifications from JSON to structured format
+export const parseSpecifications = (specs: Json): Product['specifications'] => {
   if (!specs || typeof specs !== 'object' || Array.isArray(specs)) {
     return {
       length: '',
@@ -74,13 +29,14 @@ export const parseSpecifications = (specs: any): Product['specifications'] => {
   };
 };
 
+// Parse media array from JSON to structured format
 interface MediaItem {
   type?: string;
   url?: string;
   thumbnail?: string;
 }
 
-export const parseMedia = (media: any): Product['media'] => {
+export const parseMedia = (media: Json): Product['media'] => {
   if (!Array.isArray(media)) return [];
   
   return media.map(item => {
@@ -93,13 +49,14 @@ export const parseMedia = (media: any): Product['media'] => {
   });
 };
 
+// Parse why_choose_features array from JSON
 interface WhyChooseFeature {
   icon?: string;
   title?: string;
   description?: string;
 }
 
-export const parseWhyChooseFeatures = (features: any): Product['why_choose_features'] => {
+export const parseWhyChooseFeatures = (features: Json): Product['why_choose_features'] => {
   if (!Array.isArray(features)) return [];
   
   return features.map(feature => {
@@ -110,4 +67,22 @@ export const parseWhyChooseFeatures = (features: any): Product['why_choose_featu
       description: String(whyChooseFeature.description || '')
     };
   });
+};
+
+// Main function to parse product data from database to Product type
+export const parseProduct = (data: any): Product => {
+  return {
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    image: data.image,
+    price: data.price,
+    features: Array.isArray(data.features) ? data.features : [],
+    specifications: parseSpecifications(data.specifications),
+    media: parseMedia(data.media),
+    why_choose_features: parseWhyChooseFeatures(data.why_choose_features),
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    slug: data.slug
+  };
 };
