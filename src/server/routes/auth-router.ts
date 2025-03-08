@@ -1,7 +1,6 @@
 
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { generateTokens, verifyToken } from '../utils/auth-utils';
 
 const router = express.Router();
