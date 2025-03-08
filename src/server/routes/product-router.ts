@@ -1,36 +1,67 @@
 
 import express, { Request, Response } from 'express';
-import { Product } from '../models/product';
+import { createClient } from '@supabase/supabase-js';
+import { Product } from '@/types/product';
+import { parseProduct } from '@/utils/supabase-helpers';
 
 const router = express.Router();
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Sample product data (in production, use a database)
-const products: Product[] = [];
-
-// Get all products
-router.get('/products', async (req: Request, res: Response) => {
+/**
+ * Get all products
+ */
+router.get('/', async (req: Request, res: Response) => {
   try {
-    return res.status(200).json({ products });
-  } catch (error) {
-    console.error('Get products error:', error);
-    return res.status(500).json({ error: 'Failed to fetch products' });
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Map Supabase data to Product type using the parseProduct utility
+    const products: Product[] = data.map(parseProduct);
+    
+    return res.status(200).json(products);
+  } catch (error: any) {
+    console.error('Error fetching products:', error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch products' });
   }
 });
 
-// Get product by slug
-router.get('/products/:slug', async (req: Request<{ slug: string }>, res: Response) => {
+/**
+ * Get product by slug
+ */
+router.get('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
   try {
     const { slug } = req.params;
-    const product = products.find(p => p.slug === slug);
     
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+    if (!slug) {
+      return res.status(400).json({ error: 'Product slug is required' });
     }
     
-    return res.status(200).json({ product });
-  } catch (error) {
-    console.error('Get product error:', error);
-    return res.status(500).json({ error: 'Failed to fetch product' });
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      throw error;
+    }
+    
+    // Parse the product data
+    const product = parseProduct(data);
+    
+    return res.status(200).json(product);
+  } catch (error: any) {
+    console.error(`Error fetching product with slug ${req.params.slug}:`, error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch product' });
   }
 });
 

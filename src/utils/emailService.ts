@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import nodemailer from 'nodemailer';
 
 // Email service types
 export interface EmailRecipient {
@@ -129,7 +130,7 @@ const translations = {
       hasBeenShipped: 'було відправлено.',
       trackingInfo: 'Інформація про Відстеження',
       trackingNumber: 'Номер відстеження:',
-      carrier: 'Перевізник:',
+      carrier: 'Перевізн��к:',
       trackPackage: 'Відстежити Посилку',
       estimatedDelivery: 'Орієнтовна дата доставки:',
       questions: 'Якщо у вас є запитання щодо відправлення, будь ласка, зв\'яжіться з нашою службою підтримки за адресою',
@@ -152,45 +153,55 @@ export class EmailService {
   private supabaseUrl: string;
   private supabaseKey: string;
   private supabaseClient: any;
+  private transporter: nodemailer.Transporter;
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
+  constructor(supabaseUrl: string, supabaseKey: string, smtpConfig?: any) {
     this.supabaseUrl = supabaseUrl;
     this.supabaseKey = supabaseKey;
     this.supabaseClient = createClient(supabaseUrl, supabaseKey);
+    
+    // Setup nodemailer transporter
+    this.transporter = nodemailer.createTransport(smtpConfig || {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
   }
 
   /**
-   * Send email using Supabase Edge Function
+   * Send email using SMTP service
    */
   async sendEmail(options: EmailOptions): Promise<ApiResponse> {
     try {
       console.log('Sending email with options:', { ...options, html: '...' });
 
-      // Convert recipients to format expected by edge function
-      const toAddresses = options.to.map(recipient => recipient.email);
+      // Prepare recipients
+      const to = options.to.map(recipient => 
+        recipient.name ? `"${recipient.name}" <${recipient.email}>` : recipient.email
+      ).join(', ');
 
-      const response = await this.supabaseClient.functions.invoke('send-email', {
-        body: {
-          from: options.from || 'Elloria <notifications@elloria.ca>',
-          to: toAddresses,
-          subject: options.subject,
-          html: options.html,
-          attachments: options.attachments || []
-        }
+      // Send email via nodemailer
+      const info = await this.transporter.sendMail({
+        from: options.from || 'Elloria <notifications@elloria.ca>',
+        to,
+        cc: options.cc?.map(r => r.email).join(', '),
+        bcc: options.bcc?.map(r => r.email).join(', '),
+        subject: options.subject,
+        html: options.html,
+        attachments: options.attachments?.map(attachment => ({
+          filename: attachment.filename,
+          content: Buffer.from(attachment.content, 'base64')
+        }))
       });
 
-      if (response.error) {
-        console.error('Error sending email:', response.error);
-        return {
-          success: false,
-          error: response.error
-        };
-      }
-
-      console.log('Email sent successfully:', response.data);
+      console.log('Email sent successfully:', info);
       return {
         success: true,
-        data: response.data
+        data: info
       };
     } catch (error: any) {
       console.error('Exception sending email:', error);
@@ -485,13 +496,12 @@ export class EmailService {
 // Create and export a default instance for common use
 const emailServiceInstance = new EmailService(
   process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_ANON_KEY || ''
+  process.env.SUPABASE_ANON_KEY || '',
+  // SMTP config will be read from environment variables
 );
 
-export const { 
-  sendEmail, 
-  sendOrderStatusEmail, 
-  sendShipmentNotificationEmail,
-  sendOrderEmails
-} = emailServiceInstance;
-
+// Export the methods
+export const sendEmail = (options: EmailOptions) => emailServiceInstance.sendEmail(options);
+export const sendOrderStatusEmail = (params: OrderStatusEmailParams) => emailServiceInstance.sendOrderStatusEmail(params);
+export const sendShipmentNotificationEmail = (params: ShipmentNotificationParams) => emailServiceInstance.sendShipmentNotificationEmail(params);
+export const sendOrderEmails = (params: OrderEmailsParams) => emailServiceInstance.sendOrderEmails(params);

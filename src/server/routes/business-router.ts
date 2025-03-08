@@ -1,69 +1,119 @@
 
 import express, { Request, Response } from 'express';
-import { sendEmail } from '../utils/emailService';
+import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Handle business inquiry submissions
-router.post('/business-inquiry', async (req: Request, res: Response) => {
+/**
+ * Submit business inquiry
+ */
+router.post('/inquiry', async (req: Request, res: Response) => {
   try {
-    const { fullName, email, companyName, inquiryType, message } = req.body;
-    
-    if (!fullName || !email || !message) {
-      return res.status(400).json({ error: 'Required fields are missing' });
+    const { 
+      businessName, 
+      contactPerson, 
+      email, 
+      phone, 
+      inquiry, 
+      additionalInfo 
+    } = req.body;
+
+    // Validate required fields
+    if (!businessName || !contactPerson || !email || !inquiry) {
+      return res.status(400).json({ 
+        error: 'Missing required fields' 
+      });
     }
-    
-    // Send email notification
-    await sendEmail({
-      from: 'noreply@yourdomain.com',
-      to: [{ email: 'admin@yourdomain.com' }],
-      subject: `New Business Inquiry: ${inquiryType || 'General'}`,
-      html: `
-        <h2>New Business Inquiry</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Company:</strong> ${companyName || 'Not provided'}</p>
-        <p><strong>Inquiry Type:</strong> ${inquiryType || 'General'}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-      `,
+
+    // Save to database
+    const { data, error } = await supabase
+      .from('business_inquiries')
+      .insert([
+        { 
+          business_name: businessName,
+          contact_person: contactPerson,
+          email,
+          phone,
+          inquiry,
+          additional_info: additionalInfo
+        }
+      ])
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error saving business inquiry:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Return success response
+    return res.status(201).json({
+      message: 'Business inquiry submitted successfully',
+      inquiry: data
     });
-    
-    return res.status(200).json({ success: true, message: 'Your inquiry has been received.' });
-  } catch (error) {
-    console.error('Business inquiry error:', error);
-    return res.status(500).json({ error: 'Failed to submit business inquiry' });
+  } catch (error: any) {
+    console.error('Exception in business inquiry submission:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Handle sustainability program registrations
-router.post('/sustainability-registration', async (req: Request, res: Response) => {
+/**
+ * Submit consultation request
+ */
+router.post('/consultation-request', async (req: Request, res: Response) => {
   try {
-    const { fullName, email, companyName, message } = req.body;
-    
-    if (!fullName || !email) {
-      return res.status(400).json({ error: 'Required fields are missing' });
+    const { 
+      businessName, 
+      contactPerson, 
+      email, 
+      phone, 
+      productInterest, 
+      estimatedQuantity,
+      preferredDate,
+      additionalInfo 
+    } = req.body;
+
+    // Validate required fields
+    if (!businessName || !contactPerson || !email || !productInterest) {
+      return res.status(400).json({ 
+        error: 'Missing required fields' 
+      });
     }
-    
-    // Send email notification
-    await sendEmail({
-      from: 'sustainability@yourdomain.com',
-      to: [{ email: 'admin@yourdomain.com' }],
-      subject: 'New Sustainability Program Registration',
-      html: `
-        <h2>New Sustainability Program Registration</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Company:</strong> ${companyName || 'Not provided'}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message || 'No message provided'}</p>
-      `,
+
+    // Save to database
+    const { data, error } = await supabase
+      .from('consultation_requests')
+      .insert([
+        { 
+          business_name: businessName,
+          contact_person: contactPerson,
+          email,
+          phone,
+          product_interest: productInterest,
+          estimated_quantity: estimatedQuantity,
+          preferred_date: preferredDate,
+          additional_info: additionalInfo
+        }
+      ])
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error saving consultation request:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Return success response
+    return res.status(201).json({
+      message: 'Consultation request submitted successfully',
+      request: data
     });
-    
-    return res.status(200).json({ success: true, message: 'Your registration has been received.' });
-  } catch (error) {
-    console.error('Sustainability registration error:', error);
-    return res.status(500).json({ error: 'Failed to submit registration' });
+  } catch (error: any) {
+    console.error('Exception in consultation request submission:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

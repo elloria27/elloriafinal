@@ -1,160 +1,127 @@
 
 import express, { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
-import { generateJWT, verifyJWT, requireAuth } from '../utils/auth-utils';
-import { User, UserRole, UserWithRole } from '../models/user';
+import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Sample in-memory user storage (in production, use a real database)
-const users: UserWithRole[] = [];
-
-// Register endpoint
+/**
+ * Register a new user
+ */
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, full_name } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ 
+        error: 'Email and password are required' 
+      });
     }
 
-    // Check if user already exists
-    const existingUser = users.find(user => user.email === email);
-    if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser: UserWithRole = {
-      id: uuidv4(),
+    const { data, error } = await supabase.auth.signUp({
       email,
-      password: hashedPassword,
-      first_name: firstName || '',
-      last_name: lastName || '',
-      full_name: `${firstName || ''} ${lastName || ''}`.trim(),
-      role: 'client',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    users.push(newUser);
-
-    // Generate JWT token
-    const token = generateJWT(newUser);
-
-    // Return user info (excluding password) and token
-    const { password: _, ...userWithoutPassword } = newUser;
-    return res.status(201).json({
-      user: userWithoutPassword,
-      token
+      password,
+      options: {
+        data: {
+          full_name
+        }
+      }
     });
-  } catch (error) {
-    console.error('Registration error:', error);
-    return res.status(500).json({ error: 'Registration failed' });
+
+    if (error) {
+      console.error('Error registering user:', error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(201).json({ 
+      message: 'User registered successfully',
+      user: data.user
+    });
+  } catch (error: any) {
+    console.error('Exception in register:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error' 
+    });
   }
 });
 
-// Login endpoint
+/**
+ * Login user
+ */
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ 
+        error: 'Email and password are required' 
+      });
     }
 
-    // Find user
-    const user = users.find(user => user.email === email);
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    // Generate JWT token
-    const token = generateJWT(user);
-
-    // Return user info (excluding password) and token
-    const { password: _, ...userWithoutPassword } = user;
-    return res.status(200).json({
-      user: userWithoutPassword,
-      token
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Login failed' });
+
+    if (error) {
+      console.error('Error logging in:', error);
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json({ 
+      message: 'Login successful',
+      session: data.session,
+      user: data.user
+    });
+  } catch (error: any) {
+    console.error('Exception in login:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error' 
+    });
   }
 });
 
-// Get current user endpoint
-router.get('/user', requireAuth, async (req: Request, res: Response) => {
+/**
+ * Verify user auth token
+ */
+router.post('/verify', async (req: Request, res: Response) => {
   try {
-    // Find user by ID (from token payload)
-    const userId = (req as any).user.userId;
-    const user = users.find(user => user.id === userId);
+    const { token } = req.body;
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
     }
 
-    // Return user info (excluding password)
-    const { password, ...userWithoutPassword } = user;
-    return res.status(200).json({ user: userWithoutPassword });
-  } catch (error) {
-    console.error('Get user error:', error);
-    return res.status(500).json({ error: 'Failed to get user information' });
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error) {
+      return res.status(401).json({ error: error.message });
+    }
+
+    return res.status(200).json({ user: data.user });
+  } catch (error: any) {
+    console.error('Exception in verify:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Update user profile
-router.put('/users/:id', requireAuth, async (req: Request, res: Response) => {
+/**
+ * Logout user
+ */
+router.post('/logout', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const userId = (req as any).user.userId;
-    
-    // Check if user is updating their own profile
-    if (id !== userId) {
-      return res.status(403).json({ error: 'You can only update your own profile' });
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
     }
-    
-    // Find user
-    const userIndex = users.findIndex(user => user.id === id);
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // Update user data
-    const updateData = req.body;
-    const allowedFields = ['first_name', 'last_name', 'phone_number', 'address', 'country', 'region', 'language', 'currency'];
-    
-    allowedFields.forEach(field => {
-      if (updateData[field] !== undefined) {
-        (users[userIndex] as any)[field] = updateData[field];
-      }
-    });
-    
-    // Update full_name if first_name or last_name changed
-    if (updateData.first_name !== undefined || updateData.last_name !== undefined) {
-      users[userIndex].full_name = `${users[userIndex].first_name || ''} ${users[userIndex].last_name || ''}`.trim();
-    }
-    
-    users[userIndex].updated_at = new Date().toISOString();
-    
-    // Return updated user (excluding password)
-    const { password, ...userWithoutPassword } = users[userIndex];
-    return res.status(200).json({ user: userWithoutPassword });
-  } catch (error) {
-    console.error('Update user error:', error);
-    return res.status(500).json({ error: 'Failed to update user profile' });
+
+    return res.status(200).json({ message: 'Logout successful' });
+  } catch (error: any) {
+    console.error('Exception in logout:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
