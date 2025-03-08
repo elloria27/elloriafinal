@@ -6,7 +6,7 @@ import { parseProduct } from '../../utils/supabase-helpers';
 const router = express.Router();
 
 // GET all products
-router.get('/products', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('API: Fetching all products');
     const { data, error } = await supabase
@@ -29,7 +29,7 @@ router.get('/products', async (req: Request, res: Response) => {
 });
 
 // GET product by slug
-router.get('/products/:slug', async (req: Request, res: Response) => {
+router.get('/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     console.log(`API: Fetching product with slug: ${slug}`);
