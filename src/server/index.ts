@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { json, urlencoded } from 'body-parser';
 import { supabase } from '../integrations/supabase/client';
+import productRouter from './routes/product-router';
 
 // Initialize express app
 const app = express();
@@ -18,20 +19,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is up and running' });
 });
 
-// Example route that uses Supabase for data fetching (bridge during migration)
-app.get('/api/products', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*');
-    
-    if (error) throw error;
-    
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
+// Register routers
+app.use('/api', productRouter);
+
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Start the server only if this file is run directly
