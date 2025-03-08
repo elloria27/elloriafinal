@@ -1,74 +1,84 @@
 
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User, UserRole, UserWithRole } from '../models/user';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // In production, always use env variable
+// JWT Secret from environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-replace-in-production';
 
-export interface JwtPayload {
+// Type definition for JWT payload
+interface JWTPayload {
   userId: string;
   email: string;
   role: UserRole;
-  full_name?: string;
 }
 
 // Generate JWT token
-export const generateToken = (user: UserWithRole): string => {
-  const payload: JwtPayload = {
+export const generateJWT = (user: UserWithRole): string => {
+  const payload: JWTPayload = {
     userId: user.id,
     email: user.email,
-    role: user.role || 'client',
-    full_name: user.full_name
+    role: user.role,
   };
 
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };
 
-// Alias for compatibility with existing code
-export const generateJWT = generateToken;
-
 // Verify JWT token
-export const verifyToken = (token: string): JwtPayload | null => {
+export const verifyJWT = (token: string): JWTPayload => {
   try {
-    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
   } catch (error) {
-    console.error('Token verification failed:', error);
-    return null;
+    throw new Error('Invalid token');
   }
 };
 
-// Alias for compatibility with existing code
-export const verifyJWT = verifyToken;
-
-// Middleware to check if user is authenticated
-export const requireAuth = (req: any, res: any, next: any) => {
+// Middleware to require authentication
+export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
   try {
+    // Get authorization header
     const authHeader = req.headers.authorization;
-    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
-    
+
+    // Extract token
     const token = authHeader.split(' ')[1];
-    const payload = verifyToken(token);
-    
-    if (!payload) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
+
+    // Verify token
+    const decoded = verifyJWT(token);
     
-    // Add user info to request object
-    req.user = payload;
+    // Attach user info to request object
+    (req as any).user = decoded;
+    
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Auth error:', error);
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 
-// Middleware to check if user has admin role
-export const requireAdmin = (req: any, res: any, next: any) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    return res.status(403).json({ error: 'Access denied: Admin privileges required' });
+// Check if user has admin role
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    // First check if user is authenticated
+    requireAuth(req, res, () => {
+      // Check if user has admin role
+      const user = (req as any).user;
+      if (user.role !== 'admin') {
+        res.status(403).json({ error: 'Admin access required' });
+        return;
+      }
+      
+      next();
+    });
+  } catch (error) {
+    console.error('Admin auth error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
   }
 };

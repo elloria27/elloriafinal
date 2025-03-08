@@ -6,127 +6,79 @@ interface EmailOptions {
   to: string[];
   subject: string;
   html: string;
-  attachments?: {
-    filename: string;
-    content: string;
-  }[];
+  attachments?: any[];
 }
 
-// Create a transporter using environment variables
+// Create reusable transporter using SMTP or other transport methods
 const createTransporter = () => {
-  // For development, we can use a service like Mailtrap
-  // In production, use your actual SMTP settings
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
-    port: parseInt(process.env.SMTP_PORT || '2525'),
+    host: process.env.SMTP_HOST || 'smtp.example.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASSWORD || '',
+      user: process.env.SMTP_USERNAME || 'user@example.com',
+      pass: process.env.SMTP_PASSWORD || 'password',
     },
   });
 };
 
-export const sendEmail = async (options: EmailOptions): Promise<any> => {
+export const sendEmail = async (options: EmailOptions): Promise<void> => {
   try {
+    // Create transporter
     const transporter = createTransporter();
-    
-    const mailOptions = {
+
+    // Send email
+    await transporter.sendMail({
       from: options.from,
       to: options.to.join(','),
       subject: options.subject,
       html: options.html,
       attachments: options.attachments,
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
-    return info;
+    });
+
+    console.log('Email sent successfully');
   } catch (error) {
     console.error('Error sending email:', error);
     throw error;
   }
 };
 
-interface OrderEmailOptions {
-  customerEmail: string;
-  customerName: string;
-  orderId: string;
-  items: any[];
-  total: number;
-  shippingAddress: {
-    address: string;
-    region: string;
-    country: string;
-  };
-}
-
-export const sendOrderEmails = async (options: OrderEmailOptions): Promise<{ success: boolean; error?: any }> => {
+// Function to send order emails (confirmation, etc.)
+export const sendOrderEmails = async (
+  orderDetails: any,
+  customerEmail: string,
+  adminEmails: string[] = ['admin@yourdomain.com']
+): Promise<void> => {
   try {
-    // Generate order confirmation email
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #333;">Order Confirmation</h1>
-        <p>Dear ${options.customerName},</p>
-        <p>Thank you for your order! We're excited to confirm that we've received your order #${options.orderId}.</p>
-        
-        <h2 style="color: #333; margin-top: 30px;">Order Summary</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background-color: #f3f3f3;">
-              <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Product</th>
-              <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Qty</th>
-              <th style="padding: 10px; text-align: right; border: 1px solid #ddd;">Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${options.items.map(item => `
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
-                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">${item.quantity}</td>
-                <td style="padding: 10px; text-align: right; border: 1px solid #ddd;">$${(item.price * item.quantity).toFixed(2)}</td>
-              </tr>
-            `).join('')}
-            <tr>
-              <td colspan="2" style="padding: 10px; text-align: right; border: 1px solid #ddd;"><strong>Total:</strong></td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #ddd;"><strong>$${options.total.toFixed(2)}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <h2 style="color: #333; margin-top: 30px;">Shipping Address</h2>
-        <p>
-          ${options.shippingAddress.address}<br>
-          ${options.shippingAddress.region}<br>
-          ${options.shippingAddress.country}
-        </p>
-        
-        <p style="margin-top: 30px;">
-          We'll send you another email when your order ships. If you have any questions, please don't hesitate to contact us.
-        </p>
-        
-        <p>Thank you for shopping with us!</p>
-      </div>
-    `;
-    
-    // Send email to customer
+    // Send customer order confirmation
     await sendEmail({
-      from: 'noreply@yourdomain.com',
-      to: [options.customerEmail],
-      subject: `Order Confirmation #${options.orderId}`,
-      html: htmlContent,
+      from: 'orders@yourdomain.com',
+      to: [customerEmail],
+      subject: `Order Confirmation #${orderDetails.orderId}`,
+      html: `
+        <h2>Thank you for your order!</h2>
+        <p>We're processing your order #${orderDetails.orderId}.</p>
+        <p>You'll receive another notification when your order ships.</p>
+      `,
     });
-    
-    // You could also send a notification to your team
-    // await sendEmail({
-    //   from: 'orders@yourdomain.com',
-    //   to: ['admin@yourdomain.com'],
-    //   subject: `New Order #${options.orderId}`,
-    //   html: `New order received from ${options.customerName} for $${options.total.toFixed(2)}.`,
-    // });
-    
-    return { success: true };
+
+    // Send admin notification
+    await sendEmail({
+      from: 'orders@yourdomain.com',
+      to: adminEmails,
+      subject: `New Order #${orderDetails.orderId}`,
+      html: `
+        <h2>New Order Received</h2>
+        <p>Order ID: ${orderDetails.orderId}</p>
+        <p>Customer: ${orderDetails.customerName}</p>
+        <p>Email: ${customerEmail}</p>
+        <p>Total: ${orderDetails.total}</p>
+      `,
+    });
+
+    console.log('Order emails sent successfully');
   } catch (error) {
     console.error('Error sending order emails:', error);
-    return { success: false, error };
+    throw error;
   }
 };

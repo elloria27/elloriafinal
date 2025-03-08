@@ -2,7 +2,18 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import countries from "@/utils/locationData";
+import { CANADIAN_TAX_RATES, US_TAX_RATES } from "@/utils/locationData";
+
+// Create a list of countries for the dropdown
+const countries = [
+  { code: "CA", name: "Canada" },
+  { code: "US", name: "United States" },
+  { code: "UK", name: "United Kingdom" },
+  { code: "AU", name: "Australia" },
+  { code: "DE", name: "Germany" },
+  { code: "FR", name: "France" },
+  { code: "JP", name: "Japan" }
+];
 
 interface LocationFormProps {
   country: string;
