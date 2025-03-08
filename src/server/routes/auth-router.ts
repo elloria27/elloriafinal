@@ -1,153 +1,147 @@
 
 import express from 'express';
-import { generateToken } from '../utils/auth-utils';
-import { parseUser, User } from '../models/user';
-import { supabase } from '../../integrations/supabase/client';
+import { Request, Response } from 'express';
+import { User } from '../models/user';
+import { generateJWT, verifyJWT } from '../utils/auth-utils';
 
 const router = express.Router();
 
-// User registration
-router.post('/signup', async (req, res) => {
+// Sign up - Register a new user
+router.post('/signup', async (req: Request, res: Response) => {
   try {
     const { email, password, full_name } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
+
+    // Check if user already exists
+    const existingUser = await User.findByEmail(email);
     
-    const { data, error } = await supabase.auth.signUp({
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Create a new user
+    const newUser = await User.create({
       email,
-      password,
-      options: {
-        data: {
-          full_name
-        }
-      }
+      password, // Will be hashed in the model
+      full_name: full_name || null,
+      role: 'customer',
+      email_confirmed: true // For simplicity in this example; in production, implement email verification
     });
 
-    if (error) {
-      console.error('Error during signup:', error);
-      return res.status(400).json({ error: error.message });
-    }
-    
-    return res.status(200).json({ 
-      message: 'Signup successful',
-      user: data.user
-    });
-  } catch (error: any) {
-    console.error('Server error during signup:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
+    // Generate JWT token
+    const token = generateJWT(newUser);
 
-// User login
-router.post('/signin', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      console.error('Error during signin:', error);
-      return res.status(400).json({ error: error.message });
-    }
-    
-    // Get user role
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', data.user.id)
-      .maybeSingle();
-
-    if (roleError) {
-      console.error('Error fetching role:', roleError);
-      return res.status(400).json({ error: 'Error fetching user role' });
-    }
-
-    const role = roleData?.role || 'client';
-    
-    // Generate custom JWT token with user info
-    const user: User = parseUser(data.user);
-    const token = generateToken({ ...user, role });
-    
-    return res.status(200).json({ 
-      message: 'Signin successful',
+    return res.status(201).json({
+      message: 'User created successfully',
       token,
       user: {
-        ...user,
-        role
-      }
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        full_name: newUser.full_name,
+      },
     });
-  } catch (error: any) {
-    console.error('Server error during signin:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+  } catch (error) {
+    console.error('Error in sign up:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
-// User logout
-router.post('/signout', async (req, res) => {
+// Sign in - Log in an existing user
+router.post('/signin', async (req: Request, res: Response) => {
   try {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error('Error during signout:', error);
-      return res.status(400).json({ error: error.message });
-    }
-    
-    return res.status(200).json({ message: 'Signout successful' });
-  } catch (error: any) {
-    console.error('Server error during signout:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
+    const { email, password } = req.body;
 
-// Get user by JWT token
-router.get('/user', async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-    
-    const { data, error } = await supabase.auth.getUser(token);
-    
-    if (error) {
-      console.error('Error getting user:', error);
-      return res.status(401).json({ error: error.message });
-    }
-    
-    // Get user role
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', data.user.id)
-      .maybeSingle();
-
-    if (roleError) {
-      console.error('Error fetching role:', roleError);
-      return res.status(400).json({ error: 'Error fetching user role' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const role = roleData?.role || 'client';
+    // Find user by email
+    const user = await User.findByEmail(email);
     
-    return res.status(200).json({ 
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid login credentials' });
+    }
+
+    // Validate password
+    const isPasswordValid = await User.validatePassword(user.id, password);
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid login credentials' });
+    }
+
+    // Check if email is confirmed (if we implement email verification)
+    if (!user.email_confirmed) {
+      return res.status(401).json({ error: 'Email not confirmed' });
+    }
+
+    // Generate JWT token
+    const token = generateJWT(user);
+
+    return res.status(200).json({
+      message: 'Login successful',
+      token,
       user: {
-        ...data.user,
-        role
-      }
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        full_name: user.full_name,
+      },
     });
-  } catch (error: any) {
-    console.error('Server error getting user:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+  } catch (error) {
+    console.error('Error in sign in:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
+});
+
+// Get current user info
+router.get('/user', async (req: Request, res: Response) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    
+    // Verify token
+    const payload = verifyJWT(token);
+    
+    if (!payload || !payload.id) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    // Get user from database
+    const user = await User.findById(payload.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        full_name: user.full_name,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Sign out - Log out a user
+router.post('/signout', async (req: Request, res: Response) => {
+  // With JWT, the client simply discards the token
+  // Server-side we don't need to do anything special
+  return res.status(200).json({ message: 'Logged out successfully' });
 });
 
 export default router;

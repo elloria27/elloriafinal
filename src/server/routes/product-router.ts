@@ -1,56 +1,45 @@
 
 import express from 'express';
-import { supabase } from '../../integrations/supabase/client';
-import { parseProduct } from '../models/product';
+import { Request, Response } from 'express';
+import { Product } from '../models/product';
 
 const router = express.Router();
 
-// GET all products
-router.get('/', async (req, res) => {
+// Get all products
+router.get('/', async (req: Request, res: Response) => {
   try {
-    console.log('API: Fetching all products');
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const products = await Product.findAll();
     
-    if (error) {
-      console.error('Error fetching products:', error);
-      return res.status(500).json({ error: 'Failed to fetch products' });
+    if (!products || products.length === 0) {
+      return res.status(200).json([]);
     }
     
-    const products = data.map(parseProduct);
-    console.log(`API: Successfully fetched ${products.length} products`);
-    return res.json(products);
+    return res.status(200).json(products);
   } catch (error) {
-    console.error('Server error fetching products:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Error fetching products:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
-// GET product by slug
-router.get('/:slug', async (req, res) => {
+// Get product by slug
+router.get('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
   try {
     const { slug } = req.params;
-    console.log(`API: Fetching product with slug: ${slug}`);
     
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    if (!slug) {
+      return res.status(400).json({ error: 'Product slug is required' });
+    }
     
-    if (error) {
-      console.error(`Error fetching product with slug ${slug}:`, error);
+    const product = await Product.findBySlug(slug);
+    
+    if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    const product = parseProduct(data);
-    console.log(`API: Successfully fetched product: ${product.name}`);
-    return res.json(product);
+    return res.status(200).json(product);
   } catch (error) {
-    console.error('Server error fetching product by slug:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(`Error fetching product with slug ${req.params.slug}:`, error);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 

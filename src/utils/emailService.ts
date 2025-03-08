@@ -1,44 +1,48 @@
-import { CartItem } from '@/types/cart';
 
-export const sendOrderEmails = async ({
-  customerEmail,
-  customerName,
-  orderId,
-  items,
-  total,
-  shippingAddress,
-}: {
-  customerEmail: string;
-  customerName: string;
-  orderId: string;
-  items: CartItem[];
-  total: number;
-  shippingAddress: {
-    address: string;
-    region: string;
-    country: string;
-  };
-}) => {
-  // Logic to send order confirmation email
-  const emailContent = `
-    <h1>Thank you for your order, ${customerName}!</h1>
-    <p>Your order ID is: ${orderId}</p>
-    <h2>Order Summary</h2>
-    <ul>
-      ${items.map(item => `<li>${item.name} - ${item.quantity} x ${item.price}</li>`).join('')}
-    </ul>
-    <p>Total: ${total}</p>
-    <h3>Shipping Address</h3>
-    <p>${shippingAddress.address}, ${shippingAddress.region}, ${shippingAddress.country}</p>
-  `;
+import nodemailer from 'nodemailer';
 
-  // Send email logic here (e.g., using an email service API)
+interface EmailOptions {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  attachments?: {
+    filename: string;
+    content: string;
+  }[];
+}
+
+// Create a transporter using environment variables
+const createTransporter = () => {
+  // For development, we can use a service like Mailtrap
+  // In production, use your actual SMTP settings
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
+    port: parseInt(process.env.SMTP_PORT || '2525'),
+    auth: {
+      user: process.env.SMTP_USER || '',
+      pass: process.env.SMTP_PASSWORD || '',
+    },
+  });
+};
+
+export const sendEmail = async (options: EmailOptions): Promise<any> => {
   try {
-    // Example: await emailService.sendEmail(customerEmail, emailContent);
-    console.log(`Email sent to ${customerEmail}`);
-    return { success: true };
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: options.from,
+      to: options.to.join(','),
+      subject: options.subject,
+      html: options.html,
+      attachments: options.attachments,
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.messageId);
+    return info;
   } catch (error) {
     console.error('Error sending email:', error);
-    return { error: 'Failed to send email' };
+    throw error;
   }
 };
