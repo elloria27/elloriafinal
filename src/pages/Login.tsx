@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -6,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,37 +30,38 @@ const Login = () => {
   useEffect(() => {
     const checkSession = async () => {
       console.log("Checking session...");
-      const { data: { session } } = await supabase.auth.getSession();
+      const token = localStorage.getItem('authToken');
       
-      if (session) {
-        console.log("Session found, checking user role");
+      if (token) {
         try {
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (roleError) {
-            console.error("Error fetching role:", roleError);
-            return;
-          }
-
-          if (!roleData) {
-            console.log("No role found for user");
-            return;
-          }
-
-          console.log("User role:", roleData.role);
-          const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
-          
-          toast.success("Welcome back!", {
-            description: "You've been successfully logged in"
+          const response = await fetch('/api/auth/user', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           });
           
-          navigate(redirectPath);
+          if (!response.ok) {
+            console.log('Session expired or invalid');
+            localStorage.removeItem('authToken');
+            return;
+          }
+          
+          const data = await response.json();
+          console.log("User data:", data.user);
+          
+          if (data.user) {
+            console.log("User role:", data.user.role);
+            const redirectPath = data.user.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+            
+            toast.success("Welcome back!", {
+              description: "You've been successfully logged in"
+            });
+            
+            navigate(redirectPath);
+          }
         } catch (error) {
-          console.error("Error in role check:", error);
+          console.error("Error in session check:", error);
+          localStorage.removeItem('authToken');
         }
       }
     };
@@ -75,57 +75,44 @@ const Login = () => {
     
     try {
       console.log("Attempting login with email:", email);
-      const { data: { session }, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        })
       });
 
-      if (error) throw error;
-
-      if (!session) {
-        console.error("No session after successful login");
-        throw new Error("Login successful but no session created");
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
       }
 
-      console.log("Login successful, checking user role");
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (roleError) {
-        console.error("Error fetching role:", roleError);
-        throw roleError;
-      }
-
-      if (!roleData) {
-        console.log("No role found for user");
-        toast.error("Account setup incomplete", {
-          description: "Please contact support to complete your account setup"
-        });
-        return;
-      }
-
-      console.log("User role:", roleData.role);
-      const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+      // Store the token
+      localStorage.setItem('authToken', data.token);
+      
+      console.log("Login successful, user role:", data.user.role);
+      const redirectPath = data.user.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
       toast.success("Welcome back!", {
         description: "You've been successfully logged in"
       });
       
       navigate(redirectPath);
-    } catch (error) {
-      const authError = error as AuthError;
-      console.error("Login error:", authError);
+    } catch (error: any) {
+      console.error("Login error:", error);
       
       let errorMessage = "Failed to sign in";
       let description = "Please check your credentials and try again";
       
-      if (authError.message.includes("Invalid login credentials")) {
+      if (error.message.includes("Invalid login credentials")) {
         errorMessage = "Invalid credentials";
         description = "The email or password you entered is incorrect";
-      } else if (authError.message.includes("Email not confirmed")) {
+      } else if (error.message.includes("Email not confirmed")) {
         errorMessage = "Email not verified";
         description = "Please check your email to verify your account";
       }

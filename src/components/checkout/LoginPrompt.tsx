@@ -1,9 +1,9 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LogIn, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 export const LoginPrompt = () => {
   const [isGuest, setIsGuest] = useState(false);
@@ -13,39 +13,49 @@ export const LoginPrompt = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (!error && data) {
-      setProfile(data);
+    // Check for authentication token
+    const token = localStorage.getItem('authToken');
+    
+    if (token) {
+      // Fetch user data using the token
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch('/api/auth/user', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (!response.ok) {
+            // Token invalid or expired
+            localStorage.removeItem('authToken');
+            return;
+          }
+          
+          const data = await response.json();
+          if (data.user) {
+            setUser(data.user);
+            
+            // Fetch profile data
+            const profileResponse = await fetch('/api/profiles/' + data.user.id, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }).catch(() => null);
+            
+            if (profileResponse && profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              setProfile(profileData);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+      
+      fetchUserData();
     }
-  };
+  }, []);
 
   // If user is authenticated, show welcome message
   if (user) {

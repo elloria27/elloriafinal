@@ -30,7 +30,7 @@ export const parseUser = (data: any): User => {
   return {
     id: data.id,
     email: data.email,
-    full_name: data.full_name,
+    full_name: data.user_metadata?.full_name || data.raw_user_meta_data?.full_name || '',
     phone_number: data.phone_number,
     address: data.address,
     country: data.country,
