@@ -1,27 +1,30 @@
+
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
 
 interface ProfileActionsProps {
   hasChanges: boolean;
   isSaving: boolean;
   onSave: () => void;
+  user?: any;
 }
 
 export const ProfileActions = ({
   hasChanges,
   isSaving,
-  onSave
+  onSave,
+  user
 }: ProfileActionsProps) => {
   return (
-    <div className="pt-6 border-t">
-      <Button 
+    <div className="flex justify-end mt-6">
+      <Button
+        type="button"
         onClick={onSave}
         disabled={!hasChanges || isSaving}
-        className="w-full"
+        className="w-full sm:w-auto"
       >
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? "Saving Changes..." : "Save Changes"}
+        {isSaving ? 'Saving...' : 'Save Changes'}
       </Button>
     </div>
   );
 };
+

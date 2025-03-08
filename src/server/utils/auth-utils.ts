@@ -1,6 +1,6 @@
 
 import jwt from 'jsonwebtoken';
-import { User, UserRole } from '../models/user';
+import { User, UserRole, UserWithRole } from '../models/user';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // In production, always use env variable
 
@@ -12,7 +12,7 @@ export interface JwtPayload {
 }
 
 // Generate JWT token
-export const generateToken = (user: User & { role: UserRole }): string => {
+export const generateToken = (user: UserWithRole): string => {
   const payload: JwtPayload = {
     userId: user.id,
     email: user.email,

@@ -4,13 +4,12 @@ import { Product } from '../models/product';
 
 const router = express.Router();
 
-// Sample product data (in production, use a real database)
+// Sample product data (in production, use a database)
 const products: Product[] = [];
 
-// Get all products endpoint
-router.get('/', async (req: Request, res: Response) => {
+// Get all products
+router.get('/products', async (req: Request, res: Response) => {
   try {
-    // In a real implementation, you would fetch products from a database
     return res.status(200).json({ products });
   } catch (error) {
     console.error('Get products error:', error);
@@ -18,13 +17,11 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get product by slug endpoint
-router.get('/:slug', async (req: Request<{ slug: string }>, res: Response) => {
+// Get product by slug
+router.get('/products/:slug', async (req: Request<{ slug: string }>, res: Response) => {
   try {
     const { slug } = req.params;
-    
-    // Find product by slug
-    const product = products.find(product => product.slug === slug);
+    const product = products.find(p => p.slug === slug);
     
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });

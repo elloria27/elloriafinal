@@ -3,6 +3,9 @@
 export interface User {
   id: string;
   email: string;
+  password: string; // Added password field
+  first_name?: string;
+  last_name?: string;
   full_name?: string;
   phone_number?: string;
   address?: string;
@@ -30,6 +33,9 @@ export const parseUser = (data: any): User => {
   return {
     id: data.id,
     email: data.email,
+    password: data.password,
+    first_name: data.first_name || data.user_metadata?.first_name || data.raw_user_meta_data?.first_name || '',
+    last_name: data.last_name || data.user_metadata?.last_name || data.raw_user_meta_data?.last_name || '',
     full_name: data.user_metadata?.full_name || data.raw_user_meta_data?.full_name || '',
     phone_number: data.phone_number,
     address: data.address,

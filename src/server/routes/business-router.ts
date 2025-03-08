@@ -1,84 +1,69 @@
 
 import express, { Request, Response } from 'express';
-import { sendBusinessInquiryEmail } from '../utils/emailService';
+import { sendEmail } from '../utils/emailService';
 
 const router = express.Router();
 
-// Business inquiry endpoint
-router.post('/inquiries', async (req: Request, res: Response) => {
+// Handle business inquiry submissions
+router.post('/business-inquiry', async (req: Request, res: Response) => {
   try {
-    const { name, email, company, phone, inquiryType, message } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !message) {
-      return res.status(400).json({ error: 'Name, email, and message are required' });
+    const { fullName, email, companyName, inquiryType, message } = req.body;
+    
+    if (!fullName || !email || !message) {
+      return res.status(400).json({ error: 'Required fields are missing' });
     }
-
-    // Send business inquiry email
-    await sendBusinessInquiryEmail(
-      name,
-      email,
-      company || 'Not provided',
-      phone || 'Not provided',
-      inquiryType || 'General Inquiry',
-      message
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: 'Business inquiry submitted successfully'
+    
+    // Send email notification
+    await sendEmail({
+      from: 'noreply@yourdomain.com',
+      to: ['admin@yourdomain.com'],
+      subject: `New Business Inquiry: ${inquiryType || 'General'}`,
+      html: `
+        <h2>New Business Inquiry</h2>
+        <p><strong>Name:</strong> ${fullName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${companyName || 'Not provided'}</p>
+        <p><strong>Inquiry Type:</strong> ${inquiryType || 'General'}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `,
     });
+    
+    return res.status(200).json({ success: true, message: 'Your inquiry has been received.' });
   } catch (error) {
     console.error('Business inquiry error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to submit business inquiry'
-    });
+    return res.status(500).json({ error: 'Failed to submit business inquiry' });
   }
 });
 
-// Sustainability program registration endpoint
+// Handle sustainability program registrations
 router.post('/sustainability-registration', async (req: Request, res: Response) => {
   try {
-    const { 
-      name, 
-      email, 
-      company, 
-      phone, 
-      businessType,
-      materialInterest,
-      heardFrom,
-      message 
-    } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !company) {
-      return res.status(400).json({ error: 'Name, email, and company are required' });
+    const { fullName, email, companyName, message } = req.body;
+    
+    if (!fullName || !email) {
+      return res.status(400).json({ error: 'Required fields are missing' });
     }
-
-    // In a real implementation, you would send this to your email service
-    // For now, we'll just log it and return success
-    console.log('Sustainability registration:', {
-      name,
-      email,
-      company,
-      phone,
-      businessType,
-      materialInterest,
-      heardFrom,
-      message
+    
+    // Send email notification
+    await sendEmail({
+      from: 'sustainability@yourdomain.com',
+      to: ['admin@yourdomain.com'],
+      subject: 'New Sustainability Program Registration',
+      html: `
+        <h2>New Sustainability Program Registration</h2>
+        <p><strong>Name:</strong> ${fullName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Company:</strong> ${companyName || 'Not provided'}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message || 'No message provided'}</p>
+      `,
     });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Sustainability program registration submitted successfully'
-    });
+    
+    return res.status(200).json({ success: true, message: 'Your registration has been received.' });
   } catch (error) {
     console.error('Sustainability registration error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to submit sustainability program registration'
-    });
+    return res.status(500).json({ error: 'Failed to submit registration' });
   }
 });
 

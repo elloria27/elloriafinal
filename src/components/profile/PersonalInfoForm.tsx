@@ -1,18 +1,19 @@
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface PersonalInfoFormProps {
   firstName: string;
   setFirstName: (value: string) => void;
   lastName: string;
   setLastName: (value: string) => void;
-  email: string | null;
+  email?: string | null;
   phoneNumber: string;
   setPhoneNumber: (value: string) => void;
   address: string;
   setAddress: (value: string) => void;
   loading: boolean;
-  onFormChange?: (field: string, value: string) => void;
+  user?: any;
 }
 
 export const PersonalInfoForm = ({
@@ -26,85 +27,73 @@ export const PersonalInfoForm = ({
   address,
   setAddress,
   loading,
-  onFormChange
+  user
 }: PersonalInfoFormProps) => {
-  const handleInputChange = (field: string, value: string) => {
-    if (onFormChange) {
-      onFormChange(field, value);
-    }
-  };
+  // Use values from user object if props are not provided
+  const effectiveFirstName = firstName || (user?.first_name || user?.firstName || '');
+  const effectiveLastName = lastName || (user?.last_name || user?.lastName || '');
+  const effectiveEmail = email || user?.email || null;
+  const effectivePhoneNumber = phoneNumber || (user?.phone_number || user?.phoneNumber || '');
+  const effectiveAddress = address || (user?.address || '');
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <div className="space-y-2">
-        <Label htmlFor="firstName">First Name</Label>
-        <Input
-          id="firstName"
-          type="text"
-          value={firstName}
-          onChange={(e) => {
-            const newFirstName = e.target.value;
-            setFirstName(newFirstName);
-            const newFullName = `${newFirstName} ${lastName}`.trim();
-            handleInputChange('full_name', newFullName);
-          }}
-          disabled={loading}
-        />
+    <div className="space-y-4">
+      <h2 className="text-xl font-medium text-gray-800">Personal Information</h2>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            placeholder="Enter your first name"
+            value={effectiveFirstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            disabled={loading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            placeholder="Enter your last name"
+            value={effectiveLastName}
+            onChange={(e) => setLastName(e.target.value)}
+            disabled={loading}
+          />
+        </div>
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="lastName">Last Name</Label>
-        <Input
-          id="lastName"
-          type="text"
-          value={lastName}
-          onChange={(e) => {
-            const newLastName = e.target.value;
-            setLastName(newLastName);
-            const newFullName = `${firstName} ${newLastName}`.trim();
-            handleInputChange('full_name', newFullName);
-          }}
-          disabled={loading}
-        />
-      </div>
-
+      
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
-          value={email || ''}
+          value={effectiveEmail || ''}
           disabled
-          className="bg-gray-50"
+          className="bg-gray-100"
         />
+        <p className="text-sm text-gray-500">Email address cannot be changed</p>
       </div>
-
+      
       <div className="space-y-2">
         <Label htmlFor="phoneNumber">Phone Number</Label>
         <Input
           id="phoneNumber"
-          type="tel"
-          value={phoneNumber}
-          onChange={(e) => {
-            const value = e.target.value;
-            setPhoneNumber(value);
-            handleInputChange('phone_number', value);
-          }}
+          placeholder="Enter your phone number"
+          value={effectivePhoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
           disabled={loading}
         />
       </div>
-
+      
       <div className="space-y-2">
         <Label htmlFor="address">Address</Label>
         <Input
           id="address"
-          type="text"
-          value={address}
-          onChange={(e) => {
-            const value = e.target.value;
-            setAddress(value);
-            handleInputChange('address', value);
-          }}
+          placeholder="Enter your address"
+          value={effectiveAddress}
+          onChange={(e) => setAddress(e.target.value)}
           disabled={loading}
         />
       </div>

@@ -55,6 +55,7 @@
     "@types/react-datepicker": "^7.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@xyflow/react": "^12.4.2",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -90,6 +91,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.172.0",
+    "uuid": "^11.1.0",
     "vaul": "^0.9.3",
     "zod": "^3.23.8"
   },

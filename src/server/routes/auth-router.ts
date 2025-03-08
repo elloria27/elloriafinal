@@ -3,12 +3,12 @@ import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { generateJWT, verifyJWT, requireAuth } from '../utils/auth-utils';
-import { User, UserRole } from '../models/user';
+import { User, UserRole, UserWithRole } from '../models/user';
 
 const router = express.Router();
 
 // Sample in-memory user storage (in production, use a real database)
-const users: User[] = [];
+const users: UserWithRole[] = [];
 
 // Register endpoint
 router.post('/register', async (req: Request, res: Response) => {
@@ -30,7 +30,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create new user
-    const newUser: User = {
+    const newUser: UserWithRole = {
       id: uuidv4(),
       email,
       password: hashedPassword,
