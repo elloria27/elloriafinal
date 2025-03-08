@@ -1,290 +1,355 @@
 
-import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
 
-interface EmailOptions {
-  from: string;
-  to: string[];
-  subject: string;
-  html: string;
-  attachments?: any[];
-  cc?: string[];
-  bcc?: string[];
-  replyTo?: string;
+// Email service types
+export interface EmailRecipient {
+  email: string;
+  name?: string;
 }
 
-// Створення транспортера для SMTP або інших методів відправки
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.example.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USERNAME || 'user@example.com',
-      pass: process.env.SMTP_PASSWORD || 'password',
+export interface EmailAttachment {
+  filename: string;
+  content: string; // Base64 content
+}
+
+export interface EmailOptions {
+  from?: string;
+  to: EmailRecipient[];
+  cc?: EmailRecipient[];
+  bcc?: EmailRecipient[];
+  subject: string;
+  html: string;
+  attachments?: EmailAttachment[];
+  lang?: 'en' | 'uk';
+}
+
+export interface OrderStatusEmailParams {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  newStatus: string;
+  orderItems?: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+  orderTotal?: number;
+  currency?: string;
+}
+
+export interface ShipmentNotificationParams {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  trackingNumber: string;
+  trackingUrl?: string;
+  estimatedDelivery?: string;
+  carrier?: string;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+// Localized strings for emails
+const translations = {
+  orderStatus: {
+    en: {
+      subject: 'Order Status Update - Order #',
+      heading: 'Order Status Update',
+      greeting: 'Dear',
+      statusText: 'The status of your order #',
+      statusChanged: 'has been changed to:',
+      orderDetails: 'Your Order',
+      item: 'Item',
+      quantity: 'Quantity',
+      price: 'Price',
+      total: 'Total',
+      questions: 'If you have any questions about your order, please contact our support at',
+      thanks: 'Thank you for choosing',
     },
-  });
-};
-
-/**
- * Відправляє електронний лист з вказаними параметрами
- * @param options Параметри електронного листа
- */
-export const sendEmail = async (options: EmailOptions): Promise<void> => {
-  try {
-    // Створення транспортера
-    const transporter = createTransporter();
-
-    // Відправка листа
-    await transporter.sendMail({
-      from: options.from,
-      to: options.to.join(','),
-      cc: options.cc?.join(','),
-      bcc: options.bcc?.join(','),
-      replyTo: options.replyTo,
-      subject: options.subject,
-      html: options.html,
-      attachments: options.attachments,
-    });
-
-    console.log('Електронний лист успішно відправлено');
-  } catch (error) {
-    console.error('Помилка відправки електронного листа:', error);
-    throw error;
-  }
-};
-
-/**
- * Відправляє електронні листи для замовлень (підтвердження тощо)
- * @param orderDetails Деталі замовлення
- * @param customerEmail Email клієнта
- * @param adminEmails Список email адміністраторів
- */
-export const sendOrderEmails = async (
-  orderDetails: any,
-  customerEmail: string,
-  adminEmails: string[] = ['admin@yourdomain.com']
-): Promise<void> => {
-  try {
-    // Створюємо локалізовані шаблони
-    const locale = orderDetails.locale || 'uk'; // Встановлюємо українську як мову за замовчуванням
-    
-    const translations = {
-      uk: {
-        customerSubject: `Підтвердження замовлення #${orderDetails.orderId}`,
-        customerTitle: 'Дякуємо за ваше замовлення!',
-        customerProcessing: `Ми обробляємо ваше замовлення #${orderDetails.orderId}.`,
-        customerNotification: 'Ви отримаєте інше повідомлення, коли ваше замовлення буде відправлено.',
-        adminSubject: `Нове замовлення #${orderDetails.orderId}`,
-        adminTitle: 'Отримано нове замовлення',
-        adminOrderId: 'ID замовлення:',
-        adminCustomer: 'Клієнт:',
-        adminEmail: 'Email:',
-        adminTotal: 'Загальна сума:',
-        success: 'Електронні листи про замовлення успішно відправлено'
-      },
-      en: {
-        customerSubject: `Order Confirmation #${orderDetails.orderId}`,
-        customerTitle: 'Thank you for your order!',
-        customerProcessing: `We're processing your order #${orderDetails.orderId}.`,
-        customerNotification: 'You'll receive another notification when your order ships.',
-        adminSubject: `New Order #${orderDetails.orderId}`,
-        adminTitle: 'New Order Received',
-        adminOrderId: 'Order ID:',
-        adminCustomer: 'Customer:',
-        adminEmail: 'Email:',
-        adminTotal: 'Total:',
-        success: 'Order emails sent successfully'
-      }
-    };
-    
-    const t = translations[locale as keyof typeof translations] || translations.en;
-
-    // Відправка підтвердження клієнту
-    await sendEmail({
-      from: 'orders@yourdomain.com',
-      to: [customerEmail],
-      subject: t.customerSubject,
-      html: `
-        <h2>${t.customerTitle}</h2>
-        <p>${t.customerProcessing}</p>
-        <p>${t.customerNotification}</p>
-      `,
-    });
-
-    // Відправка сповіщення адміністратору
-    await sendEmail({
-      from: 'orders@yourdomain.com',
-      to: adminEmails,
-      subject: t.adminSubject,
-      html: `
-        <h2>${t.adminTitle}</h2>
-        <p>${t.adminOrderId} ${orderDetails.orderId}</p>
-        <p>${t.adminCustomer} ${orderDetails.customerName}</p>
-        <p>${t.adminEmail} ${customerEmail}</p>
-        <p>${t.adminTotal} ${orderDetails.total}</p>
-      `,
-    });
-
-    console.log(t.success);
-  } catch (error) {
-    console.error('Помилка відправки листів про замовлення:', error);
-    throw error;
-  }
-};
-
-/**
- * Відправляє листи про оновлення статусу замовлення
- * @param orderDetails Деталі замовлення
- * @param newStatus Новий статус
- */
-export const sendOrderStatusUpdateEmails = async (
-  orderDetails: any,
-  newStatus: string
-): Promise<void> => {
-  try {
-    const locale = orderDetails.locale || 'uk';
-    
-    const statusTranslations = {
-      uk: {
-        pending: 'В очікуванні',
-        processing: 'В обробці',
-        shipped: 'Відправлено',
-        delivered: 'Доставлено',
-        cancelled: 'Скасовано'
-      },
-      en: {
-        pending: 'Pending',
-        processing: 'Processing',
-        shipped: 'Shipped',
-        delivered: 'Delivered',
-        cancelled: 'Cancelled'
-      }
-    };
-    
-    const translations = {
-      uk: {
-        subject: `Оновлення статусу замовлення #${orderDetails.orderId}`,
-        title: 'Оновлення статусу вашого замовлення',
-        status: 'Статус вашого замовлення оновлено:',
-        thanks: 'Дякуємо за ваше замовлення!',
-        questions: 'Якщо у вас виникли запитання, будь ласка, зв\'яжіться з нами.'
-      },
-      en: {
-        subject: `Order Status Update #${orderDetails.orderId}`,
-        title: 'Your Order Status Has Been Updated',
-        status: 'Your order status has been updated to:',
-        thanks: 'Thank you for your order!',
-        questions: 'If you have any questions, please contact us.'
-      }
-    };
-    
-    const t = translations[locale as keyof typeof translations] || translations.en;
-    const statusText = statusTranslations[locale as keyof typeof statusTranslations]?.[newStatus as keyof typeof statusTranslations.uk] || newStatus;
-
-    // Відправка оновлення статусу клієнту
-    await sendEmail({
-      from: 'orders@yourdomain.com',
-      to: [orderDetails.customerEmail],
-      subject: t.subject,
-      html: `
-        <h2>${t.title}</h2>
-        <p>${t.status} <strong>${statusText}</strong></p>
-        <p>${t.thanks}</p>
-        <p>${t.questions}</p>
-      `,
-    });
-
-    console.log(`Лист оновлення статусу замовлення успішно відправлено до ${orderDetails.customerEmail}`);
-  } catch (error) {
-    console.error('Помилка відправки листа оновлення статусу:', error);
-    throw error;
-  }
-};
-
-/**
- * Відправляє листи з повідомленням про поставку
- * @param orderDetails Деталі замовлення
- * @param trackingNumber Номер відстеження
- * @param shippingCarrier Перевізник
- */
-export const sendShipmentNotification = async (
-  orderDetails: any,
-  trackingNumber: string,
-  shippingCarrier: string
-): Promise<void> => {
-  try {
-    const locale = orderDetails.locale || 'uk';
-    
-    const translations = {
-      uk: {
-        subject: `Ваше замовлення #${orderDetails.orderId} відправлено`,
-        title: 'Ваше замовлення відправлено!',
-        shipped: 'Ми раді повідомити, що ваше замовлення було відправлено.',
-        tracking: 'Номер для відстеження:',
-        carrier: 'Перевізник:',
-        trackLink: 'Відстежити відправлення',
-        eta: 'Очікуваний час доставки:',
-        thanks: 'Дякуємо за вибір нашої компанії!',
-        support: 'Якщо у вас є запитання, будь ласка, зв\'яжіться з нашою службою підтримки.'
-      },
-      en: {
-        subject: `Your Order #${orderDetails.orderId} Has Shipped`,
-        title: 'Your Order Has Shipped!',
-        shipped: 'We're pleased to let you know that your order has been shipped.',
-        tracking: 'Tracking Number:',
-        carrier: 'Carrier:',
-        trackLink: 'Track Your Shipment',
-        eta: 'Estimated Delivery:',
-        thanks: 'Thank you for choosing our company!',
-        support: 'If you have any questions, please contact our customer support.'
-      }
-    };
-    
-    const t = translations[locale as keyof typeof translations] || translations.en;
-    
-    // Створення трекінгового посилання в залежності від перевізника
-    let trackingUrl = '#';
-    switch(shippingCarrier.toLowerCase()) {
-      case 'ups':
-        trackingUrl = `https://www.ups.com/track?tracknum=${trackingNumber}`;
-        break;
-      case 'fedex':
-        trackingUrl = `https://www.fedex.com/apps/fedextrack/?tracknumbers=${trackingNumber}`;
-        break;
-      case 'usps':
-        trackingUrl = `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`;
-        break;
-      case 'dhl':
-        trackingUrl = `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`;
-        break;
-      case 'canada post':
-      case 'canada':
-        trackingUrl = `https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${trackingNumber}`;
-        break;
-      default:
-        trackingUrl = '#';
+    uk: {
+      subject: 'Оновлення статусу замовлення - №',
+      heading: 'Оновлення Статусу Замовлення',
+      greeting: 'Шановний(а)',
+      statusText: 'Статус вашого замовлення №',
+      statusChanged: 'змінено на:',
+      orderDetails: 'Ваше Замовлення',
+      item: 'Товар',
+      quantity: 'Кількість',
+      price: 'Ціна',
+      total: 'Загальна сума:',
+      questions: 'Якщо у вас є запитання щодо замовлення, будь ласка, зв\'яжіться з нашою службою підтримки за адресою',
+      thanks: 'Дякуємо за вибір',
     }
-
-    // Відправка сповіщення про відправлення клієнту
-    await sendEmail({
-      from: 'shipping@yourdomain.com',
-      to: [orderDetails.customerEmail],
-      subject: t.subject,
-      html: `
-        <h2>${t.title}</h2>
-        <p>${t.shipped}</p>
-        <p><strong>${t.tracking}</strong> ${trackingNumber}</p>
-        <p><strong>${t.carrier}</strong> ${shippingCarrier}</p>
-        <p><a href="${trackingUrl}" target="_blank">${t.trackLink}</a></p>
-        ${orderDetails.estimatedDelivery ? `<p><strong>${t.eta}</strong> ${orderDetails.estimatedDelivery}</p>` : ''}
-        <p>${t.thanks}</p>
-        <p>${t.support}</p>
-      `,
-    });
-
-    console.log(`Лист з повідомленням про відправлення успішно надіслано до ${orderDetails.customerEmail}`);
-  } catch (error) {
-    console.error('Помилка відправки листа про відправлення:', error);
-    throw error;
+  },
+  shipment: {
+    en: {
+      subject: 'Your Order Has Been Shipped - Order #',
+      heading: 'Your Order Has Been Shipped',
+      greeting: 'Dear',
+      shipmentText: 'We are pleased to inform you that your order #',
+      hasBeenShipped: 'has been shipped.',
+      trackingInfo: 'Tracking Information',
+      trackingNumber: 'Tracking Number:',
+      carrier: 'Carrier:',
+      trackPackage: 'Track Your Package',
+      estimatedDelivery: 'Estimated Delivery:',
+      questions: 'If you have any questions about your shipment, please contact our support at',
+      thanks: 'Thank you for choosing',
+    },
+    uk: {
+      subject: 'Ваше замовлення відправлено - №',
+      heading: 'Ваше Замовлення Відправлено',
+      greeting: 'Шановний(а)',
+      shipmentText: 'Раді повідомити, що ваше замовлення №',
+      hasBeenShipped: 'було відправлено.',
+      trackingInfo: 'Інформація про Відстеження',
+      trackingNumber: 'Номер відстеження:',
+      carrier: 'Перевізник:',
+      trackPackage: 'Відстежити Посилку',
+      estimatedDelivery: 'Орієнтовна дата доставки:',
+      questions: 'Якщо у вас є запитання щодо відправлення, будь ласка, зв\'яжіться з нашою службою підтримки за адресою',
+      thanks: 'Дякуємо за вибір',
+    }
   }
 };
+
+// Company info for email templates
+const companyInfo = {
+  name: 'Elloria Eco Products LTD.',
+  address: '229 Dowling Ave W, Winnipeg, MB R3B 2B9',
+  phone: '(204) 930-2019',
+  email: 'sales@elloria.ca',
+  gst: '742031420RT0001',
+  logo: 'https://euexcsqvsbkxiwdieepu.supabase.co/storage/v1/object/public/media/logo.png'
+};
+
+export class EmailService {
+  private supabaseUrl: string;
+  private supabaseKey: string;
+  private supabaseClient: any;
+
+  constructor(supabaseUrl: string, supabaseKey: string) {
+    this.supabaseUrl = supabaseUrl;
+    this.supabaseKey = supabaseKey;
+    this.supabaseClient = createClient(supabaseUrl, supabaseKey);
+  }
+
+  /**
+   * Send email using Supabase Edge Function
+   */
+  async sendEmail(options: EmailOptions): Promise<ApiResponse> {
+    try {
+      console.log('Sending email with options:', { ...options, html: '...' });
+
+      // Convert recipients to format expected by edge function
+      const toAddresses = options.to.map(recipient => recipient.email);
+
+      const response = await this.supabaseClient.functions.invoke('send-email', {
+        body: {
+          from: options.from || 'Elloria <notifications@elloria.ca>',
+          to: toAddresses,
+          subject: options.subject,
+          html: options.html,
+          attachments: options.attachments || []
+        }
+      });
+
+      if (response.error) {
+        console.error('Error sending email:', response.error);
+        return {
+          success: false,
+          error: response.error
+        };
+      }
+
+      console.log('Email sent successfully:', response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error: any) {
+      console.error('Exception sending email:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Send order status update email
+   */
+  async sendOrderStatusEmail(params: OrderStatusEmailParams): Promise<ApiResponse> {
+    const lang = params.lang || 'uk';
+    const text = translations.orderStatus[lang === 'en' ? 'en' : 'uk'];
+    const statusColor = this.getStatusColor(params.newStatus);
+    
+    // Generate HTML template with updated status
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="${companyInfo.logo}" alt="${companyInfo.name}" style="max-width: 200px; height: auto;" />
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+          <h1 style="color: #333; text-align: center; margin-bottom: 20px;">${text.heading}</h1>
+          <p style="font-size: 16px; color: #666; margin-bottom: 10px;">${text.greeting} ${params.customerName},</p>
+          <p style="font-size: 16px; color: #666; margin-bottom: 20px;">
+            ${text.statusText}${params.orderNumber} ${text.statusChanged} 
+            <span style="display: inline-block; background-color: ${statusColor}; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;">${this.getStatusText(params.newStatus, lang)}</span>
+          </p>
+
+          ${params.orderItems ? `
+          <div style="margin-top: 20px;">
+            <h2 style="color: #333; margin-bottom: 10px;">${text.orderDetails}</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f1f1f1;">
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">${text.item}</th>
+                  <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${text.quantity}</th>
+                  <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${text.price}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${params.orderItems.map(item => `
+                  <tr>
+                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">${item.name}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${item.quantity}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">${item.price} ${params.currency || 'CAD'}</td>
+                  </tr>
+                `).join('')}
+                <tr>
+                  <td colspan="2" style="padding: 8px; text-align: right; font-weight: bold;">${text.total}</td>
+                  <td style="padding: 8px; text-align: right; font-weight: bold;">${params.orderTotal} ${params.currency || 'CAD'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="font-size: 14px; color: #666;">
+            ${text.questions} 
+            <a href="mailto:${companyInfo.email}" style="color: #0094F4; text-decoration: none;">${companyInfo.email}</a>
+          </p>
+          <p style="font-size: 14px; color: #666; margin-top: 20px;">
+            ${text.thanks} ${companyInfo.name}!
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Send the email
+    return this.sendEmail({
+      to: [{ email: params.customerEmail, name: params.customerName }],
+      subject: `${text.subject}${params.orderNumber}`,
+      html: emailHtml,
+      lang
+    });
+  }
+
+  /**
+   * Send shipment notification email
+   */
+  async sendShipmentNotificationEmail(params: ShipmentNotificationParams): Promise<ApiResponse> {
+    const lang = params.lang || 'uk';
+    const text = translations.shipment[lang === 'en' ? 'en' : 'uk'];
+    
+    // Generate HTML template with tracking information
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="${companyInfo.logo}" alt="${companyInfo.name}" style="max-width: 200px; height: auto;" />
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+          <h1 style="color: #333; text-align: center; margin-bottom: 20px;">${text.heading}</h1>
+          <p style="font-size: 16px; color: #666; margin-bottom: 10px;">${text.greeting} ${params.customerName},</p>
+          <p style="font-size: 16px; color: #666; margin-bottom: 20px;">
+            ${text.shipmentText}${params.orderNumber} ${text.hasBeenShipped}
+          </p>
+
+          <div style="background-color: #e9f7fe; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="color: #333; margin-bottom: 10px;">${text.trackingInfo}</h3>
+            <p style="margin: 5px 0;"><strong>${text.trackingNumber}</strong> ${params.trackingNumber}</p>
+            ${params.carrier ? `<p style="margin: 5px 0;"><strong>${text.carrier}</strong> ${params.carrier}</p>` : ''}
+            ${params.estimatedDelivery ? `<p style="margin: 5px 0;"><strong>${text.estimatedDelivery}</strong> ${params.estimatedDelivery}</p>` : ''}
+            ${params.trackingUrl ? `
+              <div style="margin-top: 15px;">
+                <a href="${params.trackingUrl}" target="_blank" style="display: inline-block; background-color: #0094F4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 3px; font-weight: bold;">${text.trackPackage}</a>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="font-size: 14px; color: #666;">
+            ${text.questions} 
+            <a href="mailto:${companyInfo.email}" style="color: #0094F4; text-decoration: none;">${companyInfo.email}</a>
+          </p>
+          <p style="font-size: 14px; color: #666; margin-top: 20px;">
+            ${text.thanks} ${companyInfo.name}!
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Send the email
+    return this.sendEmail({
+      to: [{ email: params.customerEmail, name: params.customerName }],
+      subject: `${text.subject}${params.orderNumber}`,
+      html: emailHtml,
+      lang
+    });
+  }
+
+  /**
+   * Helper method to get color for status
+   */
+  private getStatusColor(status: string): string {
+    const colorMap: Record<string, string> = {
+      'pending': '#FFA500',    // Orange
+      'processing': '#2196F3', // Blue
+      'shipped': '#4CAF50',    // Green
+      'delivered': '#8BC34A',  // Light Green
+      'cancelled': '#F44336',  // Red
+      'refunded': '#9C27B0',   // Purple
+      'paid': '#4CAF50'        // Green
+    };
+    
+    return colorMap[status] || '#757575'; // Default gray
+  }
+
+  /**
+   * Helper method to get localized status text
+   */
+  private getStatusText(status: string, lang: string = 'uk'): string {
+    const statusMap: Record<string, Record<string, string>> = {
+      en: {
+        'pending': 'Pending',
+        'processing': 'Processing',
+        'shipped': 'Shipped',
+        'delivered': 'Delivered',
+        'cancelled': 'Cancelled',
+        'refunded': 'Refunded',
+        'paid': 'Paid'
+      },
+      uk: {
+        'pending': 'В обробці',
+        'processing': 'Обробляється',
+        'shipped': 'Відправлено',
+        'delivered': 'Доставлено',
+        'cancelled': 'Скасовано',
+        'refunded': 'Повернуто',
+        'paid': 'Оплачено'
+      }
+    };
+    
+    return statusMap[lang === 'en' ? 'en' : 'uk'][status] || status;
+  }
+}
