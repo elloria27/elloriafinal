@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthError } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, user } = useAuth();
 
   useEffect(() => {
     // Check for stored email from order completion
@@ -29,39 +29,103 @@ const Login = () => {
   const redirectTo = searchParams.get("redirectTo");
 
   useEffect(() => {
-    // If user is already logged in, redirect
-    if (user) {
-      const redirectPath = user.id ? (redirectTo || '/profile') : '/login';
-      toast.success("Welcome back!", {
-        description: "You've been successfully logged in"
-      });
-      navigate(redirectPath);
-    }
-  }, [navigate, redirectTo, user]);
+    const checkSession = async () => {
+      console.log("Checking session...");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        console.log("Session found, checking user role");
+        try {
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (roleError) {
+            console.error("Error fetching role:", roleError);
+            return;
+          }
+
+          if (!roleData) {
+            console.log("No role found for user");
+            return;
+          }
+
+          console.log("User role:", roleData.role);
+          const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
+          
+          toast.success("Welcome back!", {
+            description: "You've been successfully logged in"
+          });
+          
+          navigate(redirectPath);
+        } catch (error) {
+          console.error("Error in role check:", error);
+        }
+      }
+    };
+    
+    checkSession();
+  }, [navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      await signIn(email, password);
+      console.log("Attempting login with email:", email);
+      const { data: { session }, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (error) throw error;
+
+      if (!session) {
+        console.error("No session after successful login");
+        throw new Error("Login successful but no session created");
+      }
+
+      console.log("Login successful, checking user role");
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (roleError) {
+        console.error("Error fetching role:", roleError);
+        throw roleError;
+      }
+
+      if (!roleData) {
+        console.log("No role found for user");
+        toast.error("Account setup incomplete", {
+          description: "Please contact support to complete your account setup"
+        });
+        return;
+      }
+
+      console.log("User role:", roleData.role);
+      const redirectPath = roleData.role === 'admin' ? '/admin' : (redirectTo || '/profile');
       
-      // Auth context will handle the rest (storing session, redirecting)
       toast.success("Welcome back!", {
         description: "You've been successfully logged in"
       });
       
-      // Navigation happens in the useEffect when user state updates
-    } catch (error: any) {
-      console.error("Login error:", error);
+      navigate(redirectPath);
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error("Login error:", authError);
       
       let errorMessage = "Failed to sign in";
       let description = "Please check your credentials and try again";
       
-      if (error.message.includes("Invalid login credentials")) {
+      if (authError.message.includes("Invalid login credentials")) {
         errorMessage = "Invalid credentials";
         description = "The email or password you entered is incorrect";
-      } else if (error.message.includes("Email not confirmed")) {
+      } else if (authError.message.includes("Email not confirmed")) {
         errorMessage = "Email not verified";
         description = "Please check your email to verify your account";
       }

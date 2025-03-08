@@ -1,126 +1,148 @@
-
 import { useState, useEffect } from "react";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { MainProfileContent } from "@/components/profile/MainProfileContent";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tables } from "@/integrations/supabase/types";
 
-interface MainProfileProps {
-  user: any;
-}
+type Profile = Tables<"profiles">;
 
-const MainProfile = ({ user }: MainProfileProps) => {
-  const [loading, setLoading] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [country, setCountry] = useState('');
-  const [region, setRegion] = useState('');
+export default function MainProfile() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("");
+  const [region, setRegion] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize state from user prop
   useEffect(() => {
-    if (user) {
-      setFirstName(user.first_name || user.firstName || '');
-      setLastName(user.last_name || user.lastName || '');
-      setPhoneNumber(user.phone_number || user.phoneNumber || '');
-      setAddress(user.address || '');
-      setCountry(user.country || '');
-      setRegion(user.region || '');
-    }
-  }, [user]);
+    fetchProfile();
+  }, []);
 
-  // Track changes to enable/disable save button
+  const fetchProfile = async () => {
+    try {
+      console.log("Fetching profile data...");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        console.log("No authenticated user found");
+        return;
+      }
+
+      setUserEmail(session.user.email);
+
+      const { data: profileData, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+
+      if (profileData) {
+        console.log("Profile data fetched:", profileData);
+        setProfile(profileData);
+        
+        // Split full name into first and last name
+        const nameParts = (profileData.full_name || "").split(" ");
+        setFirstName(nameParts[0] || "");
+        setLastName(nameParts.slice(1).join(" ") || "");
+        
+        setPhoneNumber(profileData.phone_number || "");
+        setAddress(profileData.address || "");
+        setCountry(profileData.country || "");
+        setRegion(profileData.region || "");
+      }
+    } catch (error) {
+      console.error("Error in profile management:", error);
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (!user) return;
+    const newFullName = `${firstName} ${lastName}`.trim();
+    const currentFullName = profile?.full_name || "";
     
-    const initialFirstName = user.first_name || user.firstName || '';
-    const initialLastName = user.last_name || user.lastName || '';
-    const initialPhoneNumber = user.phone_number || user.phoneNumber || '';
-    const initialAddress = user.address || '';
-    const initialCountry = user.country || '';
-    const initialRegion = user.region || '';
-    
-    const changed = 
-      firstName !== initialFirstName ||
-      lastName !== initialLastName ||
-      phoneNumber !== initialPhoneNumber ||
-      address !== initialAddress ||
-      country !== initialCountry ||
-      region !== initialRegion;
-    
-    setHasChanges(changed);
-  }, [firstName, lastName, phoneNumber, address, country, region, user]);
+    const hasProfileChanges = 
+      newFullName !== currentFullName ||
+      phoneNumber !== (profile?.phone_number || "") ||
+      address !== (profile?.address || "") ||
+      country !== (profile?.country || "") ||
+      region !== (profile?.region || "");
+
+    setHasChanges(hasProfileChanges);
+  }, [firstName, lastName, phoneNumber, address, country, region, profile]);
 
   const handleSave = async () => {
-    if (!user || !user.id) return;
-    
-    setIsSaving(true);
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phoneNumber,
-          address: address,
-          country: country,
-          region: region
-        })
-      });
-      
-      if (!response.ok) throw new Error('Failed to update profile');
-      
-      toast.success('Profile updated successfully');
+      setIsSaving(true);
+      console.log("Saving profile changes...");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast.error("No authenticated user found");
+        return;
+      }
+
+      const updates = {
+        id: session.user.id,
+        full_name: `${firstName} ${lastName}`.trim(),
+        phone_number: phoneNumber,
+        address: address,
+        country: country,
+        region: region,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log("Updating profile with:", updates);
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.error("Error updating profile:", error);
+        throw error;
+      }
+
+      setProfile(prev => ({ ...prev!, ...updates }));
       setHasChanges(false);
+      toast.success("Profile updated successfully");
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      console.error("Error updating profile:", error);
+      toast.error("Error updating profile");
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <ProfileHeader 
-        firstName={firstName}
-        lastName={lastName}
-        email={user?.email}
-        phoneNumber={phoneNumber}
-        address={address}
-        country={country}
-        region={region}
-        language={user?.language || 'en'}
-        currency={user?.currency || 'USD'}
-      />
-      <MainProfileContent 
-        profile={user}
-        loading={loading}
-        firstName={firstName}
-        setFirstName={setFirstName}
-        lastName={lastName}
-        setLastName={setLastName}
-        userEmail={user?.email}
-        phoneNumber={phoneNumber}
-        setPhoneNumber={setPhoneNumber}
-        address={address}
-        setAddress={setAddress}
-        country={country}
-        setCountry={setCountry}
-        region={region}
-        setRegion={setRegion}
-        hasChanges={hasChanges}
-        isSaving={isSaving}
-        handleSave={handleSave}
-      />
-    </div>
+    <MainProfileContent
+      profile={profile}
+      loading={loading}
+      firstName={firstName}
+      setFirstName={setFirstName}
+      lastName={lastName}
+      setLastName={setLastName}
+      userEmail={userEmail}
+      phoneNumber={phoneNumber}
+      setPhoneNumber={setPhoneNumber}
+      address={address}
+      setAddress={setAddress}
+      country={country}
+      setCountry={setCountry}
+      region={region}
+      setRegion={setRegion}
+      hasChanges={hasChanges}
+      isSaving={isSaving}
+      handleSave={handleSave}
+    />
   );
-};
-
-export default MainProfile;
+}

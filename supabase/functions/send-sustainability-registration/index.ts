@@ -24,18 +24,18 @@ interface RegistrationData {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Обробка CORS preflight запитів
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Отримано реєстрацію в програмі сталого розвитку");
+    console.log("Received sustainability program registration");
     const data: RegistrationData = await req.json();
-    console.log("Дані реєстрації:", data);
+    console.log("Registration data:", data);
 
-    // Збереження в business_form_submissions
-    console.log("Збереження даних у базі даних...");
+    // Store in business_form_submissions
+    console.log("Storing submission in database...");
     const { data: submissionData, error: submissionError } = await supabase
       .from('business_form_submissions')
       .insert([
@@ -54,11 +54,11 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (submissionError) {
-      console.error("Помилка збереження заявки:", submissionError);
+      console.error("Error storing submission:", submissionError);
       throw submissionError;
     }
 
-    console.log("Заявка успішно збережена:", submissionData);
+    console.log("Submission stored successfully:", submissionData);
 
     const recipients = [
       "sales@elloria.ca",
@@ -66,38 +66,38 @@ const handler = async (req: Request): Promise<Response> => {
       "bogdana_v@elloria.ca"
     ];
 
-    // Відправка сповіщення команді Elloria
+    // Send notification to Elloria team
     const teamEmailResponse = await resend.emails.send({
       from: "Elloria Sustainability Program <sustainability@elloria.ca>",
       to: recipients,
-      subject: "Нова реєстрація в програмі сталого розвитку",
+      subject: "New Sustainability Program Registration",
       html: `
-        <h1>Нова реєстрація в програмі сталого розвитку</h1>
-        <h2>Контактна інформація</h2>
-        <p><strong>Ім'я:</strong> ${data.fullName}</p>
-        <p><strong>Компанія:</strong> ${data.companyName || "Не вказано"}</p>
+        <h1>New Sustainability Program Registration</h1>
+        <h2>Contact Information</h2>
+        <p><strong>Name:</strong> ${data.fullName}</p>
+        <p><strong>Company:</strong> ${data.companyName || "Not provided"}</p>
         <p><strong>Email:</strong> ${data.email}</p>
-        <p><strong>Телефон:</strong> ${data.phone || "Не вказано"}</p>
-        <h2>Повідомлення</h2>
+        <p><strong>Phone:</strong> ${data.phone || "Not provided"}</p>
+        <h2>Message</h2>
         <p>${data.message}</p>
       `,
     });
 
-    // Відправка підтвердження користувачу
+    // Send confirmation to user
     const userEmailResponse = await resend.emails.send({
       from: "Elloria Sustainability Program <sustainability@elloria.ca>",
       to: [data.email],
-      subject: "Дякуємо за інтерес до нашої програми сталого розвитку",
+      subject: "Thank You for Your Interest in Our Sustainability Program",
       html: `
-        <h1>Дякуємо за ваш інтерес!</h1>
-        <p>Шановний(а) ${data.fullName},</p>
-        <p>Дякуємо за інтерес до програми сталого розвитку Elloria. Ми отримали вашу реєстрацію і незабаром її розглянемо.</p>
-        <p>Ми зв'яжемося з вами найближчим часом, щоб обговорити наступні кроки та як ми можемо спільно працювати над створенням більш стійкого майбутнього.</p>
-        <p>З повагою,<br>Команда сталого розвитку Elloria</p>
+        <h1>Thank You for Your Interest!</h1>
+        <p>Dear ${data.fullName},</p>
+        <p>Thank you for your interest in joining the Elloria Sustainability Program. We have received your registration and our team will review it shortly.</p>
+        <p>We will contact you soon to discuss the next steps and how we can work together towards a more sustainable future.</p>
+        <p>Best regards,<br>The Elloria Sustainability Team</p>
       `,
     });
 
-    console.log("Електронні листи успішно відправлено:", { teamEmailResponse, userEmailResponse });
+    console.log("Emails sent successfully:", { teamEmailResponse, userEmailResponse });
 
     return new Response(JSON.stringify({ teamEmailResponse, userEmailResponse }), {
       status: 200,
@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Помилка обробки реєстрації:", error);
+    console.error("Error processing registration:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {

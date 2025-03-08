@@ -1,93 +1,116 @@
-
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
+import { useState, useCallback } from "react";
 import { Product } from "@/types/product";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useProductsApi } from "@/hooks/useProductsApi";
 import { useProductSubscription } from "@/hooks/useProductSubscription";
 
 interface ProductGridProps {
-  initialProducts?: Product[];
+  initialProducts: Product[];
 }
 
 export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
-  const [products, setProducts] = useState<Product[]>(initialProducts || []);
-  const { products: apiProducts, loading, error } = useProductsApi();
+  const { addItem } = useCart();
+  const [products, setProducts] = useState(initialProducts);
+  console.log("ProductGrid rendered with products:", products);
 
-  // Use Supabase subscription for real-time updates during migration
-  useProductSubscription((newProducts) => {
-    // Only update if we're showing API-fetched products (not filtered ones)
-    if (!initialProducts) {
-      setProducts(newProducts);
+  const handleProductsUpdate = useCallback((updatedProducts: Product[]) => {
+    console.log('Updating products in grid:', updatedProducts);
+    setProducts(updatedProducts);
+  }, []);
+
+  useProductSubscription(handleProductsUpdate);
+
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Adding to cart from ProductGrid:", product);
+    
+    try {
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+        quantity: 1,
+      };
+      
+      addItem(cartItem);
+      toast.success(`Added ${product.name} to cart`);
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+      toast.error("Failed to add item to cart");
     }
-  });
-
-  useEffect(() => {
-    // If no initialProducts were passed (no filtering active), use the API products
-    if (!initialProducts && apiProducts.length > 0) {
-      setProducts(apiProducts);
-    }
-  }, [apiProducts, initialProducts]);
-
-  if (loading && products.length === 0) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="border rounded-lg p-4 flex flex-col gap-3">
-            <Skeleton className="h-48 w-full rounded-md" />
-            <Skeleton className="h-6 w-2/3" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-10 w-full mt-auto" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-500">
-          Failed to load products. Please try again later.
-        </p>
-      </div>
-    );
-  }
-
-  if (products.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No products match your criteria.</p>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-      {products.map((product) => (
-        <Link key={product.id} to={`/products/${product.slug}`}>
-          <motion.div
-            whileHover={{ y: -4 }}
-            className="border rounded-lg p-4 h-full flex flex-col hover:shadow-md transition-shadow duration-200 bg-white"
-          >
-            <div className="aspect-square rounded-md overflow-hidden mb-4">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {products.map((product, index) => (
+        <motion.div
+          key={product.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="group relative"
+        >
+          <div className="relative rounded-2xl overflow-hidden bg-white p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 via-accent-peach/10 to-accent-green/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <div className="relative z-10">
+              <div className="relative mb-6 aspect-square">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
+                <Link to={`/products/${product.slug}`}>
+                  <motion.img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-contain relative z-10 transform group-hover:scale-105 transition-transform duration-500"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Link>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <Link to={`/products/${product.slug}`}>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    {product.name}
+                  </h3>
+                </Link>
+                <p className="text-lg font-semibold text-primary">
+                  ${product.price.toFixed(2)}
+                </p>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {product.description}
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-            <p className="text-gray-500 mb-4 line-clamp-2">
-              {product.description}
-            </p>
-            <p className="mt-auto text-lg font-bold">
-              ${product.price.toFixed(2)}
-            </p>
-          </motion.div>
-        </Link>
+
+            <div className="flex gap-2 relative z-20">
+              <Button
+                onClick={(e) => handleAddToCart(e, product)}
+                className="flex-1 bg-primary hover:bg-primary/90 text-white"
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Add to Cart
+              </Button>
+              <Button
+                variant="outline"
+                asChild
+                className="flex-1 border-primary/20 hover:border-primary/40 text-primary"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Link to={`/products/${product.slug}`}>
+                  View Details
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       ))}
     </div>
   );
-}
+};

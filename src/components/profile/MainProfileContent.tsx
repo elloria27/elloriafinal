@@ -1,16 +1,16 @@
-
-import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
-import { LocationForm } from "@/components/profile/LocationForm";
-import { ProfileActions } from "@/components/profile/ProfileActions";
+import { PersonalInfoForm } from "./PersonalInfoForm";
+import { LocationForm } from "./LocationForm";
+import { ProfileActions } from "./ProfileActions";
+import { ProfileHeader } from "./ProfileHeader";
 
 interface MainProfileContentProps {
-  profile?: any;
+  profile: any;
   loading: boolean;
   firstName: string;
   setFirstName: (value: string) => void;
   lastName: string;
   setLastName: (value: string) => void;
-  userEmail?: string | null;
+  userEmail: string | null;
   phoneNumber: string;
   setPhoneNumber: (value: string) => void;
   address: string;
@@ -22,7 +22,6 @@ interface MainProfileContentProps {
   hasChanges: boolean;
   isSaving: boolean;
   handleSave: () => void;
-  user?: any;
 }
 
 export const MainProfileContent = ({
@@ -44,38 +43,56 @@ export const MainProfileContent = ({
   hasChanges,
   isSaving,
   handleSave,
-  user
 }: MainProfileContentProps) => {
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
+
+  if (!profile) {
+    return <div className="p-4">No profile found.</div>;
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-8">
-      <PersonalInfoForm
+    <div className="p-4 max-w-2xl mx-auto">
+      <ProfileHeader
         firstName={firstName}
-        setFirstName={setFirstName}
         lastName={lastName}
-        setLastName={setLastName}
         email={userEmail}
         phoneNumber={phoneNumber}
-        setPhoneNumber={setPhoneNumber}
         address={address}
-        setAddress={setAddress}
-        loading={loading}
-        user={user || profile}
-      />
-      
-      <LocationForm
         country={country}
-        setCountry={setCountry}
         region={region}
-        setRegion={setRegion}
-        user={user || profile}
+        language={profile.language || 'en'}
+        currency={profile.currency || 'USD'}
       />
-      
-      <ProfileActions
-        hasChanges={hasChanges}
-        isSaving={isSaving}
-        onSave={handleSave}
-        user={user || profile}
-      />
+
+      <div className="bg-white p-4 rounded-lg shadow-sm border space-y-6 mt-6">
+        <PersonalInfoForm
+          firstName={firstName}
+          setFirstName={setFirstName}
+          lastName={lastName}
+          setLastName={setLastName}
+          email={userEmail}
+          phoneNumber={phoneNumber}
+          setPhoneNumber={setPhoneNumber}
+          address={address}
+          setAddress={setAddress}
+          loading={loading}
+        />
+
+        <LocationForm
+          country={country}
+          setCountry={setCountry}
+          region={region}
+          setRegion={setRegion}
+        />
+
+        <ProfileActions
+          hasChanges={hasChanges}
+          isSaving={isSaving}
+          onSave={handleSave}
+        />
+      </div>
     </div>
   );
 };

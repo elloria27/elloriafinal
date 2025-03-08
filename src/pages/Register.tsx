@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthError } from "@supabase/supabase-js";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -14,20 +15,30 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      await signUp(email, password, fullName);
-      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) throw error;
+
       toast.success("Registration successful! Please check your email to verify your account.");
       navigate("/login");
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      toast.error(error.message || "Registration failed");
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error("Registration error:", authError);
+      toast.error(authError.message);
     } finally {
       setIsLoading(false);
     }

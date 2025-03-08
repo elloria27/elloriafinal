@@ -1,4 +1,3 @@
-
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MainProfile from "./profile/MainProfile";
 import Invoices from "./profile/Invoices";
@@ -15,39 +15,18 @@ import Settings from "./profile/Settings";
 const Profile = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         console.log("Checking authentication status...");
-        const token = localStorage.getItem('authToken');
-        
-        if (!token) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
           console.log("No active session found");
           toast.error("Please sign in to view your profile");
-          setLoading(false);
-          return;
+          return <Navigate to="/login" />;
         }
-        
-        // Validate the token by fetching user data
-        const response = await fetch('/api/auth/user', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (!response.ok) {
-          console.log("Invalid token");
-          localStorage.removeItem('authToken');
-          toast.error("Session expired. Please sign in again.");
-          setLoading(false);
-          return;
-        }
-        
-        const data = await response.json();
-        console.log("Active session found for user:", data.user.id);
-        setUser(data.user);
+        console.log("Active session found for user:", session.user.id);
         setLoading(false);
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -67,10 +46,6 @@ const Profile = () => {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return <Navigate to="/login?redirectTo=/profile" />;
   }
 
   return (
@@ -96,10 +71,10 @@ const Profile = () => {
           )}
           <div className="flex-1 w-full">
             <Routes>
-              <Route index element={<MainProfile user={user} />} />
+              <Route index element={<MainProfile />} />
               <Route path="invoices" element={<Invoices />} />
               <Route path="activity" element={<Activity />} />
-              <Route path="settings" element={<Settings user={user} />} />
+              <Route path="settings" element={<Settings />} />
             </Routes>
           </div>
         </div>

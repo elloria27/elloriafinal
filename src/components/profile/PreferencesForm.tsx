@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ interface PreferencesFormProps {
   address: string;
   country: string;
   region: string;
-  user?: any;
 }
 
 export const PreferencesForm = ({
@@ -33,19 +31,7 @@ export const PreferencesForm = ({
   address,
   country,
   region,
-  user
 }: PreferencesFormProps) => {
-  // If user object is provided, use it to extract values not explicitly passed
-  const effectiveFirstName = firstName || (user?.first_name || user?.firstName || '');
-  const effectiveLastName = lastName || (user?.last_name || user?.lastName || '');
-  const effectiveEmail = email || user?.email || null;
-  const effectivePhoneNumber = phoneNumber || (user?.phone_number || user?.phoneNumber || '');
-  const effectiveAddress = address || (user?.address || '');
-  const effectiveCountry = country || (user?.country || '');
-  const effectiveRegion = region || (user?.region || '');
-  const effectiveLanguage = language || (user?.language || 'en');
-  const effectiveCurrency = currency || (user?.currency || 'USD');
-
   const downloadProfilePDF = () => {
     try {
       const doc = new jsPDF();
@@ -54,14 +40,14 @@ export const PreferencesForm = ({
       doc.text('Profile Information', 20, 20);
       
       doc.setFontSize(12);
-      doc.text(`Full Name: ${effectiveFirstName} ${effectiveLastName}`, 20, 40);
-      doc.text(`Email: ${effectiveEmail || 'Not provided'}`, 20, 50);
-      doc.text(`Phone Number: ${effectivePhoneNumber || 'Not provided'}`, 20, 60);
-      doc.text(`Address: ${effectiveAddress || 'Not provided'}`, 20, 70);
-      doc.text(`Country: ${effectiveCountry || 'Not provided'}`, 20, 80);
-      doc.text(`Region: ${effectiveRegion || 'Not provided'}`, 20, 90);
-      doc.text(`Language: ${effectiveLanguage || 'Not provided'}`, 20, 100);
-      doc.text(`Currency: ${effectiveCurrency || 'Not provided'}`, 20, 110);
+      doc.text(`Full Name: ${firstName} ${lastName}`, 20, 40);
+      doc.text(`Email: ${email || 'Not provided'}`, 20, 50);
+      doc.text(`Phone Number: ${phoneNumber || 'Not provided'}`, 20, 60);
+      doc.text(`Address: ${address || 'Not provided'}`, 20, 70);
+      doc.text(`Country: ${country || 'Not provided'}`, 20, 80);
+      doc.text(`Region: ${region || 'Not provided'}`, 20, 90);
+      doc.text(`Language: ${language || 'Not provided'}`, 20, 100);
+      doc.text(`Currency: ${currency || 'Not provided'}`, 20, 110);
       
       doc.save('profile-information.pdf');
       toast.success('Profile downloaded successfully');
@@ -76,7 +62,7 @@ export const PreferencesForm = ({
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="language">Language</Label>
-          <Select value={effectiveLanguage} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger>
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
@@ -90,7 +76,7 @@ export const PreferencesForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="currency">Currency</Label>
-          <Select value={effectiveCurrency} onValueChange={setCurrency}>
+          <Select value={currency} onValueChange={setCurrency}>
             <SelectTrigger>
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>

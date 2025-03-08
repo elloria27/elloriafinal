@@ -1,158 +1,224 @@
-
 import { useState, useEffect } from "react";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
-import { LocationForm } from "@/components/profile/LocationForm";
-import { PreferencesForm } from "@/components/profile/PreferencesForm";
-import { ProfileActions } from "@/components/profile/ProfileActions";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PreferencesForm } from "@/components/profile/PreferencesForm";
+import { Tables } from "@/integrations/supabase/types";
 
-interface SettingsProps {
-  user: any;
-}
+type Profile = Tables<"profiles">;
 
-const Settings = ({ user }: SettingsProps) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [country, setCountry] = useState('');
-  const [region, setRegion] = useState('');
-  const [language, setLanguage] = useState('en');
-  const [currency, setCurrency] = useState('USD');
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+export default function Settings() {
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [marketingEmails, setMarketingEmails] = useState(false);
+  const [language, setLanguage] = useState("en");
+  const [currency, setCurrency] = useState("USD");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
-  // Initialize state from user prop
   useEffect(() => {
-    if (user) {
-      setFirstName(user.first_name || user.firstName || '');
-      setLastName(user.last_name || user.lastName || '');
-      setPhoneNumber(user.phone_number || user.phoneNumber || '');
-      setAddress(user.address || '');
-      setCountry(user.country || '');
-      setRegion(user.region || '');
-      setLanguage(user.language || 'en');
-      setCurrency(user.currency || 'USD');
-    }
-  }, [user]);
+    fetchProfile();
+  }, []);
 
-  // Track changes to enable/disable save button
-  useEffect(() => {
-    if (!user) return;
-    
-    const initialFirstName = user.first_name || user.firstName || '';
-    const initialLastName = user.last_name || user.lastName || '';
-    const initialPhoneNumber = user.phone_number || user.phoneNumber || '';
-    const initialAddress = user.address || '';
-    const initialCountry = user.country || '';
-    const initialRegion = user.region || '';
-    const initialLanguage = user.language || 'en';
-    const initialCurrency = user.currency || 'USD';
-    
-    const changed = 
-      firstName !== initialFirstName ||
-      lastName !== initialLastName ||
-      phoneNumber !== initialPhoneNumber ||
-      address !== initialAddress ||
-      country !== initialCountry ||
-      region !== initialRegion ||
-      language !== initialLanguage ||
-      currency !== initialCurrency;
-    
-    setHasChanges(changed);
-  }, [firstName, lastName, phoneNumber, address, country, region, language, currency, user]);
-
-  const handleSave = async () => {
-    if (!user || !user.id) return;
-    
-    setIsSaving(true);
+  const fetchProfile = async () => {
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phoneNumber,
-          address: address,
-          country: country,
-          region: region,
-          language: language,
-          currency: currency
-        })
-      });
-      
-      if (!response.ok) throw new Error('Failed to update profile');
-      
-      toast.success('Profile settings updated successfully');
-      setHasChanges(false);
+      console.log("Fetching profile for settings...");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        console.log("No authenticated user found in settings");
+        return;
+      }
+
+      console.log("User found in settings:", session.user.id);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching profile in settings:", error);
+        throw error;
+      }
+
+      if (data) {
+        console.log("Profile data fetched in settings:", data);
+        setProfile(data);
+        setEmailNotifications(data.email_notifications || false);
+        setMarketingEmails(data.marketing_emails || false);
+        setLanguage(data.language || "en");
+        setCurrency(data.currency || "USD");
+      }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile settings');
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load settings");
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="space-y-8">
-      <ProfileHeader 
-        firstName={firstName}
-        lastName={lastName}
-        email={user?.email}
-        phoneNumber={phoneNumber}
-        address={address}
-        country={country}
-        region={region}
-        language={language}
-        currency={currency}
-        showSettings={true}
-      />
-      
-      <div className="space-y-8">
-        <PersonalInfoForm
-          firstName={firstName}
-          setFirstName={setFirstName}
-          lastName={lastName}
-          setLastName={setLastName}
-          email={user?.email}
-          phoneNumber={phoneNumber}
-          setPhoneNumber={setPhoneNumber}
-          address={address}
-          setAddress={setAddress}
-          loading={false}
-        />
-        <LocationForm
-          country={country}
-          setCountry={setCountry}
-          region={region}
-          setRegion={setRegion}
-        />
-        <PreferencesForm
-          language={language}
-          setLanguage={setLanguage}
-          currency={currency}
-          setCurrency={setCurrency}
-          firstName={firstName}
-          lastName={lastName}
-          email={user?.email}
-          phoneNumber={phoneNumber}
-          address={address}
-          country={country}
-          region={region}
-        />
-        <ProfileActions
-          hasChanges={hasChanges}
-          isSaving={isSaving}
-          onSave={handleSave}
-        />
-      </div>
-    </div>
-  );
-};
+  const updateSetting = async (setting: 'email_notifications' | 'marketing_emails' | 'language' | 'currency', value: any) => {
+    try {
+      console.log(`Updating setting ${setting} to:`, value);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log("No authenticated user found while updating settings");
+        toast.error("You must be logged in to update settings");
+        return;
+      }
 
-export default Settings;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ [setting]: value })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Error updating settings:", error);
+        throw error;
+      }
+
+      console.log("Setting updated successfully");
+      setProfile(prev => prev ? { ...prev, [setting]: value } : null);
+      toast.success("Settings updated successfully");
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      toast.error("Failed to update settings");
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      console.log("Changing password...");
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        console.error("Error changing password:", error);
+        throw error;
+      }
+
+      console.log("Password updated successfully");
+      toast.success("Password updated successfully");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Failed to update password");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  return (
+    <main className="flex-1 p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+          <h2 className="text-xl font-semibold">Preferences</h2>
+          <PreferencesForm
+            language={language}
+            setLanguage={(value) => {
+              setLanguage(value);
+              updateSetting("language", value);
+            }}
+            currency={currency}
+            setCurrency={(value) => {
+              setCurrency(value);
+              updateSetting("currency", value);
+            }}
+            firstName={profile?.full_name?.split(' ')[0] || ''}
+            lastName={profile?.full_name?.split(' ')[1] || ''}
+            email={profile?.email}
+            phoneNumber={profile?.phone_number || ''}
+            address={profile?.address || ''}
+            country={profile?.country || ''}
+            region={profile?.region || ''}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+          <h2 className="text-xl font-semibold">Notifications</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notifications">Email Notifications</Label>
+                <p className="text-sm text-gray-500">
+                  Receive email notifications about your account activity.
+                </p>
+              </div>
+              <Switch
+                id="notifications"
+                checked={emailNotifications}
+                onCheckedChange={(checked) => {
+                  setEmailNotifications(checked);
+                  updateSetting("email_notifications", checked);
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="marketing">Marketing Communications</Label>
+                <p className="text-sm text-gray-500">
+                  Receive updates about new products and features.
+                </p>
+              </div>
+              <Switch
+                id="marketing"
+                checked={marketingEmails}
+                onCheckedChange={(checked) => {
+                  setMarketingEmails(checked);
+                  updateSetting("marketing_emails", checked);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+          <h2 className="text-xl font-semibold">Change Password</h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handlePasswordChange}
+              disabled={changingPassword || !newPassword || !confirmPassword}
+            >
+              {changingPassword ? "Updating..." : "Update Password"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
