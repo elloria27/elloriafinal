@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { supabase } from '../../integrations/supabase/client';
-import { parseProduct } from '../../utils/supabase-helpers';
+import { Product, parseProduct } from '../models/product';
 
 const router = express.Router();
 
