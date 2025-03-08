@@ -23,6 +23,9 @@ export const generateToken = (user: User & { role: UserRole }): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };
 
+// Alias for compatibility with existing code
+export const generateJWT = generateToken;
+
 // Verify JWT token
 export const verifyToken = (token: string): JwtPayload | null => {
   try {
@@ -32,6 +35,9 @@ export const verifyToken = (token: string): JwtPayload | null => {
     return null;
   }
 };
+
+// Alias for compatibility with existing code
+export const verifyJWT = verifyToken;
 
 // Middleware to check if user is authenticated
 export const requireAuth = (req: any, res: any, next: any) => {

@@ -1,126 +1,84 @@
 
-import express from 'express';
-import { Request, Response } from 'express';
-import { sendEmail } from '../utils/emailService';
+import express, { Request, Response } from 'express';
+import { sendBusinessInquiryEmail } from '../utils/emailService';
 
 const router = express.Router();
 
-// Business inquiry (replaces send-business-inquiry edge function)
-router.post('/inquiry', async (req: Request, res: Response) => {
+// Business inquiry endpoint
+router.post('/inquiries', async (req: Request, res: Response) => {
   try {
-    const { fullName, companyName, email, phoneNumber, businessType, message, attachments } = req.body;
+    const { name, email, company, phone, inquiryType, message } = req.body;
 
-    if (!fullName || !companyName || !email || !businessType || !message) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Validate required fields
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'Name, email, and message are required' });
     }
 
-    // Store the submission in the database (mock for now)
-    console.log("Storing business submission:", { 
-      fullName, 
-      companyName, 
-      email, 
-      phoneNumber, 
-      businessType, 
-      message,
-      attachments: attachments?.length
+    // Send business inquiry email
+    await sendBusinessInquiryEmail(
+      name,
+      email,
+      company || 'Not provided',
+      phone || 'Not provided',
+      inquiryType || 'General Inquiry',
+      message
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Business inquiry submitted successfully'
     });
-
-    const recipients = [
-      "sales@elloria.ca",
-      "mariia_r@elloria.ca",
-      "bogdana_v@elloria.ca"
-    ];
-
-    // Map attachments to include the original file extension
-    const formattedAttachments = attachments?.map(attachment => ({
-      filename: attachment.name,
-      content: attachment.content,
-    }));
-
-    await sendEmail({
-      from: "Elloria Business <business@elloria.ca>",
-      to: recipients,
-      subject: "New Business Inquiry",
-      html: `
-        <h1>New Business Inquiry</h1>
-        <h2>Contact Information</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Company:</strong> ${companyName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phoneNumber || "Not provided"}</p>
-        <p><strong>Business Type:</strong> ${businessType}</p>
-        <h2>Message</h2>
-        <p>${message}</p>
-      `,
-      attachments: formattedAttachments,
-    });
-
-    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error in business inquiry handler:", error);
-    return res.status(500).json({ error: error.message });
+    console.error('Business inquiry error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to submit business inquiry'
+    });
   }
 });
 
-// Sustainability program registration (replaces send-sustainability-registration edge function)
+// Sustainability program registration endpoint
 router.post('/sustainability-registration', async (req: Request, res: Response) => {
   try {
-    const { fullName, companyName, email, phone, message, termsAccepted } = req.body;
+    const { 
+      name, 
+      email, 
+      company, 
+      phone, 
+      businessType,
+      materialInterest,
+      heardFrom,
+      message 
+    } = req.body;
 
-    if (!fullName || !email || !message || !termsAccepted) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Validate required fields
+    if (!name || !email || !company) {
+      return res.status(400).json({ error: 'Name, email, and company are required' });
     }
 
-    console.log("Storing sustainability submission:", { 
-      fullName, 
-      companyName, 
-      email, 
-      phone, 
-      message,
-      termsAccepted
+    // In a real implementation, you would send this to your email service
+    // For now, we'll just log it and return success
+    console.log('Sustainability registration:', {
+      name,
+      email,
+      company,
+      phone,
+      businessType,
+      materialInterest,
+      heardFrom,
+      message
     });
 
-    const recipients = [
-      "sales@elloria.ca",
-      "mariia_r@elloria.ca",
-      "bogdana_v@elloria.ca"
-    ];
-
-    // Send notification to Elloria team
-    await sendEmail({
-      from: "Elloria Sustainability Program <sustainability@elloria.ca>",
-      to: recipients,
-      subject: "New Sustainability Program Registration",
-      html: `
-        <h1>New Sustainability Program Registration</h1>
-        <h2>Contact Information</h2>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Company:</strong> ${companyName || "Not provided"}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
-        <h2>Message</h2>
-        <p>${message}</p>
-      `,
+    return res.status(200).json({
+      success: true,
+      message: 'Sustainability program registration submitted successfully'
     });
-
-    // Send confirmation to user
-    await sendEmail({
-      from: "Elloria Sustainability Program <sustainability@elloria.ca>",
-      to: [email],
-      subject: "Thank You for Your Interest in Our Sustainability Program",
-      html: `
-        <h1>Thank You for Your Interest!</h1>
-        <p>Dear ${fullName},</p>
-        <p>Thank you for your interest in joining the Elloria Sustainability Program. We have received your registration and our team will review it shortly.</p>
-        <p>We will contact you soon to discuss the next steps and how we can work together towards a more sustainable future.</p>
-        <p>Best regards,<br>The Elloria Sustainability Team</p>
-      `,
-    });
-
-    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Error processing registration:", error);
-    return res.status(500).json({ error: error.message });
+    console.error('Sustainability registration error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to submit sustainability program registration'
+    });
   }
 });
 

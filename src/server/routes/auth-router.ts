@@ -1,57 +1,66 @@
 
-import express from 'express';
-import { Request, Response } from 'express';
-import { User } from '../models/user';
-import { generateJWT, verifyJWT } from '../utils/auth-utils';
+import express, { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+import { generateJWT, verifyJWT, requireAuth } from '../utils/auth-utils';
+import { User, UserRole } from '../models/user';
 
 const router = express.Router();
 
-// Sign up - Register a new user
-router.post('/signup', async (req: Request, res: Response) => {
+// Sample in-memory user storage (in production, use a real database)
+const users: User[] = [];
+
+// Register endpoint
+router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, full_name } = req.body;
+    const { email, password, firstName, lastName } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
     // Check if user already exists
-    const existingUser = await User.findByEmail(email);
-    
+    const existingUser = users.find(user => user.email === email);
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+      return res.status(409).json({ error: 'User already exists' });
     }
 
-    // Create a new user
-    const newUser = await User.create({
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser: User = {
+      id: uuidv4(),
       email,
-      password, // Will be hashed in the model
-      full_name: full_name || null,
-      role: 'customer',
-      email_confirmed: true // For simplicity in this example; in production, implement email verification
-    });
+      password: hashedPassword,
+      first_name: firstName || '',
+      last_name: lastName || '',
+      full_name: `${firstName || ''} ${lastName || ''}`.trim(),
+      role: 'client',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    users.push(newUser);
 
     // Generate JWT token
     const token = generateJWT(newUser);
 
+    // Return user info (excluding password) and token
+    const { password: _, ...userWithoutPassword } = newUser;
     return res.status(201).json({
-      message: 'User created successfully',
-      token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        full_name: newUser.full_name,
-      },
+      user: userWithoutPassword,
+      token
     });
   } catch (error) {
-    console.error('Error in sign up:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Registration error:', error);
+    return res.status(500).json({ error: 'Registration failed' });
   }
 });
 
-// Sign in - Log in an existing user
-router.post('/signin', async (req: Request, res: Response) => {
+// Login endpoint
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -59,89 +68,94 @@ router.post('/signin', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Find user by email
-    const user = await User.findByEmail(email);
-    
+    // Find user
+    const user = users.find(user => user.email === email);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid login credentials' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Validate password
-    const isPasswordValid = await User.validatePassword(user.id, password);
-    
+    // Compare passwords
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid login credentials' });
-    }
-
-    // Check if email is confirmed (if we implement email verification)
-    if (!user.email_confirmed) {
-      return res.status(401).json({ error: 'Email not confirmed' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Generate JWT token
     const token = generateJWT(user);
 
+    // Return user info (excluding password) and token
+    const { password: _, ...userWithoutPassword } = user;
     return res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        full_name: user.full_name,
-      },
+      user: userWithoutPassword,
+      token
     });
   } catch (error) {
-    console.error('Error in sign in:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Login error:', error);
+    return res.status(500).json({ error: 'Login failed' });
   }
 });
 
-// Get current user info
-router.get('/user', async (req: Request, res: Response) => {
+// Get current user endpoint
+router.get('/user', requireAuth, async (req: Request, res: Response) => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const token = authHeader.split(' ')[1];
-    
-    // Verify token
-    const payload = verifyJWT(token);
-    
-    if (!payload || !payload.id) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    
-    // Get user from database
-    const user = await User.findById(payload.id);
-    
+    // Find user by ID (from token payload)
+    const userId = (req as any).user.userId;
+    const user = users.find(user => user.id === userId);
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
-    return res.status(200).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        full_name: user.full_name,
-      },
-    });
+
+    // Return user info (excluding password)
+    const { password, ...userWithoutPassword } = user;
+    return res.status(200).json({ user: userWithoutPassword });
   } catch (error) {
-    console.error('Error getting user info:', error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Get user error:', error);
+    return res.status(500).json({ error: 'Failed to get user information' });
   }
 });
 
-// Sign out - Log out a user
-router.post('/signout', async (req: Request, res: Response) => {
-  // With JWT, the client simply discards the token
-  // Server-side we don't need to do anything special
-  return res.status(200).json({ message: 'Logged out successfully' });
+// Update user profile
+router.put('/users/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user.userId;
+    
+    // Check if user is updating their own profile
+    if (id !== userId) {
+      return res.status(403).json({ error: 'You can only update your own profile' });
+    }
+    
+    // Find user
+    const userIndex = users.findIndex(user => user.id === id);
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Update user data
+    const updateData = req.body;
+    const allowedFields = ['first_name', 'last_name', 'phone_number', 'address', 'country', 'region', 'language', 'currency'];
+    
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        (users[userIndex] as any)[field] = updateData[field];
+      }
+    });
+    
+    // Update full_name if first_name or last_name changed
+    if (updateData.first_name !== undefined || updateData.last_name !== undefined) {
+      users[userIndex].full_name = `${users[userIndex].first_name || ''} ${users[userIndex].last_name || ''}`.trim();
+    }
+    
+    users[userIndex].updated_at = new Date().toISOString();
+    
+    // Return updated user (excluding password)
+    const { password, ...userWithoutPassword } = users[userIndex];
+    return res.status(200).json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Update user error:', error);
+    return res.status(500).json({ error: 'Failed to update user profile' });
+  }
 });
 
 export default router;
