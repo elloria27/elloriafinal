@@ -12,6 +12,10 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { useState } from "react";
+import { startOfMonth, endOfMonth, format, subMonths, addMonths } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Колірна схема для категорій витрат
 const CATEGORY_COLORS: Record<string, string> = {
@@ -26,31 +30,33 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export const ExpenseStats = () => {
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  
+  const firstDayOfMonth = startOfMonth(selectedMonth);
+  const lastDayOfMonth = endOfMonth(selectedMonth);
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["expense-stats"],
+    queryKey: ["expense-stats", firstDayOfMonth.toISOString()],
     queryFn: async () => {
-      const today = new Date();
-      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      
-      // Get all expenses for the current month regardless of status
+      // Get all expenses for the selected month regardless of status
       const { data: monthlyExpenses } = await supabase
         .from("shop_company_expenses")
         .select("amount, status")
         .gte("date", firstDayOfMonth.toISOString())
-        .lt("date", today.toISOString());
+        .lte("date", lastDayOfMonth.toISOString());
 
-      // Get pending payments
+      // Get pending payments for all time
       const { data: pendingPayments } = await supabase
         .from("shop_company_expenses")
         .select("amount")
         .eq("status", "pending");
 
-      // Get category breakdown
+      // Get category breakdown for the selected month
       const { data: categoryBreakdown } = await supabase
         .from("shop_company_expenses")
         .select("category, amount, status")
         .gte("date", firstDayOfMonth.toISOString())
-        .lt("date", today.toISOString());
+        .lte("date", lastDayOfMonth.toISOString());
 
       // Calculate totals including both pending and paid expenses for this month
       const totalPaid = monthlyExpenses?.filter(exp => exp.status === 'paid')
@@ -58,8 +64,8 @@ export const ExpenseStats = () => {
       
       const totalPending = pendingPayments?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
       
-      // Calculate the total for this month (both paid and pending)
-      const totalThisMonth = totalPaid;
+      // Calculate the total for the selected month (both paid and pending)
+      const totalThisMonth = monthlyExpenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
 
       // Calculate category totals for the chart (include only paid expenses)
       const categoryTotals = categoryBreakdown?.filter(exp => exp.status === 'paid')
@@ -76,6 +82,7 @@ export const ExpenseStats = () => {
 
       return {
         totalThisMonth,
+        totalPaid,
         totalPending,
         chartData,
       };
@@ -88,6 +95,16 @@ export const ExpenseStats = () => {
       currency: "CAD",
     }).format(amount);
   };
+
+  const handlePreviousMonth = () => {
+    setSelectedMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+
+  const currentMonthDisplay = format(selectedMonth, "MMMM yyyy");
 
   if (isLoading) {
     return (
@@ -115,6 +132,25 @@ export const ExpenseStats = () => {
         <p className="mt-2 text-3xl font-bold">
           {formatCurrency(stats?.totalThisMonth || 0)}
         </p>
+        <div className="mt-4 flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePreviousMonth}
+            className="p-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">{currentMonthDisplay}</span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleNextMonth}
+            className="p-2"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </Card>
 
       <Card className="p-6">
