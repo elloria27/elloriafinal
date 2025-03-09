@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Table,
@@ -91,6 +92,7 @@ export const ExpenseList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expense-stats"] });
       toast.success("Expense deleted successfully");
     },
     onError: (error) => {
@@ -133,6 +135,15 @@ export const ExpenseList = () => {
       style: "currency",
       currency: "CAD",
     }).format(amount);
+  };
+
+  // Handle form close with refresh
+  const handleFormClose = (updated: boolean) => {
+    setExpenseToEdit(null);
+    if (updated) {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expense-stats"] });
+    }
   };
 
   if (isLoading) {
@@ -259,8 +270,9 @@ export const ExpenseList = () => {
 
       <ExpenseForm 
         open={expenseToEdit !== null} 
-        onOpenChange={(open) => !open && setExpenseToEdit(null)}
+        onOpenChange={(open) => !open && handleFormClose(false)}
         expenseToEdit={expenseToEdit}
+        onExpenseUpdated={() => handleFormClose(true)}
       />
     </div>
   );

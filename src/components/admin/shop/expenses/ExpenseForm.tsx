@@ -1,8 +1,14 @@
+
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,198 +17,182 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon, Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 
-type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
-                      "employee_benefits" | "logistics" | "software" | "other";
-type PaymentMethod = "cash" | "bank_transfer" | "credit_card";
-type ExpenseStatus = "pending" | "paid";
-
-interface ExpenseFormData {
-  title: string;
-  category: ExpenseCategory;
-  amount: string;
-  date: string;
-  payment_method: PaymentMethod;
-  vendor_name: string;
-  notes: string;
-  status: ExpenseStatus;
-}
-
-interface ExpenseFormProps {
+type ExpenseFormProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  expenseToEdit?: {
-    id: string;
-    title: string;
-    category: ExpenseCategory;
-    amount: number;
-    date: string;
-    payment_method: PaymentMethod;
-    vendor_name: string;
-    notes: string;
-    status: ExpenseStatus;
-    receipt_path: string | null;
-  } | null;
-}
+  expenseToEdit?: any;
+  onExpenseUpdated?: () => void;
+};
 
-export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormProps) => {
-  const [formData, setFormData] = useState<ExpenseFormData>({
-    title: "",
-    category: "inventory",
-    amount: "",
-    date: "",
-    payment_method: "cash",
-    vendor_name: "",
-    notes: "",
-    status: "pending",
-  });
-
-  const [receipt, setReceipt] = useState<File | null>(null);
+export const ExpenseForm = ({
+  open,
+  onOpenChange,
+  expenseToEdit,
+  onExpenseUpdated
+}: ExpenseFormProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [amount, setAmount] = useState("");
+  const [vendorName, setVendorName] = useState("");
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [status, setStatus] = useState<"pending" | "paid">("pending");
+  const [notes, setNotes] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [existingReceiptPath, setExistingReceiptPath] = useState<string | null>(null);
+  
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (expenseToEdit) {
-      setFormData({
-        title: expenseToEdit.title,
-        category: expenseToEdit.category,
-        amount: expenseToEdit.amount.toString(),
-        date: expenseToEdit.date,
-        payment_method: expenseToEdit.payment_method,
-        vendor_name: expenseToEdit.vendor_name,
-        notes: expenseToEdit.notes || "",
-        status: expenseToEdit.status,
-      });
+      setTitle(expenseToEdit.title || "");
+      setCategory(expenseToEdit.category || "");
+      setAmount(expenseToEdit.amount?.toString() || "");
+      setVendorName(expenseToEdit.vendor_name || "");
+      setDate(expenseToEdit.date ? new Date(expenseToEdit.date) : new Date());
+      setStatus(expenseToEdit.status || "pending");
+      setNotes(expenseToEdit.notes || "");
+      setExistingReceiptPath(expenseToEdit.receipt_path || null);
     } else {
-      setFormData({
-        title: "",
-        category: "inventory",
-        amount: "",
-        date: "",
-        payment_method: "cash",
-        vendor_name: "",
-        notes: "",
-        status: "pending",
-      });
+      resetForm();
     }
   }, [expenseToEdit]);
 
-  const { mutate: saveExpense, isPending } = useMutation({
-    mutationFn: async () => {
-      let receiptPath = expenseToEdit?.receipt_path || null;
+  const resetForm = () => {
+    setTitle("");
+    setCategory("");
+    setAmount("");
+    setVendorName("");
+    setDate(new Date());
+    setStatus("pending");
+    setNotes("");
+    setReceiptFile(null);
+    setExistingReceiptPath(null);
+  };
 
-      if (receipt) {
-        const fileExt = receipt.name.split(".").pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        
+  const saveExpenseMutation = useMutation({
+    mutationFn: async (formData: any) => {
+      let receiptPath = existingReceiptPath;
+
+      // If there's a new receipt file, upload it
+      if (receiptFile) {
+        const fileExt = receiptFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${expenseToEdit ? expenseToEdit.id : 'new'}/${fileName}`;
+
         const { error: uploadError } = await supabase.storage
-          .from("expense-receipts")
-          .upload(fileName, receipt);
-
+          .from('expense-receipts')
+          .upload(filePath, receiptFile);
+          
         if (uploadError) throw uploadError;
-        
-        if (expenseToEdit?.receipt_path) {
-          await supabase.storage
-            .from("expense-receipts")
-            .remove([expenseToEdit.receipt_path]);
-        }
-        
-        receiptPath = fileName;
+        receiptPath = filePath;
       }
 
+      // Prepare expense data
+      const expenseData = {
+        title: formData.title,
+        category: formData.category,
+        amount: parseFloat(formData.amount),
+        vendor_name: formData.vendorName,
+        date: formData.date.toISOString().split('T')[0],
+        status: formData.status,
+        notes: formData.notes,
+        receipt_path: receiptPath,
+      };
+
       if (expenseToEdit) {
+        // Update existing expense
         const { error } = await supabase
-          .from("shop_company_expenses")
-          .update({
-            ...formData,
-            amount: parseFloat(formData.amount),
-            receipt_path: receiptPath,
-          })
+          .from('shop_company_expenses')
+          .update(expenseData)
           .eq('id', expenseToEdit.id);
-
+          
         if (error) throw error;
+        return { ...expenseData, id: expenseToEdit.id };
       } else {
-        const { error } = await supabase
-          .from("shop_company_expenses")
-          .insert({
-            ...formData,
-            amount: parseFloat(formData.amount),
-            receipt_path: receiptPath,
-          });
-
+        // Create new expense
+        const { data, error } = await supabase
+          .from('shop_company_expenses')
+          .insert(expenseData)
+          .select()
+          .single();
+          
         if (error) throw error;
+        return data;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["expense-stats"] });
-      toast.success(expenseToEdit ? "Expense updated successfully" : "Expense created successfully");
+      toast.success(expenseToEdit ? "Expense updated successfully" : "Expense added successfully");
+      resetForm();
       onOpenChange(false);
-      setFormData({
-        title: "",
-        category: "inventory",
-        amount: "",
-        date: "",
-        payment_method: "cash",
-        vendor_name: "",
-        notes: "",
-        status: "pending",
-      });
-      setReceipt(null);
+      if (onExpenseUpdated) {
+        onExpenseUpdated();
+      }
     },
     onError: (error) => {
       console.error("Error saving expense:", error);
-      toast.error(expenseToEdit ? "Failed to update expense" : "Failed to create expense");
+      toast.error("Failed to save expense");
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    saveExpense();
+    if (!title || !category || !amount || !vendorName || !date) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await saveExpenseMutation.mutateAsync({
+        title,
+        category,
+        amount,
+        vendorName,
+        date,
+        status,
+        notes,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
-        <DialogHeader className="sticky top-0 z-10 bg-white px-6 py-4 border-b">
-          <DialogTitle className="text-xl font-semibold">
-            {expenseToEdit ? "Edit Expense" : "Add New Expense"}
-          </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{expenseToEdit ? "Edit Expense" : "Add New Expense"}</DialogTitle>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 px-6 py-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-2">
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter expense title"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2">
               <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value: ExpenseCategory) =>
-                  setFormData({ ...formData, category: value })
-                }
-                required
-              >
-                <SelectTrigger>
+              <Select value={category} onValueChange={setCategory} required>
+                <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -218,115 +208,120 @@ export const ExpenseForm = ({ open, onOpenChange, expenseToEdit }: ExpenseFormPr
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount (CAD)</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="amount">Amount</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="date">Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="vendor">Vendor Name</Label>
               <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                id="vendor"
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+                placeholder="Enter vendor name"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="payment_method">Payment Method</Label>
-              <Select
-                value={formData.payment_method}
-                onValueChange={(value: PaymentMethod) =>
-                  setFormData({ ...formData, payment_method: value })
-                }
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="credit_card">Credit Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="vendor_name">Vendor Name</Label>
-              <Input
-                id="vendor_name"
-                value={formData.vendor_name}
-                onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="receipt">Receipt (Optional)</Label>
-              <Input
-                id="receipt"
-                type="file"
-                accept="image/*,.pdf"
-                onChange={(e) => setReceipt(e.target.files ? e.target.files[0] : null)}
-              />
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="min-h-[80px]"
-              />
-            </div>
-
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2">
               <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: ExpenseStatus) =>
-                  setFormData({ ...formData, status: value })
-                }
-                required
-              >
-                <SelectTrigger>
+              <Select value={status} onValueChange={(value: "pending" | "paid") => setStatus(value)}>
+                <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="receipt">Receipt (Optional)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="receipt"
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setReceiptFile(e.target.files[0]);
+                    }
+                  }}
+                />
+                <Label
+                  htmlFor="receipt"
+                  className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {receiptFile ? receiptFile.name : "Upload Receipt"}
+                </Label>
+                {(existingReceiptPath && !receiptFile) && (
+                  <span className="text-sm text-gray-500">
+                    Receipt already uploaded
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add any additional information here"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isPending}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {isPending ? "Saving..." : expenseToEdit ? "Save Changes" : "Create Expense"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : expenseToEdit ? "Update" : "Save"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

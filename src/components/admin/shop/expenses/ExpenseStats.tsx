@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,36 +13,47 @@ import {
 } from "recharts";
 
 export const ExpenseStats = () => {
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading } = useQuery({
     queryKey: ["expense-stats"],
     queryFn: async () => {
       const today = new Date();
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       
-      const { data: monthlyTotal } = await supabase
+      // Get all expenses for the current month regardless of status
+      const { data: monthlyExpenses } = await supabase
         .from("shop_company_expenses")
-        .select("amount")
+        .select("amount, status")
         .gte("date", firstDayOfMonth.toISOString())
         .lt("date", today.toISOString());
 
+      // Get pending payments
       const { data: pendingPayments } = await supabase
         .from("shop_company_expenses")
         .select("amount")
         .eq("status", "pending");
 
+      // Get category breakdown
       const { data: categoryBreakdown } = await supabase
         .from("shop_company_expenses")
-        .select("category, amount")
+        .select("category, amount, status")
         .gte("date", firstDayOfMonth.toISOString())
         .lt("date", today.toISOString());
 
-      const totalThisMonth = monthlyTotal?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
+      // Calculate totals including both pending and paid expenses for this month
+      const totalPaid = monthlyExpenses?.filter(exp => exp.status === 'paid')
+        .reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
+      
       const totalPending = pendingPayments?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
+      
+      // Calculate the total for this month (both paid and pending)
+      const totalThisMonth = totalPaid;
 
-      const categoryTotals = categoryBreakdown?.reduce((acc, exp) => {
-        acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
-        return acc;
-      }, {} as Record<string, number>);
+      // Calculate category totals for the chart (include only paid expenses)
+      const categoryTotals = categoryBreakdown?.filter(exp => exp.status === 'paid')
+        .reduce((acc, exp) => {
+          acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
+          return acc;
+        }, {} as Record<string, number>);
 
       const chartData = Object.entries(categoryTotals || {}).map(([category, amount]) => ({
         category: category.replace("_", " "),
@@ -62,6 +74,25 @@ export const ExpenseStats = () => {
       currency: "CAD",
     }).format(amount);
   };
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-gray-500">Total This Month</h3>
+          <div className="mt-2 h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
+        </Card>
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-gray-500">Pending Payments</h3>
+          <div className="mt-2 h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
+        </Card>
+        <Card className="md:col-span-2 p-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-4">Expenses by Category</h3>
+          <div className="h-[200px] bg-gray-100 animate-pulse rounded"></div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
