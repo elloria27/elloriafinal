@@ -181,8 +181,8 @@ const Admin = () => {
         )}
         
         <div className="flex-1 overflow-y-auto">
-          <main className="p-6">
-            <div className="container mx-auto">
+          <main className="p-0 sm:p-6">
+            <div className="container mx-auto max-w-full px-0 sm:px-6">
               {renderContent()}
             </div>
           </main>
