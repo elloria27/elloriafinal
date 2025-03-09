@@ -60,6 +60,7 @@ export const ExpenseForm = ({
       setCategory(expenseToEdit.category || "");
       setAmount(expenseToEdit.amount?.toString() || "");
       setVendorName(expenseToEdit.vendor_name || "");
+      // Ensure we create a new Date object from the date string
       setDate(expenseToEdit.date ? new Date(expenseToEdit.date) : new Date());
       setStatus(expenseToEdit.status || "pending");
       setNotes(expenseToEdit.notes || "");
@@ -243,11 +244,11 @@ export const ExpenseForm = ({
                       {date ? format(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={(newDate) => setDate(newDate)}
                       initialFocus
                     />
                   </PopoverContent>
