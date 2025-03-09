@@ -10,7 +10,20 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
+
+// Колірна схема для категорій витрат
+const CATEGORY_COLORS: Record<string, string> = {
+  inventory: "#8B5CF6", // фіолетовий
+  marketing: "#F97316", // оранжевий
+  office_supplies: "#0EA5E9", // блакитний
+  utilities: "#10B981", // зелений
+  employee_benefits: "#EC4899", // рожевий
+  logistics: "#F59E0B", // жовтий
+  software: "#6366F1", // індіго
+  other: "#6B7280", // сірий
+};
 
 export const ExpenseStats = () => {
   const { data: stats, isLoading } = useQuery({
@@ -58,6 +71,7 @@ export const ExpenseStats = () => {
       const chartData = Object.entries(categoryTotals || {}).map(([category, amount]) => ({
         category: category.replace("_", " "),
         amount,
+        originalCategory: category, // Зберігаємо оригінальну категорію для кольорів
       }));
 
       return {
@@ -122,8 +136,16 @@ export const ExpenseStats = () => {
               <YAxis />
               <Tooltip 
                 formatter={(value: number) => formatCurrency(value)}
+                labelFormatter={(label) => `Category: ${label}`}
               />
-              <Bar dataKey="amount" fill="#3b82f6" />
+              <Bar dataKey="amount">
+                {stats?.chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={CATEGORY_COLORS[entry.originalCategory] || "#3b82f6"} 
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

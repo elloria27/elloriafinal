@@ -17,12 +17,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { PenLine, Download, Trash2, Search } from "lucide-react";
+import { PenLine, Download, Trash2, Search, FileDown, Eye } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ExpenseForm } from "./ExpenseForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type ExpenseCategory = "inventory" | "marketing" | "office_supplies" | "utilities" | 
                       "employee_benefits" | "logistics" | "software" | "other";
@@ -35,6 +41,7 @@ export const ExpenseList = () => {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
   const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
+  const [viewingNotes, setViewingNotes] = useState<{expense: any, open: boolean}>({expense: null, open: false});
   const queryClient = useQueryClient();
 
   const { data: expenses, isLoading } = useQuery({
@@ -146,6 +153,61 @@ export const ExpenseList = () => {
     }
   };
 
+  // Функція для експорту даних у CSV файл
+  const exportToCSV = () => {
+    if (!expenses || expenses.length === 0) {
+      toast.error("No expenses to export");
+      return;
+    }
+
+    // Форматуємо дані для CSV
+    const headers = ["Date", "Title", "Category", "Vendor", "Amount", "Status", "Payment Method", "Notes"];
+    const csvRows = [headers.join(",")];
+
+    expenses.forEach(expense => {
+      // Обробка полів, що можуть містити коми (для правильного CSV форматування)
+      const safeTitle = expense.title ? `"${expense.title.replace(/"/g, '""')}"` : "";
+      const safeVendor = expense.vendor_name ? `"${expense.vendor_name.replace(/"/g, '""')}"` : "";
+      const safeNotes = expense.notes ? `"${expense.notes.replace(/"/g, '""')}"` : "";
+      const formattedDate = format(new Date(expense.date), "yyyy-MM-dd");
+      const formattedCategory = expense.category.replace("_", " ");
+      const formattedAmount = expense.amount.toFixed(2);
+      
+      const row = [
+        formattedDate,
+        safeTitle,
+        formattedCategory,
+        safeVendor,
+        formattedAmount,
+        expense.status,
+        expense.payment_method.replace("_", " "),
+        safeNotes
+      ];
+      
+      csvRows.push(row.join(","));
+    });
+
+    // Створюємо Blob і посилання для завантаження
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    // Встановлюємо ім'я файлу з поточною датою
+    const todayDate = format(new Date(), "yyyy-MM-dd");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `expenses-${todayDate}.csv`);
+    link.style.visibility = "hidden";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const viewNotes = (expense: any) => {
+    setViewingNotes({ expense, open: true });
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -195,6 +257,14 @@ export const ExpenseList = () => {
               <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
           </Select>
+          <Button 
+            variant="outline" 
+            onClick={exportToCSV}
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
@@ -234,6 +304,17 @@ export const ExpenseList = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-2">
+                    {expense.notes && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => viewNotes(expense)}
+                        className="h-8 w-8 p-0"
+                        title="View Notes"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -274,6 +355,18 @@ export const ExpenseList = () => {
         expenseToEdit={expenseToEdit}
         onExpenseUpdated={() => handleFormClose(true)}
       />
+
+      {/* Діалог для перегляду нотаток */}
+      <Dialog open={viewingNotes.open} onOpenChange={(open) => setViewingNotes(prev => ({...prev, open}))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Notes for {viewingNotes.expense?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-gray-50 rounded-md">
+            <p className="whitespace-pre-wrap">{viewingNotes.expense?.notes}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
