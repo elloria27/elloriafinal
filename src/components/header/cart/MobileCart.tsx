@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -105,7 +104,7 @@ export const MobileCart = ({ isOpen, onClose }: MobileCartProps) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
                 <AnimatePresence mode="popLayout">
                   {items.map((item) => (
                     <CartItem
