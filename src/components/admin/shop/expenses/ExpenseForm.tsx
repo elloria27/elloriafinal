@@ -48,6 +48,7 @@ export const ExpenseForm = ({
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [status, setStatus] = useState<"pending" | "paid">("pending");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "bank_transfer" | "credit_card" | "other">("bank_transfer");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [existingReceiptPath, setExistingReceiptPath] = useState<string | null>(null);
   
@@ -62,6 +63,7 @@ export const ExpenseForm = ({
       setDate(expenseToEdit.date ? new Date(expenseToEdit.date) : new Date());
       setStatus(expenseToEdit.status || "pending");
       setNotes(expenseToEdit.notes || "");
+      setPaymentMethod(expenseToEdit.payment_method || "bank_transfer");
       setExistingReceiptPath(expenseToEdit.receipt_path || null);
     } else {
       resetForm();
@@ -76,6 +78,7 @@ export const ExpenseForm = ({
     setDate(new Date());
     setStatus("pending");
     setNotes("");
+    setPaymentMethod("bank_transfer");
     setReceiptFile(null);
     setExistingReceiptPath(null);
   };
@@ -106,6 +109,7 @@ export const ExpenseForm = ({
         vendor_name: formData.vendorName,
         date: formData.date.toISOString().split('T')[0],
         status: formData.status,
+        payment_method: formData.paymentMethod,
         notes: formData.notes,
         receipt_path: receiptPath,
       };
@@ -163,6 +167,7 @@ export const ExpenseForm = ({
         vendorName,
         date,
         status,
+        paymentMethod,
         notes,
       });
     } finally {
@@ -261,17 +266,37 @@ export const ExpenseForm = ({
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(value: "pending" | "paid") => setStatus(value)}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={status} onValueChange={(value: "pending" | "paid") => setStatus(value)}>
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select 
+                  value={paymentMethod} 
+                  onValueChange={(value: "cash" | "bank_transfer" | "credit_card" | "other") => setPaymentMethod(value)}
+                >
+                  <SelectTrigger id="paymentMethod">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="credit_card">Credit Card</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-2">
