@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +20,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
-import { Search, FileDown, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, FileDown, Calendar, ChevronLeft, ChevronRight, DollarSign, Package, ShoppingCart, TrendingUp } from "lucide-react";
 import { startOfMonth, endOfMonth, format, subMonths, addMonths, isWithinInterval } from "date-fns";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -117,6 +119,12 @@ export const OrderManagement = () => {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [filteredOrders, setFilteredOrders] = useState<OrderData[]>([]);
   const [isBulkDownloading, setIsBulkDownloading] = useState(false);
+  const [monthlyStats, setMonthlyStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    avgOrderValue: 0,
+    pendingOrders: 0
+  });
 
   const firstDayOfMonth = startOfMonth(selectedMonth);
   const lastDayOfMonth = endOfMonth(selectedMonth);
@@ -222,6 +230,30 @@ export const OrderManagement = () => {
     }
 
     setFilteredOrders(result);
+
+    // Calculate monthly statistics
+    if (!search) {
+      const monthlyOrdersData = orders.filter(order => {
+        if (!order.created_at) return false;
+        const orderDate = new Date(order.created_at);
+        return isWithinInterval(orderDate, {
+          start: firstDayOfMonth,
+          end: lastDayOfMonth
+        });
+      });
+
+      const totalRevenue = monthlyOrdersData.reduce((sum, order) => sum + order.total_amount, 0);
+      const totalOrders = monthlyOrdersData.length;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const pendingOrders = monthlyOrdersData.filter(order => order.status === 'pending').length;
+
+      setMonthlyStats({
+        totalRevenue,
+        totalOrders,
+        avgOrderValue,
+        pendingOrders
+      });
+    }
   }, [orders, search, selectedMonth]);
 
   const handleDownloadInvoice = async (orderId: string) => {
@@ -488,6 +520,53 @@ export const OrderManagement = () => {
         </Button>
       </div>
       
+      {/* Order Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">Monthly Revenue</span>
+              <DollarSign className="h-4 w-4 text-green-500" />
+            </div>
+            <div className="text-2xl font-bold">{formatCurrency(monthlyStats.totalRevenue)}</div>
+            <div className="text-xs text-muted-foreground mt-1">{currentMonthDisplay}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">Total Orders</span>
+              <ShoppingCart className="h-4 w-4 text-blue-500" />
+            </div>
+            <div className="text-2xl font-bold">{monthlyStats.totalOrders}</div>
+            <div className="text-xs text-muted-foreground mt-1">{currentMonthDisplay}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">Avg Order Value</span>
+              <TrendingUp className="h-4 w-4 text-violet-500" />
+            </div>
+            <div className="text-2xl font-bold">{formatCurrency(monthlyStats.avgOrderValue)}</div>
+            <div className="text-xs text-muted-foreground mt-1">{currentMonthDisplay}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">Pending Orders</span>
+              <Package className="h-4 w-4 text-amber-500" />
+            </div>
+            <div className="text-2xl font-bold">{monthlyStats.pendingOrders}</div>
+            <div className="text-xs text-muted-foreground mt-1">{currentMonthDisplay}</div>
+          </CardContent>
+        </Card>
+      </div>
+      
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <div className="flex-1 relative">
           <Input
@@ -745,6 +824,3 @@ export const OrderManagement = () => {
 };
 
 export default OrderManagement;
-
-
-

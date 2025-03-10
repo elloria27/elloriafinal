@@ -1,0 +1,4 @@
+
+project_id = ""
+name = "export-database"
+path = "supabase/functions/export-database"

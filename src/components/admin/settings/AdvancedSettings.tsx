@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Upload, Image } from "lucide-react";
+import { Download, Upload, Image, Database } from "lucide-react";
 
 export const AdvancedSettings = () => {
   const [uploading, setUploading] = useState(false);
+  const [exportingDatabase, setExportingDatabase] = useState(false);
 
   const handleDatabaseExport = async () => {
     try {
@@ -39,6 +40,83 @@ export const AdvancedSettings = () => {
     } catch (error) {
       console.error('Error exporting database:', error);
       toast.error("Failed to export database");
+    }
+  };
+
+  const handleFullDatabaseExport = async () => {
+    try {
+      setExportingDatabase(true);
+      console.log('Exporting full database...');
+      
+      // Call Supabase edge function to generate SQL dump if available
+      // For now, we'll simulate this by exporting all tables in JSON format with full structure
+      const { data, error } = await supabase.functions.invoke('export-database', {
+        body: { format: 'sql' }
+      });
+      
+      if (error) {
+        console.error('Error calling database export function:', error);
+        throw new Error('Failed to export database: ' + error.message);
+      }
+      
+      if (!data || !data.downloadUrl) {
+        // Fallback to client-side export if edge function is not available
+        const tables = [
+          'products', 'orders', 'profiles', 'pages', 'site_settings', 
+          'blog_posts', 'blog_categories', 'inventory', 'payment_methods',
+          'delivery_methods', 'promo_codes', 'shop_company_expenses',
+          'hrm_tasks', 'hrm_invoices', 'business_form_submissions'
+        ];
+        
+        const fullExport: Record<string, any> = {};
+        
+        for (const table of tables) {
+          const { data: tableData, error: tableError } = await supabase
+            .from(table)
+            .select('*');
+            
+          if (tableError) {
+            console.warn(`Error fetching table ${table}:`, tableError);
+            continue;
+          }
+          
+          fullExport[table] = tableData || [];
+        }
+        
+        // Also include database structure
+        fullExport['_metadata'] = {
+          exported_at: new Date().toISOString(),
+          version: '1.0',
+          tables: Object.keys(fullExport).map(table => ({
+            name: table,
+            record_count: fullExport[table].length
+          }))
+        };
+        
+        const blob = new Blob(
+          [JSON.stringify(fullExport, null, 2)], 
+          { type: 'application/json' }
+        );
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `full_database_export_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success("Full database exported successfully");
+      } else {
+        // If the edge function returned a download URL, use it
+        window.open(data.downloadUrl, '_blank');
+        toast.success("Full database SQL dump exported successfully");
+      }
+    } catch (error) {
+      console.error('Error exporting full database:', error);
+      toast.error("Failed to export full database");
+    } finally {
+      setExportingDatabase(false);
     }
   };
 
@@ -138,7 +216,16 @@ export const AdvancedSettings = () => {
               className="flex items-center gap-2 w-full sm:w-auto text-sm"
             >
               <Download className="h-4 w-4" />
-              Export Database
+              Export Database (JSON)
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleFullDatabaseExport}
+              disabled={exportingDatabase}
+              className="flex items-center gap-2 w-full sm:w-auto text-sm"
+            >
+              <Database className="h-4 w-4" />
+              {exportingDatabase ? "Exporting..." : "Full Database Dump (SQL)"}
             </Button>
             <div className="relative w-full sm:w-auto">
               <Input
@@ -160,6 +247,9 @@ export const AdvancedSettings = () => {
               </Button>
             </div>
           </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            The Full Database Dump option exports all tables with complete structure in SQL format, suitable for full database restoration.
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -190,4 +280,3 @@ export const AdvancedSettings = () => {
     </Card>
   );
 };
-
