@@ -1,3 +1,4 @@
+
 #root {
   text-align: center;
   min-height: 100vh;
@@ -20,8 +21,21 @@ main {
   flex-direction: column;
 }
 
-/* Add responsive padding adjustments */
-@media (min-width: 768px) {
+/* Remove fixed padding to use full screen width on mobile */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    max-width: 100% !important;
+  }
+  
+  main {
+    padding: 0;
+  }
+}
+
+/* Add responsive padding adjustments for desktop */
+@media (min-width: 769px) {
   main {
     padding-top: 0;
   }

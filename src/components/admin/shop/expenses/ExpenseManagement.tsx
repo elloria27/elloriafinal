@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ExpenseList } from "./ExpenseList";
@@ -10,8 +11,8 @@ export const ExpenseManagement = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-900">Company Expenses</h2>
         <Button 
           onClick={() => setShowExpenseForm(true)}
@@ -24,7 +25,7 @@ export const ExpenseManagement = () => {
 
       <ExpenseStats />
       
-      <Card className="p-6 shadow-sm border-gray-100">
+      <Card className="p-4 sm:p-6 shadow-sm border-gray-100">
         <ExpenseList />
       </Card>
 
