@@ -44,7 +44,7 @@ serve(async (req) => {
     ]
       
     const fullExport: Record<string, any> = {}
-    let sqlDump = `-- Database export created on ${new Date().toISOString()}\n\n`
+    let csvContent = ''
     
     for (const table of knownTables) {
       try {
@@ -62,28 +62,27 @@ serve(async (req) => {
         if (tableData && tableData.length > 0) {
           fullExport[table] = tableData
           
-          if (format === 'sql') {
-            sqlDump += `-- Table: ${table}\n`
+          if (format === 'csv') {
+            csvContent += `# Table: ${table}\n`
             
-            // Generate table structure using the first row as reference
+            // Get column headers from first row
             const firstRow = tableData[0]
-            const columns = Object.keys(firstRow)
+            const headers = Object.keys(firstRow)
+            csvContent += headers.join(',') + '\n'
             
-            // Create a simple INSERT statement for each row
+            // Add data rows
             tableData.forEach((row) => {
-              const values = Object.values(row)
-                .map((val) => {
-                  if (val === null) return 'NULL'
-                  if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`
-                  if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`
-                  return val
-                })
-                .join(', ')
-              
-              sqlDump += `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${values});\n`
+              const values = headers.map(header => {
+                const value = row[header]
+                if (value === null) return ''
+                if (typeof value === 'object') return `"${JSON.stringify(value).replace(/"/g, '""')}"`
+                if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`
+                return value
+              })
+              csvContent += values.join(',') + '\n'
             })
             
-            sqlDump += '\n'
+            csvContent += '\n'
           }
         } else {
           console.log(`Table ${table} is empty or doesn't exist`)
@@ -95,29 +94,29 @@ serve(async (req) => {
       }
     }
     
-    // Store the SQL dump in memory
-    if (format === 'sql') {
-      const fileName = `db_dump_${new Date().toISOString().slice(0, 10)}.sql`
+    // Return the CSV file
+    if (format === 'csv') {
+      const fileName = `db_export_${new Date().toISOString().slice(0, 10)}.csv`
       
       try {
-        // Return the SQL directly as a plain text file
+        // Return the CSV directly as a plain text file
         return new Response(
-          sqlDump,
+          csvContent,
           { 
             headers: { 
               ...corsHeaders, 
-              'Content-Type': 'text/plain',
+              'Content-Type': 'text/csv',
               'Content-Disposition': `attachment; filename="${fileName}"` 
             } 
           }
         )
       } catch (error) {
-        console.error('Error creating SQL response:', error)
+        console.error('Error creating CSV response:', error)
         throw error
       }
     }
     
-    // Return JSON for non-SQL format
+    // Return JSON for non-CSV format
     return new Response(
       JSON.stringify(fullExport),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
