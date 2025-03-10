@@ -48,8 +48,7 @@ export const AdvancedSettings = () => {
       setExportingDatabase(true);
       console.log('Exporting full database...');
       
-      // Call Supabase edge function to generate SQL dump if available
-      // For now, we'll simulate this by exporting all tables in JSON format with full structure
+      // Call Supabase edge function to generate SQL dump
       const { data, error } = await supabase.functions.invoke('export-database', {
         body: { format: 'sql' }
       });
@@ -59,7 +58,24 @@ export const AdvancedSettings = () => {
         throw new Error('Failed to export database: ' + error.message);
       }
       
-      if (!data || !data.downloadUrl) {
+      // If the server returns data directly (content instead of URL)
+      if (typeof data === 'string') {
+        const blob = new Blob([data], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `full_database_export_${new Date().toISOString().slice(0, 10)}.sql`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.success("Full database SQL dump exported successfully");
+      } else if (data?.downloadUrl) {
+        // If the edge function returned a download URL, use it
+        window.open(data.downloadUrl, '_blank');
+        toast.success("Full database SQL dump exported successfully");
+      } else {
         // Fallback to client-side export if edge function is not available
         const tables = [
           'products', 'orders', 'profiles', 'pages', 'site_settings', 
@@ -107,14 +123,10 @@ export const AdvancedSettings = () => {
         window.URL.revokeObjectURL(url);
         
         toast.success("Full database exported successfully");
-      } else {
-        // If the edge function returned a download URL, use it
-        window.open(data.downloadUrl, '_blank');
-        toast.success("Full database SQL dump exported successfully");
       }
     } catch (error) {
       console.error('Error exporting full database:', error);
-      toast.error("Failed to export full database");
+      toast.error("Failed to export full database: " + (error.message || "Unknown error"));
     } finally {
       setExportingDatabase(false);
     }
