@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { PenLine, Download, Trash2, Search, FileDown, Eye, Calendar } from "lucide-react";
+import { PenLine, Download, Trash2, Search, FileDown, Eye } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
@@ -36,13 +36,16 @@ type ExpenseStatus = "pending" | "paid";
 type CategoryFilterValue = ExpenseCategory | "all";
 type StatusFilterValue = ExpenseStatus | "all";
 
-export const ExpenseList = () => {
+interface ExpenseListProps {
+  selectedMonth: Date;
+}
+
+export const ExpenseList = ({ selectedMonth }: ExpenseListProps) => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
   const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
   const [viewingNotes, setViewingNotes] = useState<{expense: any, open: boolean}>({expense: null, open: false});
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const queryClient = useQueryClient();
 
   // Get the start and end of the selected month for filtering
@@ -65,7 +68,7 @@ export const ExpenseList = () => {
 
   // Query to get expenses filtered by search, category, and status
   const { data: expenses, isLoading } = useQuery({
-    queryKey: ["expenses", search, categoryFilter, statusFilter],
+    queryKey: ["expenses", search, categoryFilter, statusFilter, firstDayOfMonth.toISOString()],
     queryFn: async () => {
       let query = supabase
         .from("shop_company_expenses")
@@ -272,32 +275,9 @@ export const ExpenseList = () => {
           <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
         </div>
         <div className="flex gap-4 flex-col sm:flex-row md:w-auto w-full">
-          {/* Month selector */}
+          {/* Month indicator - removed calendar selector as it's handled in ExpenseStats */}
           <div className="flex items-center bg-white border rounded-md px-3 py-2 text-sm">
-            <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-            <span>{formattedSelectedMonth}</span>
-            <input
-              type="month"
-              value={format(selectedMonth, "yyyy-MM")}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const [year, month] = e.target.value.split('-');
-                  const newDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-                  setSelectedMonth(newDate);
-                }
-              }}
-              className="sr-only"
-              id="month-selector"
-            />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => document.getElementById('month-selector')?.click()}
-              className="ml-2 p-0 h-6 w-6"
-            >
-              <span className="sr-only">Select month</span>
-              <Calendar className="h-4 w-4" />
-            </Button>
+            <span>Viewing: {formattedSelectedMonth}</span>
           </div>
           
           <Select 

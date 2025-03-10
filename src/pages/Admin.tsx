@@ -182,7 +182,7 @@ const Admin = () => {
         
         <div className="flex-1 overflow-y-auto">
           <main className="w-full">
-            <div className={isMobile ? "px-2 py-4" : "container mx-auto p-6"}>
+            <div className={isMobile ? "p-2" : "container mx-auto p-6"}>
               {renderContent()}
             </div>
           </main>

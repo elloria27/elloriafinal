@@ -15,9 +15,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
+import { Search, FileDown, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { startOfMonth, endOfMonth, format, subMonths, addMonths, isWithinInterval } from "date-fns";
 
 const ORDER_STATUSES: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
@@ -110,6 +113,13 @@ export const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [filteredOrders, setFilteredOrders] = useState<OrderData[]>([]);
+  const [isBulkDownloading, setIsBulkDownloading] = useState(false);
+
+  const firstDayOfMonth = startOfMonth(selectedMonth);
+  const lastDayOfMonth = endOfMonth(selectedMonth);
 
   const fetchOrders = async () => {
     try {
@@ -187,6 +197,33 @@ export const OrderManagement = () => {
     fetchOrders();
   }, []);
 
+  useEffect(() => {
+    if (!orders.length) return;
+
+    let result = [...orders];
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      result = result.filter(order => 
+        order.order_number.toLowerCase().includes(searchLower) ||
+        (order.profile?.full_name?.toLowerCase() || '').includes(searchLower) ||
+        (order.profile?.email?.toLowerCase() || '').includes(searchLower) ||
+        (order.shipping_address.address?.toLowerCase() || '').includes(searchLower)
+      );
+    } else {
+      result = result.filter(order => {
+        if (!order.created_at) return false;
+        const orderDate = new Date(order.created_at);
+        return isWithinInterval(orderDate, {
+          start: firstDayOfMonth,
+          end: lastDayOfMonth
+        });
+      });
+    }
+
+    setFilteredOrders(result);
+  }, [orders, search, selectedMonth]);
+
   const handleDownloadInvoice = async (orderId: string) => {
     try {
       console.log("Generating invoice for order:", orderId);
@@ -209,7 +246,6 @@ export const OrderManagement = () => {
 
       console.log("Received PDF data, initiating download...");
 
-      // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = data.pdf;
       link.download = `invoice-${selectedOrder?.order_number}.pdf`;
@@ -221,6 +257,66 @@ export const OrderManagement = () => {
     } catch (error) {
       console.error("Error downloading invoice:", error);
       toast.error("Failed to download invoice");
+    }
+  };
+
+  const handleBulkDownloadInvoices = async () => {
+    try {
+      setIsBulkDownloading(true);
+      let ordersToDownload = filteredOrders;
+      
+      if (ordersToDownload.length === 0) {
+        toast.error("No orders to download invoices for");
+        return;
+      }
+      
+      const toastId = toast.loading(`Preparing ${ordersToDownload.length} invoices for download...`);
+
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      for (let i = 0; i < ordersToDownload.length; i++) {
+        const order = ordersToDownload[i];
+        toast.loading(`Generating invoice ${i+1}/${ordersToDownload.length}`, { id: toastId });
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('generate-invoice', {
+            body: { orderId: order.id }
+          });
+          
+          if (error || !data || !data.pdf) {
+            console.error(`Error generating invoice for order ${order.order_number}:`, error);
+            continue;
+          }
+          
+          const response = await fetch(data.pdf);
+          const blob = await response.blob();
+          
+          zip.file(`invoice-${order.order_number}.pdf`, blob);
+        } catch (err) {
+          console.error(`Error processing invoice for order ${order.order_number}:`, err);
+        }
+      }
+      
+      toast.loading('Creating zip archive...', { id: toastId });
+      const content = await zip.generateAsync({ type: 'blob' });
+      
+      const zipUrl = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      const dateStr = format(selectedMonth, 'yyyy-MM');
+      link.href = zipUrl;
+      link.download = `invoices-${dateStr}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(zipUrl);
+      
+      toast.success(`${ordersToDownload.length} invoices downloaded successfully`, { id: toastId });
+    } catch (error) {
+      console.error("Error in bulk download:", error);
+      toast.error("Failed to download invoices");
+    } finally {
+      setIsBulkDownloading(false);
     }
   };
 
@@ -261,7 +357,6 @@ export const OrderManagement = () => {
 
       console.log("Order updated successfully:", updatedOrder);
 
-      // Send status update email
       try {
         const shippingAddress = validateShippingAddress(updatedOrder.shipping_address);
         const customerName = updatedOrder.profiles?.full_name || 
@@ -368,9 +463,62 @@ export const OrderManagement = () => {
     return subtotal - discountAmount + shippingCost + gst;
   };
 
+  const handlePreviousMonth = () => {
+    setSelectedMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+
+  const currentMonthDisplay = format(selectedMonth, "MMMM yyyy");
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Order Management</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Order Management</h2>
+        <Button 
+          variant="outline" 
+          onClick={handleBulkDownloadInvoices}
+          disabled={isBulkDownloading || filteredOrders.length === 0}
+          className="flex items-center gap-2"
+        >
+          <FileDown className="h-4 w-4" />
+          {isBulkDownloading ? "Preparing..." : "Download All Invoices"}
+        </Button>
+      </div>
+      
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex-1 relative">
+          <Input
+            placeholder="Search by order #, customer, email or address..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
+        </div>
+        
+        <div className="flex items-center gap-2 bg-white border rounded-md px-3 py-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handlePreviousMonth}
+            className="p-1 h-7 w-7"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">{currentMonthDisplay}</span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleNextMonth}
+            className="p-1 h-7 w-7"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       
       <Table>
         <TableHeader>
@@ -385,50 +533,66 @@ export const OrderManagement = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell>{order.order_number}</TableCell>
-              <TableCell>
-                {order.profile?.full_name || 'Guest'}
-              </TableCell>
-              <TableCell>{formatDate(order.created_at)}</TableCell>
-              <TableCell>
-                <select
-                  value={order.status}
-                  onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
-                  className="border rounded p-1"
-                >
-                  {ORDER_STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </TableCell>
-              <TableCell>
-                {order.payment_method === 'stripe' ? (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    Stripe
-                  </span>
-                ) : (
-                  order.payment_method || 'Standard'
-                )}
-              </TableCell>
-              <TableCell>{formatCurrency(order.total_amount)}</TableCell>
-              <TableCell>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedOrder(order);
-                    setIsDetailsOpen(true);
-                  }}
-                >
-                  View Details
-                </Button>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-8">
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
               </TableCell>
             </TableRow>
-          ))}
+          ) : filteredOrders.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                {search ? "No orders match your search criteria" : "No orders for the selected month"}
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredOrders.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell>{order.order_number}</TableCell>
+                <TableCell>
+                  {order.profile?.full_name || 'Guest'}
+                </TableCell>
+                <TableCell>{formatDate(order.created_at)}</TableCell>
+                <TableCell>
+                  <select
+                    value={order.status}
+                    onChange={(e) => handleStatusUpdate(order.id, e.target.value as OrderStatus)}
+                    className="border rounded p-1"
+                  >
+                    {ORDER_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </TableCell>
+                <TableCell>
+                  {order.payment_method === 'stripe' ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      Stripe
+                    </span>
+                  ) : (
+                    order.payment_method || 'Standard'
+                  )}
+                </TableCell>
+                <TableCell>{formatCurrency(order.total_amount)}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setIsDetailsOpen(true);
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -581,3 +745,6 @@ export const OrderManagement = () => {
 };
 
 export default OrderManagement;
+
+
+

@@ -9,6 +9,7 @@ import { ExpenseForm } from "./ExpenseForm";
 
 export const ExpenseManagement = () => {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
   return (
     <div className="space-y-6">
@@ -23,10 +24,13 @@ export const ExpenseManagement = () => {
         </Button>
       </div>
 
-      <ExpenseStats />
+      <ExpenseStats 
+        selectedMonth={selectedMonth} 
+        onMonthChange={setSelectedMonth} 
+      />
       
       <Card className="p-4 sm:p-6 shadow-sm border-gray-100">
-        <ExpenseList />
+        <ExpenseList selectedMonth={selectedMonth} />
       </Card>
 
       <ExpenseForm 

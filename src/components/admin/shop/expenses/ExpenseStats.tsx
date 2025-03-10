@@ -12,26 +12,28 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { useState } from "react";
 import { startOfMonth, endOfMonth, format, subMonths, addMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Колірна схема для категорій витрат
+// Color scheme for expense categories
 const CATEGORY_COLORS: Record<string, string> = {
-  inventory: "#8B5CF6", // фіолетовий
-  marketing: "#F97316", // оранжевий
-  office_supplies: "#0EA5E9", // блакитний
-  utilities: "#10B981", // зелений
-  employee_benefits: "#EC4899", // рожевий
-  logistics: "#F59E0B", // жовтий
-  software: "#6366F1", // індіго
-  other: "#6B7280", // сірий
+  inventory: "#8B5CF6", // purple
+  marketing: "#F97316", // orange
+  office_supplies: "#0EA5E9", // light blue
+  utilities: "#10B981", // green
+  employee_benefits: "#EC4899", // pink
+  logistics: "#F59E0B", // yellow
+  software: "#6366F1", // indigo
+  other: "#6B7280", // gray
 };
 
-export const ExpenseStats = () => {
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
-  
+interface ExpenseStatsProps {
+  selectedMonth: Date;
+  onMonthChange: (date: Date) => void;
+}
+
+export const ExpenseStats = ({ selectedMonth, onMonthChange }: ExpenseStatsProps) => {
   const firstDayOfMonth = startOfMonth(selectedMonth);
   const lastDayOfMonth = endOfMonth(selectedMonth);
 
@@ -77,7 +79,7 @@ export const ExpenseStats = () => {
       const chartData = Object.entries(categoryTotals || {}).map(([category, amount]) => ({
         category: category.replace("_", " "),
         amount,
-        originalCategory: category, // Зберігаємо оригінальну категорію для кольорів
+        originalCategory: category, // Keep original category for colors
       }));
 
       return {
@@ -97,11 +99,11 @@ export const ExpenseStats = () => {
   };
 
   const handlePreviousMonth = () => {
-    setSelectedMonth(prevMonth => subMonths(prevMonth, 1));
+    onMonthChange(subMonths(selectedMonth, 1));
   };
 
   const handleNextMonth = () => {
-    setSelectedMonth(prevMonth => addMonths(prevMonth, 1));
+    onMonthChange(addMonths(selectedMonth, 1));
   };
 
   const currentMonthDisplay = format(selectedMonth, "MMMM yyyy");
