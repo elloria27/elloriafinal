@@ -48,9 +48,9 @@ export const AdvancedSettings = () => {
       setExportingDatabase(true);
       console.log('Exporting full database...');
       
-      // Call Supabase edge function to generate CSV dump
+      // Call Supabase edge function to generate SQL dump
       const { data, error } = await supabase.functions.invoke('export-database', {
-        body: { format: 'csv' }
+        body: { format: 'sql' }
       });
       
       if (error) {
@@ -60,33 +60,33 @@ export const AdvancedSettings = () => {
       
       // If the server returns data directly (content instead of URL)
       if (typeof data === 'string') {
-        const blob = new Blob([data], { type: 'text/csv' });
+        const blob = new Blob([data], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `full_database_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `full_database_export_${new Date().toISOString().slice(0, 10)}.sql`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
         
-        toast.success("Full database CSV export completed successfully");
+        toast.success("Full database SQL dump exported successfully");
       } else if (data?.downloadUrl) {
         // If the edge function returned a download URL, use it
         window.open(data.downloadUrl, '_blank');
-        toast.success("Full database CSV export completed successfully");
+        toast.success("Full database SQL dump exported successfully");
       } else {
         // Fallback to client-side export if edge function is not available
-        const knownTables = [
+        const tables = [
           'products', 'orders', 'profiles', 'pages', 'site_settings', 
           'blog_posts', 'blog_categories', 'inventory', 'payment_methods',
           'delivery_methods', 'promo_codes', 'shop_company_expenses',
           'hrm_tasks', 'hrm_invoices', 'business_form_submissions'
-        ] as const;
+        ];
         
         const fullExport: Record<string, any> = {};
         
-        for (const table of knownTables) {
+        for (const table of tables) {
           const { data: tableData, error: tableError } = await supabase
             .from(table)
             .select('*');
@@ -237,7 +237,7 @@ export const AdvancedSettings = () => {
               className="flex items-center gap-2 w-full sm:w-auto text-sm"
             >
               <Database className="h-4 w-4" />
-              {exportingDatabase ? "Exporting..." : "Full Database Export (CSV)"}
+              {exportingDatabase ? "Exporting..." : "Full Database Dump (SQL)"}
             </Button>
             <div className="relative w-full sm:w-auto">
               <Input
@@ -260,7 +260,7 @@ export const AdvancedSettings = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            The Full Database Export option downloads all tables in CSV format, making it easy to view and edit data in spreadsheet applications.
+            The Full Database Dump option exports all tables with complete structure in SQL format, suitable for full database restoration.
           </p>
         </div>
 
