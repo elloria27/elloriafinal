@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +33,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
       setLoading(true);
       
       try {
-        // Fetch invoice and items
         const { data: invoiceData, error: invoiceError } = await supabase
           .from("hrm_invoices")
           .select(`
@@ -49,7 +47,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         setInvoice(invoiceData);
         setItems(invoiceData.items || []);
 
-        // Fetch customer data
         if (invoiceData.customer_id) {
           const { data: customerData, error: customerError } = await supabase
             .from("hrm_customers")
@@ -88,7 +85,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
       
       toast.success(`Invoice sent to ${customer.email}`);
       
-      // Record email in the database
       await supabase.from('hrm_invoice_emails').insert({
         invoice_id: invoice.id,
         sent_to: customer.email,
@@ -134,7 +130,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     }
   };
 
-  // Format currency with 2 decimal places
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-CA', {
       style: 'currency',
@@ -208,7 +203,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
       </div>
 
       <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-6'}`}>
-        {/* From section */}
         <div className="space-y-1 border p-3 rounded-md">
           <h4 className="font-medium">From:</h4>
           <p className="font-semibold">{invoice.company_info?.name || 'Your Company'}</p>
@@ -224,7 +218,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           )}
         </div>
 
-        {/* Customer section */}
         <div className="space-y-1 border p-3 rounded-md">
           <h4 className="font-medium">To:</h4>
           {customer ? (
@@ -252,7 +245,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         </div>
       </div>
 
-      {/* Table for desktop */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -308,7 +300,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         </table>
       </div>
 
-      {/* Mobile layout - improved with better spacing and layout */}
       <div className="md:hidden space-y-4">
         <h4 className="font-medium border-b pb-2">Invoice Items</h4>
         {items.length > 0 ? (
@@ -336,7 +327,6 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           </div>
         )}
         
-        {/* Summary for mobile - improved with better spacing */}
         <div className="border rounded-md p-3 space-y-2">
           <div className="flex justify-between">
             <span className="font-medium">Subtotal:</span>

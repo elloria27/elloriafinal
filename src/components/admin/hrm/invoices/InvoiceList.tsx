@@ -227,11 +227,11 @@ const InvoiceList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h3 className="text-lg font-medium">Invoices</h3>
         <Dialog open={showNewInvoiceDialog} onOpenChange={setShowNewInvoiceDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button size={isMobile ? "sm" : "default"} className="whitespace-nowrap">
               <Plus className="h-4 w-4 mr-2" />
               New Invoice
             </Button>

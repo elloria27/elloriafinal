@@ -11,20 +11,24 @@ const InvoiceManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold tracking-tight`}>Invoice Management</h2>
-        <p className="text-muted-foreground">
-          Manage invoices, customers, and billing settings
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold tracking-tight`}>Invoice Management</h2>
+          <p className="text-muted-foreground">
+            Manage invoices, customers, and billing settings
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList className={`flex-wrap ${isMobile ? 'w-full grid grid-cols-2 gap-1' : ''}`}>
-          <TabsTrigger value="dashboard" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Dashboard</TabsTrigger>
-          <TabsTrigger value="invoices" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Invoices</TabsTrigger>
-          <TabsTrigger value="customers" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Customers</TabsTrigger>
-          <TabsTrigger value="settings" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Settings</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+          <TabsList className={`${isMobile ? 'w-full' : ''}`}>
+            <TabsTrigger value="dashboard" className={isMobile ? 'text-xs px-2 py-1.5 flex-1' : ''}>Dashboard</TabsTrigger>
+            <TabsTrigger value="invoices" className={isMobile ? 'text-xs px-2 py-1.5 flex-1' : ''}>Invoices</TabsTrigger>
+            <TabsTrigger value="customers" className={isMobile ? 'text-xs px-2 py-1.5 flex-1' : ''}>Customers</TabsTrigger>
+            <TabsTrigger value="settings" className={isMobile ? 'text-xs px-2 py-1.5 flex-1' : ''}>Settings</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="dashboard" className="space-y-4">
           <InvoiceDashboard />
