@@ -271,12 +271,16 @@ export default function Invoices() {
 
               <div className="border-t pt-4">
                 <h3 className="font-medium mb-2">Shipping Address</h3>
-                <p>{viewingOrder.shipping_address.name}</p>
-                <p>{viewingOrder.shipping_address.street}</p>
-                <p>
-                  {viewingOrder.shipping_address.city}, {viewingOrder.shipping_address.state} {viewingOrder.shipping_address.zip}
-                </p>
-                <p>{viewingOrder.shipping_address.country}</p>
+                {viewingOrder.shipping_address && (
+                  <>
+                    <p>{viewingOrder.shipping_address.first_name} {viewingOrder.shipping_address.last_name}</p>
+                    <p>{viewingOrder.shipping_address.address}</p>
+                    <p>
+                      {viewingOrder.shipping_address.city}, {viewingOrder.shipping_address.region} {viewingOrder.shipping_address.postal_code}
+                    </p>
+                    <p>{viewingOrder.shipping_address.country}</p>
+                  </>
+                )}
               </div>
 
               <div className="flex justify-end mt-4">
@@ -291,4 +295,4 @@ export default function Invoices() {
       </Dialog>
     </div>
   );
-}
+};

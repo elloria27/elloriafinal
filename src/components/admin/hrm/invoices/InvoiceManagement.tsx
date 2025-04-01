@@ -12,18 +12,18 @@ const InvoiceManagement = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Invoice Management</h2>
+        <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold tracking-tight`}>Invoice Management</h2>
         <p className="text-muted-foreground">
           Manage invoices, customers, and billing settings
         </p>
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList className={`flex-wrap ${isMobile ? 'w-full' : ''}`}>
-          <TabsTrigger value="dashboard" className={isMobile ? 'flex-1' : ''}>Dashboard</TabsTrigger>
-          <TabsTrigger value="invoices" className={isMobile ? 'flex-1' : ''}>Invoices</TabsTrigger>
-          <TabsTrigger value="customers" className={isMobile ? 'flex-1' : ''}>Customers</TabsTrigger>
-          <TabsTrigger value="settings" className={isMobile ? 'flex-1' : ''}>Settings</TabsTrigger>
+        <TabsList className={`flex-wrap ${isMobile ? 'w-full grid grid-cols-2 gap-1' : ''}`}>
+          <TabsTrigger value="dashboard" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Dashboard</TabsTrigger>
+          <TabsTrigger value="invoices" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Invoices</TabsTrigger>
+          <TabsTrigger value="customers" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Customers</TabsTrigger>
+          <TabsTrigger value="settings" className={isMobile ? 'w-full text-xs py-1.5' : ''}>Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-4">

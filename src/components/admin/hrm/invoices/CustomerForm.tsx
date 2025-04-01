@@ -1,287 +1,336 @@
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CustomerFormProps {
   customerId?: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email format"),
-  phone: z.string().optional(),
-  tax_id: z.string().optional(),
-  street: z.string().optional(),
-  city: z.string().optional(),
-  province: z.string().optional(),
-  postal_code: z.string().optional(),
-  country: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+interface CustomerFormData {
+  name: string;
+  email: string;
+  phone?: string;
+  taxId?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    province?: string;
+    postal_code?: string;
+    country?: string;
+  };
+}
 
 const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
-  const [loading, setLoading] = useState(false);
-  const isMobile = useIsMobile();
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      tax_id: "",
+  const [formData, setFormData] = useState<CustomerFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    taxId: "",
+    address: {
       street: "",
       city: "",
       province: "",
       postal_code: "",
-      country: "",
-    },
+      country: ""
+    }
   });
+  const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    const fetchCustomerData = async () => {
-      if (customerId) {
-        setLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from("hrm_customers")
-            .select("*")
-            .eq("id", customerId)
-            .single();
+    if (customerId) {
+      fetchCustomerData();
+    }
+  }, [customerId]);
 
-          if (error) throw error;
-
-          if (data) {
-            form.reset({
-              name: data.name || "",
-              email: data.email || "",
-              phone: data.phone || "",
-              tax_id: data.tax_id || "",
-              street: data.address?.street || "",
-              city: data.address?.city || "",
-              province: data.address?.province || "",
-              postal_code: data.address?.postal_code || "",
-              country: data.address?.country || "",
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching customer data:", error);
-          toast.error("Failed to load customer data");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchCustomerData();
-  }, [customerId, form]);
-
-  const onSubmit = async (data: FormData) => {
+  const fetchCustomerData = async () => {
     setLoading(true);
     try {
+      const { data, error } = await supabase
+        .from("hrm_customers")
+        .select("*")
+        .eq("id", customerId)
+        .single();
+
+      if (error) throw error;
+
+      // Initialize the address object if it doesn't exist
       const customerData = {
-        name: data.name,
-        email: data.email,
-        phone: data.phone || null,
-        tax_id: data.tax_id || null,
-        address: {
-          street: data.street || null,
-          city: data.city || null,
-          province: data.province || null,
-          postal_code: data.postal_code || null,
-          country: data.country || null,
-        },
+        ...data,
+        address: data.address || {
+          street: "",
+          city: "",
+          province: "",
+          postal_code: "",
+          country: ""
+        }
       };
+      
+      setFormData(customerData);
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      toast.error("Failed to load customer data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Handle nested address fields
+    if (name.startsWith("address.")) {
+      const addressField = name.split(".")[1];
+      setFormData({
+        ...formData,
+        address: {
+          ...formData.address,
+          [addressField]: value
+        }
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      let result;
 
       if (customerId) {
-        // Update existing customer
-        const { error } = await supabase
+        // Update
+        result = await supabase
           .from("hrm_customers")
-          .update(customerData)
+          .update(formData)
           .eq("id", customerId);
-
-        if (error) throw error;
-        toast.success("Customer updated successfully");
       } else {
-        // Create new customer
-        const { error } = await supabase
+        // Create
+        result = await supabase
           .from("hrm_customers")
-          .insert(customerData);
-
-        if (error) throw error;
-        toast.success("Customer created successfully");
+          .insert(formData);
       }
 
-      onSuccess();
+      if (result.error) throw result.error;
+
+      toast.success(customerId ? "Customer updated successfully" : "Customer created successfully");
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      if (!customerId) {
+        // Reset form after successful creation
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          taxId: "",
+          address: {
+            street: "",
+            city: "",
+            province: "",
+            postal_code: "",
+            country: ""
+          }
+        });
+      }
     } catch (error) {
       console.error("Error saving customer:", error);
-      toast.error("Failed to save customer data");
+      toast.error("Failed to save customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!customerId) return;
+    
+    if (!confirm("Are you sure you want to delete this customer? This action cannot be undone.")) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Check if customer has invoices
+      const { data: invoices, error: invoicesError } = await supabase
+        .from("hrm_invoices")
+        .select("id")
+        .eq("customer_id", customerId)
+        .limit(1);
+
+      if (invoicesError) throw invoicesError;
+
+      if (invoices && invoices.length > 0) {
+        toast.error("Cannot delete customer: Customer has invoices associated with them");
+        return;
+      }
+
+      // Delete customer
+      const { error } = await supabase
+        .from("hrm_customers")
+        .delete()
+        .eq("id", customerId);
+
+      if (error) throw error;
+
+      toast.success("Customer deleted successfully");
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      toast.error("Failed to delete customer");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Customer Name *</Label>
+        <Input
+          id="name"
           name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Customer name" {...field} className={isMobile ? "text-sm" : ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          value={formData.name}
+          onChange={handleInputChange}
+          required
+          className={isMobile ? "text-sm" : ""}
         />
+      </div>
 
-        <FormField
-          control={form.control}
+      <div>
+        <Label htmlFor="email">Email Address *</Label>
+        <Input
+          id="email"
           name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="Email address" {...field} className={isMobile ? "text-sm" : ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          type="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          required
+          className={isMobile ? "text-sm" : ""}
         />
+      </div>
 
-        <FormField
-          control={form.control}
+      <div>
+        <Label htmlFor="phone">Phone Number</Label>
+        <Input
+          id="phone"
           name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input placeholder="Phone number" {...field} className={isMobile ? "text-sm" : ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          value={formData.phone || ""}
+          onChange={handleInputChange}
+          className={isMobile ? "text-sm" : ""}
         />
+      </div>
 
-        <FormField
-          control={form.control}
-          name="tax_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tax ID</FormLabel>
-              <FormControl>
-                <Input placeholder="Tax ID (optional)" {...field} className={isMobile ? "text-sm" : ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      <div>
+        <Label htmlFor="tax_id">Tax ID</Label>
+        <Input
+          id="tax_id"
+          name="taxId"
+          value={formData.taxId || ""}
+          onChange={handleInputChange}
+          className={isMobile ? "text-sm" : ""}
         />
+      </div>
 
-        <div className="border rounded-md p-4 space-y-4">
-          <h3 className="font-medium">Address Information</h3>
+      <div className="pt-2">
+        <h3 className="text-md font-medium mb-2">Address Details</h3>
+        
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="street">Street</Label>
+            <Input
+              id="street"
+              name="address.street"
+              value={formData.address?.street || ""}
+              onChange={handleInputChange}
+              className={isMobile ? "text-sm" : ""}
+            />
+          </div>
           
-          <FormField
-            control={form.control}
-            name="street"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Street Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="Street address" {...field} className={isMobile ? "text-sm" : ""} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-6"}`}>
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input placeholder="City" {...field} className={isMobile ? "text-sm" : ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="province"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Province/State</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Province/State" {...field} className={isMobile ? "text-sm" : ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className={isMobile ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}>
+            <div>
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                name="address.city"
+                value={formData.address?.city || ""}
+                onChange={handleInputChange}
+                className={isMobile ? "text-sm" : ""}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="province">Province/State</Label>
+              <Input
+                id="province"
+                name="address.province"
+                value={formData.address?.province || ""}
+                onChange={handleInputChange}
+                className={isMobile ? "text-sm" : ""}
+              />
+            </div>
           </div>
-
-          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-6"}`}>
-            <FormField
-              control={form.control}
-              name="postal_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Postal/ZIP Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Postal/ZIP code" {...field} className={isMobile ? "text-sm" : ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Country</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Country" {...field} className={isMobile ? "text-sm" : ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          
+          <div className={isMobile ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}>
+            <div>
+              <Label htmlFor="postal_code">Postal/ZIP Code</Label>
+              <Input
+                id="postal_code"
+                name="address.postal_code"
+                value={formData.address?.postal_code || ""}
+                onChange={handleInputChange}
+                className={isMobile ? "text-sm" : ""}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                name="address.country"
+                value={formData.address?.country || ""}
+                onChange={handleInputChange}
+                className={isMobile ? "text-sm" : ""}
+              />
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={loading} className={isMobile ? "w-full" : ""}>
-            {loading ? "Saving..." : (customerId ? "Update Customer" : "Create Customer")}
+      <div className={`flex ${isMobile ? "flex-col" : ""} gap-2 justify-between pt-4`}>
+        <Button type="submit" disabled={loading} className={isMobile ? "w-full" : ""}>
+          {loading ? "Saving..." : customerId ? "Update Customer" : "Create Customer"}
+        </Button>
+
+        {customerId && (
+          <Button 
+            type="button" 
+            variant="destructive" 
+            onClick={handleDelete} 
+            disabled={loading}
+            className={isMobile ? "w-full mt-2" : ""}
+          >
+            Delete Customer
           </Button>
-        </div>
-      </form>
-    </Form>
+        )}
+      </div>
+    </form>
   );
 };
 

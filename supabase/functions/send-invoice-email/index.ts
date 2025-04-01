@@ -48,12 +48,12 @@ serve(async (req) => {
     const pdfData = pdfResponse.data.pdf;
     const base64Data = pdfData.split(',')[1]; // Remove the data:application/pdf;base64, prefix
 
-    // Format amount without decimal places
+    // Format amount with exact decimal places
     const formattedAmount = new Intl.NumberFormat('en-CA', {
       style: 'currency',
       currency: 'CAD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(invoice.total_amount);
 
     // Render email template

@@ -381,23 +381,25 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.text('Total:', 150, y);
   doc.text(`$${invoice.total_amount.toFixed(2)}`, 180, y);
   
-  // Fix payment instructions and footer overlap by positioning them properly
+  // Add significant spacing between the totals and payment instructions
+  y += 30; 
+  
   // Payment Instructions from settings
   if (settings?.payment_instructions) {
-    y += 25; // Increased spacing
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Payment Instructions:', 10, y);
     doc.setFont('helvetica', 'normal');
-    // Use wrapText for payment instructions
-    y = wrapText(doc, settings.payment_instructions, 10, y + 5, 180) + 10;
+    // Use wrapText for payment instructions with more line height
+    y = wrapText(doc, settings.payment_instructions, 10, y + 5, 180) + 15;
   }
   
-  // Add more vertical space before footer
-  y += 15;
-  
-  // Footer Text from settings
+  // Add footer text at the bottom of the page with adequate spacing
   if (settings?.footer_text) {
+    // Ensure we're at least 30 points from the bottom
+    const minFooterY = 260;
+    if (y < minFooterY) y = minFooterY;
+    
     doc.setFont('helvetica', 'italic');
     doc.text(settings.footer_text, 105, y, { align: 'center' });
   }
