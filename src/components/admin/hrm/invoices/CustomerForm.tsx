@@ -60,10 +60,14 @@ const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
 
       if (error) throw error;
 
-      // Initialize the address object if it doesn't exist
-      const customerData = {
-        ...data,
-        address: data.address || {
+      // Convert database address format to our form's address format
+      const customerData: CustomerFormData = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone || "",
+        taxId: data.tax_id || "",
+        // Handle address which might be a string, object, or null
+        address: {
           street: "",
           city: "",
           province: "",
@@ -71,6 +75,17 @@ const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
           country: ""
         }
       };
+
+      // Parse the address object if it exists
+      if (data.address && typeof data.address === 'object') {
+        customerData.address = {
+          street: data.address.street || "",
+          city: data.address.city || "",
+          province: data.address.province || "",
+          postal_code: data.address.postal_code || "",
+          country: data.address.country || ""
+        };
+      }
       
       setFormData(customerData);
     } catch (error) {
@@ -109,17 +124,26 @@ const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
     try {
       let result;
 
+      // Prepare data for submission
+      const dataToSubmit = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || null,
+        tax_id: formData.taxId || null,
+        address: formData.address || null
+      };
+
       if (customerId) {
         // Update
         result = await supabase
           .from("hrm_customers")
-          .update(formData)
+          .update(dataToSubmit)
           .eq("id", customerId);
       } else {
         // Create
         result = await supabase
           .from("hrm_customers")
-          .insert(formData);
+          .insert(dataToSubmit);
       }
 
       if (result.error) throw result.error;

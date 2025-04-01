@@ -1,3 +1,4 @@
+
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 export type ShippingAddress = {
@@ -8,6 +9,8 @@ export type ShippingAddress = {
   first_name?: string;
   last_name?: string;
   email?: string;
+  city?: string;
+  postal_code?: string;
 };
 
 export type OrderItem = {
