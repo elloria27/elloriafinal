@@ -9,6 +9,7 @@ import {
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardStats {
   totalInvoices: number;
@@ -46,6 +47,7 @@ const InvoiceDashboard = () => {
     overdueCount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -106,13 +108,13 @@ const InvoiceDashboard = () => {
     return amount.toLocaleString("en-CA", {
       style: "currency",
       currency: "CAD",
-      minimumFractionDigits: 2, // Changed from 0 to 2 to show decimal places
-      maximumFractionDigits: 2, // Ensures consistent display of 2 decimal places
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>

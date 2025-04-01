@@ -4,15 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { OrderData, OrderStatus, ShippingAddress, OrderItem, AppliedPromoCode } from "@/types/order";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Invoices() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
+  const [viewingOrder, setViewingOrder] = useState<OrderData | null>(null);
+  const [viewOrderDialogOpen, setViewOrderDialogOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -135,14 +145,6 @@ export default function Invoices() {
     }
   };
 
-  if (loading) {
-    return <div className="p-6">Loading...</div>;
-  }
-
-  if (orders.length === 0) {
-    return <div className="p-6">No invoices found.</div>;
-  }
-
   // Format currency with 2 decimal places
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-CA', {
@@ -153,28 +155,53 @@ export default function Invoices() {
     }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[300px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return <div className="p-6 pt-24 text-center">No invoices found.</div>;
+  }
+
   return (
-    <div className="space-y-8 p-6 pt-24">
+    <div className={`space-y-8 p-6 ${isMobile ? 'pt-20' : 'pt-24'}`}>
       {orders.map((order) => (
         <div
           key={order.id}
-          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          className={`bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow ${isMobile ? 'p-4' : ''}`}
         >
-          <div className="flex justify-between items-start mb-4">
+          <div className={`flex ${isMobile ? 'flex-col' : 'justify-between items-start'} mb-4`}>
             <div>
-              <h3 className="text-lg font-semibold">Invoice #{order.order_number}</h3>
+              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold`}>Invoice #{order.order_number}</h3>
               <p className="text-gray-600">
                 {new Date(order.created_at).toLocaleDateString()}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDownload(order.id)}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
+            <div className={`flex gap-2 ${isMobile ? 'mt-4' : ''}`}>
+              <Button
+                variant="outline"
+                size={isMobile ? "sm" : "sm"}
+                onClick={() => {
+                  setViewingOrder(order);
+                  setViewOrderDialogOpen(true);
+                }}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </Button>
+              <Button
+                variant="outline"
+                size={isMobile ? "sm" : "sm"}
+                onClick={() => handleDownload(order.id)}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-4">
@@ -187,6 +214,81 @@ export default function Invoices() {
           </div>
         </div>
       ))}
+
+      {/* Order Details Dialog */}
+      <Dialog open={viewOrderDialogOpen} onOpenChange={setViewOrderDialogOpen}>
+        <DialogContent className={isMobile ? "w-[95%] max-w-full p-4" : ""}>
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+          </DialogHeader>
+          {viewingOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Invoice Number</h3>
+                  <p>{viewingOrder.order_number}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Date</h3>
+                  <p>{new Date(viewingOrder.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-medium mb-2">Items</h3>
+                <div className="space-y-2">
+                  {viewingOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between">
+                      <span>{item.quantity}x {item.name}</span>
+                      <span>{formatAmount(item.price * item.quantity)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatAmount(viewingOrder.total_amount - (viewingOrder.gst || 0) - (viewingOrder.shipping_cost || 0))}</span>
+                </div>
+                {viewingOrder.shipping_cost > 0 && (
+                  <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span>{formatAmount(viewingOrder.shipping_cost)}</span>
+                  </div>
+                )}
+                {viewingOrder.gst > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax</span>
+                    <span>{formatAmount(viewingOrder.gst)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold border-t mt-2 pt-2">
+                  <span>Total</span>
+                  <span>{formatAmount(viewingOrder.total_amount)}</span>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-medium mb-2">Shipping Address</h3>
+                <p>{viewingOrder.shipping_address.name}</p>
+                <p>{viewingOrder.shipping_address.street}</p>
+                <p>
+                  {viewingOrder.shipping_address.city}, {viewingOrder.shipping_address.state} {viewingOrder.shipping_address.zip}
+                </p>
+                <p>{viewingOrder.shipping_address.country}</p>
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <Button onClick={() => handleDownload(viewingOrder.id)}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Invoice
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

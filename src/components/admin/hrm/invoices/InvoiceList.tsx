@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import InvoiceForm from "./InvoiceForm";
 import InvoiceDetails from "./InvoiceDetails";
 import type { Invoice } from "@/types/hrm";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,8 +41,10 @@ const InvoiceList = () => {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const fetchInvoices = async () => {
     try {
@@ -125,6 +128,8 @@ const InvoiceList = () => {
   // Format currency with 2 decimal places
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       useGrouping: true
@@ -134,6 +139,91 @@ const InvoiceList = () => {
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
+  const renderMobileInvoiceCard = (invoice: Invoice) => {
+    return (
+      <div key={invoice.id} className="border rounded-md p-4 mb-4">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <h3 className="font-medium">Invoice #{invoice.invoice_number}</h3>
+            <p className="text-sm text-muted-foreground">
+              {invoice.customer?.name || "No customer"}
+            </p>
+          </div>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(invoice.status)}`}
+          >
+            {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-y-2 text-sm">
+          <span className="text-muted-foreground">Created:</span>
+          <span>{format(new Date(invoice.created_at), "MMM d, yyyy")}</span>
+          
+          <span className="text-muted-foreground">Due date:</span>
+          <span>{format(new Date(invoice.due_date), "MMM d, yyyy")}</span>
+          
+          <span className="text-muted-foreground">Amount:</span>
+          <span className="font-medium">{formatAmount(invoice.total_amount)}</span>
+        </div>
+
+        <div className="flex flex-col gap-2 mt-4">
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setSelectedInvoiceId(invoice.id);
+                setShowDetailsDialog(true);
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setSelectedInvoiceId(invoice.id);
+                setShowEditDialog(true);
+              }}
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                setInvoiceToDelete(invoice.id);
+                setShowDeleteDialog(true);
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -146,7 +236,7 @@ const InvoiceList = () => {
               New Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className={isMobile ? "w-[95%] p-4" : "max-w-4xl"}>
             <DialogHeader>
               <DialogTitle>Create New Invoice</DialogTitle>
             </DialogHeader>
@@ -160,36 +250,36 @@ const InvoiceList = () => {
         </Dialog>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : invoices.length === 0 ? (
+        <div className="text-center py-8 border rounded-md">
+          No invoices found
+        </div>
+      ) : isMobile ? (
+        // Mobile view - cards
+        <div className="space-y-4">
+          {invoices.map((invoice) => renderMobileInvoiceCard(invoice))}
+        </div>
+      ) : (
+        // Desktop view - table
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  </div>
-                </TableCell>
+                <TableHead>Invoice #</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ) : invoices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  No invoices found
-                </TableCell>
-              </TableRow>
-            ) : (
-              invoices.map((invoice) => (
+            </TableHeader>
+            <TableBody>
+              {invoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell>{invoice.invoice_number}</TableCell>
                   <TableCell>{invoice.customer?.name}</TableCell>
@@ -198,7 +288,7 @@ const InvoiceList = () => {
                   </TableCell>
                   <TableCell>{format(new Date(invoice.due_date), "PP")}</TableCell>
                   <TableCell>
-                    ${formatAmount(invoice.total_amount)}
+                    {formatAmount(invoice.total_amount)}
                   </TableCell>
                   <TableCell>
                     <span
@@ -216,26 +306,17 @@ const InvoiceList = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedInvoiceId(invoice.id)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
-                          <DialogHeader>
-                            <DialogTitle>Invoice Details</DialogTitle>
-                          </DialogHeader>
-                          {selectedInvoiceId && (
-                            <InvoiceDetails invoiceId={selectedInvoiceId} />
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedInvoiceId(invoice.id);
+                          setShowDetailsDialog(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
 
                       <Button
                         variant="ghost"
@@ -263,14 +344,27 @@ const InvoiceList = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
+      {/* Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className={isMobile ? "w-[95%] p-4" : "max-w-4xl"}>
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+          </DialogHeader>
+          {selectedInvoiceId && (
+            <InvoiceDetails invoiceId={selectedInvoiceId} />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className={isMobile ? "w-[95%] p-4" : "max-w-4xl"}>
           <DialogHeader>
             <DialogTitle>Edit Invoice</DialogTitle>
           </DialogHeader>
@@ -286,6 +380,7 @@ const InvoiceList = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

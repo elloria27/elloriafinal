@@ -4,8 +4,11 @@ import InvoiceList from "./InvoiceList";
 import InvoiceDashboard from "./InvoiceDashboard";
 import CustomerList from "./CustomerList";
 import InvoiceSettings from "./InvoiceSettings";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const InvoiceManagement = () => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,11 +19,11 @@ const InvoiceManagement = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className={`flex-wrap ${isMobile ? 'w-full' : ''}`}>
+          <TabsTrigger value="dashboard" className={isMobile ? 'flex-1' : ''}>Dashboard</TabsTrigger>
+          <TabsTrigger value="invoices" className={isMobile ? 'flex-1' : ''}>Invoices</TabsTrigger>
+          <TabsTrigger value="customers" className={isMobile ? 'flex-1' : ''}>Customers</TabsTrigger>
+          <TabsTrigger value="settings" className={isMobile ? 'flex-1' : ''}>Settings</TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-4">

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Download, Send } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvoiceDetailsProps {
   invoiceId: string;
@@ -26,6 +27,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   const [customer, setCustomer] = useState<any>(null);
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
@@ -135,6 +137,8 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
   // Format currency with 2 decimal places
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       useGrouping: true
@@ -155,7 +159,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
 
   return (
     <div className="space-y-6 text-sm">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row'} justify-between items-start gap-4`}>
         <div>
           <h3 className="text-lg font-semibold">Invoice #{invoice.invoice_number}</h3>
           <p className="text-muted-foreground">
@@ -179,12 +183,13 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-col sm:flex-row'} gap-2 ${isMobile ? 'w-full' : 'md:w-auto'}`}>
           <Button 
             onClick={handleSendEmail} 
             disabled={sending} 
             className="w-full md:w-auto"
             variant="outline"
+            size={isMobile ? "sm" : "default"}
           >
             <Send className="h-4 w-4 mr-2" />
             {sending ? "Sending..." : "Send to Client"}
@@ -194,6 +199,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
             onClick={handleDownload} 
             disabled={downloading} 
             className="w-full md:w-auto"
+            size={isMobile ? "sm" : "default"}
           >
             <Download className="h-4 w-4 mr-2" />
             {downloading ? "Generating..." : "Download PDF"}
@@ -201,9 +207,9 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'md:grid-cols-2 gap-6'}`}>
         {/* From section */}
-        <div className="space-y-1">
+        <div className="space-y-1 border p-3 rounded-md">
           <h4 className="font-medium">From:</h4>
           <p className="font-semibold">{invoice.company_info?.name || 'Your Company'}</p>
           <p className="text-sm">{invoice.company_info?.address || 'Company Address'}</p>
@@ -219,7 +225,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         </div>
 
         {/* Customer section */}
-        <div className="space-y-1">
+        <div className="space-y-1 border p-3 rounded-md">
           <h4 className="font-medium">To:</h4>
           {customer ? (
             <>
@@ -264,9 +270,9 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <tr key={item.id} className="border-b">
                   <td className="py-2 px-1">{item.description}</td>
                   <td className="text-right py-2 px-1">{item.quantity}</td>
-                  <td className="text-right py-2 px-1">${formatAmount(item.unit_price)}</td>
+                  <td className="text-right py-2 px-1">{formatAmount(item.unit_price)}</td>
                   <td className="text-right py-2 px-1">{item.tax_percentage}%</td>
-                  <td className="text-right py-2 px-1">${formatAmount(item.total_price)}</td>
+                  <td className="text-right py-2 px-1">{formatAmount(item.total_price)}</td>
                 </tr>
               ))
             ) : (
@@ -282,20 +288,20 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
               <td colSpan={4} className="text-right py-2 px-1 font-medium">
                 Subtotal:
               </td>
-              <td className="text-right py-2 px-1">${formatAmount(invoice.subtotal_amount)}</td>
+              <td className="text-right py-2 px-1">{formatAmount(invoice.subtotal_amount)}</td>
             </tr>
             <tr>
               <td colSpan={4} className="text-right py-2 px-1 font-medium">
                 Tax:
               </td>
-              <td className="text-right py-2 px-1">${formatAmount(invoice.tax_amount)}</td>
+              <td className="text-right py-2 px-1">{formatAmount(invoice.tax_amount)}</td>
             </tr>
             <tr>
               <td colSpan={4} className="text-right py-2 px-1 font-semibold">
                 Total:
               </td>
               <td className="text-right py-2 px-1 font-semibold">
-                ${formatAmount(invoice.total_amount)}
+                {formatAmount(invoice.total_amount)}
               </td>
             </tr>
           </tfoot>
@@ -304,7 +310,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
 
       {/* Mobile layout - improved with better spacing and layout */}
       <div className="md:hidden space-y-4">
-        <h4 className="font-medium">Invoice Items</h4>
+        <h4 className="font-medium border-b pb-2">Invoice Items</h4>
         {items.length > 0 ? (
           items.map((item) => (
             <div key={item.id} className="border rounded-md p-3 space-y-2">
@@ -314,13 +320,13 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
                 <span className="text-right">{item.quantity}</span>
                 
                 <span className="text-muted-foreground">Unit Price:</span>
-                <span className="text-right">${formatAmount(item.unit_price)}</span>
+                <span className="text-right">{formatAmount(item.unit_price)}</span>
                 
                 <span className="text-muted-foreground">Tax:</span>
                 <span className="text-right">{item.tax_percentage}%</span>
                 
                 <span className="text-muted-foreground font-medium">Amount:</span>
-                <span className="text-right font-medium">${formatAmount(item.total_price)}</span>
+                <span className="text-right font-medium">{formatAmount(item.total_price)}</span>
               </div>
             </div>
           ))
@@ -331,38 +337,38 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         )}
         
         {/* Summary for mobile - improved with better spacing */}
-        <div className="border-t pt-4 space-y-2">
+        <div className="border rounded-md p-3 space-y-2">
           <div className="flex justify-between">
             <span className="font-medium">Subtotal:</span>
-            <span>${formatAmount(invoice.subtotal_amount)}</span>
+            <span>{formatAmount(invoice.subtotal_amount)}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium">Tax:</span>
-            <span>${formatAmount(invoice.tax_amount)}</span>
+            <span>{formatAmount(invoice.tax_amount)}</span>
           </div>
           <div className="flex justify-between pt-2 border-t">
             <span className="font-semibold">Total:</span>
-            <span className="font-semibold">${formatAmount(invoice.total_amount)}</span>
+            <span className="font-semibold">{formatAmount(invoice.total_amount)}</span>
           </div>
         </div>
       </div>
 
       {invoice.notes && (
-        <div className="border-t pt-4">
-          <h4 className="font-medium">Notes</h4>
-          <p className="text-sm mt-1">{invoice.notes}</p>
+        <div className="border p-3 rounded-md">
+          <h4 className="font-medium border-b pb-2 mb-2">Notes</h4>
+          <p className="text-sm">{invoice.notes}</p>
         </div>
       )}
 
       {invoice.payment_instructions && (
-        <div className="border-t pt-4">
-          <h4 className="font-medium">Payment Instructions</h4>
-          <p className="text-sm mt-1">{invoice.payment_instructions}</p>
+        <div className="border p-3 rounded-md">
+          <h4 className="font-medium border-b pb-2 mb-2">Payment Instructions</h4>
+          <p className="text-sm">{invoice.payment_instructions}</p>
         </div>
       )}
 
       {invoice.footer_text && (
-        <div className="border-t pt-4 text-center text-sm text-muted-foreground">
+        <div className="border p-3 rounded-md text-center text-sm text-muted-foreground">
           {invoice.footer_text}
         </div>
       )}

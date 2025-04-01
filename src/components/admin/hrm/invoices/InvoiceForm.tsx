@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import DatePicker from "react-datepicker";
@@ -25,6 +26,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { InvoiceSettings } from "@/types/hrm";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Customer {
   id: string;
@@ -71,6 +73,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<InvoiceSettings | null>(null);
+  const isMobile = useIsMobile();
 
   const form = useForm<InvoiceFormData>({
     defaultValues: {
@@ -312,13 +315,6 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
     }
   };
 
-  // Helper to handle empty input field focus
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (e.target.value === "1" || e.target.value === "0") {
-      e.target.select();
-    }
-  };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -330,7 +326,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
               <FormLabel>Customer</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className={isMobile ? "text-sm" : ""}>
                     <SelectValue placeholder="Select a customer" />
                   </SelectTrigger>
                 </FormControl>
@@ -354,13 +350,15 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
             <FormItem className="flex flex-col">
               <FormLabel>Due Date</FormLabel>
               <FormControl>
-                <DatePicker
-                  selected={field.value}
-                  onChange={(date: Date) => field.onChange(date)}
-                  minDate={new Date()}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholderText="Select due date"
-                />
+                <div className={isMobile ? "w-full" : ""}>
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date: Date) => field.onChange(date)}
+                    minDate={new Date()}
+                    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${isMobile ? "text-sm" : ""}`}
+                    placeholderText="Select due date"
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -373,7 +371,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size={isMobile ? "sm" : "sm"}
               onClick={() =>
                 append({ description: "", quantity: "", unitPrice: "", taxPercentage: "" })
               }
@@ -383,111 +381,236 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
             </Button>
           </div>
 
+          {/* Line item headers for mobile */}
+          {isMobile && (
+            <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
+              <div className="col-span-6">Description</div>
+              <div className="col-span-2 text-center">Qty</div>
+              <div className="col-span-2 text-center">Price</div>
+              <div className="col-span-1 text-center">Tax</div>
+              <div className="col-span-1"></div>
+            </div>
+          )}
+
           {fields.map((field, index) => (
-            <div key={field.id} className="flex gap-4 items-start">
-              <FormField
-                control={form.control}
-                name={`items.${index}.description`}
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Description" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div key={field.id} className={`${isMobile ? "flex flex-col space-y-2" : "flex gap-4 items-start"}`}>
+              {!isMobile ? (
+                // Desktop layout
+                <>
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Description" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name={`items.${index}.quantity`}
-                render={({ field }) => (
-                  <FormItem className="w-24">
-                    <FormLabel>Quantity</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        inputMode="numeric"
-                        placeholder=""
-                        onFocus={handleInputFocus}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
-                            field.onChange(value);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.quantity`}
+                    render={({ field }) => (
+                      <FormItem className="w-24">
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="text"
+                            inputMode="numeric"
+                            value={field.value.toString()}
+                            placeholder=""
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name={`items.${index}.unitPrice`}
-                render={({ field }) => (
-                  <FormItem className="w-32">
-                    <FormLabel>Price per unit</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        inputMode="decimal"
-                        placeholder=""
-                        onFocus={handleInputFocus}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
-                            field.onChange(value);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.unitPrice`}
+                    render={({ field }) => (
+                      <FormItem className="w-32">
+                        <FormLabel>Price per unit</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="text"
+                            inputMode="decimal"
+                            value={field.value.toString()}
+                            placeholder=""
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name={`items.${index}.taxPercentage`}
-                render={({ field }) => (
-                  <FormItem className="w-24">
-                    <FormLabel>Tax (%)</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        inputMode="decimal"
-                        placeholder=""
-                        onFocus={handleInputFocus}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
-                            field.onChange(value);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.taxPercentage`}
+                    render={({ field }) => (
+                      <FormItem className="w-24">
+                        <FormLabel>Tax (%)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="text"
+                            inputMode="decimal"
+                            value={field.value.toString()}
+                            placeholder=""
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <div className="pt-8">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
+                  <div className="pt-8">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      disabled={fields.length === 1}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // Mobile layout
+                <>
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input {...field} placeholder="Description" className="text-sm" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-12 gap-2">
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.quantity`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-3">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="Qty"
+                              className="text-sm"
+                              value={field.value.toString()}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                  field.onChange(value);
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.unitPrice`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-4">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="Price"
+                              className="text-sm"
+                              value={field.value.toString()}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                  field.onChange(value);
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.taxPercentage`}
+                      render={({ field }) => (
+                        <FormItem className="col-span-3">
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="Tax%"
+                              className="text-sm"
+                              value={field.value.toString()}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                                  field.onChange(value);
+                                }
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="col-span-2 flex items-center justify-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                        className="h-8 w-8"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -499,15 +622,19 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Additional notes..." />
+                <Textarea {...field} placeholder="Additional notes..." className={isMobile ? "text-sm" : ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={loading}>
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-4`}>
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className={isMobile ? "w-full" : ""}
+          >
             {loading ? "Saving..." : (invoiceId ? "Update Invoice" : "Create Invoice")}
           </Button>
           
@@ -517,6 +644,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
               variant="destructive"
               onClick={handleDelete}
               disabled={loading}
+              className={isMobile ? "w-full mt-2" : ""}
             >
               Delete Invoice
             </Button>

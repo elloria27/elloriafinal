@@ -1,74 +1,121 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CustomerFormProps {
-  customer?: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string | null;
-    tax_id?: string | null;
-    address?: {
-      street?: string;
-      city?: string;
-      province?: string;
-      postal_code?: string;
-      country?: string;
-    };
-  };
-  onSuccess?: () => void;
-  onCancel?: () => void;
+  customerId?: string;
+  onSuccess: () => void;
 }
 
-const CustomerForm = ({ customer, onSuccess, onCancel }: CustomerFormProps) => {
-  const [name, setName] = useState(customer?.name || "");
-  const [email, setEmail] = useState(customer?.email || "");
-  const [phone, setPhone] = useState(customer?.phone || "");
-  const [taxId, setTaxId] = useState(customer?.tax_id || "");
-  const [street, setStreet] = useState(customer?.address?.street || "");
-  const [city, setCity] = useState(customer?.address?.city || "");
-  const [province, setProvince] = useState(customer?.address?.province || "");
-  const [postalCode, setPostalCode] = useState(customer?.address?.postal_code || "");
-  const [country, setCountry] = useState(customer?.address?.country || "Canada");
-  
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email format"),
+  phone: z.string().optional(),
+  tax_id: z.string().optional(),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  postal_code: z.string().optional(),
+  country: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      tax_id: "",
+      street: "",
+      city: "",
+      province: "",
+      postal_code: "",
+      country: "",
+    },
+  });
 
-    try {
-      // Validate required fields
-      if (!name.trim() || !email.trim()) {
-        toast.error("Name and email are required");
-        return;
-      }
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      if (customerId) {
+        setLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from("hrm_customers")
+            .select("*")
+            .eq("id", customerId)
+            .single();
 
-      const customerData = {
-        name,
-        email,
-        phone: phone || null,
-        tax_id: taxId || null,
-        address: {
-          street,
-          city,
-          province,
-          postal_code: postalCode,
-          country
+          if (error) throw error;
+
+          if (data) {
+            form.reset({
+              name: data.name || "",
+              email: data.email || "",
+              phone: data.phone || "",
+              tax_id: data.tax_id || "",
+              street: data.address?.street || "",
+              city: data.address?.city || "",
+              province: data.address?.province || "",
+              postal_code: data.address?.postal_code || "",
+              country: data.address?.country || "",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching customer data:", error);
+          toast.error("Failed to load customer data");
+        } finally {
+          setLoading(false);
         }
+      }
+    };
+
+    fetchCustomerData();
+  }, [customerId, form]);
+
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    try {
+      const customerData = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone || null,
+        tax_id: data.tax_id || null,
+        address: {
+          street: data.street || null,
+          city: data.city || null,
+          province: data.province || null,
+          postal_code: data.postal_code || null,
+          country: data.country || null,
+        },
       };
 
-      if (customer?.id) {
+      if (customerId) {
         // Update existing customer
         const { error } = await supabase
           .from("hrm_customers")
           .update(customerData)
-          .eq("id", customer.id);
+          .eq("id", customerId);
 
         if (error) throw error;
         toast.success("Customer updated successfully");
@@ -76,146 +123,165 @@ const CustomerForm = ({ customer, onSuccess, onCancel }: CustomerFormProps) => {
         // Create new customer
         const { error } = await supabase
           .from("hrm_customers")
-          .insert([customerData]);
+          .insert(customerData);
 
         if (error) throw error;
         toast.success("Customer created successfully");
       }
 
-      if (onSuccess) onSuccess();
+      onSuccess();
     } catch (error) {
       console.error("Error saving customer:", error);
-      toast.error("Failed to save customer");
+      toast.error("Failed to save customer data");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Name *</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Customer or Company Name"
-          required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Customer name" {...field} className={isMobile ? "text-sm" : ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email *</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="email@example.com"
-          required
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="Email address" {...field} className={isMobile ? "text-sm" : ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone">Phone</Label>
-        <Input
-          id="phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="(123) 456-7890"
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone</FormLabel>
+              <FormControl>
+                <Input placeholder="Phone number" {...field} className={isMobile ? "text-sm" : ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="taxId">Tax ID</Label>
-        <Input
-          id="taxId"
-          value={taxId}
-          onChange={(e) => setTaxId(e.target.value)}
-          placeholder="Tax ID or Business Number"
+        <FormField
+          control={form.control}
+          name="tax_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tax ID</FormLabel>
+              <FormControl>
+                <Input placeholder="Tax ID (optional)" {...field} className={isMobile ? "text-sm" : ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      
-      <div className="pt-2">
-        <h3 className="text-sm font-medium mb-3">Address</h3>
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="street">Street Address</Label>
-            <Input
-              id="street"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="123 Main Street"
+
+        <div className="border rounded-md p-4 space-y-4">
+          <h3 className="font-medium">Address Information</h3>
+          
+          <FormField
+            control={form.control}
+            name="street"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Street address" {...field} className={isMobile ? "text-sm" : ""} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-6"}`}>
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City" {...field} className={isMobile ? "text-sm" : ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="province"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Province/State</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Province/State" {...field} className={isMobile ? "text-sm" : ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="City"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="province">Province/State</Label>
-              <Input
-                id="province"
-                value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                placeholder="Province or State"
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Postal/ZIP Code</Label>
-              <Input
-                id="postalCode"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                placeholder="Postal or ZIP Code"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Country"
-              />
-            </div>
+
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-6"}`}>
+            <FormField
+              control={form.control}
+              name="postal_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Postal/ZIP Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Postal/ZIP code" {...field} className={isMobile ? "text-sm" : ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Country" {...field} className={isMobile ? "text-sm" : ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-end space-x-2 pt-4">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={loading} className={isMobile ? "w-full" : ""}>
+            {loading ? "Saving..." : (customerId ? "Update Customer" : "Create Customer")}
           </Button>
-        )}
-        <Button type="submit" disabled={loading}>
-          {loading ? (
-            <>
-              <span className="animate-spin mr-2">⊚</span>
-              Saving...
-            </>
-          ) : customer?.id ? (
-            "Update Customer"
-          ) : (
-            "Create Customer"
-          )}
-        </Button>
-      </div>
-    </form>
+        </div>
+      </form>
+    </Form>
   );
 };
 
