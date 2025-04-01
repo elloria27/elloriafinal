@@ -1,143 +1,64 @@
-import { useState, useEffect, useRef } from "react";
-import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Printer, Download, Mail, Edit, Save, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
+import { Download, Send } from "lucide-react";
 
 interface InvoiceDetailsProps {
   invoiceId: string;
 }
 
-interface InvoiceLineItem {
+interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   unit_price: number;
-  total_price: number;
   tax_percentage: number;
-}
-
-interface InvoiceDetails {
-  id: string;
-  invoice_number: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-    tax_id: string;
-  };
-  status: "pending" | "paid" | "overdue" | "cancelled";
-  due_date: string;
-  created_at: string;
-  total_amount: number;
-  notes: string;
-  items: InvoiceLineItem[];
-  last_sent_at?: string;
-  last_sent_to?: string;
-  subtotal_amount: number;
-  tax_amount: number;
+  total_price: number;
 }
 
 const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
-  const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
+  const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<InvoiceItem[]>([]);
+  const [customer, setCustomer] = useState<any>(null);
   const [sending, setSending] = useState(false);
-  const [editingNotes, setEditingNotes] = useState(false);
-  const [notes, setNotes] = useState("");
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-CA', {
-      style: 'currency',
-      currency: 'CAD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
-
-  const calculateTotals = (items: InvoiceLineItem[]) => {
-    return items.reduce((acc, item) => {
-      const subtotal = Number((item.quantity * item.unit_price).toFixed(2));
-      const taxAmount = Number(((subtotal * item.tax_percentage) / 100).toFixed(2));
-      return {
-        subtotal: acc.subtotal + subtotal,
-        tax: acc.tax + taxAmount,
-        total: acc.total + subtotal + taxAmount
-      };
-    }, { subtotal: 0, tax: 0, total: 0 });
-  };
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchInvoiceDetails = async () => {
+      setLoading(true);
+      
       try {
+        // Fetch invoice and items
         const { data: invoiceData, error: invoiceError } = await supabase
           .from("hrm_invoices")
           .select(`
             *,
-            customer:hrm_customers(*),
             items:hrm_invoice_items(*)
           `)
           .eq("id", invoiceId)
           .single();
 
         if (invoiceError) throw invoiceError;
+        
+        setInvoice(invoiceData);
+        setItems(invoiceData.items || []);
 
-        const { data: settingsData, error: settingsError } = await supabase
-          .from("hrm_invoice_settings")
-          .select("*")
-          .single();
+        // Fetch customer data
+        if (invoiceData.customer_id) {
+          const { data: customerData, error: customerError } = await supabase
+            .from("hrm_customers")
+            .select("*")
+            .eq("id", invoiceData.customer_id)
+            .single();
 
-        if (settingsError) throw settingsError;
-
-        const transformedData: InvoiceDetails = {
-          id: invoiceData.id,
-          invoice_number: invoiceData.invoice_number,
-          customer: {
-            name: invoiceData.customer.name,
-            email: invoiceData.customer.email,
-            phone: invoiceData.customer.phone || '',
-            tax_id: invoiceData.customer.tax_id || '',
-          },
-          status: invoiceData.status,
-          due_date: invoiceData.due_date,
-          created_at: invoiceData.created_at,
-          total_amount: invoiceData.total_amount,
-          notes: invoiceData.notes || '',
-          items: invoiceData.items.map((item: any) => ({
-            id: item.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: Number(item.unit_price),
-            total_price: Number(item.total_price),
-            tax_percentage: Number(item.tax_percentage || 0),
-          })),
-          last_sent_at: invoiceData.last_sent_at,
-          last_sent_to: invoiceData.last_sent_to,
-          subtotal_amount: invoiceData.subtotal_amount,
-          tax_amount: invoiceData.tax_amount,
-        };
-
-        setInvoice(transformedData);
-        setNotes(transformedData.notes);
+          if (customerError) throw customerError;
+          
+          setCustomer(customerData);
+        }
       } catch (error) {
         console.error("Error fetching invoice details:", error);
         toast.error("Failed to load invoice details");
@@ -149,406 +70,302 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
     fetchInvoiceDetails();
   }, [invoiceId]);
 
-  const handleStatusUpdate = async (newStatus: "pending" | "paid" | "overdue" | "cancelled") => {
+  const handleSendEmail = async () => {
+    if (!invoice || !customer) return;
+    
+    setSending(true);
     try {
-      const { error } = await supabase
-        .from("hrm_invoices")
-        .update({ status: newStatus })
-        .eq("id", invoiceId);
-
-      if (error) throw error;
-
-      setInvoice(prev => prev ? { ...prev, status: newStatus } : null);
-      toast.success(`Invoice marked as ${newStatus}`);
-    } catch (error) {
-      console.error("Error updating invoice status:", error);
-      toast.error("Failed to update invoice status");
-    }
-  };
-
-  const handleNotesUpdate = async () => {
-    try {
-      const { error } = await supabase
-        .from("hrm_invoices")
-        .update({ notes })
-        .eq("id", invoiceId);
-
-      if (error) throw error;
-
-      setInvoice(prev => prev ? { ...prev, notes } : null);
-      setEditingNotes(false);
-      toast.success("Notes updated successfully");
-    } catch (error) {
-      console.error("Error updating notes:", error);
-      toast.error("Failed to update notes");
-    }
-  };
-
-  const handleEmailInvoice = async () => {
-    if (!invoice?.customer.email) {
-      toast.error("No customer email address available");
-      return;
-    }
-
-    try {
-      setSending(true);
-      const { error } = await supabase.functions.invoke("send-invoice-email", {
-        body: { 
+      const { error } = await supabase.functions.invoke('send-invoice-email', {
+        body: {
           invoiceId: invoice.id,
-          recipientEmail: invoice.customer.email
+          recipientEmail: customer.email
         }
       });
 
       if (error) throw error;
-
-      toast.success("Invoice sent successfully");
-      // Refresh invoice to get updated last_sent info
-      window.location.reload();
+      
+      toast.success(`Invoice sent to ${customer.email}`);
+      
+      // Record email in the database
+      await supabase.from('hrm_invoice_emails').insert({
+        invoice_id: invoice.id,
+        sent_to: customer.email,
+        status: 'sent',
+        email_type: 'invoice'
+      });
+      
     } catch (error) {
-      console.error("Error sending invoice:", error);
-      toast.error("Failed to send invoice");
+      console.error('Error sending invoice:', error);
+      toast.error('Failed to send invoice');
     } finally {
       setSending(false);
     }
   };
 
-  const handlePrint = () => {
-    if (printRef.current) {
-      const printContent = printRef.current.innerHTML;
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Invoice #${invoice?.invoice_number}</title>
-              <link href="/styles.css" rel="stylesheet">
-              <style>
-                body { padding: 20px; }
-                @media print {
-                  body { padding: 0; }
-                }
-              </style>
-            </head>
-            <body>
-              ${printContent}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-          printWindow.print();
-          printWindow.close();
-        }, 250);
-      }
-    }
-  };
-
   const handleDownload = async () => {
-    if (!invoice?.id) return;
+    if (!invoice) return;
     
+    setDownloading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-invoice', {
         body: { invoiceId: invoice.id }
       });
 
       if (error) throw error;
-
-      // Convert base64 to blob
-      const pdfContent = data.pdf.split(',')[1];
-      const blob = new Blob([Uint8Array.from(atob(pdfContent), c => c.charCodeAt(0))], { type: 'application/pdf' });
       
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `invoice-${invoice.invoice_number}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success("Invoice downloaded successfully");
+      if (data?.pdf) {
+        const link = document.createElement('a');
+        link.href = data.pdf;
+        link.download = `Invoice_${invoice.invoice_number}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Invoice downloaded successfully');
+      } else {
+        throw new Error('No PDF data returned');
+      }
     } catch (error) {
-      console.error("Error downloading invoice:", error);
-      toast.error("Failed to download invoice");
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to download invoice');
+    } finally {
+      setDownloading(false);
     }
+  };
+
+  // Format currency with 2 decimal places
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-CA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: true
+    }).format(amount);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-10">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!invoice) {
-    return <div>Invoice not found</div>;
+    return <div className="p-4">Invoice not found</div>;
   }
 
-  const totals = calculateTotals(invoice.items);
-
   return (
-    <div className="space-y-6">
-      <div ref={printRef}>
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h2 className="text-2xl font-bold">Invoice #{invoice.invoice_number}</h2>
-            <p className="text-muted-foreground">
-              Created on {format(new Date(invoice.created_at), "PPP")}
-            </p>
-            {invoice.last_sent_at && (
-              <p className="text-sm text-muted-foreground">
-                Last sent: {format(new Date(invoice.last_sent_at), "PPP")} to {invoice.last_sent_to}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              className="w-full sm:w-auto"
+    <div className="space-y-6 text-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        <div>
+          <h3 className="text-lg font-semibold">Invoice #{invoice.invoice_number}</h3>
+          <p className="text-muted-foreground">
+            Created: {format(new Date(invoice.created_at), "MMMM d, yyyy")}
+          </p>
+          <p className="text-muted-foreground">
+            Due: {format(new Date(invoice.due_date), "MMMM d, yyyy")}
+          </p>
+          <div className="mt-2">
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                invoice.status === "paid"
+                  ? "bg-green-100 text-green-800"
+                  : invoice.status === "overdue"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}
             >
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="w-full sm:w-auto"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEmailInvoice}
-              disabled={sending}
-              className="w-full sm:w-auto"
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              {sending ? "Sending..." : "Email"}
-            </Button>
+              {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+            </span>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Name</dt>
-                  <dd className="text-sm font-medium">{invoice.customer.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Email</dt>
-                  <dd className="text-sm font-medium">{invoice.customer.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Phone</dt>
-                  <dd className="text-sm font-medium">
-                    {invoice.customer.phone || "-"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Tax ID</dt>
-                  <dd className="text-sm font-medium">
-                    {invoice.customer.tax_id || "-"}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Status</dt>
-                  <dd>
-                    <Badge
-                      variant="outline"
-                      className={
-                        invoice.status === "paid"
-                          ? "bg-green-100 text-green-800"
-                          : invoice.status === "overdue"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }
-                    >
-                      {invoice.status.charAt(0).toUpperCase() +
-                        invoice.status.slice(1)}
-                    </Badge>
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Due Date</dt>
-                  <dd className="text-sm font-medium">
-                    {format(new Date(invoice.due_date), "PPP")}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Total Amount</dt>
-                  <dd className="text-sm font-medium">
-                    {formatCurrency(totals.total)}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+        
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <Button 
+            onClick={handleSendEmail} 
+            disabled={sending} 
+            className="w-full md:w-auto"
+            variant="outline"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {sending ? "Sending..." : "Send to Client"}
+          </Button>
+          
+          <Button 
+            onClick={handleDownload} 
+            disabled={downloading} 
+            className="w-full md:w-auto"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {downloading ? "Generating..." : "Download PDF"}
+          </Button>
         </div>
-
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Line Items</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Tax %</TableHead>
-                  <TableHead className="text-right">Tax Amount</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoice.items.map((item) => {
-                  const subtotal = Number((item.quantity * item.unit_price).toFixed(2));
-                  const taxAmount = Number(((subtotal * item.tax_percentage) / 100).toFixed(2));
-                  const total = Number((subtotal + taxAmount).toFixed(2));
-
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
-                      <TableCell className="text-right">{item.tax_percentage}%</TableCell>
-                      <TableCell className="text-right">{formatCurrency(taxAmount)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(total)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-                <TableRow className="font-medium">
-                  <TableCell colSpan={4}>Subtotal</TableCell>
-                  <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(totals.subtotal)}
-                  </TableCell>
-                </TableRow>
-                <TableRow className="font-medium">
-                  <TableCell colSpan={4}>Tax Total</TableCell>
-                  <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(totals.tax)}
-                  </TableCell>
-                </TableRow>
-                <TableRow className="font-medium">
-                  <TableCell colSpan={4}>Total</TableCell>
-                  <TableCell colSpan={2} className="text-right">
-                    {formatCurrency(totals.total)}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Notes</CardTitle>
-            {!editingNotes ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setEditingNotes(true)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Notes
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingNotes(false);
-                    setNotes(invoice.notes);
-                  }}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleNotesUpdate}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {editingNotes ? (
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[100px]"
-              placeholder="Add notes about this invoice..."
-            />
-          ) : (
-            <p className="text-sm">{invoice.notes || "No notes added"}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* From section */}
+        <div className="space-y-1">
+          <h4 className="font-medium">From:</h4>
+          <p className="font-semibold">{invoice.company_info?.name || 'Your Company'}</p>
+          <p className="text-sm">{invoice.company_info?.address || 'Company Address'}</p>
+          <p className="text-sm">
+            {invoice.company_info?.email && `Email: ${invoice.company_info.email}`}
+          </p>
+          <p className="text-sm">
+            {invoice.company_info?.phone && `Phone: ${invoice.company_info.phone}`}
+          </p>
+          {invoice.company_info?.tax_id && (
+            <p className="text-sm">Tax ID: {invoice.company_info.tax_id}</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions</CardTitle>
-          <CardDescription>Update invoice status</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => handleStatusUpdate("paid")}
-            disabled={invoice.status === "paid"}
-            className="w-full sm:w-auto"
-          >
-            Mark as Paid
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleStatusUpdate("overdue")}
-            disabled={invoice.status === "overdue"}
-            className="w-full sm:w-auto"
-          >
-            Mark as Overdue
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleStatusUpdate("cancelled")}
-            disabled={invoice.status === "cancelled"}
-            className="w-full sm:w-auto"
-          >
-            Cancel Invoice
-          </Button>
-        </CardContent>
-      </Card>
+        {/* Customer section */}
+        <div className="space-y-1">
+          <h4 className="font-medium">To:</h4>
+          {customer ? (
+            <>
+              <p className="font-semibold">{customer.name}</p>
+              <p className="text-sm">
+                {customer.address?.street && 
+                  `${customer.address.street}${customer.address.city ? ', ' : ''}`}
+                {customer.address?.city}
+              </p>
+              {(customer.address?.province || customer.address?.postal_code) && (
+                <p className="text-sm">
+                  {customer.address.province && `${customer.address.province}${customer.address.postal_code ? ', ' : ''}`}
+                  {customer.address.postal_code}
+                </p>
+              )}
+              <p className="text-sm">{customer.address?.country}</p>
+              <p className="text-sm">Email: {customer.email}</p>
+              {customer.phone && <p className="text-sm">Phone: {customer.phone}</p>}
+              {customer.tax_id && <p className="text-sm">Tax ID: {customer.tax_id}</p>}
+            </>
+          ) : (
+            <p>No customer information</p>
+          )}
+        </div>
+      </div>
+
+      {/* Table for desktop */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left py-2 px-1">Description</th>
+              <th className="text-right py-2 px-1">Quantity</th>
+              <th className="text-right py-2 px-1">Unit Price</th>
+              <th className="text-right py-2 px-1">Tax %</th>
+              <th className="text-right py-2 px-1">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.length > 0 ? (
+              items.map((item) => (
+                <tr key={item.id} className="border-b">
+                  <td className="py-2 px-1">{item.description}</td>
+                  <td className="text-right py-2 px-1">{item.quantity}</td>
+                  <td className="text-right py-2 px-1">${formatAmount(item.unit_price)}</td>
+                  <td className="text-right py-2 px-1">{item.tax_percentage}%</td>
+                  <td className="text-right py-2 px-1">${formatAmount(item.total_price)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="text-center py-4">
+                  No items found
+                </td>
+              </tr>
+            )}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={4} className="text-right py-2 px-1 font-medium">
+                Subtotal:
+              </td>
+              <td className="text-right py-2 px-1">${formatAmount(invoice.subtotal_amount)}</td>
+            </tr>
+            <tr>
+              <td colSpan={4} className="text-right py-2 px-1 font-medium">
+                Tax:
+              </td>
+              <td className="text-right py-2 px-1">${formatAmount(invoice.tax_amount)}</td>
+            </tr>
+            <tr>
+              <td colSpan={4} className="text-right py-2 px-1 font-semibold">
+                Total:
+              </td>
+              <td className="text-right py-2 px-1 font-semibold">
+                ${formatAmount(invoice.total_amount)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Mobile layout */}
+      <div className="md:hidden space-y-4">
+        <h4 className="font-medium">Invoice Items</h4>
+        {items.length > 0 ? (
+          items.map((item) => (
+            <div key={item.id} className="border rounded-md p-3 space-y-2">
+              <p className="font-medium">{item.description}</p>
+              <div className="grid grid-cols-2 gap-1 text-sm">
+                <span className="text-muted-foreground">Quantity:</span>
+                <span className="text-right">{item.quantity}</span>
+                
+                <span className="text-muted-foreground">Unit Price:</span>
+                <span className="text-right">${formatAmount(item.unit_price)}</span>
+                
+                <span className="text-muted-foreground">Tax:</span>
+                <span className="text-right">{item.tax_percentage}%</span>
+                
+                <span className="text-muted-foreground font-medium">Amount:</span>
+                <span className="text-right font-medium">${formatAmount(item.total_price)}</span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-4 border rounded-md">
+            No items found
+          </div>
+        )}
+        
+        {/* Summary for mobile */}
+        <div className="border-t pt-4 space-y-2">
+          <div className="flex justify-between">
+            <span className="font-medium">Subtotal:</span>
+            <span>${formatAmount(invoice.subtotal_amount)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Tax:</span>
+            <span>${formatAmount(invoice.tax_amount)}</span>
+          </div>
+          <div className="flex justify-between pt-2 border-t">
+            <span className="font-semibold">Total:</span>
+            <span className="font-semibold">${formatAmount(invoice.total_amount)}</span>
+          </div>
+        </div>
+      </div>
+
+      {invoice.notes && (
+        <div className="border-t pt-4">
+          <h4 className="font-medium">Notes</h4>
+          <p className="text-sm mt-1">{invoice.notes}</p>
+        </div>
+      )}
+
+      {invoice.payment_instructions && (
+        <div className="border-t pt-4">
+          <h4 className="font-medium">Payment Instructions</h4>
+          <p className="text-sm mt-1">{invoice.payment_instructions}</p>
+        </div>
+      )}
+
+      {invoice.footer_text && (
+        <div className="border-t pt-4 text-center text-sm text-muted-foreground">
+          {invoice.footer_text}
+        </div>
+      )}
     </div>
   );
 };

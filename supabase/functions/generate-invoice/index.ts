@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { jsPDF } from "npm:jspdf";
@@ -148,10 +149,14 @@ const generateOrderInvoice = async (orderId: string, doc: any) => {
     // Use wrapText for item name with adjusted maxWidth
     y = wrapText(doc, productName, 15, y, 120) + 5;
     
+    // Format currency with 2 decimal places
+    const formattedPrice = item.price.toFixed(2);
+    const formattedTotal = itemTotal.toFixed(2);
+    
     // Align numbers to the right
     doc.text(item.quantity.toString(), 140, y - 5);
-    doc.text(`$${item.price.toFixed(2)}`, 160, y - 5);
-    doc.text(`$${itemTotal.toFixed(2)}`, 180, y - 5);
+    doc.text(`$${formattedPrice}`, 160, y - 5);
+    doc.text(`$${formattedTotal}`, 180, y - 5);
     
     y += 5; // Space between items
   });
@@ -280,11 +285,36 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text(invoice.customer.name, 10, 80);
-  doc.text(invoice.customer.address?.street || '', 10, 85);
-  doc.text(invoice.customer.email || '', 10, 90);
-  doc.text(invoice.customer.phone || '', 10, 95);
+  
+  let customerAddress = '';
+  if (invoice.customer.address?.street) customerAddress += invoice.customer.address.street;
+  if (invoice.customer.address?.city) {
+    if (customerAddress) customerAddress += ', ';
+    customerAddress += invoice.customer.address.city;
+  }
+  if (customerAddress) doc.text(customerAddress, 10, 85);
+  
+  let customerLocation = '';
+  if (invoice.customer.address?.province) customerLocation += invoice.customer.address.province;
+  if (invoice.customer.address?.postal_code) {
+    if (customerLocation) customerLocation += ', ';
+    customerLocation += invoice.customer.address.postal_code;
+  }
+  if (customerLocation) doc.text(customerLocation, 10, 90);
+  
+  if (invoice.customer.address?.country) doc.text(invoice.customer.address.country, 10, 95);
+  
+  let yOffset = 100;
+  if (invoice.customer.email) {
+    doc.text(`Email: ${invoice.customer.email}`, 10, yOffset);
+    yOffset += 5;
+  }
+  if (invoice.customer.phone) {
+    doc.text(`Phone: ${invoice.customer.phone}`, 10, yOffset);
+    yOffset += 5;
+  }
   if (invoice.customer.tax_id) {
-    doc.text(`Tax ID: ${invoice.customer.tax_id}`, 10, 100);
+    doc.text(`Tax ID: ${invoice.customer.tax_id}`, 10, yOffset);
   }
   
   // Items Table Header
@@ -308,11 +338,11 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
     // Use wrapText for item description with adjusted maxWidth
     y = wrapText(doc, item.description, 15, y, 90) + 5;
     
-    // Format numbers without decimal places
+    // Format numbers with decimal places
     doc.text(item.quantity.toString(), 110, y - 5);
-    doc.text(formatAmount(item.unit_price), 130, y - 5);
-    doc.text(item.tax_percentage.toString() + '%', 155, y - 5);
-    doc.text(formatAmount(itemTotal), 180, y - 5);
+    doc.text(`$${item.unit_price.toFixed(2)}`, 130, y - 5);
+    doc.text(`${item.tax_percentage.toString()}%`, 155, y - 5);
+    doc.text(`$${itemTotal.toFixed(2)}`, 180, y - 5);
     
     y += 5;
   });
@@ -321,17 +351,17 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   y += 10;
   doc.setFont('helvetica', 'bold');
   doc.text('Subtotal:', 150, y);
-  doc.text(formatAmount(invoice.subtotal_amount), 180, y);
+  doc.text(`$${invoice.subtotal_amount.toFixed(2)}`, 180, y);
   
   y += 10;
   doc.text('Tax Total:', 150, y);
-  doc.text(formatAmount(invoice.tax_amount), 180, y);
+  doc.text(`$${invoice.tax_amount.toFixed(2)}`, 180, y);
   
   // Final Total
   y += 15;
   doc.setFontSize(12);
   doc.text('Total:', 150, y);
-  doc.text(formatAmount(invoice.total_amount), 180, y);
+  doc.text(`$${invoice.total_amount.toFixed(2)}`, 180, y);
   
   // Payment Instructions from settings
   if (settings?.payment_instructions) {
@@ -349,14 +379,6 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
     doc.setFont('helvetica', 'italic');
     wrapText(doc, settings.footer_text, 10, y, 180);
   }
-};
-
-// Helper function to format amounts without decimal places
-const formatAmount = (amount: number) => {
-  return amount.toLocaleString('en-CA', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
 };
 
 serve(async (req) => {

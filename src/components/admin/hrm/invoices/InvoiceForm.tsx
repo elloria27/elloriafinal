@@ -37,9 +37,9 @@ interface InvoiceFormData {
   dueDate: Date;
   items: {
     description: string;
-    quantity: number;
-    unitPrice: number;
-    taxPercentage: number;
+    quantity: number | string;
+    unitPrice: number | string;
+    taxPercentage: number | string;
   }[];
   notes?: string;
 }
@@ -54,6 +54,19 @@ const generateInvoiceNumber = () => {
   return `INV-${timestamp}-${Math.floor(Math.random() * 1000)}`;
 };
 
+// Helper function to preserve user's timezone
+const formatDateToUTC = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Format currency with 2 decimal places
+const formatCurrency = (value: number): string => {
+  return value.toFixed(2);
+};
+
 const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +74,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
 
   const form = useForm<InvoiceFormData>({
     defaultValues: {
-      items: [{ description: "", quantity: 1, unitPrice: 0, taxPercentage: 0 }],
+      items: [{ description: "", quantity: "", unitPrice: "", taxPercentage: "" }],
     },
   });
 
@@ -131,9 +144,9 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
           notes: data.notes,
           items: data.items.map((item: any) => ({
             description: item.description,
-            quantity: item.quantity,
-            unitPrice: item.unit_price,
-            taxPercentage: item.tax_percentage || 0,
+            quantity: item.quantity.toString(),
+            unitPrice: formatCurrency(item.unit_price),
+            taxPercentage: item.tax_percentage.toString() || "",
           })),
         });
       }
@@ -157,11 +170,12 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   const calculateTotals = (items: InvoiceFormData["items"]) => {
     return items.reduce(
       (acc, item) => {
-        const { subtotal, taxAmount, total } = calculateLineTotal(
-          item.quantity,
-          item.unitPrice,
-          item.taxPercentage
-        );
+        const qty = typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity;
+        const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice;
+        const tax = typeof item.taxPercentage === 'string' ? parseFloat(item.taxPercentage) || 0 : item.taxPercentage;
+        
+        const { subtotal, taxAmount, total } = calculateLineTotal(qty, price, tax);
+        
         return {
           subtotal: Number((acc.subtotal + subtotal).toFixed(2)),
           taxAmount: Number((acc.taxAmount + taxAmount).toFixed(2)),
@@ -175,11 +189,21 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
   const onSubmit = async (data: InvoiceFormData) => {
     try {
       setLoading(true);
-      const totals = calculateTotals(data.items);
+      
+      // Convert string values to numbers for calculation
+      const formattedItems = data.items.map(item => ({
+        ...item,
+        quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity,
+        unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) || 0 : item.unitPrice,
+        taxPercentage: typeof item.taxPercentage === 'string' ? parseFloat(item.taxPercentage) || 0 : item.taxPercentage,
+      }));
+      
+      const totals = calculateTotals(formattedItems);
 
       const invoiceData = {
         customer_id: data.customerId,
-        due_date: format(data.dueDate, "yyyy-MM-dd"),
+        // Use formatted date string with preserved timezone
+        due_date: formatDateToUTC(data.dueDate),
         status: "pending" as const,
         notes: data.notes,
         total_amount: totals.total,
@@ -224,18 +248,19 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
           .eq("invoice_id", invoiceId);
       }
 
-      const lineItems = data.items.map(item => {
-        const { subtotal, taxAmount, total } = calculateLineTotal(
-          item.quantity,
-          item.unitPrice,
-          item.taxPercentage
-        );
+      const lineItems = formattedItems.map(item => {
+        const qty = typeof item.quantity === 'number' ? item.quantity : parseFloat(item.quantity as string) || 0;
+        const price = typeof item.unitPrice === 'number' ? item.unitPrice : parseFloat(item.unitPrice as string) || 0;
+        const tax = typeof item.taxPercentage === 'number' ? item.taxPercentage : parseFloat(item.taxPercentage as string) || 0;
+        
+        const { subtotal, taxAmount, total } = calculateLineTotal(qty, price, tax);
+        
         return {
           invoice_id: invoice.id,
           description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unitPrice,
-          tax_percentage: item.taxPercentage,
+          quantity: qty,
+          unit_price: price,
+          tax_percentage: tax,
           total_price: total,
         };
       });
@@ -284,6 +309,13 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
       toast.error("Failed to delete invoice");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper to handle empty input field focus
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value === "1" || e.target.value === "0") {
+      e.target.select();
     }
   };
 
@@ -343,7 +375,7 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
               variant="outline"
               size="sm"
               onClick={() =>
-                append({ description: "", quantity: 1, unitPrice: 0, taxPercentage: 0 })
+                append({ description: "", quantity: "", unitPrice: "", taxPercentage: "" })
               }
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -376,10 +408,16 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                     <FormControl>
                       <Input
                         {...field}
-                        type="number"
-                        min="1"
-                        step="1"
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder=""
+                        onFocus={handleInputFocus}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                            field.onChange(value);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -396,10 +434,16 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                     <FormControl>
                       <Input
                         {...field}
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder=""
+                        onFocus={handleInputFocus}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                            field.onChange(value);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -416,12 +460,16 @@ const InvoiceForm = ({ invoiceId, onSuccess }: InvoiceFormProps) => {
                     <FormControl>
                       <Input
                         {...field}
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="100"
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        placeholder="Tax %"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder=""
+                        onFocus={handleInputFocus}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+                            field.onChange(value);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

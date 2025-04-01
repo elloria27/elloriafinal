@@ -122,11 +122,13 @@ const InvoiceList = () => {
     setInvoiceToDelete(null);
   };
 
+  // Format currency with 2 decimal places
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-CA', {
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
       useGrouping: true
-    }).format(amount).replace(/,/g, ' ');
+    }).format(amount);
   };
 
   useEffect(() => {
@@ -158,7 +160,7 @@ const InvoiceList = () => {
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
