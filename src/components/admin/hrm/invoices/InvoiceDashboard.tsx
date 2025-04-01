@@ -106,7 +106,8 @@ const InvoiceDashboard = () => {
     return amount.toLocaleString("en-CA", {
       style: "currency",
       currency: "CAD",
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2, // Changed from 0 to 2 to show decimal places
+      maximumFractionDigits: 2, // Ensures consistent display of 2 decimal places
     });
   };
 

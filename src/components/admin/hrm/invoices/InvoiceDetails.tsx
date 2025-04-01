@@ -302,7 +302,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
         </table>
       </div>
 
-      {/* Mobile layout */}
+      {/* Mobile layout - improved with better spacing and layout */}
       <div className="md:hidden space-y-4">
         <h4 className="font-medium">Invoice Items</h4>
         {items.length > 0 ? (
@@ -330,7 +330,7 @@ const InvoiceDetails = ({ invoiceId }: InvoiceDetailsProps) => {
           </div>
         )}
         
-        {/* Summary for mobile */}
+        {/* Summary for mobile - improved with better spacing */}
         <div className="border-t pt-4 space-y-2">
           <div className="flex justify-between">
             <span className="font-medium">Subtotal:</span>

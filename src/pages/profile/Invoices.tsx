@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -142,6 +143,16 @@ export default function Invoices() {
     return <div className="p-6">No invoices found.</div>;
   }
 
+  // Format currency with 2 decimal places
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-CA', {
+      style: 'currency',
+      currency: 'CAD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-8 p-6 pt-24">
       {orders.map((order) => (
@@ -170,7 +181,7 @@ export default function Invoices() {
             <div className="pt-4">
               <div className="flex justify-between font-medium">
                 <span>Total Amount</span>
-                <span>${order.total_amount}</span>
+                <span>{formatAmount(order.total_amount)}</span>
               </div>
             </div>
           </div>

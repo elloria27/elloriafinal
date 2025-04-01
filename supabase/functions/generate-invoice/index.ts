@@ -284,37 +284,55 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.text('Bill To:', 10, 75);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
+  
+  // Display customer name
   doc.text(invoice.customer.name, 10, 80);
   
-  let customerAddress = '';
-  if (invoice.customer.address?.street) customerAddress += invoice.customer.address.street;
-  if (invoice.customer.address?.city) {
-    if (customerAddress) customerAddress += ', ';
-    customerAddress += invoice.customer.address.city;
-  }
-  if (customerAddress) doc.text(customerAddress, 10, 85);
+  // Improved address display - show complete address with proper formatting
+  let currentY = 85;
   
-  let customerLocation = '';
-  if (invoice.customer.address?.province) customerLocation += invoice.customer.address.province;
+  // Display address street if available
+  if (invoice.customer.address?.street) {
+    doc.text(invoice.customer.address.street, 10, currentY);
+    currentY += 5;
+  }
+  
+  // Display city, province and postal code on one line if available
+  let locationLine = '';
+  if (invoice.customer.address?.city) locationLine += invoice.customer.address.city;
+  if (invoice.customer.address?.province) {
+    if (locationLine) locationLine += ', ';
+    locationLine += invoice.customer.address.province;
+  }
   if (invoice.customer.address?.postal_code) {
-    if (customerLocation) customerLocation += ', ';
-    customerLocation += invoice.customer.address.postal_code;
+    if (locationLine) locationLine += ' ';
+    locationLine += invoice.customer.address.postal_code;
   }
-  if (customerLocation) doc.text(customerLocation, 10, 90);
   
-  if (invoice.customer.address?.country) doc.text(invoice.customer.address.country, 10, 95);
+  if (locationLine) {
+    doc.text(locationLine, 10, currentY);
+    currentY += 5;
+  }
   
-  let yOffset = 100;
+  // Display country if available
+  if (invoice.customer.address?.country) {
+    doc.text(invoice.customer.address.country, 10, currentY);
+    currentY += 5;
+  }
+  
+  // Display contact information
   if (invoice.customer.email) {
-    doc.text(`Email: ${invoice.customer.email}`, 10, yOffset);
-    yOffset += 5;
+    doc.text(`Email: ${invoice.customer.email}`, 10, currentY);
+    currentY += 5;
   }
+  
   if (invoice.customer.phone) {
-    doc.text(`Phone: ${invoice.customer.phone}`, 10, yOffset);
-    yOffset += 5;
+    doc.text(`Phone: ${invoice.customer.phone}`, 10, currentY);
+    currentY += 5;
   }
+  
   if (invoice.customer.tax_id) {
-    doc.text(`Tax ID: ${invoice.customer.tax_id}`, 10, yOffset);
+    doc.text(`Tax ID: ${invoice.customer.tax_id}`, 10, currentY);
   }
   
   // Items Table Header
@@ -363,21 +381,25 @@ const generateHRMInvoice = async (invoiceId: string, doc: any) => {
   doc.text('Total:', 150, y);
   doc.text(`$${invoice.total_amount.toFixed(2)}`, 180, y);
   
+  // Fix payment instructions and footer overlap by positioning them properly
   // Payment Instructions from settings
   if (settings?.payment_instructions) {
-    y += 20;
+    y += 25; // Increased spacing
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text('Payment Instructions:', 10, y);
     doc.setFont('helvetica', 'normal');
+    // Use wrapText for payment instructions
     y = wrapText(doc, settings.payment_instructions, 10, y + 5, 180) + 10;
   }
   
+  // Add more vertical space before footer
+  y += 15;
+  
   // Footer Text from settings
   if (settings?.footer_text) {
-    y += 10;
     doc.setFont('helvetica', 'italic');
-    wrapText(doc, settings.footer_text, 10, y, 180);
+    doc.text(settings.footer_text, 105, y, { align: 'center' });
   }
 };
 
