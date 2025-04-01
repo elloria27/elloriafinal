@@ -26,6 +26,16 @@ interface CustomerFormData {
   };
 }
 
+// Define a type for the database address format
+interface DbAddress {
+  street?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
+  [key: string]: any;
+}
+
 const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
   const [formData, setFormData] = useState<CustomerFormData>({
     name: "",
@@ -78,12 +88,13 @@ const CustomerForm = ({ customerId, onSuccess }: CustomerFormProps) => {
 
       // Parse the address object if it exists
       if (data.address && typeof data.address === 'object') {
+        const dbAddress = data.address as DbAddress;
         customerData.address = {
-          street: data.address.street || "",
-          city: data.address.city || "",
-          province: data.address.province || "",
-          postal_code: data.address.postal_code || "",
-          country: data.address.country || ""
+          street: dbAddress.street || "",
+          city: dbAddress.city || "",
+          province: dbAddress.province || "",
+          postal_code: dbAddress.postal_code || "",
+          country: dbAddress.country || ""
         };
       }
       
