@@ -14,6 +14,7 @@ export const AdvancedSettings = () => {
   const handleDatabaseExport = async () => {
     try {
       console.log('Exporting database...');
+      // Use an array of known table names rather than strings
       const tables = ['products', 'orders', 'profiles', 'pages', 'site_settings'] as const;
       const exportData: Record<string, any> = {};
 
@@ -77,16 +78,28 @@ export const AdvancedSettings = () => {
         toast.success("Full database SQL dump exported successfully");
       } else {
         // Fallback to client-side export if edge function is not available
-        const tables = [
-          'products', 'orders', 'profiles', 'pages', 'site_settings', 
-          'blog_posts', 'blog_categories', 'inventory', 'payment_methods',
-          'delivery_methods', 'promo_codes', 'shop_company_expenses',
-          'hrm_tasks', 'hrm_invoices', 'business_form_submissions'
-        ];
+        // Define a list of known table names as const array to satisfy TypeScript
+        const knownTables = [
+          'products',
+          'orders',
+          'profiles',
+          'pages',
+          'site_settings',
+          'blog_posts',
+          'blog_categories',
+          'inventory',
+          'payment_methods',
+          'delivery_methods',
+          'promo_codes',
+          'shop_company_expenses',
+          'hrm_tasks',
+          'hrm_invoices',
+          'business_form_submissions'
+        ] as const;
         
         const fullExport: Record<string, any> = {};
         
-        for (const table of tables) {
+        for (const table of knownTables) {
           const { data: tableData, error: tableError } = await supabase
             .from(table)
             .select('*');
@@ -143,6 +156,7 @@ export const AdvancedSettings = () => {
       reader.onload = async (e) => {
         try {
           const importData = JSON.parse(e.target?.result as string);
+          // Use the same const tables array as in export to ensure type safety
           const tables = ['products', 'orders', 'profiles', 'pages', 'site_settings'] as const;
           
           for (const table of tables) {
