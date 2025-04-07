@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
@@ -275,9 +276,11 @@ serve(async (req) => {
 
     console.log('Create-checkout - Creating order with data:', JSON.stringify(orderData, null, 2));
 
-    const { error: orderError } = await supabaseAdmin
+    // Insert the order first
+    const { data: orderResult, error: orderError } = await supabaseAdmin
       .from('orders')
-      .insert(orderData);
+      .insert(orderData)
+      .select();
 
     if (orderError) {
       console.error('Create-checkout - Error creating order:', orderError);
@@ -288,6 +291,68 @@ serve(async (req) => {
           status: 500 
         }
       );
+    }
+
+    // For each item in the order, update inventory and create inventory logs
+    try {
+      for (const item of items) {
+        // First, get the current inventory quantity
+        const { data: inventoryData, error: inventoryError } = await supabaseAdmin
+          .from('inventory')
+          .select('quantity')
+          .eq('product_id', item.id)
+          .single();
+          
+        if (inventoryError) {
+          console.warn('Create-checkout - Error fetching inventory for product:', item.id, inventoryError);
+          continue; // Skip inventory update for this item
+        }
+
+        if (!inventoryData) {
+          console.warn('Create-checkout - No inventory record found for product:', item.id);
+          continue; // Skip inventory update for this item
+        }
+          
+        const currentQuantity = inventoryData.quantity;
+        const newQuantity = currentQuantity - item.quantity;
+        
+        // Update inventory
+        const { error: updateError } = await supabaseAdmin
+          .from('inventory')
+          .update({ 
+            quantity: newQuantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq('product_id', item.id);
+          
+        if (updateError) {
+          console.warn('Create-checkout - Error updating inventory:', updateError);
+          continue;
+        }
+          
+        // Create inventory log
+        const { error: logError } = await supabaseAdmin
+          .from('inventory_logs')
+          .insert({
+            product_id: item.id,
+            quantity_change: -item.quantity,
+            previous_quantity: currentQuantity,
+            new_quantity: newQuantity,
+            reason_type: 'sale',
+            reason_details: 'Order #' + orderNumber,
+            adjustment_type: 'decrease',
+            reference_number: orderNumber,
+            performed_by: email
+          });
+          
+        if (logError) {
+          console.warn('Create-checkout - Error creating inventory log:', logError);
+        }
+      }
+    } catch (inventoryError) {
+      console.error('Create-checkout - Error in inventory management:', inventoryError);
+      // We don't want to fail the checkout if inventory updates fail
+      // Just log the error and continue
     }
 
     console.log('Create-checkout - Order created successfully');
