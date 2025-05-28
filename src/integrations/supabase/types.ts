@@ -2199,6 +2199,7 @@ export type Database = {
       products: {
         Row: {
           created_at: string | null
+          custom_buy_button: Json | null
           description: string
           features: string[]
           id: string
@@ -2213,6 +2214,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_buy_button?: Json | null
           description: string
           features?: string[]
           id?: string
@@ -2227,6 +2229,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_buy_button?: Json | null
           description?: string
           features?: string[]
           id?: string

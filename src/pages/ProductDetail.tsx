@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/ProductGallery";
-import { Share2, ShoppingCart, Star, Heart, ArrowRight } from "lucide-react";
+import { Share2, ShoppingCart, Star, Heart, ArrowRight, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { parseProduct } from "@/utils/supabase-helpers";
@@ -82,6 +83,12 @@ const ProductDetailContent = () => {
       ...product,
       quantity,
     });
+  };
+
+  const handleCustomBuyClick = () => {
+    if (product?.custom_buy_button?.url) {
+      window.open(product.custom_buy_button.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   if (loading) {
@@ -180,25 +187,40 @@ const ProductDetailContent = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-32">
-                    <Input
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))}
-                      className="text-center"
-                    />
-                  </div>
-                  <Button
-                    ref={addToCartButtonRef}
-                    size="lg"
-                    onClick={handleAddToCart}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-white"
-                  >
-                    <ShoppingCart className="mr-2" />
-                    Add to Cart
-                  </Button>
+                  {!product.custom_buy_button?.enabled && (
+                    <div className="w-32">
+                      <Input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))}
+                        className="text-center"
+                      />
+                    </div>
+                  )}
+                  
+                  {product.custom_buy_button?.enabled && product.custom_buy_button?.url ? (
+                    <Button
+                      size="lg"
+                      onClick={handleCustomBuyClick}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                    >
+                      <ExternalLink className="mr-2" />
+                      Buy Now
+                    </Button>
+                  ) : (
+                    <Button
+                      ref={addToCartButtonRef}
+                      size="lg"
+                      onClick={handleAddToCart}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                    >
+                      <ShoppingCart className="mr-2" />
+                      Add to Cart
+                    </Button>
+                  )}
+                  
                   <Button
                     size="lg"
                     variant="outline"
