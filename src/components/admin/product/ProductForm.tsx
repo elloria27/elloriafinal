@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Product } from "@/types/product";
 import { Trash2, Plus, Image, Video, Upload, Link } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,6 +38,11 @@ const DEFAULT_WHY_CHOOSE_FEATURE = {
   description: ""
 };
 
+const DEFAULT_CUSTOM_BUY_BUTTON = {
+  enabled: false,
+  url: ""
+};
+
 export const ProductForm = ({ product, onSave }: ProductFormProps) => {
   const [editForm, setEditForm] = useState<EditFormType>({
     name: "",
@@ -47,6 +53,7 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
     specifications: DEFAULT_SPECIFICATIONS,
     media: [],
     why_choose_features: [],
+    custom_buy_button: DEFAULT_CUSTOM_BUY_BUTTON,
     slug: ""
   });
 
@@ -63,6 +70,7 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
         specifications: product.specifications || DEFAULT_SPECIFICATIONS,
         media: product.media || [],
         why_choose_features: product.why_choose_features || [],
+        custom_buy_button: product.custom_buy_button || DEFAULT_CUSTOM_BUY_BUTTON,
         slug: product.slug
       });
     }
@@ -259,6 +267,49 @@ export const ProductForm = ({ product, onSave }: ProductFormProps) => {
               alt="Preview" 
               className="w-32 h-32 object-cover rounded-lg mt-2"
             />
+          )}
+        </div>
+      </div>
+
+      {/* Custom Buy Button */}
+      <div className="space-y-4">
+        <Label>Custom Buy Button</Label>
+        <div className="grid gap-4 p-4 border rounded-lg">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="custom-buy-button"
+              checked={editForm.custom_buy_button?.enabled || false}
+              onCheckedChange={(checked) => 
+                setEditForm(prev => ({
+                  ...prev,
+                  custom_buy_button: {
+                    ...prev.custom_buy_button,
+                    enabled: checked
+                  }
+                }))
+              }
+            />
+            <Label htmlFor="custom-buy-button">Enable Custom Buy Button</Label>
+          </div>
+          
+          {editForm.custom_buy_button?.enabled && (
+            <div className="grid gap-2">
+              <Label htmlFor="custom-buy-url">Custom URL</Label>
+              <Input
+                id="custom-buy-url"
+                value={editForm.custom_buy_button?.url || ""}
+                onChange={(e) => 
+                  setEditForm(prev => ({
+                    ...prev,
+                    custom_buy_button: {
+                      ...prev.custom_buy_button,
+                      url: e.target.value
+                    }
+                  }))
+                }
+                placeholder="https://example.com/custom-purchase-page"
+              />
+            </div>
           )}
         </div>
       </div>

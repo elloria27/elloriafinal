@@ -1,9 +1,10 @@
+
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, ArrowRight } from "lucide-react";
+import { ShoppingCart, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useProductSubscription } from "@/hooks/useProductSubscription";
@@ -73,6 +74,10 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
     addItem(cartItem);
     toast.success("Added to cart successfully!");
     setTimeout(() => setAnimatingProduct(null), 1000);
+  };
+
+  const handleCustomBuyClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // Use content from props if available, otherwise use default content
@@ -191,27 +196,39 @@ export const ProductCarousel = ({ content }: ProductCarouselProps) => {
                   </p>
 
                   <div className="space-y-6 pt-4">
-                    <div className="flex items-center justify-center gap-4">
-                      <label className="text-sm text-gray-600">Quantity:</label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="99"
-                        value={quantities[product.id]}
-                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                        className="w-20 text-center rounded-xl border-accent-purple/20"
-                      />
-                    </div>
+                    {!product.custom_buy_button?.enabled && (
+                      <div className="flex items-center justify-center gap-4">
+                        <label className="text-sm text-gray-600">Quantity:</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="99"
+                          value={quantities[product.id]}
+                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                          className="w-20 text-center rounded-xl border-accent-purple/20"
+                        />
+                      </div>
+                    )}
 
                     <div className="flex flex-col gap-3">
-                      <Button 
-                        onClick={() => handleAddToCart(product)}
-                        disabled={animatingProduct === product.id}
-                        className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                      >
-                        <ShoppingCart className="mr-2 h-5 w-5" />
-                        Add to Cart
-                      </Button>
+                      {product.custom_buy_button?.enabled && product.custom_buy_button?.url ? (
+                        <Button 
+                          onClick={() => handleCustomBuyClick(product.custom_buy_button!.url)}
+                          className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          <ExternalLink className="mr-2 h-5 w-5" />
+                          Buy Now
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => handleAddToCart(product)}
+                          disabled={animatingProduct === product.id}
+                          className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
+                          <ShoppingCart className="mr-2 h-5 w-5" />
+                          Add to Cart
+                        </Button>
+                      )}
                       
                       <Button
                         variant="outline"

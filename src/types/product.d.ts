@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -23,6 +24,10 @@ export interface Product {
     title: string;
     description: string;
   }[];
+  custom_buy_button?: {
+    enabled: boolean;
+    url: string;
+  };
   created_at?: string;
   updated_at?: string;
 }

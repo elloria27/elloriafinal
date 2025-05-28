@@ -1,6 +1,7 @@
+
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -47,6 +48,12 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
     }
   };
 
+  const handleCustomBuyClick = (e: React.MouseEvent, url: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {products.map((product, index) => (
@@ -90,13 +97,23 @@ export const ProductGrid = ({ initialProducts }: ProductGridProps) => {
             </div>
 
             <div className="flex gap-2 relative z-20">
-              <Button
-                onClick={(e) => handleAddToCart(e, product)}
-                className="flex-1 bg-primary hover:bg-primary/90 text-white"
-              >
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Add to Cart
-              </Button>
+              {product.custom_buy_button?.enabled && product.custom_buy_button?.url ? (
+                <Button
+                  onClick={(e) => handleCustomBuyClick(e, product.custom_buy_button!.url)}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Buy Now
+                </Button>
+              ) : (
+                <Button
+                  onClick={(e) => handleAddToCart(e, product)}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Add to Cart
+                </Button>
+              )}
               <Button
                 variant="outline"
                 asChild
