@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Leaf, Heart, Shield, Sparkles } from "lucide-react";
+import { Leaf, Heart, Shield, Sparkles, Ghost, Moon, Star } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { HeroContent } from "@/types/content-blocks";
@@ -16,27 +16,81 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   
-  const floatingIcons = [
-    { Icon: Leaf, delay: 0, position: { top: "20%", left: "10%" } },
-    { Icon: Heart, delay: 0.2, position: { top: "50%", left: "15%" } },
-    { Icon: Shield, delay: 0.4, position: { top: "30%", left: "80%" } },
-    { Icon: Sparkles, delay: 0.6, position: { top: "70%", left: "75%" } }
+  const halloweenIcons = [
+    { Icon: Ghost, delay: 0, position: { top: "15%", left: "8%" }, color: "text-orange-400" },
+    { Icon: Moon, delay: 0.3, position: { top: "60%", left: "12%" }, color: "text-purple-400" },
+    { Icon: Star, delay: 0.6, position: { top: "25%", left: "85%" }, color: "text-yellow-400" },
+    { Icon: Sparkles, delay: 0.9, position: { top: "75%", left: "82%" }, color: "text-orange-300" },
+    { Icon: Ghost, delay: 1.2, position: { top: "45%", left: "5%" }, color: "text-purple-300" },
+    { Icon: Heart, delay: 1.5, position: { top: "80%", left: "90%" }, color: "text-orange-400" }
+  ];
+
+  const pumpkins = [
+    { position: { top: "10%", left: "18%" }, delay: 0.5, size: "text-4xl" },
+    { position: { top: "70%", left: "15%" }, delay: 1, size: "text-3xl" },
+    { position: { top: "35%", left: "88%" }, delay: 1.5, size: "text-5xl" },
+    { position: { top: "85%", left: "85%" }, delay: 2, size: "text-3xl" }
   ];
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-secondary/5 via-white to-accent-purple/10 overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(109.6deg,rgba(223,234,247,0.4)_11.2%,rgba(244,248,252,0.4)_91.1%)]" />
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-orange-900/20 via-purple-900/30 to-black/50 overflow-hidden">
+      {/* Animated Halloween background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,69,19,0.3),transparent_50%),radial-gradient(ellipse_at_bottom,rgba(75,0,130,0.3),transparent_50%)]" />
+      
+      {/* Floating bats */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={`bat-${i}`}
+          className="absolute text-2xl"
+          initial={{ x: -50, y: Math.random() * 100 }}
+          animate={{
+            x: window.innerWidth + 50,
+            y: [
+              Math.random() * 100,
+              Math.random() * window.innerHeight,
+              Math.random() * 100
+            ]
+          }}
+          transition={{
+            duration: 15 + Math.random() * 10,
+            repeat: Infinity,
+            delay: i * 2,
+            ease: "linear"
+          }}
+          style={{ top: `${Math.random() * 80}%` }}
+        >
+          🦇
+        </motion.div>
+      ))}
+      
+      {/* Animated spider webs in corners */}
+      <motion.div
+        className="absolute top-0 left-0 text-6xl opacity-30"
+        animate={{ rotate: [0, 5, -5, 0] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      >
+        🕸️
+      </motion.div>
+      <motion.div
+        className="absolute top-0 right-0 text-6xl opacity-30"
+        animate={{ rotate: [0, -5, 5, 0] }}
+        transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+      >
+        🕸️
+      </motion.div>
       
       <div className="container px-4 py-16 flex flex-col lg:flex-row items-center gap-12 relative z-10">
-        {floatingIcons.map(({ Icon, delay, position }, index) => (
+        {/* Halloween floating icons */}
+        {halloweenIcons.map(({ Icon, delay, position, color }, index) => (
           <motion.div
-            key={index}
-            className="absolute hidden lg:block"
+            key={`icon-${index}`}
+            className={`absolute hidden lg:block ${color}`}
             style={position}
             animate={{
-              y: [0, -20, 0],
-              rotate: [0, 10, -10, 0],
-              scale: [1, 1.1, 1]
+              y: [0, -30, 0],
+              rotate: [0, 15, -15, 0],
+              scale: [1, 1.2, 1],
+              opacity: [0.6, 1, 0.6]
             }}
             transition={{
               duration: 4,
@@ -45,7 +99,29 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
               ease: "easeInOut"
             }}
           >
-            <Icon className="w-8 h-8 text-primary/40" />
+            <Icon className="w-10 h-10 drop-shadow-glow" />
+          </motion.div>
+        ))}
+        
+        {/* Floating pumpkins */}
+        {pumpkins.map((pumpkin, index) => (
+          <motion.div
+            key={`pumpkin-${index}`}
+            className={`absolute hidden lg:block ${pumpkin.size}`}
+            style={pumpkin.position}
+            animate={{
+              y: [0, -25, 0],
+              rotate: [0, 10, -10, 0],
+              scale: [1, 1.15, 1]
+            }}
+            transition={{
+              duration: 5,
+              delay: pumpkin.delay,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            🎃
           </motion.div>
         ))}
         
@@ -55,10 +131,17 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent-purple bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-7xl font-bold mb-6 leading-tight drop-shadow-lg">
+              <span className="bg-gradient-to-r from-orange-400 via-purple-400 to-orange-500 bg-clip-text text-transparent animate-pulse">
                 {content?.title || "Redefining Comfort, Confidence, and Sustainability"}
               </span>
+              <motion.span
+                className="inline-block ml-4 text-5xl"
+                animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                🎃
+              </motion.span>
             </h1>
           </motion.div>
           
@@ -66,9 +149,10 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0"
+            className="text-lg md:text-2xl text-orange-100 mb-8 max-w-2xl mx-auto lg:mx-0 drop-shadow-md"
           >
             {content?.subtitle || "Experience ultra-thin, eco-friendly feminine care made for modern women."}
+            <span className="inline-block ml-2">👻</span>
           </motion.p>
           
           <motion.div
@@ -77,21 +161,29 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
           >
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-              asChild
-            >
-              <Link to="/shop">{content?.shopNowText || "Shop Now"}</Link>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="border-2 border-primary text-primary hover:bg-primary/10 px-6 py-6 text-lg rounded-full transition-all duration-300"
-              asChild
-            >
-              <Link to="/about">{content?.learnMoreText || "Learn More"}</Link>
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white px-6 py-6 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-orange-400"
+                asChild
+              >
+                <Link to="/shop">
+                  {content?.shopNowText || "Shop Now"} 🎃
+                </Link>
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-2 border-orange-400 text-orange-100 bg-purple-900/50 hover:bg-purple-800/70 px-6 py-6 text-lg rounded-full transition-all duration-300 backdrop-blur-sm"
+                asChild
+              >
+                <Link to="/about">
+                  {content?.learnMoreText || "Learn More"} 👻
+                </Link>
+              </Button>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -103,9 +195,27 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent-purple/30 via-accent-peach/20 to-accent-green/20 rounded-full blur-3xl" />
+          {/* Halloween glow effect */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-500/40 via-purple-500/30 to-orange-600/40 rounded-full blur-3xl animate-pulse" />
+          
+          {/* Floating ghosts around video */}
+          <motion.div
+            className="absolute -top-8 -left-8 text-4xl z-20"
+            animate={{ y: [0, -15, 0], rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            👻
+          </motion.div>
+          <motion.div
+            className="absolute -bottom-8 -right-8 text-4xl z-20"
+            animate={{ y: [0, -15, 0], rotate: [0, -10, 10, 0] }}
+            transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+          >
+            🎃
+          </motion.div>
+          
           <motion.div 
-            className="relative z-10 w-full h-full rounded-lg overflow-hidden shadow-xl"
+            className="relative z-10 w-full h-full rounded-lg overflow-hidden shadow-2xl border-4 border-orange-500/50"
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
           >
