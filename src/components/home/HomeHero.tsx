@@ -38,26 +38,29 @@ export const HomeHero = ({ content }: HomeHeroProps) => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,69,19,0.3),transparent_50%),radial-gradient(ellipse_at_bottom,rgba(75,0,130,0.3),transparent_50%)]" />
       
       {/* Floating bats */}
-      {[...Array(6)].map((_, i) => (
+      {[
+        { left: "5%", top: "20%", delay: 0, duration: 8 },
+        { left: "15%", top: "60%", delay: 1.5, duration: 10 },
+        { left: "75%", top: "15%", delay: 3, duration: 9 },
+        { left: "85%", top: "50%", delay: 4.5, duration: 11 },
+        { left: "40%", top: "10%", delay: 6, duration: 7 },
+        { left: "60%", top: "70%", delay: 7.5, duration: 12 }
+      ].map((bat, i) => (
         <motion.div
           key={`bat-${i}`}
-          className="absolute text-2xl"
-          initial={{ x: -50, y: Math.random() * 100 }}
+          className="absolute text-3xl hidden lg:block z-20"
+          style={{ left: bat.left, top: bat.top }}
           animate={{
-            x: window.innerWidth + 50,
-            y: [
-              Math.random() * 100,
-              Math.random() * window.innerHeight,
-              Math.random() * 100
-            ]
+            x: [0, 50, -50, 0],
+            y: [0, -30, 30, 0],
+            rotate: [0, 15, -15, 0]
           }}
           transition={{
-            duration: 15 + Math.random() * 10,
+            duration: bat.duration,
             repeat: Infinity,
-            delay: i * 2,
-            ease: "linear"
+            delay: bat.delay,
+            ease: "easeInOut"
           }}
-          style={{ top: `${Math.random() * 80}%` }}
         >
           🦇
         </motion.div>
