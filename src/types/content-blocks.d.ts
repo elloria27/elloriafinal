@@ -589,6 +589,10 @@ export type BlockType =
   | "sustainability_program_benefits"
   | "sustainability_program_process"
   | "sustainability_program_cta"
+  | "find_us_cta"
+  | "find_us_hero"
+  | "find_us_retailers"
+  | "find_us_search"
   | "not_found";
 
 export interface ContentBlock {
